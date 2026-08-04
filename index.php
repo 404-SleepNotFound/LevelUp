@@ -12,8 +12,8 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-$isLoggedIn = isset($_SESSION['user_login']);
-$sessionData = $_SESSION['user_login'] ?? null;
+$isLoggedIn = isset($_SESSION['user_login']) || isset($_SESSION['user_id']);
+$sessionData = $_SESSION['user_login'] ?? $_SESSION ?? null;
 
 $navUser = [
     'username' => $sessionData['name'] ?? ($sessionData['username'] ?? 'User'),
@@ -278,7 +278,6 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
     }
 
     .opacity-10 { opacity: 0.1 !important; }
-    .opacity-05 { opacity: 0.05 !important; }
 
     .glass-card {
         background: var(--surface-card);
@@ -373,10 +372,6 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
         box-shadow: none;
     }
 
-    .custom-accordion .accordion-button::after {
-        transition: transform 0.2s ease;
-    }
-
     html[data-theme="dark"] .custom-accordion .accordion-button::after {
         filter: invert(1);
     }
@@ -409,10 +404,6 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
         color: var(--btn-dark-text) !important;
         border: 1px solid var(--btn-dark-border) !important;
     }
-
-    html[data-theme="light"] .text-white { color: var(--text-main) !important; }
-    html[data-theme="light"] .text-light { color: var(--text-muted) !important; }
-    html[data-theme="light"] .icon-box { background-color: rgba(0, 0, 0, 0.04) !important; }
 </style>
 
 <!-- SECTION 1: HERO & GAMIFIED HERO DASHBOARD -->
@@ -428,9 +419,9 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                         <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
                             <i class="bi bi-fire fs-6"></i>
                         </div>
-                        <span class="fw-bold text-white fs-sm"><?= htmlspecialchars($navUser['streak']) ?> Day Streak!</span>
+                        <span class="fw-bold text-white fs-sm"><?= htmlspecialchars((string)$navUser['streak']) ?> Day Streak!</span>
                         <div class="vr mx-2 bg-secondary opacity-50"></div>
-                        <span class="text-light opacity-75 fw-medium fs-sm"><i class="bi bi-star-fill text-warning me-1"></i>Lvl <?= htmlspecialchars($navUser['level']) ?></span>
+                        <span class="text-light opacity-75 fw-medium fs-sm"><i class="bi bi-star-fill text-warning me-1"></i>Lvl <?= htmlspecialchars((string)$navUser['level']) ?></span>
                     </div>
 
                     <h1 class="display-4 fw-bold text-white mb-3 lh-sm" style="font-family: 'Outfit', sans-serif;">
@@ -441,10 +432,10 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                     <div class="glass-card p-4 mb-4 text-start">
                         <div class="d-flex justify-content-between align-items-end mb-2">
                             <h6 class="fw-bold text-light opacity-75 mb-0 fs-sm"><i class="bi bi-journal-code text-info me-2"></i>เควสต์ปัจจุบัน: <?= htmlspecialchars($currentQuest['title']) ?></h6>
-                            <span class="fw-bold text-success fs-sm"><?= htmlspecialchars($currentQuest['progress']) ?>%</span>
+                            <span class="fw-bold text-success fs-sm"><?= htmlspecialchars((string)$currentQuest['progress']) ?>%</span>
                         </div>
                         <div class="xp-bar-container mb-4">
-                            <div class="xp-bar-fill" style="width: <?= htmlspecialchars($currentQuest['progress']) ?>%;"></div>
+                            <div class="xp-bar-fill" style="width: <?= htmlspecialchars((string)$currentQuest['progress']) ?>%;"></div>
                         </div>
                         <div class="d-flex flex-wrap gap-3">
                             <a href="<?= $ROOT_PATH; ?>student/lesson.php" class="btn btn-premium ajax-link px-4 py-2 rounded-pill fs-sm fw-bold"><i class="bi bi-play-fill me-1"></i> ลุยภารกิจต่อ</a>
@@ -533,7 +524,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                         </div>
                         <div class="overflow-hidden">
                             <h6 class="fw-bold text-white mb-0 fs-sm text-truncate category-item-title"><?= htmlspecialchars($cat['name']) ?></h6>
-                            <small class="text-light opacity-50 fs-xs"><?= htmlspecialchars($cat['count'] ?? 0) ?> บทเรียน</small>
+                            <small class="text-light opacity-50 fs-xs"><?= htmlspecialchars((string)($cat['count'] ?? 0)) ?> บทเรียน</small>
                         </div>
                     </a>
                 </div>
@@ -633,7 +624,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                                 </div>
                                 <div>
                                     <h6 class="fw-bold text-white mb-0 fs-sm"><?= htmlspecialchars($path['title']) ?></h6>
-                                    <small class="text-light opacity-50 fs-xs"><?= htmlspecialchars($path['quests']) ?> เควสต์ย่อย • <?= htmlspecialchars($path['duration']) ?></small>
+                                    <small class="text-light opacity-50 fs-xs"><?= htmlspecialchars((string)$path['quests']) ?> เควสต์ย่อย • <?= htmlspecialchars($path['duration']) ?></small>
                                 </div>
                             </div>
                             <i class="bi bi-chevron-right text-light opacity-50"></i>
