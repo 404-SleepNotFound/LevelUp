@@ -1,27 +1,29 @@
 <?php
-// เปิดแสดง Error เพื่อให้รู้จุดที่พังทันที (หากแก้เสร็จแล้วค่อยลบ 2 บรรทัดนี้ได้ครับ)
+// ตั้งค่า Error Reporting (สามารถปิดใช้งานใน Production โดยเปลี่ยนเป็น 0)
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 $ROOT_PATH = '../';
 
-// เช็กว่า Session เริ่มหรือยัง ป้องกัน Error session_start ซ้ำซ้อน
+// ตรวจสอบและเริ่มต้น Session หากยังไม่ได้เริ่ม
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-require_once __DIR__ . '/../config/google.php';
+// นำเข้าไฟล์ Google Auth Config (หากมี)
+if (file_exists(__DIR__ . '/../config/google.php')) {
+    require_once __DIR__ . '/../config/google.php';
+}
 
-// ตรวจสอบว่าถ้า Login แล้วให้ไปหน้า index.php
+// ตรวจสอบสถานะการเข้าสู่ระบบ หาก Login แล้วให้ Redirect ไปยังหน้าหลัก
 if (isset($_SESSION['user_login']) || isset($_SESSION['user_id'])) {
     header("Location: ../index.php");
     exit;
 }
 
 // -------------------------------------------------------------------------
-// ตัวแปรจำลอง (Placeholder Variables) สำหรับรองรับการดึงข้อมูลจาก Database
+// ตัวแปรข้อมูลการตั้งค่าหน้า Login
 // -------------------------------------------------------------------------
-$user = []; 
 $site_settings = [
     'hero_title' => 'INITIALIZE QUEST',
     'hero_desc' => 'เข้าสู่ระบบเพื่อเริ่มสะสม XP และดำเนินภารกิจเรียนรู้ของคุณต่อ',
@@ -33,22 +35,21 @@ $site_settings = [
     ]
 ];
 
-// สร้าง URL สำหรับการ Login ผ่าน Google
-$login_url = $client->createAuthUrl();
+// สร้าง URL Login ผ่าน Google Client (ถ้ามีออบเจกต์ $client)
+$login_url = (isset($client) && method_exists($client, 'createAuthUrl')) ? $client->createAuthUrl() : '../api/google_auth.php';
 
-// นำเข้า Header (ใช้ __DIR__ เพื่อป้องกันพาธหลุด)
-include __DIR__ . '/../includes/header.php';
+// นำเข้า Header
+if (file_exists(__DIR__ . '/../includes/header.php')) {
+    include __DIR__ . '/../includes/header.php';
+}
 ?>
 
 <!-- 
 ========================================================================
-     2. STYLESHEET SECTION (LEVELUP CORE STYLE EMBED)
+     STYLESHEET SECTION (LEVELUP CORE STYLE EMBED)
 ========================================================================
 -->
 <style>
-    /* ------------------------------------------- */
-    /* Theme Variables                             */
-    /* ------------------------------------------- */
     :root, html[data-theme="dark"] {
         --lv-bg-dark: #090d16;
         --lv-card-bg: rgba(15, 23, 42, 0.88);
@@ -73,9 +74,6 @@ include __DIR__ . '/../includes/header.php';
         --lv-footer-link: #64748b;
     }
 
-    /* ------------------------------------------- */
-    /* Base Elements                               */
-    /* ------------------------------------------- */
     body {
         background-color: var(--lv-bg-dark) !important;
         font-family: 'Outfit', 'Kanit', sans-serif;
@@ -109,9 +107,6 @@ include __DIR__ . '/../includes/header.php';
         transition: all 0.3s ease;
     }
 
-    /* ------------------------------------------- */
-    /* Quest Icon Box                              */
-    /* ------------------------------------------- */
     .quest-icon {
         background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
         color: #ffffff !important;
@@ -119,9 +114,6 @@ include __DIR__ . '/../includes/header.php';
         transition: all 0.3s ease;
     }
 
-    /* ------------------------------------------- */
-    /* Buttons Styling & Color Fixes               */
-    /* ------------------------------------------- */
     .btn-google-premium {
         background: #ffffff !important;
         border: 1px solid #cbd5e1 !important;
@@ -189,18 +181,16 @@ include __DIR__ . '/../includes/header.php';
 
 <!-- 
 ========================================================================
-     3. HTML CONTENT SECTION
+     HTML CONTENT SECTION
 ========================================================================
 -->
 <section class="auth-section d-flex align-items-center min-vh-100 position-relative py-5">
-    <!-- Cyber Grid Background Element -->
     <div class="bg-cyber-grid"></div>
 
     <div class="container position-relative z-1 mt-5">
         <div class="row justify-content-center">
             <div class="col-12 col-md-8 col-lg-5 col-xl-4">
 
-                <!-- Auth Card -->
                 <div class="card auth-card-gamified border-0 p-4 p-md-5 text-center">
 
                     <div class="mb-4">
@@ -215,10 +205,10 @@ include __DIR__ . '/../includes/header.php';
                         </p>
                     </div>
 
-                    <!-- Social Login Buttons Container -->
+                    <!-- Social Login Buttons -->
                     <div class="my-4 d-flex flex-column gap-3">
                         <!-- Google Login -->
-                        <a href="../api/google_auth.php" class="btn btn-google-premium w-100 d-flex align-items-center justify-content-center gap-3 py-3 text-decoration-none">
+                        <a href="<?= htmlspecialchars($login_url); ?>" class="btn btn-google-premium w-100 d-flex align-items-center justify-content-center gap-3 py-3 text-decoration-none">
                             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 48 48" style="display: block;">
                                 <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
                                 <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.13-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
@@ -244,10 +234,10 @@ include __DIR__ . '/../includes/header.php';
 
                 </div>
 
-                <!-- Footer Links under auth card -->
+                <!-- Footer Links -->
                 <div class="text-center mt-4 fs-sm">
                     <?php foreach ($site_settings['footer_links'] as $link): ?>
-                        <a href="<?= htmlspecialchars($link['url']); ?>" class="text-decoration-none me-3 footer-link-item hover-opacity-100">
+                        <a href="<?= htmlspecialchars($link['url']); ?>" class="text-decoration-none me-3 footer-link-item">
                             <?php if (!empty($link['icon'])): ?>
                                 <i class="<?= htmlspecialchars($link['icon']); ?> me-1"></i> 
                             <?php endif; ?>
@@ -261,4 +251,8 @@ include __DIR__ . '/../includes/header.php';
     </div>
 </section>
 
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+<?php 
+if (file_exists(__DIR__ . '/../includes/footer.php')) {
+    include __DIR__ . '/../includes/footer.php'; 
+}
+?>
