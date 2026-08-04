@@ -854,4 +854,4 @@ if (file_exists($ROOT_PATH . 'includes/footer.php')) {
             }
         });
     });
-</script>
+</script>ปปปปปปปปปปป
