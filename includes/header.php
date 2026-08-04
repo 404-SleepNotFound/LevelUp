@@ -66,7 +66,7 @@ $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP
 if (!$isAjax):
 ?>
     <!DOCTYPE html>
-    <html lang="th" data-theme="dark" style="background-color: #0b0f19 !important; color-scheme: dark;">
+    <html lang="th" data-theme="dark">
 
     <head>
         <meta charset="UTF-8">
@@ -74,50 +74,14 @@ if (!$isAjax):
         <meta name="color-scheme" content="dark light">
         <meta name="theme-color" content="#0b0f19" id="meta-theme-color">
 
-        <!-- 🚀 1. CRITICAL CSS: ล็อคสีพื้นหลังระดับฮาร์ดโค้ดเป็นลำดับแรกสุด ก่อนโหลด CSS/JS ภายนอก -->
+        <!-- 🚀 1. CRITICAL CSS: CSS Variables กำหนดสีหลักของเว็บ -->
         <style>
-            :root, html, body {
-                background-color: #0b0f19 !important;
-                color-scheme: dark;
-            }
-            html[data-theme="light"], html[data-theme="light"] body {
-                background-color: #f8fafc !important;
-                color-scheme: light;
-            }
-        </style>
-
-        <!-- 🚀 2. CRITICAL JS: อ่าน LocalStorage และบังคับสีทันที ก่อน Render DOM -->
-        <script>
-            (function() {
-                try {
-                    var savedTheme = localStorage.getItem('theme') || 'dark';
-                    var bg = (savedTheme === 'light') ? '#f8fafc' : '#0b0f19';
-                    document.documentElement.setAttribute('data-theme', savedTheme);
-                    document.documentElement.style.setProperty('background-color', bg, 'important');
-                    var metaTheme = document.getElementById('meta-theme-color');
-                    if (metaTheme) metaTheme.setAttribute('content', bg);
-                } catch (e) {}
-            })();
-        </script>
-
-        <title>LevelUp - AI Gamified Learning Platform</title>
-
-        <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/8074/8074788.png" type="image/png">
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-        <!-- 🚀 3. CSS EXTERNAL LIBRARIES -->
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800;900&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-
-        <!-- 🎨 4. COMPONENT CSS RULES -->
-        <style>
-            /* CSS Variables สำหรับ Header สลับโหมด Dark/Light */
             :root,
             html[data-theme="dark"] {
                 --body-bg: #0b0f19;
                 --body-text: #f1f5f9;
+                --card-bg: #0f172a;
+                --card-border: #1e293b;
                 --nav-bg: #0f172a;
                 --nav-border: #1e293b;
                 --nav-text: #f8fafc;
@@ -136,6 +100,8 @@ if (!$isAjax):
             html[data-theme="light"] {
                 --body-bg: #f8fafc;
                 --body-text: #0f172a;
+                --card-bg: #ffffff;
+                --card-border: #e2e8f0;
                 --nav-bg: #ffffff;
                 --nav-border: #e2e8f0;
                 --nav-text: #0f172a;
@@ -151,13 +117,47 @@ if (!$isAjax):
                 --nav-dropdown-hover-text: #0f172a;
             }
 
-            html,
-            body {
+            html, body {
                 background-color: var(--body-bg) !important;
                 color: var(--body-text) !important;
                 min-height: 100vh;
             }
 
+            /* สไตล์สำหรับรองรับ Card ในหน้า Dashboard/หน้าอื่นๆ ให้เปลี่ยนสีตาม Light Mode */
+            html[data-theme="light"] .card,
+            html[data-theme="light"] .bg-dark-card,
+            html[data-theme="light"] .dashboard-card {
+                background-color: var(--card-bg) !important;
+                color: var(--body-text) !important;
+                border-color: var(--card-border) !important;
+            }
+        </style>
+
+        <!-- 🚀 2. CRITICAL JS: อ่าน LocalStorage และเปลี่ยน Theme ก่อน Render DOM -->
+        <script>
+            (function() {
+                try {
+                    var savedTheme = localStorage.getItem('theme') || 'dark';
+                    document.documentElement.setAttribute('data-theme', savedTheme);
+                    var metaTheme = document.getElementById('meta-theme-color');
+                    if (metaTheme) metaTheme.setAttribute('content', savedTheme === 'light' ? '#f8fafc' : '#0b0f19');
+                } catch (e) {}
+            })();
+        </script>
+
+        <title>LevelUp - AI Gamified Learning Platform</title>
+
+        <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/8074/8074788.png" type="image/png">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+        <!-- 🚀 3. CSS EXTERNAL LIBRARIES -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800;900&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+        <!-- 🎨 4. COMPONENT CSS RULES -->
+        <style>
             html.theme-transitioning,
             html.theme-transitioning body {
                 transition: background-color 0.3s ease, color 0.3s ease !important;
@@ -383,7 +383,7 @@ if (!$isAjax):
             }
         </style>
 
-        <!-- 🚀 5. JAVASCRIPT LIBRARIES: ย้ายมาวางล่างสุดของ <head> หลัง CSS ทั้งหมดเพื่อไม่ให้ขัดขวางการเรนเดอร์ -->
+        <!-- 🚀 5. JAVASCRIPT LIBRARIES -->
         <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -392,7 +392,7 @@ if (!$isAjax):
         <?php include_once __DIR__ . '/rocket_cursor.php'; ?>
     </head>
 
-    <body style="padding-top: 76px; background-color: #0b0f19 !important;">
+    <body style="padding-top: 76px;">
 
         <!-- ⏳ Cyber Loading Screen -->
         <div id="ajax-loading-screen" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:var(--body-bg); z-index:9999; opacity:0.95; align-items:center; justify-content:center; flex-direction:column;">
@@ -527,7 +527,7 @@ if (!$isAjax):
                 const currentTheme = localStorage.getItem('theme') || 'dark';
                 applyThemeUI(currentTheme);
 
-                $('#theme-toggle-btn').on('click', function(e) {
+                $('#theme-toggle-btn').off('click').on('click', function(e) {
                     e.preventDefault();
                     $('html').addClass('theme-transitioning');
                     
