@@ -228,6 +228,22 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <style>
+    /* ==========================================
+       FIX: ลบเส้นขอบล่างและเงาระหว่าง Header กับ Body
+       ========================================== */
+    header, 
+    nav, 
+    .navbar, 
+    .site-header,
+    .main-header {
+        border-bottom: none !important;
+        box-shadow: none !important;
+    }
+
+    .hero-section {
+        border-top: none !important;
+    }
+
     :root,
     html[data-theme="dark"] {
         --neon-indigo: #4F46E5;
