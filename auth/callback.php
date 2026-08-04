@@ -52,4 +52,3 @@ if (isset($_GET['code'])) {
 // 4. ส่งผู้ใช้ออกจากโฟลเดอร์ auth กลับไปยังหน้าหลัก index.php
 header('Location: /index.php');
 exit;
-67
