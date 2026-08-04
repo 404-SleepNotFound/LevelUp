@@ -1,4 +1,9 @@
 ﻿<?php
+// 1. เริ่มต้น Session (จุดสำคัญที่สุด! ถ้าไม่มีบรรทัดนี้ เซสชันจะไม่ถูกบันทึก)
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 // ดึงค่าการตั้งค่าจาก config/google.php
 require_once __DIR__ . '/../config/google.php';
 
@@ -44,11 +49,24 @@ if (isset($_GET['code'])) {
 
         // 3. ถ้าดึงข้อมูลสำเร็จ บันทึกลง Session
         if (isset($userInfo['email'])) {
+            // บันทึก Session ดั้งเดิม
             $_SESSION['user_data'] = $userInfo;
+
+            // บันทึกสวมเข้ากับโครงสร้างระบบล็อกอินปกติที่ Header เรียกใช้งาน
+            $_SESSION['user_login'] = array(
+                'id'      => $userInfo['id'] ?? '',
+                'name'    => $userInfo['name'] ?? ($userInfo['email'] ?? 'Google User'),
+                'email'   => $userInfo['email'],
+                'picture' => $userInfo['picture'] ?? '',
+                'level'   => 1
+            );
+
+            // บันทึก Session ลงดิสก์ทันทีก่อนเปลี่ยนหน้า เพื่อป้องกัน Session หลุด
+            session_write_close();
         }
     }
 }
 
 // 4. ส่งผู้ใช้ออกจากโฟลเดอร์ auth กลับไปยังหน้าหลัก index.php
-header('Location: /index.php');
+header('Location: ../index.php');
 exit;
