@@ -1,24 +1,8 @@
 <?php
-// ค้นหาและโหลด autoload.php จาก Composer
-$autoloadPaths = [
-    __DIR__ . '/../vendor/autoload.php',
-    __DIR__ . '/../../vendor/autoload.php',
-    __DIR__ . '/vendor/autoload.php',
-    $_SERVER['DOCUMENT_ROOT'] . '/vendor/autoload.php'
-];
-
-$loaded = false;
-foreach ($autoloadPaths as $path) {
-    if (file_exists($path)) {
-        require_once $path;
-        $loaded = true;
-        break;
-    }
-}
-
-// หากยังไม่พบไฟล์ autoload.php ให้แสดงข้อความแจ้งเตือนแทนการเกิด Fatal Error
-if (!$loaded) {
-    die('<b>Error:</b> ไม่พบไฟล์ <code>vendor/autoload.php</code> กรุณารันคำสั่ง <code>composer install</code> หรือ <code>composer require google/apiclient</code> บนเซิร์ฟเวอร์ของคุณก่อนใช้งาน');
+// เช็คไฟล์ autoload หากมีก็โหลด ถ้าไม่มีก็ข้ามได้เลย (ไม่ต้องใช้ Composer)
+$autoloadPath = __DIR__ . '/../vendor/autoload.php';
+if (file_exists($autoloadPath)) {
+    require_once $autoloadPath;
 }
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -30,15 +14,49 @@ $clientID = '391621497018-cbigmvo3gcaiqjk89rij042m30cqtmks.apps.googleuserconten
 $clientSecret = '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';
 $redirectUri = 'https://levelup.quizchainat.com/auth/callback.php'; // ต้องตรงกับที่ตั้งค่าไว้ในหน้าเว็บ Google
 
+// สร้าง URL สำหรับ Redirect ไปหน้า Login ของ Google (ใช้ Pure PHP ไม่พึ่ง Composer)
+$googleParams = [
+    'client_id'     => $clientID,
+    'redirect_uri'  => $redirectUri,
+    'response_type' => 'code',
+    'scope'         => 'openid email profile',
+    'access_type'   => 'online',
+    'prompt'        => 'select_account'
+];
+$googleAuthUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query($googleParams);
+
+// สร้าง Class จำลองไว้รองรับกรณีที่ไฟล์อื่นเรียกใช้ $client->createAuthUrl()
+if (!class_exists('Google\Client')) {
+    class PureGoogleClient {
+        private $clientId;
+        private $clientSecret;
+        private $redirectUri;
+        private $scopes = [];
+
+        public function setClientId($id) { $this->clientId = $id; }
+        public function setClientSecret($secret) { $this->clientSecret = $secret; }
+        public function setRedirectUri($uri) { $this->redirectUri = $uri; }
+        public function addScope($scope) { $this->scopes[] = $scope; }
+        public function createAuthUrl() {
+            global $googleAuthUrl;
+            return $googleAuthUrl;
+        }
+    }
+    class_alias('PureGoogleClient', 'Google\Client');
+}
+
 // สร้าง Object ของ Google Client
 $client = new Google\Client();
 $client->setClientId($clientID);
 $client->setClientSecret($clientSecret);
 $client->setRedirectUri($redirectUri);
 
-// บอก Google ว่าเราขอแค่ อีเมล และ โปรไฟล์ นะ
+// บอก Google ว่าเราขอแค่ อีเมล และ โปรไฟล์
 $client->addScope("email");
 $client->addScope("profile");
 
-// สมมติว่านี่คือตัวแปรเชื่อมต่อ Database ของคุณ (PDO)
-// $db = new PDO('mysql:host=localhost;dbname=your_db', 'username', 'password');
+// หากกดเข้าไฟล์ google.php โดยตรง ให้ Redirect ไปหน้า Login ของ Google ทันที
+if (basename($_SERVER['PHP_SELF']) === 'google.php') {
+    header('Location: ' . $googleAuthUrl);
+    exit;
+}
