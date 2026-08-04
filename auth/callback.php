@@ -42,7 +42,7 @@ if (isset($_GET['code'])) {
         CURLOPT_POST           => true,
         CURLOPT_POSTFIELDS     => http_build_query($postData),
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_SSL_VERIFYPEER => false, // เปลี่ยนเป็น true บน Production หากมี SSL Cert
+        CURLOPT_SSL_VERIFYPEER => false,
     ]);
     
     $response  = curl_exec($ch);
