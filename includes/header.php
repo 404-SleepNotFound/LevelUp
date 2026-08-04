@@ -66,26 +66,34 @@ $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP
 if (!$isAjax):
 ?>
     <!DOCTYPE html>
-    <!-- ⚡ 1. ใส่ Inline Style และ Color Scheme ล็อคสีพื้นหลังระดับ Root ทันทีตั้งแต่ไบต์แรก -->
     <html lang="th" data-theme="dark" style="background-color: #0b0f19 !important; color-scheme: dark;">
 
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-        
-        <!-- ⚡ 2. บอก Engine เบราว์เซอร์ (Chrome/Safari/Edge) ให้เตรียม Canvas สีมืดไว้ล่วงหน้า -->
         <meta name="color-scheme" content="dark light">
         <meta name="theme-color" content="#0b0f19" id="meta-theme-color">
 
-        <!-- ⚡ 3. สคริปต์สแกน LocalStorage และเปลี่ยนสี Root ทันที ก่อนอ่าน CSS/JS ภายนอก -->
+        <!-- 🚀 1. CRITICAL CSS: ล็อคสีพื้นหลังระดับฮาร์ดโค้ดเป็นลำดับแรกสุด ก่อนโหลด CSS/JS ภายนอก -->
+        <style>
+            :root, html, body {
+                background-color: #0b0f19 !important;
+                color-scheme: dark;
+            }
+            html[data-theme="light"], html[data-theme="light"] body {
+                background-color: #f8fafc !important;
+                color-scheme: light;
+            }
+        </style>
+
+        <!-- 🚀 2. CRITICAL JS: อ่าน LocalStorage และบังคับสีทันที ก่อน Render DOM -->
         <script>
             (function() {
                 try {
                     var savedTheme = localStorage.getItem('theme') || 'dark';
-                    document.documentElement.setAttribute('data-theme', savedTheme);
                     var bg = (savedTheme === 'light') ? '#f8fafc' : '#0b0f19';
+                    document.documentElement.setAttribute('data-theme', savedTheme);
                     document.documentElement.style.setProperty('background-color', bg, 'important');
-                    document.documentElement.style.colorScheme = savedTheme;
                     var metaTheme = document.getElementById('meta-theme-color');
                     if (metaTheme) metaTheme.setAttribute('content', bg);
                 } catch (e) {}
@@ -97,20 +105,15 @@ if (!$isAjax):
         <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/8074/8074788.png" type="image/png">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800;900&display=swap" rel="stylesheet">
+
+        <!-- 🚀 3. CSS EXTERNAL LIBRARIES -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800;900&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-        <!-- jQuery & Bootstrap JS -->
-        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-        <!-- 🚀 เรียกใช้งาน Rocket Cursor -->
-        <?php include_once __DIR__ . '/rocket_cursor.php'; ?>
-
+        <!-- 🎨 4. COMPONENT CSS RULES -->
         <style>
-            /* 🎨 CSS Variables สำหรับ Header สลับโหมด Dark/Light */
+            /* CSS Variables สำหรับ Header สลับโหมด Dark/Light */
             :root,
             html[data-theme="dark"] {
                 --body-bg: #0b0f19;
@@ -148,7 +151,6 @@ if (!$isAjax):
                 --nav-dropdown-hover-text: #0f172a;
             }
 
-            /* 🛑 ป้องกันแสงขาววาบ (FOUC): ปิด transition ระหว่างโหลดหน้า */
             html,
             body {
                 background-color: var(--body-bg) !important;
@@ -156,13 +158,11 @@ if (!$isAjax):
                 min-height: 100vh;
             }
 
-            /* ให้มี animation เคลื่อนไหวเฉพาะตอนกดปุ่ม สลับ Theme เท่านั้น */
             html.theme-transitioning,
             html.theme-transitioning body {
                 transition: background-color 0.3s ease, color 0.3s ease !important;
             }
 
-            /* การประยุกต์ใช้ตัวแปร CSS กับ Header */
             .lu-navbar {
                 background-color: var(--nav-bg) !important;
                 border-bottom: 1px solid var(--nav-border) !important;
@@ -185,7 +185,6 @@ if (!$isAjax):
                 color: #6366f1 !important;
             }
 
-            /* ช่องค้นหา */
             .lu-search-form {
                 max-width: 320px;
                 transition: all 0.2s ease;
@@ -206,7 +205,6 @@ if (!$isAjax):
                 color: var(--nav-text-muted) !important;
             }
 
-            /* ปุ่ม Badge XP */
             .lu-badge-xp {
                 background-color: var(--nav-input-bg) !important;
                 border-color: var(--nav-input-border) !important;
@@ -214,7 +212,6 @@ if (!$isAjax):
                 white-space: nowrap !important;
             }
 
-            /* สี Dropdown */
             .user-dropdown-menu {
                 background-color: var(--nav-dropdown-bg) !important;
                 border: 1px solid var(--nav-dropdown-border) !important;
@@ -359,7 +356,6 @@ if (!$isAjax):
                 }
             }
 
-            /* SweetAlert2 Dynamic Dark / Light Theme */
             html[data-theme="dark"] .swal2-popup {
                 background-color: #0f172a !important;
                 color: #f8fafc !important;
@@ -386,10 +382,17 @@ if (!$isAjax):
                 color: #0f172a !important;
             }
         </style>
+
+        <!-- 🚀 5. JAVASCRIPT LIBRARIES: ย้ายมาวางล่างสุดของ <head> หลัง CSS ทั้งหมดเพื่อไม่ให้ขัดขวางการเรนเดอร์ -->
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        <!-- 🚀 เรียกใช้งาน Rocket Cursor -->
+        <?php include_once __DIR__ . '/rocket_cursor.php'; ?>
     </head>
 
-    <!-- ⚡ 4. กำหนด Inline style บนแท็ก body ป้องกันแสงขาวขณะเปลี่ยนผ่านไปโครงสร้างเพจ -->
-    <body style="padding-top: 76px; background-color: var(--body-bg, #0b0f19) !important;">
+    <body style="padding-top: 76px; background-color: #0b0f19 !important;">
 
         <!-- ⏳ Cyber Loading Screen -->
         <div id="ajax-loading-screen" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:var(--body-bg); z-index:9999; opacity:0.95; align-items:center; justify-content:center; flex-direction:column;">
