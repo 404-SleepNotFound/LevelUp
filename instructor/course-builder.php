@@ -1,0 +1,934 @@
+<?php
+// =======================================================
+// 1. ตั้งค่าพื้นฐาน และเปิดใช้งาน Session
+// =======================================================
+if (session_status() === PHP_SESSION_NONE) { 
+    session_start(); 
+}
+
+// ดึง User ID จาก Session จริง (ไม่มีการ Hardcode เลข 18 แล้ว)
+$current_user_id = $_SESSION['user_login']['user_id'] 
+                ?? $_SESSION['user_id'] 
+                ?? null;
+
+$ROOT_PATH = '../';
+$course = null;
+$all_courses = [];
+$db_error = null;
+$auth_error = null;
+
+// =======================================================
+// 2. ตรวจสอบการเข้าสู่ระบบ (Authentication)
+// =======================================================
+if (!$current_user_id) {
+    $auth_error = "กรุณาเข้าสู่ระบบก่อนใช้งานหน้าจัดการคอร์สเรียน";
+} else {
+    // =======================================================
+    // 3. เชื่อมต่อฐานข้อมูล (ค้นหา Path อัตโนมัติ)
+    // =======================================================
+    try {
+        $db_paths = [
+            __DIR__ . '/../config/database.php',
+            __DIR__ . '/../config/db.php',
+            __DIR__ . '/../db.php',
+            __DIR__ . '/config/database.php',
+            __DIR__ . '/config/db.php',
+            $ROOT_PATH . 'config/database.php',
+            $ROOT_PATH . 'config/db.php',
+            '../db.php',
+            '../config/db.php',
+            'db.php'
+        ];
+
+        foreach ($db_paths as $path) {
+            if (file_exists($path)) {
+                require_once $path;
+                break;
+            }
+        }
+
+        if (!isset($pdo) && isset($conn)) {
+            $pdo = $conn;
+        }
+
+        if (isset($pdo)) {
+            // ดึงเฉพาะคอร์สที่เป็นของผู้ใช้ที่ล็อกอินอยู่
+            $stmt_list = $pdo->prepare("SELECT id, title FROM course WHERE user_id = ? ORDER BY id DESC");
+            $stmt_list->execute([$current_user_id]);
+            $all_courses = $stmt_list->fetchAll(PDO::FETCH_ASSOC);
+
+            // =======================================================
+            // 4. ตรวจสอบสิทธิ์เจ้าของคอร์ส (Authorization Check)
+            // =======================================================
+            if (isset($_GET['course_id'])) {
+                $requested_course_id = intval($_GET['course_id']);
+
+                // ค้นหาคอร์สในฐานข้อมูลเพื่อเช็คเจ้าของ
+                $stmt_check = $pdo->prepare("SELECT * FROM course WHERE id = ? LIMIT 1");
+                $stmt_check->execute([$requested_course_id]);
+                $target_course = $stmt_check->fetch(PDO::FETCH_ASSOC);
+
+                if (!$target_course) {
+                    $auth_error = "ไม่พบข้อมูลคอร์สเรียนที่คุณต้องการเข้าถึง";
+                } elseif ($target_course['user_id'] != $current_user_id) {
+                    // ⛔ ป้องกันผู้ใช้อื่นแอบเข้าถึง/แก้ไขคอร์สที่ไม่ใช่ของตัวเอง
+                    $auth_error = "คุณไม่มีสิทธิ์แก้ไขคอร์สเรียนนี้ (อนุญาตเฉพาะผู้สร้างคอร์สเท่านั้น)";
+                } else {
+                    $course = $target_course;
+                }
+            } elseif (!empty($all_courses)) {
+                // ถ้าไม่ได้ระบุ course_id ใน URL ให้ดึงคอร์สล่าสุดที่เป็นของผู้ใช้คนนี้
+                $course_id = $all_courses[0]['id'];
+                $stmt = $pdo->prepare("SELECT * FROM course WHERE id = ? AND user_id = ? LIMIT 1");
+                $stmt->execute([$course_id, $current_user_id]);
+                $course = $stmt->fetch(PDO::FETCH_ASSOC);
+            }
+        } else {
+            $db_error = "ไม่พบตัวแปร \$pdo สำหรับเชื่อมต่อฐานข้อมูล (โปรดเช็คไฟล์ config/db.php)";
+        }
+    } catch (PDOException $e) {
+        $db_error = "Database Error: " . $e->getMessage();
+    }
+}
+?>
+
+<!-- SweetAlert2 Library & Handler -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="js/sweetalert_instructor.js"></script>
+
+<style>
+    :root, html[data-theme="dark"] {
+        --cb-bg: #0f172a;
+        --cb-card: rgba(30, 41, 59, 0.7);
+        --cb-card-heavy: rgba(15, 23, 42, 0.9);
+        --cb-border: rgba(255, 255, 255, 0.08);
+        --text-bright: #f8fafc;
+        --text-muted: #94a3b8;
+        --cyber-cyan: #06b6d4;
+        --cyber-purple: #a855f7;
+        --cyber-green: #22c55e;
+    }
+
+    html[data-theme="light"] {
+        --cb-bg: #f8fafc;
+        --cb-card: rgba(255, 255, 255, 0.95);
+        --cb-card-heavy: #ffffff;
+        --cb-border: rgba(0, 0, 0, 0.15);
+        --text-bright: #0f172a;
+        --text-muted: #64748b;
+        --cyber-cyan: #0284c7;
+        --cyber-purple: #7e22ce;
+        --cyber-green: #16a34a;
+    }
+
+    body {
+        background-color: var(--cb-bg) !important;
+        transition: background-color 0.3s ease;
+    }
+
+    html[data-theme="light"] .text-white { color: var(--text-bright) !important; }
+    html[data-theme="light"] .text-white-50 { color: var(--text-muted) !important; }
+    html[data-theme="light"] .bg-dark, 
+    html[data-theme="light"] .bg-black { background-color: var(--cb-card-heavy) !important; }
+    html[data-theme="light"] .border-secondary { border-color: var(--cb-border) !important; }
+    
+    html[data-theme="light"] .overview-pill { background: #f1f5f9; border-color: #e2e8f0; }
+    html[data-theme="light"] .chapter-card { background: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    html[data-theme="light"] .lesson-item { background: #f8fafc; border-color: #e2e8f0; }
+    html[data-theme="light"] .lesson-item:hover { background: #f1f5f9; border-color: #cbd5e1; }
+    html[data-theme="light"] .chapter-title-input { color: var(--text-bright); }
+    
+    html[data-theme="light"] .cb-input { 
+        background: #ffffff !important; 
+        color: var(--text-bright) !important; 
+        border-color: #cbd5e1 !important; 
+    }
+    html[data-theme="light"] .modal-content { background-color: #ffffff !important; border-color: #cbd5e1 !important; }
+    html[data-theme="light"] .btn-close-white { filter: invert(1) grayscale(100%) brightness(0); }
+    html[data-theme="light"] .flow-node { background: #ffffff; border-color: #cbd5e1; }
+
+    .text-cyan { color: var(--cyber-cyan) !important; }
+    .text-purple { color: var(--cyber-purple) !important; }
+    .text-success { color: var(--cyber-green) !important; }
+
+    .btn-cyan { background-color: var(--cyber-cyan); color: #fff !important; border: none; }
+    .btn-cyan:hover { background-color: #0891b2; }
+
+    .btn-outline-cyan { border: 1px solid var(--cyber-cyan); color: var(--cyber-cyan) !important; background: transparent; }
+    .btn-outline-cyan:hover { background-color: var(--cyber-cyan); color: #fff !important; }
+
+    .btn-purple { background-color: var(--cyber-purple); color: #fff !important; border: none; }
+    .btn-purple:hover { background-color: #9333ea; }
+
+    .btn-outline-purple { border: 1px solid var(--cyber-purple); color: var(--cyber-purple) !important; background: transparent; }
+    .btn-outline-purple:hover { background-color: var(--cyber-purple); color: #fff !important; }
+
+    .skill-badge { font-size: 0.75rem; padding: 4px 10px; border-radius: 6px; font-weight: 500; display: inline-block; }
+    .skill-badge-purple { background: rgba(168, 85, 247, 0.15); color: var(--cyber-purple); border: 1px solid rgba(168, 85, 247, 0.3); }
+    .skill-badge-cyan { background: rgba(6, 182, 212, 0.15); color: var(--cyber-cyan); border: 1px solid rgba(6, 182, 212, 0.3); }
+    .skill-badge-green { background: rgba(34, 197, 94, 0.15); color: var(--cyber-green); border: 1px solid rgba(34, 197, 94, 0.3); }
+
+    .cb-wrapper { color: var(--text-bright); animation: fadeIn 0.4s ease-in-out; }
+    .overview-pill { background: rgba(15, 23, 42, 0.6); border: 1px solid var(--cb-border); border-radius: 12px; padding: 10px 15px; display: flex; align-items: center; gap: 10px; transition: 0.3s; }
+    .zone-container { background: var(--cb-card); border: 1px solid var(--cb-border); border-radius: 16px; backdrop-filter: blur(10px); min-height: 70px; transition: 0.3s; }
+
+    .chapter-card { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; margin-bottom: 15px; transition: 0.3s; }
+    .chapter-card:hover { border-color: var(--cyber-cyan); box-shadow: 0 0 15px rgba(6, 182, 212, 0.15); }
+
+    .chapter-header-flex { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .chapter-title-area { display: flex; align-items: center; gap: 8px; flex-grow: 1; min-width: 0; }
+    .chapter-title-input { background: transparent; color: #fff; border: 0; font-weight: bold; padding: 4px; width: 100%; min-width: 120px; transition: 0.3s; }
+    .chapter-title-input:focus { border-bottom: 1px solid var(--cyber-cyan); outline: none; }
+
+    .lesson-item { background: rgba(30, 41, 59, 0.5); border: 1px solid var(--cb-border); border-radius: 8px; padding: 12px; margin-top: 8px; display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; cursor: grab; transition: 0.3s; }
+    .lesson-left-content { display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap; }
+    .lesson-item:hover { background: rgba(255, 255, 255, 0.03); border-color: rgba(255, 255, 255, 0.2); }
+
+    .type-badge { font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; font-weight: 500; white-space: nowrap; }
+    .badge-video { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .badge-quiz { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-lab { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+    .badge-doc { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+
+    .flow-node { background: rgba(15, 23, 42, 0.9); border: 2px solid var(--cb-border); border-radius: 10px; padding: 10px; text-align: center; position: relative; max-width: 220px; margin: 0 auto; transition: 0.3s; }
+    .flow-arrow { text-align: center; color: var(--cyber-cyan); margin: 5px 0; font-size: 1.2rem; }
+
+    .cb-input { background: rgba(15, 23, 42, 0.7) !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; color: #fff !important; transition: 0.3s; }
+    .cb-input::placeholder { color: var(--text-muted); }
+    .cb-input option { background: var(--cb-bg); color: var(--text-bright); }
+
+    .action-bar-container { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }
+    .action-btn-group { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
+    
+    @media (min-width: 768px) { .action-btn-group { width: auto; } }
+    @media (max-width: 576px) { .action-btn-group .btn { flex-grow: 1; text-align: center; } }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+<div class="cb-wrapper p-1">
+
+    <!-- ⚠️ แสดงข้อผิดพลาดฐานข้อมูล (ถ้ามี) -->
+    <?php if ($db_error): ?>
+        <div class="alert alert-danger bg-danger bg-opacity-20 border-danger text-white mb-4 rounded-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> <strong>ข้อผิดพลาดฐานข้อมูล:</strong> <?= htmlspecialchars($db_error) ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- ⛔ แสดงข้อผิดพลาดเรื่องสิทธิ์การใช้งาน (ถ้าไม่ได้ล็อกอิน หรือไม่ใช่เจ้าของคอร์ส) -->
+    <?php if ($auth_error): ?>
+        <div class="zone-container p-5 text-center my-4">
+            <div class="mb-3">
+                <i class="bi bi-shield-lock-fill text-danger display-1"></i>
+            </div>
+            <h3 class="fw-bold text-white mb-2">ปฏิเสธการเข้าถึง (Access Denied)</h3>
+            <p class="text-white-50 mb-4" style="max-width: 550px; margin: 0 auto;">
+                <?= htmlspecialchars($auth_error) ?>
+            </p>
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <?php if (!$current_user_id): ?>
+                    <a href="../login.php" class="btn btn-cyan text-white px-4 py-2">
+                        <i class="bi bi-box-arrow-in-right me-2"></i> เข้าสู่ระบบ
+                    </a>
+                <?php else: ?>
+                    <a href="?page=course-builder" class="btn btn-cyan text-white px-4 py-2">
+                        <i class="bi bi-journal-bookmark-fill me-2"></i> กลับไปยังคอร์สของคุณ
+                    </a>
+                <?php endif; ?>
+            </div>
+        </div>
+    <?php else: ?>
+
+        <!-- 📌 Dropdown เลือกคอร์สเรียน (เฉพาะคอร์สที่ผู้ใช้คนนี้สร้างเท่านั้น) -->
+        <?php if (!empty($all_courses)): ?>
+            <div class="mb-4 p-3 rounded-4 bg-dark bg-opacity-50 border border-secondary border-opacity-20 d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <i class="bi bi-journal-bookmark-fill text-cyan fs-5"></i>
+                    <label class="text-white fw-bold me-2">รายการคอร์สของคุณ:</label>
+                    <select class="form-select cb-input" style="min-width: 260px; width: auto;" onchange="location.href='?course_id=' + this.value">
+                        <?php foreach ($all_courses as $c): ?>
+                            <option value="<?= $c['id'] ?>" <?= ($course && $course['id'] == $c['id']) ? 'selected' : '' ?>>
+                                [ID: <?= $c['id'] ?>] <?= htmlspecialchars($c['title']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <button type="button" class="btn btn-sm btn-cyan text-white ajax-menu-btn" data-page="create-course.php">
+                    <i class="bi bi-plus-lg me-1"></i> สร้างคอร์สเรียนใหม่
+                </button>
+            </div>
+        <?php endif; ?>
+
+        <?php if (!$course): ?>
+            <!-- แสดงกรณีผู้ใช้ล็อกอินแล้ว แต่ยังไม่มีคอร์สเลย -->
+            <div class="zone-container p-5 text-center my-4">
+                <div class="mb-3">
+                    <i class="bi bi-journal-plus text-cyan display-1"></i>
+                </div>
+                <h3 class="fw-bold text-white mb-2">คุณยังไม่มีคอร์สเรียนในระบบ</h3>
+                <p class="text-white-50 mb-4" style="max-width: 550px; margin: 0 auto;">
+                    เริ่มต้นสร้างคอร์สเรียนแรกของคุณ เพื่อสร้างเนื้อหา ออกแบบบทเรียน และเปิดสอนผู้เรียนได้ทันที
+                </p>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <button type="button" class="btn btn-cyan text-white px-4 py-2 ajax-menu-btn" data-page="create-course.php">
+                        <i class="bi bi-plus-circle-fill me-2"></i> สร้างคอร์สเรียนใหม่
+                    </button>
+                </div>
+            </div>
+        <?php else: ?>
+            <!-- =======================================================
+                 แสดงหน้า Course Builder เฉพาะเมื่อเป็นเจ้าของคอร์ส
+                 ======================================================= -->
+            
+            <!-- ข้อมูลภาพรวมคอร์ส -->
+            <div class="row g-3 align-items-center mb-4">
+                <div class="col-12 col-md-4 d-flex align-items-center gap-3">
+                    <div style="position: relative; width: 85px; height: 50px; border-radius: 8px; overflow: hidden; border: 1px solid var(--cb-border); flex-shrink: 0; background: #000;">
+                        <?php if (!empty($course['img'])): ?>
+                            <img src="<?= htmlspecialchars($course['img']) ?>" alt="Thumbnail" style="width:100%; height:100%; object-fit:cover;">
+                        <?php else: ?>
+                            <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-dark text-cyan small" style="font-size: 0.6rem;">16:9 Image</div>
+                        <?php endif; ?>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0 text-white" id="cb-course-title"><?= htmlspecialchars($course['title']) ?></h4>
+                        <div class="d-flex align-items-center gap-2 mt-1">
+                            <span class="badge bg-warning text-dark px-2 py-0.5 fw-bold" style="font-size: 0.7rem;">
+                                <i class="bi bi-file-earmark-lock"></i> <?= strtoupper($course['visibility'] ?? 'DRAFT MODE') ?>
+                            </span>
+                            <span class="text-white-50 small" style="font-size:0.75rem;">
+                                <i class="bi bi-clock-history"></i> Updated: <?= !empty($course['updated_at']) ? date('d/m/Y H:i', strtotime($course['updated_at'])) : 'Recently' ?>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-8">
+                    <div class="row g-2 justify-content-md-end">
+                        <div class="col-6 col-sm-3 col-md-2">
+                            <div class="overview-pill text-center d-block">
+                                <div class="text-white-50 small text-uppercase" style="font-size:0.65rem;">Chapters</div>
+                                <div class="fw-bold text-white fs-5" id="cnt-chap"><?= htmlspecialchars($course['chapter_total'] ?? '2') ?></div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-sm-3 col-md-2">
+                            <div class="overview-pill text-center d-block">
+                                <div class="text-white-50 small text-uppercase" style="font-size:0.65rem;">Lessons</div>
+                                <div class="fw-bold text-cyan fs-5" id="cnt-less">5</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-sm-3 col-md-2">
+                            <div class="overview-pill text-center d-block">
+                                <div class="text-white-50 small text-uppercase" style="font-size:0.65rem;">Quizzes</div>
+                                <div class="fw-bold text-warning fs-5" id="cnt-quiz">1</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-sm-3 col-md-2">
+                            <div class="overview-pill text-center d-block">
+                                <div class="text-white-50 small text-uppercase" style="font-size:0.65rem;">Labs (Coding/V)</div>
+                                <div class="fw-bold text-success fs-5" id="cnt-lab">1</div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-md-3">
+                            <div class="overview-pill flex-column align-items-start justify-content-center">
+                                <div class="d-flex justify-content-between w-100 text-white-50 small" style="font-size:0.65rem;">
+                                    <span>PROGRESS</span><span class="text-cyan fw-bold">75%</span>
+                                </div>
+                                <div class="progress w-100 mt-1" style="height: 6px; background: rgba(255,255,255,0.05);">
+                                    <div class="progress-bar bg-info" style="width: 75%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- แผงเครื่องมือหลัก -->
+            <div class="action-bar-container mb-4 p-3 rounded-4 bg-dark bg-opacity-40 border border-secondary border-opacity-10">
+                <div class="action-btn-group mb-2 mb-md-0">
+                    <button class="btn btn-sm btn-outline-cyan text-white" onclick="openAIConfigModal()"><i class="bi bi-cpu text-purple me-1"></i> AI Assistant</button>
+                    <button class="btn btn-sm btn-outline-light text-white" data-bs-toggle="modal" data-bs-target="#importExportModal"><i class="bi bi-arrow-left-right me-1"></i> Import/Export</button>
+                    <button class="btn btn-sm btn-outline-purple text-white" onclick="toggleCollaborators()"><i class="bi bi-people me-1"></i> Collab (2)</button>
+                </div>
+                <div class="action-btn-group">
+                    <button class="btn btn-sm btn-secondary text-white" onclick="triggerAction('save')"><i class="bi bi-hdd-fill me-1"></i> Save Draft</button>
+                    <button class="btn btn-sm btn-info text-white" onclick="triggerAction('preview')"><i class="bi bi-eye-fill me-1"></i> Preview</button>
+                    <button class="btn btn-sm btn-warning text-dark fw-bold" onclick="runQualityValidation()"><i class="bi bi-shield-check me-1"></i> Validate</button>
+                    <button class="btn btn-sm btn-success text-white fw-bold" id="publish-btn" onclick="triggerAction('publish')" disabled><i class="bi bi-rocket-takeoff-fill me-1"></i> Publish</button>
+                </div>
+            </div>
+
+            <!-- ส่วนจัดการโครงสร้างคอร์ส -->
+            <div class="row g-3">
+                
+                <!-- คอลัมน์ซ้าย: Chapters & Lessons -->
+                <div class="col-12 col-lg-7">
+                    <div class="zone-container p-3 p-md-4 h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                            <h5 class="fw-bold text-white mb-0"><i class="bi bi-layers text-cyan me-2"></i> โครงสร้างหลักสูตร</h5>
+                            <button class="btn btn-sm btn-cyan text-white px-3" onclick="addNewChapter()"><i class="bi bi-plus-circle-fill me-1"></i> เพิ่ม Chapter ใหม่</button>
+                        </div>
+
+                        <div id="course-chapters-root">
+                            <!-- Chapter 1 -->
+                            <div class="chapter-card p-3" id="chap-1">
+                                <div class="chapter-header-flex border-bottom border-secondary border-opacity-10 pb-2 mb-2">
+                                    <div class="chapter-title-area">
+                                        <i class="bi bi-grid-3x3-gap text-white-50 cursor-move fs-5 flex-shrink-0"></i>
+                                        <span class="fw-bold text-info flex-shrink-0 chap-label">Chapter 1:</span>
+                                        <input type="text" class="chapter-title-input" value="พื้นฐานและการวางโครงสร้างระบบ">
+                                    </div>
+                                    <div class="d-flex gap-1 flex-shrink-0">
+                                        <button class="btn btn-link text-white-50 p-1 btn-sm" onclick="duplicateItem('Chapter', 1)"><i class="bi bi-copy"></i></button>
+                                        <button class="btn btn-link text-warning p-1 btn-sm" onclick="InstructorAlerts.toast('info', 'ซ่อนบทเรียนเรียบร้อยแล้ว')"><i class="bi bi-eye-slash"></i></button>
+                                        <button class="btn btn-link text-danger p-1 btn-sm" onclick="removeChapter(this)"><i class="bi bi-trash"></i></button>
+                                    </div>
+                                </div>
+                                
+                                <div class="lessons-sortable-zone">
+                                    <div class="lesson-item" data-type="video">
+                                        <div class="lesson-left-content">
+                                            <i class="bi bi-list text-muted fs-6 flex-shrink-0"></i>
+                                            <span class="small text-white-50 flex-shrink-0 lesson-num">1.1</span>
+                                            <span class="small text-white me-2 lesson-title">แนะนำคอร์สและการติดตั้ง Environment</span>
+                                            <span class="type-badge badge-video"><i class="bi bi-play-btn-fill"></i> Video</span>
+                                        </div>
+                                        <div class="d-flex gap-2 flex-shrink-0">
+                                            <button class="btn btn-link text-info p-0 btn-sm" onclick="editLessonDetails('video', this)"><i class="bi bi-pencil-square"></i></button>
+                                            <button class="btn btn-link text-danger p-0 btn-sm" onclick="removeLesson(this)"><i class="bi bi-x-circle"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="lesson-item" data-type="slide">
+                                        <div class="lesson-left-content">
+                                            <i class="bi bi-list text-muted fs-6 flex-shrink-0"></i>
+                                            <span class="small text-white-50 flex-shrink-0 lesson-num">1.2</span>
+                                            <span class="small text-white me-2 lesson-title">ทฤษฎีกลไก Server-side Rendering</span>
+                                            <span class="type-badge badge-doc"><i class="bi bi-file-earmark-text-fill"></i> Slide</span>
+                                        </div>
+                                        <div class="d-flex gap-2 flex-shrink-0">
+                                            <button class="btn btn-link text-info p-0 btn-sm" onclick="editLessonDetails('slide', this)"><i class="bi bi-pencil-square"></i></button>
+                                            <button class="btn btn-link text-danger p-0 btn-sm" onclick="removeLesson(this)"><i class="bi bi-x-circle"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="lesson-item" data-type="quiz">
+                                        <div class="lesson-left-content">
+                                            <i class="bi bi-list text-muted fs-6 flex-shrink-0"></i>
+                                            <span class="small text-white-50 flex-shrink-0 lesson-num">1.3</span>
+                                            <span class="small text-white me-2 lesson-title">ทดสอบความเข้าใจสถาปัตยกรรมเว็บ</span>
+                                            <span class="type-badge badge-quiz"><i class="bi bi-patch-question-fill"></i> Quiz</span>
+                                        </div>
+                                        <div class="d-flex gap-2 flex-shrink-0">
+                                            <button class="btn btn-link text-info p-0 btn-sm" onclick="editLessonDetails('quiz', this)"><i class="bi bi-pencil-square"></i></button>
+                                            <button class="btn btn-link text-danger p-0 btn-sm" onclick="removeLesson(this)"><i class="bi bi-x-circle"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-2 text-end">
+                                    <button type="button" class="btn btn-xs btn-outline-light text-white opacity-75" style="font-size:0.75rem;" onclick="openAddLessonModal(this)">+ เพิ่มวัตถุย่อย</button>
+                                </div>
+                            </div>
+
+                            <!-- Chapter 2 -->
+                            <div class="chapter-card p-3" id="chap-2">
+                                <div class="chapter-header-flex border-bottom border-secondary border-opacity-10 pb-2 mb-2">
+                                    <div class="chapter-title-area">
+                                        <i class="bi bi-grid-3x3-gap text-white-50 cursor-move fs-5 flex-shrink-0"></i>
+                                        <span class="fw-bold text-info flex-shrink-0 chap-label">Chapter 2:</span>
+                                        <input type="text" class="chapter-title-input" value="การทำ Data Fetching และสร้าง Coding Lab">
+                                    </div>
+                                    <div class="d-flex gap-1 flex-shrink-0">
+                                        <button class="btn btn-link text-white-50 p-1 btn-sm" onclick="duplicateItem('Chapter', 2)"><i class="bi bi-copy"></i></button>
+                                        <button class="btn btn-link text-warning p-1 btn-sm" onclick="InstructorAlerts.toast('info', 'ซ่อนบทเรียนเรียบร้อยแล้ว')"><i class="bi bi-eye-slash"></i></button>
+                                        <button class="btn btn-link text-danger p-1 btn-sm" onclick="removeChapter(this)"><i class="bi bi-trash"></i></button>
+                                    </div>
+                                </div>
+                                
+                                <div class="lessons-sortable-zone">
+                                    <div class="lesson-item" data-type="video">
+                                        <div class="lesson-left-content">
+                                            <i class="bi bi-list text-muted fs-6 flex-shrink-0"></i>
+                                            <span class="small text-white-50 flex-shrink-0 lesson-num">2.1</span>
+                                            <span class="small text-white me-2 lesson-title">การเรียกข้อมูลผ่าน Async Functions</span>
+                                            <span class="type-badge badge-video"><i class="bi bi-play-btn-fill"></i> Video</span>
+                                        </div>
+                                        <div class="d-flex gap-2 flex-shrink-0">
+                                            <button class="btn btn-link text-info p-0 btn-sm" onclick="editLessonDetails('video', this)"><i class="bi bi-pencil-square"></i></button>
+                                            <button class="btn btn-link text-danger p-0 btn-sm" onclick="removeLesson(this)"><i class="bi bi-x-circle"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="lesson-item" data-type="coding_lab">
+                                        <div class="lesson-left-content">
+                                            <i class="bi bi-list text-muted fs-6 flex-shrink-0"></i>
+                                            <span class="small text-white-50 flex-shrink-0 lesson-num">2.2</span>
+                                            <span class="small text-white me-2 lesson-title">ทดสอบปฏิบัติการ: เขียน REST API Fetching</span>
+                                            <span class="type-badge badge-lab"><i class="bi bi-code-square"></i> Coding Lab</span>
+                                        </div>
+                                        <div class="d-flex gap-2 flex-shrink-0">
+                                            <button class="btn btn-link text-info p-0 btn-sm" onclick="editLessonDetails('coding_lab', this)"><i class="bi bi-pencil-square"></i></button>
+                                            <button class="btn btn-link text-danger p-0 btn-sm" onclick="removeLesson(this)"><i class="bi bi-x-circle"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-2 text-end">
+                                    <button type="button" class="btn btn-xs btn-outline-light text-white opacity-75" style="font-size:0.75rem;" onclick="openAddLessonModal(this)">+ เพิ่มวัตถุย่อย</button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- คอลัมน์ขวา: Skill Mapping, Prerequisite & Visual Flow -->
+                <div class="col-12 col-lg-5 d-flex flex-column gap-3">
+                    <div class="zone-container p-4">
+                        <h5 class="fw-bold text-white mb-2"><i class="bi bi-diagram-3 text-purple me-2"></i> Skill & Outcome Mapping</h5>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="small text-white-50 mb-1">เวลาเรียนโดยประมาณรวม</label>
+                                <div class="p-2 rounded bg-black bg-opacity-30 text-cyan fw-bold text-center small"><i class="bi bi-hourglass-split"></i> ~<?= htmlspecialchars($course['time_total'] ?? '18.5') ?> ชั่วโมง</div>
+                            </div>
+                            <div class="col-6">
+                                <label class="small text-white-50 mb-1">การทำ Mapping สกิล</label>
+                                <div class="p-2 rounded bg-black bg-opacity-30 text-success fw-bold text-center small"><i class="bi bi-check2-circle"></i> เชื่อมต่อ 3 แกนสกิล</div>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="small text-white-50 mb-2 d-block">ทักษะที่จะได้รับ (Connected Skills)</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="skill-badge skill-badge-purple">React Basics</span>
+                                <span class="skill-badge skill-badge-cyan">Next.js Framework</span>
+                                <span class="skill-badge skill-badge-green">REST API integration</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="zone-container p-4">
+                        <h5 class="fw-bold text-white mb-2"><i class="bi bi-lock-fill text-warning me-2"></i> เงื่อนไขการข้ามบท (Unlock Flow)</h5>
+                        <div class="p-3 rounded bg-dark bg-opacity-50 border border-secondary border-opacity-10 small">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="strict-flow" checked>
+                                <label class="form-check-label text-white fw-medium" for="strict-flow">บังคับเรียนแบบเป็นลำดับ (Linear Progression)</label>
+                            </div>
+                            <ul class="mb-0 ps-3 text-white-50" style="font-size: 0.8rem;">
+                                <li>ดูวิดีโอต้องเก็บความยาวขั้นต่ำ 80%</li>
+                                <li>สอบผ่าน Quiz ประจำบทขั้นต่ำ 70%</li>
+                                <li>ผ่านการทดสอบ AI Coding Lab อย่างน้อย 1 ครั้ง</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="zone-container p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="fw-bold text-white mb-0"><i class="bi bi-bounding-box text-success me-2"></i> Visual Course Flow</h5>
+                            <button class="btn btn-xs btn-outline-info text-white py-0 px-2" style="font-size: 0.75rem;" onclick="InstructorAlerts.toast('info', 'เปิดโปรแกรมแก้ไข Flow ในหน้าต่างใหม่...')">เต็มจอ</button>
+                        </div>
+                        
+                        <div class="p-3 rounded-4 bg-black bg-opacity-40 border border-secondary border-opacity-10 py-4">
+                            <div class="flow-node border-info">
+                                <div class="small fw-bold text-cyan">Chapter 1: พื้นฐานระบบ</div>
+                            </div>
+                            <div class="flow-arrow"><i class="bi bi-arrow-down-short"></i></div>
+                            <div class="flow-node">
+                                <div class="small text-white">Lesson 1.1: แนะนำคอร์สเรียน</div>
+                                <span class="type-badge badge-video d-inline-block mt-1">Video</span>
+                            </div>
+                            <div class="flow-arrow"><i class="bi bi-arrow-down-short"></i></div>
+                            <div class="flow-node">
+                                <div class="small text-white">Quiz 1.3: สอบวัดระดับเบื้องต้น</div>
+                                <span class="type-badge badge-quiz d-inline-block mt-1">Quiz</span>
+                            </div>
+                            <div class="flow-arrow"><i class="bi bi-arrow-down-short"></i></div>
+                            <div class="flow-node border-success">
+                                <div class="small fw-bold text-success">Chapter 2: Data Fetching</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Quality Score -->
+            <div class="zone-container p-4 mt-3 mb-5" id="quality-checker-section">
+                <h5 class="fw-bold text-white mb-2"><i class="bi bi-patch-check-fill text-warning me-2"></i> AI Course Quality & Publish Checklist</h5>
+                
+                <div class="row g-3">
+                    <div class="col-12 col-md-3 text-center border-md-end border-secondary border-opacity-10 py-2">
+                        <div class="text-white-50 small text-uppercase fw-medium" style="font-size:0.7rem;">Course Quality Score</div>
+                        <div class="fs-1 fw-bold text-warning my-1" id="quality-score">-- <span class="fs-6 text-white-50">/ 100</span></div>
+                        <div class="text-warning small" id="quality-stars">⭐⭐⭐⭐⭐</div>
+                    </div>
+                    <div class="col-12 col-md-5 py-2">
+                        <div class="fw-bold text-white small mb-2"><i class="bi bi-list-task text-cyan me-1"></i> รายการตรวจสอบความสมบูรณ์หลักสูตร</div>
+                        <div class="row g-2 small text-white-50" id="checklist-results">
+                            <div class="col-6"><i class="bi bi-check-circle-fill text-success me-1"></i> รูปหน้าปกคอร์ส</div>
+                            <div class="col-6"><i class="bi bi-check-circle-fill text-success me-1"></i> คำอธิบายวิชา</div>
+                            <div class="col-6"><i class="bi bi-x-circle-fill text-danger me-1"></i> วิดีโอ 1.1 หาย</div>
+                            <div class="col-6"><i class="bi bi-check-circle-fill text-success me-1"></i> ใบรับรองจบ</div>
+                            <div class="col-6"><i class="bi bi-x-circle-fill text-danger me-1"></i> ขาด Lab OOP</div>
+                            <div class="col-6"><i class="bi bi-check-circle-fill text-success me-1"></i> Skill Map</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4 py-2">
+                        <div class="fw-bold text-purple small mb-1"><i class="bi bi-chat-square-dots-fill me-1"></i> ข้อเสนอแนะจาก AI Expert:</div>
+                        <div class="p-2 rounded bg-black bg-opacity-30 small text-white-50" id="ai-suggestion-box" style="font-size:0.8rem; min-height: 65px;">
+                            กดปุ่ม "Validate" ด้านบน เพื่อให้ AI สแกนวิเคราะห์ระบบและคำนวณคะแนนเชิงคุณภาพให้ทันที
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        <?php endif; ?>
+    <?php endif; ?>
+
+</div>
+
+<!-- [MODAL SYSTEM] -->
+<div class="modal fade" id="lessonObjectModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content text-white bg-dark border border-secondary border-opacity-30 rounded-4">
+            <div class="modal-header border-bottom border-secondary border-opacity-20 p-3">
+                <h5 class="modal-title fw-bold" id="lessonModalTitle"><i class="bi bi-plus-square text-cyan me-2"></i> จัดการรายละเอียดวัตถุเรียนรู้</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label small text-white-50">ประเภทบทเรียน (Lesson Type)</label>
+                    <select class="form-select cb-input" id="modal-lesson-type" onchange="switchModalFormType(this.value)">
+                        <option value="video">🎥 วิดีโอแนะนำหลัก (Video Content)</option>
+                        <option value="slide">📊 สไลด์เอกสารและบทความ (Slide / PDF / Article)</option>
+                        <option value="quiz">📝 แบบทดสอบประเมินผล (Quiz Management)</option>
+                        <option value="coding_lab">💻 ปฏิบัติการโค้ดดิ้งอัตโนมัติ (Coding Lab Management)</option>
+                        <option value="virtual_lab">🌐 เซิร์ฟเวอร์จำลองขั้นสูง (Virtual Lab Configuration)</option>
+                        <option value="assignment">📂 งานส่งและการทำโปรเจกต์ (Assignment Management)</option>
+                    </select>
+                </div>
+
+                <hr style="border-color: rgba(255,255,255,0.15);">
+
+                <div class="row g-3 mb-3">
+                    <div class="col-12 col-md-8">
+                        <label class="form-label small text-white-50">ชื่อหัวข้อย่อยหรือบทเรียนนี้</label>
+                        <input type="text" class="form-control cb-input" id="modal-item-title" value="หัวข้อบทเรียนใหม่">
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label class="form-label small text-white-50">กำหนดเวลาเรียน (นาที)</label>
+                        <input type="number" class="form-control cb-input" id="modal-item-time" value="25">
+                    </div>
+                </div>
+
+                <!-- Block Form ย่อยตามประเภท -->
+                <div class="sub-form-block d-none" id="sub-form-quiz">
+                    <h6 class="text-warning fw-bold small mb-2"><i class="bi bi-gear-fill"></i> ตั้งค่าโหมดแบบทดสอบ (Quiz Config)</h6>
+                    <div class="row g-2">
+                        <div class="col-12 col-sm-4">
+                            <label class="small text-white-50">ประเภทข้อสอบ</label>
+                            <select class="form-select cb-input"><option>Quiz หลังเรียนจบชุด</option><option>Quiz ก่อนเรียนบทเรียน</option><option>Final Quiz</option></select>
+                        </div>
+                        <div class="col-6 col-sm-4"><label class="small text-white-50">เกณฑ์คะแนนผ่าน (%)</label><input type="number" class="form-control cb-input" value="70"></div>
+                        <div class="col-6 col-sm-4"><label class="small text-white-50">เวลาสอบ (นาที)</label><input type="number" class="form-control cb-input" value="15"></div>
+                    </div>
+                </div>
+
+                <div class="sub-form-block d-none" id="sub-form-coding_lab">
+                    <h6 class="text-success fw-bold small mb-2"><i class="bi bi-code-slash"></i> ตั้งค่าระบบตรวจโค้ดอัตโนมัติ (Coding Lab Config)</h6>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="small text-white-50">ภาษาโปรแกรม</label>
+                            <select class="form-select cb-input"><option>JavaScript (Node.js)</option><option>Python 3.x</option><option>TypeScript</option><option>SQL</option></select>
+                        </div>
+                        <div class="col-3"><label class="small text-white-50">Time Limit (s)</label><input type="number" class="form-control cb-input" value="2"></div>
+                        <div class="col-3"><label class="small text-white-50">Memory (MB)</label><input type="number" class="form-control cb-input" value="256"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top border-secondary border-opacity-20 p-3">
+                <button type="button" class="btn btn-secondary text-white btn-sm px-3" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-cyan text-white btn-sm px-4" onclick="saveLessonObjectData()">บันทึกข้อมูล</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="aiAssistantModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-md">
+        <div class="modal-content text-white bg-dark border border-secondary border-opacity-30 rounded-4">
+            <div class="modal-header border-bottom border-secondary border-opacity-20 p-3">
+                <h5 class="modal-title fw-bold text-purple"><i class="bi bi-cpu-fill me-2"></i> AI Curriculum Assistant</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <i class="bi bi-stars text-purple fs-1 mb-2 d-block"></i>
+                <p class="small text-white mb-3">ให้ AI ตรวจวิเคราะห์ แนะนำบทเรียนที่ขาดหาย และตรวจความซ้ำซ้อนของหลักสูตร</p>
+                <button type="button" class="btn btn-purple btn-sm text-white w-100 py-2" onclick="runAICurriculumProcess()">เริ่มรัน AI วิเคราะห์โครงสร้างหลักสูตร ✨</button>
+                <div id="ai-curriculum-result" class="d-none mt-3 p-3 bg-black bg-opacity-40 border border-secondary border-opacity-10 text-start rounded small text-white-50"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="importExportModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-md">
+        <div class="modal-content text-white bg-dark border border-secondary border-opacity-30 rounded-4">
+            <div class="modal-header border-bottom border-secondary border-opacity-20 p-3">
+                <h5 class="modal-title fw-bold text-white"><i class="bi bi-arrow-left-right text-cyan me-2"></i> Import / Export</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label small text-info fw-bold">Import โครงสร้าง</label>
+                    <select class="form-select cb-input mb-2"><option>JSON Structure</option><option>SCORM Package (.zip)</option></select>
+                    <button class="btn btn-sm btn-outline-cyan text-white w-100" onclick="InstructorAlerts.toast('success', 'นำเข้าไฟล์โครงสร้างสำเร็จแล้ว')">นำเข้าไฟล์</button>
+                </div>
+                <hr style="border-color: rgba(255,255,255,0.15)">
+                <div>
+                    <label class="form-label small text-success fw-bold">Export โครงสร้าง</label>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-success text-white flex-grow-1" onclick="InstructorAlerts.toast('success', 'Export JSON สำเร็จ')"><i class="bi bi-filetype-json"></i> Export JSON</button>
+                        <button class="btn btn-sm btn-outline-warning text-white flex-grow-1" onclick="InstructorAlerts.toast('success', 'Backup ZIP สำเร็จ')"><i class="bi bi-file-zip"></i> Backup (.zip)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript System Controls -->
+<script>
+    if (typeof InstructorAlerts === 'undefined') {
+        window.InstructorAlerts = {
+            toast: (icon, title) => typeof Swal !== 'undefined' ? Swal.fire({ icon, title, toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 }) : alert(title),
+            aiProcess: (msg, time, cb) => { 
+                if(typeof Swal !== 'undefined') Swal.fire({ title: msg, allowOutsideClick: false, didOpen: () => Swal.showLoading() }); 
+                setTimeout(() => { if(typeof Swal !== 'undefined') Swal.close(); if(cb) cb(); }, time); 
+            },
+            confirmDelete: (item, cb) => { 
+                if(confirm('ยืนยันการลบ: ' + item + '?')) { if(cb) cb(); } 
+            },
+            confirmDuplicate: (item, cb) => { 
+                if(confirm('ยืนยันคัดลอก: ' + item + '?')) { if(cb) cb(); } 
+            },
+            confirmPublish: (t, text, cb) => { 
+                if(confirm(t + '\n' + text)) { if(cb) cb(); } 
+            },
+            saveDraft: () => typeof Swal !== 'undefined' ? Swal.fire({ title: 'บันทึกร่างสำเร็จ', icon: 'success', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 }) : alert('บันทึกร่างสำเร็จ'),
+            info: (t, text) => typeof Swal !== 'undefined' ? Swal.fire({ title: t, text: text, icon: 'info' }) : alert(t + '\n' + text)
+        };
+    }
+
+    let targetChapCardForNewLesson = null;
+    let currentEditLessonEl = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        reindexLessons();
+        recalculateStats();
+    });
+
+    function openAIConfigModal() {
+        $('#aiAssistantModal').modal('show');
+    }
+
+    function runAICurriculumProcess() {
+        $('#aiAssistantModal').modal('hide');
+        InstructorAlerts.aiProcess('วิเคราะห์โครงสร้างหลักสูตรและตรวจสอบความซ้ำซ้อน', 1500, () => {
+            $('#aiAssistantModal').modal('show');
+            var $res = $('#ai-curriculum-result');
+            $res.removeClass('d-none').html(`🤖 <b>ผลการวิเคราะห์จาก AI Expert:</b><br>
+• <u>สิ่งที่ขาด:</u> ควรเพิ่ม Coding Lab เรื่อง Error Handling ใน Chapter 2<br>
+• <u>ตรวจความซ้ำซ้อน:</u> ไม่พบเนื้อหาที่ซ้ำซ้อนกับคอร์สอื่นในระบบ<br>
+• <u>ข้อแนะนำ:</u> เพิ่ม Quiz ท้ายบทเรียนเสมือนจริง (Virtual Lab) เพื่อรีเช็คความเข้าใจ`);
+        });
+    }
+
+    function openAddLessonModal(btn) {
+        targetChapCardForNewLesson = $(btn).closest('.chapter-card');
+        currentEditLessonEl = null;
+        
+        $('#lessonModalTitle').html('<i class="bi bi-plus-square text-cyan me-2"></i> เพิ่มวัตถุเรียนรู้ใหม่');
+        $('#modal-item-title').val('');
+        $('#modal-lesson-type').val('video');
+        switchModalFormType('video');
+        $('#lessonObjectModal').modal('show');
+    }
+
+    function editLessonDetails(type, btn) {
+        targetChapCardForNewLesson = null;
+        currentEditLessonEl = $(btn).closest('.lesson-item');
+        
+        const currentTitle = currentEditLessonEl.find('.lesson-title').text();
+        $('#lessonModalTitle').html('<i class="bi bi-pencil-square text-info me-2"></i> แก้ไขวัตถุเรียนรู้');
+        $('#modal-item-title').val(currentTitle);
+        $('#modal-lesson-type').val(type);
+        switchModalFormType(type);
+        $('#lessonObjectModal').modal('show');
+    }
+
+    function switchModalFormType(type) {
+        $('.sub-form-block').addClass('d-none');
+        if(type === 'quiz') $('#sub-form-quiz').removeClass('d-none');
+        if(type === 'coding_lab') $('#sub-form-coding_lab').removeClass('d-none');
+    }
+
+    function saveLessonObjectData() {
+        const title = $('#modal-item-title').val().trim() || 'บทเรียนย่อยใหม่';
+        const type = $('#modal-lesson-type').val();
+        
+        const badgeMap = {
+            'video': '<span class="type-badge badge-video"><i class="bi bi-play-btn-fill"></i> Video</span>',
+            'slide': '<span class="type-badge badge-doc"><i class="bi bi-file-earmark-text-fill"></i> Slide</span>',
+            'quiz': '<span class="type-badge badge-quiz"><i class="bi bi-patch-question-fill"></i> Quiz</span>',
+            'coding_lab': '<span class="type-badge badge-lab"><i class="bi bi-code-square"></i> Coding Lab</span>',
+            'virtual_lab': '<span class="type-badge badge-lab"><i class="bi bi-server"></i> Virtual Lab</span>',
+            'assignment': '<span class="type-badge badge-doc"><i class="bi bi-file-zip"></i> Assignment</span>'
+        };
+
+        if (targetChapCardForNewLesson) {
+            const targetZone = targetChapCardForNewLesson.find('.lessons-sortable-zone');
+            targetZone.find('.style-italic').remove();
+
+            const newLessonHtml = `
+            <div class="lesson-item" data-type="${type}">
+                <div class="lesson-left-content">
+                    <i class="bi bi-list text-muted fs-6 flex-shrink-0"></i>
+                    <span class="small text-white-50 flex-shrink-0 lesson-num"></span>
+                    <span class="small text-white me-2 lesson-title">${title}</span>
+                    ${badgeMap[type] || badgeMap['video']}
+                </div>
+                <div class="d-flex gap-2 flex-shrink-0">
+                    <button class="btn btn-link text-info p-0 btn-sm" onclick="editLessonDetails('${type}', this)"><i class="bi bi-pencil-square"></i></button>
+                    <button class="btn btn-link text-danger p-0 btn-sm" onclick="removeLesson(this)"><i class="bi bi-x-circle"></i></button>
+                </div>
+            </div>`;
+
+            targetZone.append(newLessonHtml);
+            InstructorAlerts.toast('success', 'เพิ่มบทเรียนย่อยเรียบร้อยแล้ว');
+        } else if (currentEditLessonEl) {
+            currentEditLessonEl.attr('data-type', type);
+            currentEditLessonEl.find('.lesson-title').text(title);
+            currentEditLessonEl.find('.type-badge').replaceWith(badgeMap[type] || badgeMap['video']);
+            currentEditLessonEl.find('.btn-info').attr('onclick', `editLessonDetails('${type}', this)`);
+            InstructorAlerts.toast('success', 'อัปเดตข้อมูลบทเรียนเรียบร้อยแล้ว');
+        }
+        
+        reindexLessons();
+        recalculateStats();
+        $('#lessonObjectModal').modal('hide');
+    }
+
+    function removeLesson(btn) {
+        const lessonTitle = $(btn).closest('.lesson-item').find('.lesson-title').text();
+        InstructorAlerts.confirmDelete(lessonTitle, () => {
+            $(btn).closest('.lesson-item').remove();
+            reindexLessons();
+            recalculateStats();
+            InstructorAlerts.toast('success', 'ลบบทเรียนย่อยเรียบร้อยแล้ว');
+        });
+    }
+
+    function removeChapter(btn) {
+        const chapTitle = $(btn).closest('.chapter-card').find('.chapter-title-input').val();
+        InstructorAlerts.confirmDelete(chapTitle || 'Chapter นี้', () => {
+            $(btn).closest('.chapter-card').remove();
+            reindexLessons();
+            recalculateStats();
+            InstructorAlerts.toast('success', 'ลบ Chapter เรียบร้อยแล้ว');
+        });
+    }
+
+    function addNewChapter() {
+        var chapCount = $('#course-chapters-root .chapter-card').length + 1;
+        
+        var newHtml = `
+        <div class="chapter-card p-3">
+            <div class="chapter-header-flex border-bottom border-secondary border-opacity-10 pb-2 mb-2">
+                <div class="chapter-title-area">
+                    <i class="bi bi-grid-3x3-gap text-white-50 cursor-move fs-5 flex-shrink-0"></i>
+                    <span class="fw-bold text-info flex-shrink-0 chap-label">Chapter ${chapCount}:</span>
+                    <input type="text" class="chapter-title-input" value="ชื่อบทเรียนย่อยใหม่">
+                </div>
+                <div class="d-flex gap-1 flex-shrink-0">
+                    <button class="btn btn-link text-white-50 p-1 btn-sm" onclick="duplicateItem('Chapter', ${chapCount})"><i class="bi bi-copy"></i></button>
+                    <button class="btn btn-link text-warning p-1 btn-sm" onclick="InstructorAlerts.toast('info', 'ซ่อนบทเรียนเรียบร้อยแล้ว')"><i class="bi bi-eye-slash"></i></button>
+                    <button class="btn btn-link text-danger p-1 btn-sm" onclick="removeChapter(this)"><i class="bi bi-trash"></i></button>
+                </div>
+            </div>
+            <div class="lessons-sortable-zone">
+                <div class="text-center py-3 text-muted small style-italic">ไม่มีบทเรียนย่อย กดเพิ่มข้อมูลด้านล่าง</div>
+            </div>
+            <div class="mt-2 text-end">
+                <button type="button" class="btn btn-xs btn-outline-light text-white opacity-75" style="font-size:0.75rem;" onclick="openAddLessonModal(this)">+ เพิ่มวัตถุย่อย</button>
+            </div>
+        </div>`;
+        
+        $('#course-chapters-root').append(newHtml);
+        reindexLessons();
+        recalculateStats();
+        InstructorAlerts.toast('success', 'เพิ่ม Chapter ใหม่แล้ว');
+    }
+
+    function reindexLessons() {
+        $('#course-chapters-root .chapter-card').each(function(chapIdx) {
+            const chapNum = chapIdx + 1;
+            $(this).find('.chap-label').text(`Chapter ${chapNum}:`);
+            $(this).find('.lessons-sortable-zone .lesson-item').each(function(lessIdx) {
+                $(this).find('.lesson-num').text(`${chapNum}.${lessIdx + 1}`);
+            });
+        });
+    }
+
+    function recalculateStats() {
+        const chapCount = $('#course-chapters-root .chapter-card').length;
+        const lessonCount = $('.lesson-item').length;
+        const quizCount = $('.lesson-item[data-type="quiz"]').length;
+        const labCount = $('.lesson-item[data-type="coding_lab"], .lesson-item[data-type="virtual_lab"]').length;
+
+        $('#cnt-chap').text(chapCount);
+        $('#cnt-less').text(lessonCount);
+        $('#cnt-quiz').text(quizCount);
+        $('#cnt-lab').text(labCount);
+    }
+
+    function duplicateItem(type, id) {
+        InstructorAlerts.confirmDuplicate(`${type} ${id}`, () => {
+            InstructorAlerts.toast('success', `คัดลอก ${type} ${id} เรียบร้อยแล้ว`);
+        });
+    }
+
+    function runQualityValidation() {
+        InstructorAlerts.aiProcess('สแกนและประเมินคุณภาพคอร์สเรียน', 1200, () => {
+            $('#quality-score').html('96 <span class="fs-6 text-white-50">/ 100</span>');
+            $('#quality-stars').text('★★★★★');
+            $('#checklist-results').html(`
+                <div class="col-6"><i class="bi bi-check-circle-fill text-success me-1"></i> รูปปกและคำอธิบายคอร์ส</div>
+                <div class="col-6"><i class="bi bi-check-circle-fill text-success me-1"></i> เนื้อหาสื่อการเรียนการสอน</div>
+                <div class="col-6"><i class="bi bi-check-circle-fill text-success me-1"></i> Quiz ประเมินก่อน-หลังเรียน</div>
+                <div class="col-6"><i class="bi bi-check-circle-fill text-success me-1"></i> ปฏิบัติการ Coding & Virtual Lab</div>
+                <div class="col-6"><i class="bi bi-check-circle-fill text-success me-1"></i> เงื่อนไขและระบบการปลดล็อก</div>
+                <div class="col-6"><i class="bi bi-check-circle-fill text-success me-1"></i> การเชื่อมโยงทักษะผู้เรียน</div>
+            `);
+            $('#ai-suggestion-box').html('✨ <b>Course คุณภาพดีเยี่ยม!</b> โครงสร้างคอร์สมีความสมบูรณ์สูง สามารถเผยแพร่ได้ทันทีครับ');
+            $('#publish-btn').prop('disabled', false).removeClass('btn-success').addClass('btn-cyan').html('<i class="bi bi-rocket-takeoff-fill me-1"></i> Ready to Publish (100%)');
+            InstructorAlerts.toast('success', 'ประเมินคุณภาพหลักสูตรสำเร็จ!');
+        });
+    }
+
+    function toggleCollaborators() {
+        InstructorAlerts.info(
+            'ผู้ร่วมสร้างคอร์ส 👥',
+            '1. ผู้สอนหลัก (Owner - คุณ)\n2. Co-Instructor (Editor)'
+        );
+    }
+
+    function triggerAction(actionType) {
+        if(actionType === 'save') {
+            InstructorAlerts.saveDraft();
+        } else if(actionType === 'preview') {
+            InstructorAlerts.toast('info', 'กำลังสร้างหน้าแสดงผลพรีวิวสำหรับมุมมองนักเรียน...');
+        } else if(actionType === 'publish') {
+            InstructorAlerts.confirmPublish(
+                'เผยแพร่หลักสูตรสู่สาธารณะ? 🚀',
+                'เนื้อหาจะเปิดใช้งานและแสดงให้ผู้เรียนเห็นในระบบทันที',
+                () => {
+                    InstructorAlerts.toast('success', 'เผยแพร่หลักสูตรเรียบร้อยแล้ว!');
+                }
+            );
+        }
+    }
+</script>

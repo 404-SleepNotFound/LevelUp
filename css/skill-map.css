@@ -1,0 +1,151 @@
+/* =========================================
+   LevelUp - Skill Map Design System
+   ========================================= */
+
+body { overflow: hidden; /* Prevent body scrolling when panning map */ }
+
+/* Layout Panels */
+.skill-sidebar {
+    width: 350px;
+    min-width: 350px;
+    z-index: 20;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.bg-map {
+    background-color: #0f172a;
+    background-image: radial-gradient(#334155 1px, transparent 1px);
+    background-size: 30px 30px; /* Grid Pattern */
+    cursor: grab;
+}
+.bg-map:active { cursor: grabbing; }
+
+/* Interactive Canvas Base */
+.map-canvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 3000px; /* Virtual size */
+    height: 3000px;
+    transform-origin: 0 0;
+    /* Transform manipulated by JS */
+}
+
+/* SVG Lines Layer */
+.map-svg-layer {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none; /* Let clicks pass through to background */
+    z-index: 1;
+}
+.skill-edge {
+    stroke: #475569;
+    stroke-width: 3;
+    fill: none;
+    transition: stroke 0.3s;
+}
+.skill-edge.active { stroke: #6366f1; stroke-width: 4; }
+
+/* Node Elements Layer */
+.map-nodes-layer {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 2;
+}
+
+/* Node Styles */
+.skill-node {
+    position: absolute;
+    transform: translate(-50%, -50%); /* Center coordinate */
+    background: #1e293b;
+    border: 2px solid #334155;
+    border-radius: 50px; /* Pill shape */
+    padding: 12px 24px;
+    color: #f8fafc;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+}
+
+.skill-node:hover {
+    transform: translate(-50%, -50%) scale(1.05);
+    z-index: 10;
+}
+
+/* Node Status Variations */
+.skill-node[data-status="mastered"] {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+.skill-node[data-status="mastered"]::before {
+    content: "\F26A"; /* Bootstrap Icon Check */
+    font-family: bootstrap-icons;
+    color: #10b981;
+}
+
+.skill-node[data-status="learning"] {
+    border-color: #f59e0b;
+    background: rgba(245, 158, 11, 0.1);
+}
+.skill-node[data-status="learning"]::before {
+    content: "\F256"; /* Bootstrap Icon Clock */
+    font-family: bootstrap-icons;
+    color: #f59e0b;
+}
+
+.skill-node[data-status="recommended"] {
+    border-color: #6366f1;
+    background: rgba(99, 102, 241, 0.2);
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
+    animation: pulseGlow 2s infinite;
+}
+.skill-node[data-status="recommended"]::before {
+    content: "\F5D5"; /* Bootstrap Icon Stars */
+    font-family: bootstrap-icons;
+    color: #a5b4fc;
+}
+
+.skill-node[data-status="locked"] {
+    border-color: #334155;
+    background: rgba(30, 41, 59, 0.5);
+    color: #64748b;
+    cursor: not-allowed;
+}
+.skill-node[data-status="locked"]::before {
+    content: "\F47A"; /* Bootstrap Icon Lock */
+    font-family: bootstrap-icons;
+}
+
+/* Selected State */
+.skill-node.selected {
+    border-width: 3px;
+    border-color: #fff !important;
+}
+
+/* Legend & Utils */
+.legend-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; }
+.glow { box-shadow: 0 0 8px currentColor; }
+.z-index-10 { z-index: 10; }
+
+/* Missing Skill Card */
+.missing-skill-item {
+    background: #1e293b;
+    border-left: 3px solid #6366f1;
+    padding: 12px;
+    border-radius: 6px;
+}
+.missing-skill-item.critical { border-left-color: #ef4444; }
+
+/* Animations */
+@keyframes pulseGlow {
+    0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+}

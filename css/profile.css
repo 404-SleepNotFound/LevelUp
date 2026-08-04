@@ -1,0 +1,119 @@
+/* =========================================
+   LevelUp - Profile Design System
+   ========================================= */
+
+/* Typography & Utils */
+.fs-sm { font-size: 0.875rem; }
+.fs-xs { font-size: 0.75rem; }
+.hover-opacity-100 { transition: opacity 0.2s; }
+.hover-opacity-100:hover { opacity: 1 !important; }
+
+/* Cards & Surfaces */
+.card-dark {
+    background-color: #1e293b;
+}
+.custom-shadow {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+}
+.bg-gradient-ai {
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.2) 0%, rgba(124, 58, 237, 0.1) 100%);
+    border: 1px solid rgba(139, 92, 246, 0.3) !important;
+}
+
+/* Hero & Cover */
+.profile-cover {
+    height: 300px;
+    width: 100%;
+    overflow: hidden;
+}
+.cover-image {
+    width: 100%; height: 100%;
+    background-size: cover; background-position: center;
+}
+.cover-overlay {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(to bottom, rgba(15, 23, 42, 0.2) 0%, rgba(15, 23, 42, 0.95) 100%);
+}
+.profile-header-info {
+    position: relative;
+    z-index: 2;
+}
+
+/* Avatar */
+.profile-avatar-wrapper {
+    margin-top: -50px; /* Pull up over cover */
+}
+.profile-avatar {
+    width: 140px; height: 140px;
+    object-fit: cover;
+    background-color: #0f172a;
+}
+.avatar-edit-btn {
+    width: 35px; height: 35px;
+    padding: 0; display: flex; align-items: center; justify-content: center;
+    border: 2px solid #0f172a;
+}
+
+/* Timeline Component */
+.profile-timeline {
+    position: relative;
+    padding-left: 24px;
+}
+.profile-timeline::before {
+    content: ''; position: absolute;
+    left: 6px; top: 0; bottom: 0;
+    width: 2px; background: #334155;
+}
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+.timeline-item:last-child { margin-bottom: 0; }
+.timeline-icon {
+    position: absolute; left: -29px; top: 2px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #1e293b;
+    border: 2px solid;
+    display: flex; align-items: center; justify-content: center;
+}
+
+/* Portfolio Card Hover Effect */
+.portfolio-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+}
+.portfolio-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+.portfolio-img-wrapper {
+    height: 160px; overflow: hidden;
+}
+.portfolio-img-wrapper img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform 0.5s ease;
+}
+.portfolio-card:hover .portfolio-img-wrapper img {
+    transform: scale(1.05);
+}
+
+/* Skeletons */
+.skeleton-img { height: 160px; background: #334155; animation: pulse 1.5s infinite; }
+.skeleton-text { height: 14px; background: #334155; border-radius: 4px; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+
+/* Buttons & Elements */
+.glow-btn {
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+    transition: all 0.3s ease;
+}
+.glow-btn:hover { box-shadow: 0 0 25px rgba(99, 102, 241, 0.6); transform: translateY(-2px); }
+.badge-custom {
+    padding: 8px 12px;
+    background: #334155;
+    border: 1px solid #475569;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    color: #f8fafc;
+}

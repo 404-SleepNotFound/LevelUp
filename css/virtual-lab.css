@@ -1,0 +1,112 @@
+/* =========================================
+   LevelUp - Virtual Lab Design System
+   ========================================= */
+
+/* Typography & Base */
+.text-monospace { font-family: 'JetBrains Mono', 'Fira Code', monospace; }
+.outline-none { outline: none !important; }
+.custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.3); border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(156, 163, 175, 0.6); }
+
+/* Layout Heights */
+.virtual-lab-wrapper {
+    height: 100vh; /* บังคับเต็มจอ */
+    overflow: hidden;
+}
+
+/* Custom Tabs */
+.custom-tabs .nav-link {
+    color: var(--bs-gray-500);
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+.custom-tabs .nav-link.active {
+    color: var(--bs-primary);
+    background-color: transparent;
+}
+
+/* Tasks Checklist */
+.task-item {
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+}
+.task-item.completed {
+    opacity: 0.7;
+    border-left-color: var(--bs-success);
+}
+.task-item.completed .task-title {
+    text-decoration: line-through;
+}
+.checkbox-custom {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--bs-gray-400);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+}
+.task-item.completed .checkbox-custom {
+    background-color: var(--bs-success);
+    border-color: var(--bs-success);
+}
+.task-item.completed .checkbox-custom::after {
+    content: '\F26A'; /* Bootstrap Icon Check */
+    font-family: bootstrap-icons;
+    color: white;
+    font-size: 14px;
+}
+
+/* IDE / Editor Area */
+.ide-tabs { border-bottom: 1px solid #334155; }
+.ide-tab {
+    padding: 8px 16px;
+    font-size: 13px;
+    color: #94a3b8;
+    background: #1e293b;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    cursor: pointer;
+    font-family: monospace;
+}
+.ide-tab.active {
+    background: #0f172a;
+    color: #f8fafc;
+    border-top: 2px solid var(--bs-primary);
+}
+
+/* Terminal System */
+.terminal-input-wrapper input::placeholder { color: #475569; }
+
+/* AI Chat System */
+.ai-bubble {
+    position: relative;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+.typing-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: currentColor;
+    border-radius: 50%;
+    animation: typing 1.4s infinite ease-in-out;
+    margin: 0 2px;
+}
+.typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-dot:nth-child(2) { animation-delay: -0.16s; }
+@keyframes typing {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+}
+
+/* Animations */
+@keyframes jumpIn {
+    0% { transform: scale(0.5) translateY(20px); opacity: 0; }
+    60% { transform: scale(1.1) translateY(-10px); opacity: 1; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+.jump-anim { animation: jumpIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }

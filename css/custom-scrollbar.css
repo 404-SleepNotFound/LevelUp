@@ -1,0 +1,61 @@
+/* ======================================================
+   🎨 LEVELUP CUSTOM GLOBAL SCROLLBAR (THEME-AWARE)
+   ====================================================== */
+
+/* 🦊 1. Firefox Support */
+* {
+    scrollbar-width: thin;
+}
+
+html[data-theme="dark"], 
+:root:not([data-theme="light"]) {
+    scrollbar-color: #6366f1 #090d1a;
+}
+
+html[data-theme="light"] {
+    scrollbar-color: #94a3b8 #f1f5f9;
+}
+
+/* 🌐 2. WebKit Browsers (Chrome, Edge, Safari, Opera) */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+/* ------------------------------------------------------
+   🌙 DARK MODE SCROLLBAR (DEFAULT)
+   ------------------------------------------------------ */
+html[data-theme="dark"] ::-webkit-scrollbar-track,
+:root:not([data-theme="light"]) ::-webkit-scrollbar-track {
+    background: #090d1a !important;
+}
+
+html[data-theme="dark"] ::-webkit-scrollbar-thumb,
+:root:not([data-theme="light"]) ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #6366f1 0%, #06b6d4 100%) !important;
+    border-radius: 10px !important;
+    border: 2px solid #090d1a !important; /* เว้นระยะห่างให้ดูมีมิติ */
+}
+
+html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover,
+:root:not([data-theme="light"]) ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #818cf8 0%, #22d3ee 100%) !important;
+    box-shadow: 0 0 10px rgba(6, 182, 212, 0.6);
+}
+
+/* ------------------------------------------------------
+   ☀️ LIGHT MODE SCROLLBAR
+   ------------------------------------------------------ */
+html[data-theme="light"] ::-webkit-scrollbar-track {
+    background: #f1f5f9 !important;
+}
+
+html[data-theme="light"] ::-webkit-scrollbar-thumb {
+    background: #cbd5e1 !important;
+    border-radius: 10px !important;
+    border: 2px solid #f1f5f9 !important;
+}
+
+html[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8 !important;
+}

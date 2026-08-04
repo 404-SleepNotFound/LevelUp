@@ -1,0 +1,575 @@
+﻿<?php
+$ROOT_PATH = '../';
+// [Security Framework & Session Verification]
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
+?>
+
+<style>
+    /* Scope Quiz Builder Styles ให้เข้ากับ Premium Dark Theme */
+    .quiz-container {
+        animation: fadeInQuiz 0.35s ease-in-out;
+        width: 100%;
+        overflow-x: hidden;
+    }
+    .quiz-section-card {
+        background: rgba(16, 24, 48, 0.65);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 16px;
+        padding: 16px;
+        margin-bottom: 20px;
+        backdrop-filter: blur(10px);
+    }
+    @media (min-width: 768px) {
+        .quiz-section-card {
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+    }
+    .section-title {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #f8fafc;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    @media (min-width: 768px) {
+        .section-title {
+            font-size: 1.1rem;
+            align-items: center;
+        }
+    }
+    .section-title i {
+        color: #06b6d4;
+        margin-top: 2px;
+    }
+    @media (min-width: 768px) {
+        .section-title i { margin-top: 0; }
+    }
+
+    /* 🛠️ [FIXED] ดึงตัวหนังสือจม/จางไกลๆ ให้เด่นชัดขึ้นบนพื้นหลังมืด */
+    .text-muted {
+        color: rgba(255, 255, 255, 0.48) !important;
+    }
+    .text-white-50 {
+        color: rgba(255, 255, 255, 0.55) !important;
+    }
+
+    /* 🛠️ [SUPER FIX] ล้างระบบกล่องจมแบบเด็ดขาด (ล็อกฟอนต์ไทยไม่ให้โดนตัดขอบและจมลงล่าง) */
+    .form-control-premium {
+        background: rgba(15, 23, 42, 0.8) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        color: #f8fafc !important;
+        border-radius: 10px;
+        
+        /* ปรับระดับ Padding ใหม่เพื่อยกสระไทยไม่ให้จม */
+        padding-top: 13px !important;
+        padding-bottom: 13px !important;
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+        
+        /* ใช้ line-height และความสูงที่คำนวณเผื่อสระ บน-ล่าง */
+        line-height: 1.7 !important;
+        height: auto !important; 
+        min-height: 52px !important;
+        font-size: 0.95rem !important;
+        display: block;
+        width: 100%;
+    }
+    
+    .form-control-premium:focus {
+        border-color: #06b6d4 !important;
+        box-shadow: 0 0 0 0.25rem rgba(6, 182, 212, 0.15) !important;
+    }
+    
+    textarea.form-control-premium {
+        min-height: 110px !important;
+        padding-top: 14px !important;
+        padding-bottom: 14px !important;
+    }
+
+    /* ปรับแต่งส่วน Dropdown Select ให้ตรงกลาง ไม่จม */
+    select.form-control-premium {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 16px center !important;
+        background-size: 12px 12px !important;
+        padding-right: 42px !important;
+    }
+
+    /* ปรับแต่ง Input Group Component เพื่อไม่ให้บีบตัวหนังสือจม */
+    .input-group .form-control-premium {
+        border-top-left-radius: 0 !important;
+        border-bottom-left-radius: 0 !important;
+    }
+    .input-group-text {
+        background: rgba(30, 41, 59, 0.8) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        color: #94a3b8 !important;
+        padding: 0 16px !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .form-label-premium {
+        color: #cbd5e1 !important;
+        font-weight: 500;
+        margin-bottom: 8px;
+        font-size: 0.88rem;
+        display: inline-block;
+    }
+    .form-control-premium::placeholder {
+        color: #64748b !important;
+    }
+
+    /* Question Item Box Layout */
+    .question-build-item {
+        background: rgba(0, 0, 0, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+    @media (min-width: 768px) {
+        .question-build-item {
+            padding: 20px;
+            cursor: grab;
+        }
+        .question-build-item:active { cursor: grabbing; }
+    }
+
+    /* สถิติ Mobile Responsive Grid */
+    .analytics-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    @media (min-width: 992px) {
+        .analytics-grid {
+            grid-template-columns: repeat(5, 1fr);
+        }
+    }
+    .analytics-card {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    @media (min-width: 992px) {
+        .analytics-card {
+            border: none;
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 0;
+            background: transparent;
+            padding: 0 8px;
+        }
+        .analytics-card:last-child {
+            border-right: none;
+        }
+    }
+
+    .alert-badge-premium {
+        white-space: normal;
+        word-break: break-word;
+        text-align: left;
+        line-height: 1.4;
+    }
+
+    @keyframes fadeInQuiz {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="quiz-container">
+    <!-- Top Action Info Bar -->
+    <div class="d-flex justify-content-between align-items-start mb-4 flex-column flex-md-row gap-3">
+        <div class="w-100">
+            <h3 class="text-white fw-bold mb-1 fs-4"><i class="bi bi-patch-question-fill text-cyan me-2"></i>ระบบสร้างและจัดการแบบทดสอบ</h3>
+            <p class="text-muted small mb-0">ออกแบบชุดข้อสอบทั่วไป โค้ดดิ้งชาเลนจ์ สุ่มตัวเลือก และใช้ระบบ AI ช่วยประเมินความชัดเจนของคำถาม</p>
+        </div>
+        <!-- 15. Validation Indicator Badge -->
+        <div id="quiz-validation-alert" class="alert-badge-premium badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-20 p-2 font-monospace w-100 w-md-auto">
+            <i class="bi bi-exclamation-triangle-fill me-1"></i> 15. Validation: ตรวจพบตัวเลือกข้อสอบบางข้อยังไม่มีคำตอบเฉลัยที่ถูก
+        </div>
+    </div>
+
+    <form id="quizMasterForm" onsubmit="event.preventDefault();">
+
+        <!-- ==========================================
+             1. QUIZ INFORMATION & 2. QUIZ TYPE
+             ========================================== -->
+        <div class="quiz-section-card">
+            <div class="section-title">
+                <i class="bi bi-info-circle-fill"></i> 1 & 2. Quiz Configuration (ตั้งค่าข้อมูลทั่วไปหลักสูตร)
+            </div>
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <label class="form-label form-label-premium">ชื่อแบบทดสอบ</label>
+                    <input type="text" class="form-control form-control-premium" value="แบบทดสอบย่อยบทที่ 3: โครงสร้างและการประยุกต์ใช้งาน Array ในภาษาคอมพิวเตอร์">
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <label class="form-label form-label-premium">2. ประเภท Quiz (Quiz Type)</label>
+                    <select class="form-select form-control-premium">
+                        <option>Pre-Test (ก่อนเรียน)</option>
+                        <option>Post-Test (หลังเรียน)</option>
+                        <option>Practice Quiz (ฝึกฝนระหว่างเรียน)</option>
+                        <option selected>Chapter Quiz (ประจำบทเรียน)</option>
+                        <option>Final Exam (สอบไล่ปลายภาค)</option>
+                        <option>Coding Challenge (โจทย์ท้าทายสปีดรัน)</option>
+                    </select>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <label class="form-label form-label-premium">คะแนนเต็มของ Quiz</label>
+                    <input type="number" class="form-control form-control-premium" value="50">
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label form-label-premium">Chapter หลักที่ผูกมัด</label>
+                    <select class="form-select form-control-premium">
+                        <option>Chapter 1: Introduction to Logic</option>
+                        <option selected>Chapter 2: Data Structure Core</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label form-label-premium">Lesson (บทเรียนย่อยต้นทาง)</label>
+                    <select class="form-select form-control-premium">
+                        <option>Lesson 3.1: Understanding Arrays Concept</option>
+                        <option selected>Lesson 3.2: Multidimensional Array Matrix</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label form-label-premium">สถานะการแสดงผล (Status)</label>
+                    <select class="form-select form-control-premium text-warning fw-bold">
+                        <option value="draft" selected>🟡 Draft (แบบร่างแก้ไข)</option>
+                        <option value="published">🟢 Published (เผยแพร่สู่ผู้เรียน)</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="form-label form-label-premium">คำอธิบายโครงสร้างแบบทดสอบ</label>
+                    <textarea class="form-control form-control-premium" rows="2">ใช้วัดระดับความเข้าใจตรรกะการจัดเรียงอาเรย์สองมิติ ห้ามเปิดดูอินเทอร์เน็ตระหว่างเข้าทดสอบ</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             ⭐ FEATURE 2: VISUAL QUESTION EDITOR & 3. QUESTION BUILDER
+             ========================================== -->
+        <div class="quiz-section-card border border-info border-opacity-20">
+            <div class="section-title text-cyan">
+                <i class="bi bi-layout-text-sidebar-reverse"></i> ⭐ Visual Question Editor & 3. Question Type Builder
+            </div>
+            <p class="text-muted small mt-0 mb-3">กดเลือกประเภทโจทย์ด้านล่าง เพื่อเพิ่มลงกระดานข้อสอบ (รองรับภาพ, วิดีโอ, ตาราง, LaTeX หรือ Code Block)</p>
+            
+            <div class="d-flex flex-wrap gap-2 mb-4">
+                <button type="button" class="btn btn-sm btn-dark border border-secondary text-white py-2 px-2.5" onclick="appendQuestionType('multiple_choice')">🔘 Multiple Choice</button>
+                <button type="button" class="btn btn-sm btn-dark border border-secondary text-white py-2 px-2.5" onclick="appendQuestionType('true_false')">⚖️ True / False</button>
+                <button type="button" class="btn btn-sm btn-dark border border-secondary text-white py-2 px-2.5" onclick="appendQuestionType('fill_blank')">✍️ Fill in the Blank</button>
+                <button type="button" class="btn btn-sm btn-dark border border-secondary text-white py-2 px-2.5" onclick="appendQuestionType('short_answer')">📝 Short Answer</button>
+                <button type="button" class="btn btn-sm btn-dark border border-secondary text-white py-2 px-2.5" onclick="appendQuestionType('essay')">📄 Essay</button>
+                <button type="button" class="btn btn-sm btn-dark border border-secondary text-white py-2 px-2.5" onclick="appendQuestionType('coding_question')">💻 Coding Question</button>
+            </div>
+
+            <!-- 4. QUESTION MANAGEMENT STAGE TARGET -->
+            <div id="questions-stage-container">
+                
+                <!-- ตัวอย่างข้อสอบข้อที่ 1 -->
+                <div class="question-build-item" id="q_sample_1">
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <span class="small fw-bold text-white-50"><i class="bi bi-grid-3x2-gap-fill text-cyan me-2"></i>ข้อที่ 1 [ประเภท: Multiple Choice (ปรนัย)]</span>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-xs btn-outline-secondary py-1 text-white small" onclick="alert('คัดลอกข้อสอบข้อนี้แล้ว')"><i class="bi bi-copy"></i> Duplicate</button>
+                            <button type="button" class="btn btn-xs btn-outline-danger py-1 small" onclick="$('#q_sample_1').remove()"><i class="bi bi-trash"></i> ลบ</button>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label form-label-premium">โจทย์คำถาม (รองรับแทรกตาราง/สมการ เช่น $$\sum X_n$$ หรือ Code Block)</label>
+                            <textarea class="form-control form-control-premium font-monospace text-info small" rows="2">จากข้อมูล Array สองมิติที่กำหนดให้ จงคำนวณหาค่า Element ในตำแหน่ง index [1][0] ว่ามีค่าเท่ากับเท่าใด?</textarea>
+                        </div>
+                        
+                        <!-- 5. Answer Management & ตัวเลือกย่อย -->
+                        <div class="col-12 col-md-6">
+                            <div class="input-group mb-2">
+                                <span class="input-group-text"><input type="radio" name="correct_q1" checked></span>
+                                <input type="text" class="form-control form-control-premium" value="ตัวเลือก ก. 24 (คำตอบที่ถูก)">
+                            </div>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text"><input type="radio" name="correct_q1"></span>
+                                <input type="text" class="form-control form-control-premium" value="ตัวเลือก ข. 12">
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="input-group mb-2">
+                                <span class="input-group-text"><input type="radio" name="correct_q1"></span>
+                                <input type="text" class="form-control form-control-premium" value="ตัวเลือก ค. 9">
+                            </div>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text"><input type="radio" name="correct_q1"></span>
+                                <input type="text" class="form-control form-control-premium" value="ตัวเลือก ง. ข้อมูลเป็น Null">
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-9">
+                            <label class="form-label form-label-premium">คำอธิบายเฉลยคำตอบอย่างละเอียด (Explanation)</label>
+                            <input type="text" class="form-control form-control-premium small" value="เนื่องจากอาเรย์แถวแรกคือ index 0 และแถวถัดมาคือ index 1 ค่าแรกของแถวจึงเป็น [1][0] ซึ่งตรงกับค่า 24">
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label form-label-premium">คะแนนข้อนี้</label>
+                            <input type="number" class="form-control form-control-premium" value="5">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="text-end">
+                <button type="button" class="btn btn-outline-light text-cyan border-secondary border-opacity-40 py-2 btn-sm w-100 w-sm-auto" onclick="alert('เปิดโมดูลคลังข้อสอบ 6. Question Bank')"><i class="bi bi-database-fill-down me-1"></i> นำเข้าข้อสอบจาก Question Bank</button>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             7. RANDOMIZATION & 8. QUIZ SETTINGS
+             ========================================== -->
+        <div class="quiz-section-card">
+            <div class="section-title">
+                <i class="bi bi-gear-fill text-warning"></i> 7 & 8. Quiz Settings & Randomization Control
+            </div>
+            <div class="row g-3">
+                <div class="col-12 col-sm-6 col-md-3">
+                    <label class="form-label form-label-premium">จำกัดเวลาสอบ (นาที)</label>
+                    <input type="number" class="form-control form-control-premium" value="30">
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <label class="form-label form-label-premium">เกณฑ์คะแนนผ่าน (%)</label>
+                    <input type="number" class="form-control form-control-premium" value="60">
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <label class="form-label form-label-premium">จำนวนครั้งที่อนุญาตให้สอบ</label>
+                    <select class="form-select form-control-premium">
+                        <option>1 ครั้งเท่านั้น</option>
+                        <option selected>3 ครั้ง</option>
+                        <option>ไม่จำกัดจำนวนครั้ง</option>
+                    </select>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <label class="form-label form-label-premium">การสุ่ม (Randomization)</label>
+                    <div class="pt-1">
+                        <div class="form-check form-check-inline small"><input type="checkbox" class="form-check-input" checked> สุ่มลำดับข้อ</div>
+                        <div class="form-check form-check-inline small"><input type="checkbox" class="form-check-input" checked> สุ่มตัวเลือก</div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <div class="p-2.5 border border-secondary border-opacity-30 rounded bg-dark bg-opacity-30 small"><input type="checkbox" class="form-check-input me-2" checked> แสดงคะแนนหลังส่งคำตอบทันที</div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <div class="p-2.5 border border-secondary border-opacity-30 rounded bg-dark bg-opacity-30 small"><input type="checkbox" class="form-check-input me-2" checked> แสดงคำอธิบายเฉลยคำตอบในหน้าสรุป</div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <div class="p-2.5 border border-secondary border-opacity-30 rounded bg-dark bg-opacity-30 small"><input type="checkbox" class="form-check-input me-2"> อนุญาตให้กดปุ่มย้อนกลับไปทำข้อเดิม</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             9. CODING QUIZ PLATFORM ENGINE
+             ========================================== -->
+        <div class="quiz-section-card">
+            <div class="section-title">
+                <i class="bi bi-terminal-fill text-success"></i> 9. Coding Quiz Engine (ห้องส่งงานและคอมไพเลอร์โค้ด)
+            </div>
+            <div class="row g-3">
+                <div class="col-12 col-sm-6 col-md-4">
+                    <label class="form-label form-label-premium">ภาษาโปรแกรมมิ่งที่รองรับ</label>
+                    <select class="form-select form-control-premium">
+                        <option>PHP</option><option>Python</option><option>Java</option><option selected>JavaScript</option><option>C</option><option>C++</option><option>SQL</option>
+                    </select>
+                </div>
+                <div class="col-12 col-sm-6 col-md-4">
+                    <label class="form-label form-label-premium">Time Limit (วินาที)</label>
+                    <input type="number" class="form-control form-control-premium" value="2">
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label form-label-premium">Memory Limit (MB สูงสุด)</label>
+                    <input type="number" class="form-control form-control-premium" value="256">
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label form-label-premium">Starter Code (โครงโค้ดตั้งต้น)</label>
+                    <textarea class="form-control form-control-premium font-monospace text-cyan small" rows="3">function solution(matrix) {&#10;    // เขียนโค้ดส่งคำตอบที่นี่&#10;    return;&#10;}</textarea>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label form-label-premium">Test Cases & Expected Output</label>
+                    <textarea class="form-control form-control-premium font-monospace text-warning small" rows="3">[&#10;  { "input": "[[1,2],[3,4]]", "output": "3" }&#10;]</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             ⭐ FEATURE 1 & 10: AI QUIZ ASSISTANT & ADAPTIVE BUILDER
+             ========================================== -->
+        <div class="quiz-section-card border border-purple bg-purple bg-opacity-5" style="border: 1px solid rgba(168, 85, 247, 0.25);">
+            <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-20 pb-2 mb-3">
+                <div class="section-title mb-0 border-0 pb-0" style="color:#a855f7;">
+                    <i class="bi bi-cpu-fill"></i> 10. AI Quiz Assistant & ⭐ 1. Adaptive Quiz Builder
+                </div>
+                <span class="badge bg-purple bg-opacity-20 text-purple border border-purple border-opacity-30 d-none d-sm-inline-block">Generative Copilot Mode</span>
+            </div>
+            <div class="row g-3">
+                <div class="col-12 col-lg-8">
+                    <label class="form-label form-label-premium d-block">10. ฟังก์ชันสั่งการระบบปัญญาประดิษฐ์</label>
+                    <div class="row g-2">
+                        <div class="col-6 col-sm-4"><button type="button" class="btn btn-dark border border-secondary text-white w-100 py-2.5 small" onclick="triggerAIQuizAction('generate_question')"><i class="bi bi-magic me-1"></i> ช่วยสร้างข้อสอบ</button></div>
+                        <div class="col-6 col-sm-4"><button type="button" class="btn btn-dark border border-secondary text-white w-100 py-2.5 small" onclick="triggerAIQuizAction('choices')"><i class="bi bi-list-stars me-1"></i> คิดตัวเลือกหลอก</button></div>
+                        <div class="col-6 col-sm-4"><button type="button" class="btn btn-dark border border-secondary text-white w-100 py-2.5 small" onclick="triggerAIQuizAction('explain')"><i class="bi bi-chat-square-text me-1"></i> สร้างคำเฉลย</button></div>
+                        <div class="col-6 col-sm-4"><button type="button" class="btn btn-dark border border-secondary text-white w-100 py-2.5 small" onclick="triggerAIQuizAction('translate')"><i class="bi bi-translate me-1"></i> แปลภาษา</button></div>
+                        <div class="col-6 col-sm-4"><button type="button" class="btn btn-dark border border-secondary text-white w-100 py-2.5 small" onclick="triggerAIQuizAction('spell')"><i class="bi bi-spellcheck me-1"></i> ตรวจคำสะกด</button></div>
+                        <div class="col-6 col-sm-4"><button type="button" class="btn btn-dark border border-purple text-purple w-100 py-2.5 small" onclick="triggerAIQuizAction('adaptive')"><i class="bi bi-layers-half me-1"></i> ⭐ แยกข้อสอบ 3 ระดับ</button></div>
+                    </div>
+                </div>
+
+                <!-- 18. AI Quality Checker -->
+                <div class="col-12 col-lg-4">
+                    <div class="p-3 rounded-3 bg-dark bg-opacity-60 border border-secondary border-opacity-40">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small text-white fw-bold">18. AI Quality Checker</span>
+                            <span class="text-info fw-bold font-monospace">89 / 100</span>
+                        </div>
+                        <div style="font-size: 0.75rem; line-height: 1.45;" class="text-white-50">
+                            <i class="bi bi-robot text-purple"></i> <strong>[ผลวิเคราะห์]:</strong> คำถามมีความชัดเจนดี แนะนำเปลี่ยนตัวเลือก ง. เป็นชอยส์ลวงเชิงคำนวณเพื่อความท้าทายเพิ่มขึ้น
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             11 - 12 & 16 - 17. METADATA & ACCESS CONTROL
+             ========================================== -->
+        <div class="quiz-section-card">
+            <div class="section-title"><i class="bi bi-sliders"></i> Advanced Parameters Matrix</div>
+            <div class="row g-3">
+                <div class="col-12 col-sm-6 col-md-3">
+                    <label class="form-label form-label-premium">11. ความยากเฉลี่ย</label>
+                    <select class="form-select form-control-premium text-info fw-bold">
+                        <option>Easy (ง่าย)</option>
+                        <option selected>Medium (ปานกลาง)</option>
+                        <option>Hard (ขั้นสูง)</option>
+                    </select>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <label class="form-label form-label-premium">12. Tags & Skills Mapping</label>
+                    <input type="text" class="form-control form-control-premium" value="DataStructure, Arrays">
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <label class="form-label form-label-premium">16. โอนย้ายไฟล์ชุดข้อสอบ</label>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-dark border border-secondary w-50 py-2.5 small" onclick="alert('Import System')">Import</button>
+                        <button type="button" class="btn btn-dark border border-secondary w-50 py-2.5 small" onclick="alert('Export System')">Export</button>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <label class="form-label form-label-premium">17. สิทธิ์การเข้าถึง</label>
+                    <select class="form-select form-control-premium">
+                        <option selected>เฉพาะผู้ลงทะเบียนเรียนคอร์สนี้</option>
+                        <option>ปลดล็อกอัตโนมัติหลังจบเนื้อหา</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             14. QUIZ ANALYTICS
+             ========================================== -->
+        <div class="quiz-section-card bg-dark bg-opacity-20 border border-secondary border-opacity-40">
+            <div class="section-title text-white-50">
+                <i class="bi bi-bar-chart-line-fill"></i> 14. Quiz Analytics Module (สถิติวิเคราะห์ระบบ)
+            </div>
+            <div class="analytics-grid font-monospace text-center">
+                <div class="analytics-card"><div class="text-muted small">ผู้สอบสะสม</div><h5 class="fw-bold text-white mb-0 fs-6 mt-1">142 คน</h5></div>
+                <div class="analytics-card"><div class="text-muted small">คะแนนเฉลี่ย</div><h5 class="fw-bold text-cyan mb-0 fs-6 mt-1">34.5 / 50</h5></div>
+                <div class="analytics-card"><div class="text-muted small">อัตราการผ่าน</div><h5 class="fw-bold text-success mb-0 fs-6 mt-1">78.2%</h5></div>
+                <div class="analytics-card"><div class="text-muted small">เวลาเฉลี่ย</div><h5 class="fw-bold text-warning mb-0 fs-6 mt-1">18 นาที</h5></div>
+                <div class="analytics-card"><div class="text-muted small">ข้อที่ผิดมากสุด</div><h5 class="fw-bold text-danger mb-0 fs-6 mt-1">ข้อ 3 (62%)</h5></div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             19. VERSION HISTORY TRACKING
+             ========================================== -->
+        <div class="quiz-section-card">
+            <div class="section-title">
+                <i class="bi bi-history"></i> 19. Version History Logs
+            </div>
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 font-monospace text-white-50 small">
+                <div><i class="bi bi-check2-circle text-success"></i> Auto Save สำรองข้อมูลชุดข้อสอบเรียบร้อย</div>
+                <div>เวอร์ชันล่าสุด: <span class="text-info">v2.1 (Draft)</span></div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             20. PUBLISH HUB BAR CONTROL BUTTONS
+             ========================================== -->
+        <div class="p-3 rounded-4 bg-dark bg-opacity-50 border border-secondary border-opacity-30 d-flex justify-content-between align-items-center flex-column flex-md-row gap-3">
+            <div class="d-flex w-100 w-md-auto justify-content-between gap-2">
+                <button type="button" class="btn btn-outline-danger btn-sm py-2 px-3" onclick="triggerBottomQuizHubAction('delete')"><i class="bi bi-trash-fill"></i> ลบ</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm text-white-50 py-2 px-3" onclick="triggerBottomQuizHubAction('duplicate')"><i class="bi bi-copy"></i> Duplicate</button>
+            </div>
+            <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
+                <button type="button" class="btn btn-outline-info text-cyan py-2 px-3" data-bs-toggle="modal" data-bs-target="#quizSimulatorModal"><i class="bi bi-eye-fill me-1"></i> 13. Preview</button>
+                <button type="button" class="btn btn-secondary text-white py-2 px-3" onclick="triggerBottomQuizHubAction('save_draft')"><i class="bi bi-cloud-check-fill"></i> Save Draft</button>
+                <button type="button" class="btn btn-cyan text-white py-2 px-4 fw-bold" onclick="triggerBottomQuizHubAction('publish')"><i class="bi bi-rocket-takeoff-fill"></i> Publish Quiz</button>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<!-- 13. PREVIEW SIMULATOR MODAL -->
+<div class="modal fade" id="quizSimulatorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark text-white border border-secondary border-opacity-20">
+            <div class="modal-header border-secondary border-opacity-20 bg-black bg-opacity-30">
+                <h6 class="modal-title fw-bold text-cyan"><i class="bi bi-laptop me-2"></i>13. Preview Mode</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-3 bg-black bg-opacity-10">
+                <div class="p-3 rounded bg-dark border border-secondary border-opacity-30">
+                    <h6 class="fw-bold text-white mb-3">คำถามข้อที่ 1: จากข้อมูล Array สองมิติที่กำหนดให้ จงคำนวณหาค่า Element ในตำแหน่ง index [1][0]?</h6>
+                    <div>
+                        <div class="p-2 border border-secondary border-opacity-20 rounded mb-2 bg-dark bg-opacity-50 text-white-50 small"><input type="radio" disabled> ก. 24</div>
+                        <div class="p-2 border border-secondary border-opacity-20 rounded mb-2 bg-dark bg-opacity-50 text-white-50 small"><input type="radio" disabled> ข. 12</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function triggerAIQuizAction(actionType) {
+        alert('เรียกใช้งานโครงข่าย AI Co-Pilot: ' + actionType.toUpperCase());
+    }
+
+    function triggerBottomQuizHubAction(operation) {
+        alert('ส่งสัญญาณคำสั่งระบบ: ' + operation.toUpperCase());
+    }
+
+    function appendQuestionType(type) {
+        var uniqId = Math.floor(Math.random() * 99999);
+        var customBlockNodeHtml = `
+            <div class="question-build-item bg-dark bg-opacity-50 border border-secondary border-opacity-30 p-3 rounded mb-3" id="dynamic_q_${uniqId}">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small fw-bold text-white-50"><i class="bi bi-grid-3x2-gap-fill text-muted me-2"></i>ข้อสร้างใหม่ [ประเภท: ${type.toUpperCase()}]</span>
+                    <button type="button" class="btn btn-xs p-0 text-danger" onclick="$(this).closest('.question-build-item').remove()"><i class="bi bi-trash-fill"></i></button>
+                </div>
+                <textarea class="form-control form-control-premium form-control-sm font-monospace small" rows="2" placeholder="พิมพ์คำถามเนื้อหาหลักสำหรับข้อสอบประเภท ${type}..."></textarea>
+            </div>
+        `;
+        $('#questions-stage-container').append(customBlockNodeHtml);
+    }
+</script>

@@ -1,0 +1,128 @@
+/**
+ * LevelUp - Footer Interactions
+ */
+
+document.addEventListener('DOMContentLoaded', () => {
+    
+    // 1. AI Tips Randomizer
+    const aiTips = [
+        "Doing labs immediately after lessons increases retention by 40%.",
+        "Stuck on a bug? Ask the AI Tutor to explain the error, not just give the code.",
+        "Consistency is key! A 15-minute daily streak is better than a 3-hour binge on Sunday.",
+        "Use the 'Spaced Repetition' quizzes in your dashboard to memorize syntax faster.",
+        "Write pseudocode before you type real code. It helps structure your logic."
+    ];
+    
+    const tipElement = document.getElementById('dailyAiTip');
+    if(tipElement) {
+        // Pick random tip
+        const randomTip = aiTips[Math.floor(Math.random() * aiTips.length)];
+        tipElement.innerText = randomTip;
+    }
+
+    // 2. Back to Top Logic
+    const backToTopBtn = document.getElementById('backToTopBtn');
+    
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 400) {
+            backToTopBtn.classList.add('show');
+            backToTopBtn.classList.remove('d-none');
+        } else {
+            backToTopBtn.classList.remove('show');
+            // Timeout allows the CSS transition (opacity/transform) to finish before display:none
+            setTimeout(() => {
+                if(window.scrollY <= 400) backToTopBtn.classList.add('d-none');
+            }, 300);
+        }
+    });
+
+    backToTopBtn.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+
+    // 3. Newsletter AJAX Submit
+    const newsletterForm = document.getElementById('newsletterForm');
+    if(newsletterForm) {
+        newsletterForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnNewsletter');
+            const emailInput = newsletterForm.querySelector('input[name="email"]');
+            
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+            btn.disabled = true;
+
+            try {
+                const formData = new FormData(newsletterForm);
+                formData.append('action', 'subscribe_newsletter');
+
+                const res = await fetch('api/ajax_footer.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await res.json();
+                
+                if(data.status === 'success') {
+                    btn.innerHTML = '<i class="bi bi-check2"></i> Done';
+                    btn.classList.replace('btn-primary', 'btn-success');
+                    emailInput.value = '';
+                } else {
+                    btn.innerHTML = 'Error';
+                    btn.classList.replace('btn-primary', 'btn-danger');
+                }
+            } catch (error) {
+                btn.innerHTML = 'Failed';
+            } finally {
+                setTimeout(() => {
+                    btn.innerHTML = 'Subscribe';
+                    btn.disabled = false;
+                    btn.classList.remove('btn-success', 'btn-danger');
+                    btn.classList.add('btn-primary');
+                }, 3000);
+            }
+        });
+    }
+
+    // 4. Feedback Modal AJAX Submit
+    const feedbackForm = document.getElementById('feedbackForm');
+    if(feedbackForm) {
+        feedbackForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmitFeedback');
+            
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Sending...';
+            btn.disabled = true;
+
+            try {
+                const formData = new FormData(feedbackForm);
+                formData.append('action', 'submit_feedback');
+
+                const res = await fetch('api/ajax_footer.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await res.json();
+                
+                if(data.status === 'success') {
+                    btn.innerHTML = 'Sent!';
+                    btn.classList.replace('btn-primary', 'btn-success');
+                    setTimeout(() => {
+                        bootstrap.Modal.getInstance(document.getElementById('feedbackModal')).hide();
+                        feedbackForm.reset();
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        btn.classList.replace('btn-success', 'btn-primary');
+                    }, 1500);
+                }
+            } catch (error) {
+                btn.innerHTML = 'Error. Try Again.';
+                btn.disabled = false;
+            }
+        });
+    }
+});

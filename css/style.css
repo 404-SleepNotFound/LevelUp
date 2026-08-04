@@ -1,0 +1,777 @@
+/* =========================================
+   LevelUp Design System - style.css
+   ========================================= */
+
+/* =========================================
+   1. Design System & CSS Variables
+   ========================================= */
+:root {
+    /* Colors - Light Theme */
+    --primary: #4F46E5;        /* Indigo 600 */
+    --primary-hover: #4338CA;
+    --secondary: #06B6D4;      /* Cyan 500 */
+    --bg-main: #F8FAFC;        /* Slate 50 */
+    --bg-surface: #FFFFFF;
+    --bg-light-alt: #F1F5F9;
+    --text-main: #0F172A;      /* Slate 900 */
+    --text-muted: #64748B;     /* Slate 500 */
+    --border-color: #E2E8F0;
+    --border-radius: 12px;
+
+    /* Input Colors */
+    --input-bg: #FFFFFF;
+    --input-border: #CBD5E1;
+    --input-focus-border: #4F46E5;
+    --input-focus-ring: rgba(79, 70, 229, 0.2);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    --shadow-premium: 0 20px 25px -5px rgba(79, 70, 229, 0.1);
+
+    /* Gradients & Motion */
+    --ai-gradient: linear-gradient(135deg, var(--primary), var(--secondary));
+    --transition-fast: 0.2s ease;
+    --transition-base: 0.3s ease;
+
+    /* Legacy "c-" tokens, used only by the .lesson-page components below.
+       Kept separate on purpose so we don't have to touch the markup. */
+    --c-bg: #f8fafc;
+    --c-surface: #ffffff;
+    --c-surface-darker: #f1f5f9;
+    --c-border: #e2e8f0;
+    --c-text: #0f172a;
+    --c-text-muted: #64748b;
+    --c-primary: #4f46e5;
+    --c-primary-hover: #4338ca;
+    --c-ai: #a855f7;
+    --c-ai-bg: rgba(168, 85, 247, 0.1);
+}
+
+[data-theme="dark"], body.dark-mode {
+    /* Colors - Dark Theme */
+    --primary: #6366F1;        /* Indigo 500 */
+    --primary-hover: #818CF8;
+    --secondary: #22D3EE;      /* Cyan 400 */
+    --bg-main: #0B0F19;        /* Custom Deep Dark Blue */
+    --bg-surface: #111827;     /* Gray 900 */
+    --bg-light-alt: #1F2937;   /* Gray 800 */
+    --text-main: #F8FAFC;      /* Slate 50 */
+    --text-muted: #94A3B8;     /* Slate 400 */
+    --border-color: #1E293B;
+
+    /* Input Colors */
+    --input-bg: #1F2937;
+    --input-border: #334155;
+    --input-focus-border: #6366F1;
+    --input-focus-ring: rgba(99, 102, 241, 0.25);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    --shadow-premium: 0 0 25px -5px rgba(99, 102, 241, 0.2);
+
+    /* Legacy "c-" tokens */
+    --c-bg: #09090b;
+    --c-surface: #18181b;
+    --c-surface-darker: #0f0f12;
+    --c-border: #27272a;
+    --c-text: #f8fafc;
+    --c-text-muted: #a1a1aa;
+    --c-primary: #6366f1;
+    --c-primary-hover: #818cf8;
+}
+
+/* =========================================
+   Lesson Page Components
+   ========================================= */
+body.lesson-page {
+    background-color: var(--c-bg);
+    color: var(--c-text);
+    font-family: 'Inter', system-ui, sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* Typography & Utilities */
+.text-sm { font-size: 0.875rem; }
+.bg-darker { background-color: var(--c-surface-darker) !important; }
+.text-primary { color: var(--c-primary) !important; }
+.bg-primary { background-color: var(--c-primary) !important; }
+.border-primary { border-color: var(--c-primary) !important; }
+.resize-none { resize: none; }
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Navbar */
+.lesson-navbar {
+    background-color: var(--c-surface);
+    border-bottom: 1px solid var(--c-border);
+    height: 64px;
+    flex-shrink: 0;
+}
+.btn-icon {
+    width: 36px; height: 36px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    color: var(--c-text);
+    background: transparent;
+    border: none;
+    transition: background 0.2s;
+}
+.btn-icon:hover { background-color: var(--c-border); }
+
+/* Layout Workspace */
+.lesson-workspace {
+    flex-grow: 1;
+    height: calc(100vh - 64px);
+    overflow: hidden;
+}
+
+/* Sidebar Navigation */
+.lesson-sidebar {
+    width: 280px;
+    background-color: var(--c-surface);
+    border-right: 1px solid var(--c-border);
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.lesson-sidebar.collapsed {
+    width: 0;
+    overflow: hidden;
+    border-right: none;
+}
+.lesson-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: var(--c-text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+.lesson-item:hover { background-color: var(--c-border); color: var(--c-text); }
+.lesson-item.active { background-color: rgba(99, 102, 241, 0.1); color: var(--c-primary); font-weight: 600; }
+.lesson-item.completed { color: var(--c-text); }
+.lesson-item.locked { opacity: 0.5; pointer-events: none; }
+
+/* Main Content Area */
+.lesson-main { background-color: var(--c-bg); }
+.content-container { padding-bottom: 100px; }
+
+/* Video Player (Custom UI) */
+.video-container {
+    background: #000;
+    aspect-ratio: 16/9;
+}
+.video-container video { width: 100%; height: 100%; object-fit: cover; }
+.video-controls {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+    opacity: 0; transition: opacity 0.3s;
+}
+.video-container:hover .video-controls, .video-container.paused .video-controls { opacity: 1; }
+.control-btn {
+    background: none; border: none; color: white;
+    font-size: 1.1rem; cursor: pointer; transition: 0.2s;
+    width: 32px; height: 32px; border-radius: 4px;
+}
+.control-btn:hover { background: rgba(255,255,255,0.2); }
+.control-btn.ai-glow { color: var(--c-ai); text-shadow: 0 0 8px var(--c-ai); }
+
+/* Progress Bar */
+.video-progress {
+    height: 4px; background: rgba(255,255,255,0.3);
+    border-radius: 2px; cursor: pointer; position: relative;
+    transition: height 0.2s;
+}
+.video-progress:hover { height: 8px; }
+.video-progress-filled {
+    height: 100%; background: var(--c-primary);
+    border-radius: 2px; width: 0%;
+    position: relative;
+}
+.video-progress-filled::after {
+    content: ''; position: absolute; right: -5px; top: -3px;
+    width: 10px; height: 10px; background: white; border-radius: 50%;
+    transform: scale(0); transition: 0.2s;
+}
+.video-progress:hover .video-progress-filled::after { transform: scale(1); }
+
+.bookmark-marker {
+    position: absolute; top: -4px; width: 4px; height: 12px;
+    background: var(--c-ai); border-radius: 2px; box-shadow: 0 0 4px var(--c-ai);
+}
+
+/* AI Alert */
+.alert-ai {
+    background-color: var(--c-ai-bg);
+    border-left: 4px solid var(--c-ai) !important;
+    color: var(--c-text);
+}
+
+/* Code Block & Reading */
+.lesson-reading h1, .lesson-reading h3 { color: var(--c-text); }
+.lesson-reading p { color: var(--c-text-muted); line-height: 1.7; }
+pre { margin: 0; padding: 1rem; border-radius: 0 0 8px 8px; background: #0f0f12; overflow-x: auto; color: #e2e8f0; }
+.highlight-yellow { background-color: rgba(251, 191, 36, 0.4); border-bottom: 2px solid #fbbf24; }
+
+/* Right Sidebar: AI Panel */
+.ai-panel {
+    width: 350px; background-color: var(--c-surface);
+    border-color: var(--c-border) !important;
+    flex-shrink: 0;
+}
+.nav-tabs .nav-link { color: var(--c-text-muted); border: none; margin-bottom: 5px;}
+.nav-tabs .nav-link.active { background-color: var(--c-border); color: var(--c-text); font-weight: 600; }
+
+/* Chat UI */
+.chat-messages { display: flex; flex-direction: column; gap: 10px; }
+.message-bubble {
+    padding: 12px 16px; border-radius: 16px; line-height: 1.5;
+    max-width: 90%;
+}
+.chat-message.ai .message-bubble { background-color: var(--c-border); color: var(--c-text); border-top-left-radius: 4px; }
+.chat-message.user { align-self: flex-end; }
+.chat-message.user .message-bubble { background-color: var(--c-primary); color: white; border-top-right-radius: 4px; }
+.prompt-btn:hover { background-color: var(--c-primary) !important; cursor: pointer; }
+
+/* Timeline UI */
+.timeline-container { border-left: 2px solid var(--c-border); padding-left: 15px; margin-left: 10px; }
+.timeline-item { position: relative; margin-bottom: 20px; }
+.timeline-item::before {
+    content: ''; position: absolute; left: -21px; top: 0;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--c-primary); border: 2px solid var(--c-surface);
+}
+.timeline-item .time { font-size: 0.75rem; color: var(--c-text-muted); margin-bottom: 4px; }
+.timeline-item .content { font-size: 0.875rem; color: var(--c-text); background: var(--c-border); padding: 8px 12px; border-radius: 8px; }
+
+/* Highlight Menu (Floating) */
+.highlight-menu {
+    position: absolute; display: none; background: var(--c-surface-darker);
+    border: 1px solid var(--c-border); z-index: 1000;
+    align-items: center; gap: 6px;
+}
+.color-btn {
+    width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent;
+    cursor: pointer; transition: 0.2s;
+}
+.color-btn:hover { transform: scale(1.1); }
+
+/* =========================================
+   2. Base Styles
+   ========================================= */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    transition: background-color var(--transition-base), color var(--transition-base);
+}
+
+a { color: var(--primary); text-decoration: none; transition: color var(--transition-fast); }
+a:hover { color: var(--primary-hover); }
+
+/* Typography Classes */
+.text-main { color: var(--text-main) !important; }
+.text-muted { color: var(--text-muted) !important; }
+.bg-surface { background-color: var(--bg-surface) !important; }
+.bg-light-alt { background-color: var(--bg-light-alt) !important; }
+.border-color { border-color: var(--border-color) !important; }
+.fw-black { font-weight: 800; }
+.fs-sm { font-size: 0.875rem; }
+.fs-xs { font-size: 0.75rem; }
+.letter-spacing-1 { letter-spacing: 1px; }
+.cursor-pointer { cursor: pointer; }
+
+/* AI Text Effect */
+.ai-text-gradient {
+    background: var(--ai-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.ai-badge-light {
+    background: rgba(79, 70, 229, 0.1);
+    border: 1px solid rgba(79, 70, 229, 0.2);
+}
+
+/* Helpers */
+.section-padding { padding: 80px 0; }
+.shadow-sm { box-shadow: var(--shadow-sm) !important; }
+.shadow-premium { box-shadow: var(--shadow-premium) !important; }
+
+/* =========================================
+   3. Components
+   ========================================= */
+/* Navbar */
+.custom-navbar {
+    background-color: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-color);
+    transition: all var(--transition-base);
+}
+[data-theme="dark"] .custom-navbar, body.dark-mode .custom-navbar { background-color: rgba(17, 24, 39, 0.85); }
+.custom-navbar .nav-link { color: var(--text-main); font-weight: 500; }
+.custom-navbar .nav-link:hover { color: var(--primary); }
+
+/* Buttons */
+.btn-primary { background-color: var(--primary); border-color: var(--primary); }
+.btn-primary:hover { background-color: var(--primary-hover); border-color: var(--primary-hover); }
+.btn-premium {
+    background: var(--ai-gradient);
+    border: none;
+    color: #fff;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+.btn-premium:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    background: var(--ai-gradient);
+    color: #fff;
+}
+.btn-premium:disabled {
+    opacity: 0.7;
+    transform: none;
+    box-shadow: none;
+}
+.btn-surface { background-color: var(--bg-surface); color: var(--text-main); }
+.btn-surface:hover { background-color: var(--bg-light-alt); color: var(--text-main); }
+
+/* Theme Toggle Component */
+.theme-toggle {
+    cursor: pointer;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-light-alt);
+    color: var(--text-main);
+    border-radius: 50%;
+    width: 40px; height: 40px;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all var(--transition-fast);
+}
+.theme-toggle:hover {
+    background-color: var(--border-color);
+    transform: scale(1.05);
+}
+.theme-toggle i {
+    font-size: 1.2rem;
+    transition: transform 0.3s ease;
+}
+.theme-toggle:active i {
+    transform: rotate(15deg) scale(0.9);
+}
+
+/* Course Card (From index) */
+.course-card {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+.course-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+.course-cover-wrapper { position: relative; overflow: hidden; height: 160px; }
+.course-cover-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: transform var(--transition-base); }
+.course-card:hover .course-cover-wrapper img { transform: scale(1.05); }
+
+/* =========================================
+   4. Auth Forms & Inputs (New for Login)
+   ========================================= */
+
+/* Premium Input Fields */
+.form-control-premium {
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    color: var(--text-main);
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    transition: all var(--transition-fast);
+}
+.form-control-premium:focus {
+    background-color: var(--input-bg);
+    border-color: var(--input-focus-border);
+    box-shadow: 0 0 0 4px var(--input-focus-ring);
+    color: var(--text-main);
+}
+.form-control-premium::placeholder { color: var(--text-muted); opacity: 0.7; }
+/* Override browser autocomplete background */
+.form-control-premium:-webkit-autofill,
+.form-control-premium:-webkit-autofill:hover, 
+.form-control-premium:-webkit-autofill:focus, 
+.form-control-premium:-webkit-autofill:active{
+    -webkit-box-shadow: 0 0 0 30px var(--input-bg) inset !important;
+    -webkit-text-fill-color: var(--text-main) !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Custom Checkbox */
+.custom-checkbox .form-check-input {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    cursor: pointer;
+}
+.custom-checkbox .form-check-input:checked {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+/* Social Buttons */
+.btn-outline-surface {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    transition: all var(--transition-fast);
+}
+.btn-outline-surface:hover {
+    background-color: var(--bg-light-alt);
+    border-color: var(--border-color);
+}
+
+/* Background Shapes for Auth */
+.auth-section { overflow: hidden; }
+.bg-shape {
+    position: absolute; border-radius: 50%; filter: blur(80px); z-index: 0;
+}
+.shape-1 {
+    width: 400px; height: 400px; background: var(--primary);
+    top: -100px; right: -100px; opacity: 0.15;
+}
+.shape-2 {
+    width: 300px; height: 300px; background: var(--secondary);
+    bottom: -50px; left: -50px; opacity: 0.1;
+}
+
+/* Validation Feedback override */
+.invalid-feedback { font-size: 0.8rem; }
+.is-invalid { border-color: #EF4444 !important; }
+.is-invalid:focus { box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2) !important; }
+
+/* =========================================
+   5. Wizard & Register Components
+   ========================================= */
+
+/* Wizard Transitions */
+.wizard-step {
+    animation: fadeIn 0.4s ease forwards;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Progress Indicator */
+.step-indicator {
+    transition: color var(--transition-base);
+}
+.step-indicator.active {
+    color: var(--primary) !important;
+    font-weight: 700;
+}
+
+/* Password Strength Meter */
+.meter-bar {
+    height: 4px;
+    background-color: var(--border-color);
+    transition: background-color 0.3s ease;
+}
+.pwd-rules li i { font-size: 0.5rem; vertical-align: middle; }
+.pwd-rules li.valid { color: #10B981; }
+.pwd-rules li.valid i::before { content: "\F26A"; /* bi-check-circle-fill */ }
+
+/* Selectable Badges (Multiple Select) */
+.selection-badge {
+    padding: 0.4rem 1rem;
+    font-size: 0.875rem;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    color: var(--text-muted);
+    cursor: pointer;
+    user-select: none;
+    background: var(--bg-surface);
+    transition: all var(--transition-fast);
+}
+.selection-badge:hover {
+    border-color: var(--primary-hover);
+    color: var(--text-main);
+}
+.selection-badge.active {
+    background-color: rgba(79, 70, 229, 0.1);
+    border-color: var(--primary);
+    color: var(--primary);
+    font-weight: 500;
+}
+[data-theme="dark"] .selection-badge.active, body.dark-mode .selection-badge.active {
+    background-color: rgba(99, 102, 241, 0.2);
+}
+
+/* Selectable Cards (Single Select - Radio style) */
+.selection-card {
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    background: var(--bg-surface);
+    transition: all var(--transition-fast);
+}
+.selection-card:hover {
+    border-color: var(--primary-hover);
+}
+.selection-card.active {
+    background-color: rgba(79, 70, 229, 0.05);
+    border-color: var(--primary);
+    color: var(--primary);
+    font-weight: 600;
+    box-shadow: 0 0 0 1px var(--primary);
+}
+
+/* =========================================
+   6. Dashboard Components
+   ========================================= */
+
+/* Dashboard Cards */
+.dashboard-card {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+.course-continue-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary);
+}
+
+/* AI Insight Hero Card */
+.ai-insight-card {
+    background-color: var(--bg-surface);
+    border: 1px solid rgba(79, 70, 229, 0.2);
+}
+.ai-message-box {
+    background: rgba(79, 70, 229, 0.05);
+    border: 1px solid rgba(79, 70, 229, 0.1);
+    backdrop-filter: blur(10px);
+}
+[data-theme="dark"] .ai-message-box, body.dark-mode .ai-message-box { background: rgba(99, 102, 241, 0.1); }
+.ai-glow-bg {
+    position: absolute; width: 300px; height: 300px; background: var(--ai-gradient);
+    filter: blur(120px); opacity: 0.1; top: -100px; right: -50px; border-radius: 50%;
+    z-index: 0; pointer-events: none;
+}
+.max-w-md { max-width: 400px; }
+.wave-emoji { display: inline-block; animation: wave-animation 2.5s infinite; transform-origin: 70% 70%; }
+@keyframes wave-animation {
+    0% { transform: rotate( 0.0deg) }
+    10% { transform: rotate(14.0deg) }
+    20% { transform: rotate(-8.0deg) }
+    30% { transform: rotate(14.0deg) }
+    40% { transform: rotate(-4.0deg) }
+    50% { transform: rotate(10.0deg) }
+    60% { transform: rotate( 0.0deg) }
+    100% { transform: rotate( 0.0deg) }
+}
+
+/* Stat Icons */
+.stat-icon { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+
+/* Roadmap Timeline */
+.roadmap-container { position: relative; padding-left: 1.5rem; }
+.roadmap-container::before {
+    content: ''; position: absolute; top: 0; left: 0.75rem; width: 2px; height: 100%;
+    background-color: var(--border-color); transform: translateX(-50%);
+}
+.roadmap-step { position: relative; display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+.roadmap-step:last-child { margin-bottom: 0; }
+.roadmap-step .step-icon {
+    width: 1.5rem; height: 1.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; background-color: var(--bg-surface); border: 2px solid var(--border-color);
+    position: absolute; left: -1.5rem; top: 0; transform: translateX(-50%); z-index: 1;
+}
+.roadmap-step.completed .step-icon { background-color: #10B981; border-color: #10B981; color: white; }
+.roadmap-step.current .step-icon { background-color: var(--primary); border-color: var(--primary); color: white; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2); }
+.roadmap-step.locked .step-icon { background-color: var(--bg-light-alt); color: var(--text-muted); }
+.roadmap-step.locked .step-content { opacity: 0.6; }
+
+/* Mission List */
+.mission-item { transition: background-color var(--transition-fast); }
+.mission-item:hover { background-color: var(--bg-light-alt); }
+.mission-checkbox { cursor: pointer; width: 1.25rem; height: 1.25rem; }
+.mission-checkbox:checked + span { text-decoration: line-through; color: var(--text-muted) !important; }
+
+/* Activity Timeline */
+.activity-icon { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+/* =========================================
+   7. Course Detail Specific Styles
+   ========================================= */
+
+/* Hero Section */
+.course-hero { padding-top: 80px; padding-bottom: 80px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.bg-gradient-primary { background: var(--ai-gradient); color: white; border: none; }
+.hover-text-primary:hover { color: var(--primary) !important; transition: var(--transition-fast); }
+.hover-text-white:hover { color: white !important; transition: var(--transition-fast); }
+
+/* AI Readiness Circular Progress Bar */
+.readiness-circle {
+    width: 60px; height: 60px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: conic-gradient(var(--primary) var(--score), var(--border-color) 0deg);
+    position: relative; font-weight: bold; font-size: 1.1rem; color: var(--text-main);
+}
+.readiness-circle::before {
+    content: ""; position: absolute; inset: 6px; 
+    background-color: var(--bg-surface); border-radius: 50%;
+}
+.readiness-circle span { position: relative; z-index: 1; }
+
+/* Sticky Sidebar */
+.sticky-sidebar {
+    position: sticky; top: 90px; 
+    transition: transform var(--transition-base); z-index: 10;
+}
+
+/* Custom Accordion for Curriculum */
+.custom-accordion .accordion-item { border: 1px solid var(--border-color); margin-bottom: 1rem; border-radius: 16px !important; }
+.custom-accordion .accordion-button {
+    box-shadow: none !important; color: var(--text-main); font-weight: 600; padding: 1.25rem 1.5rem; border-radius: 16px !important;
+}
+.custom-accordion .accordion-button:not(.collapsed) {
+    background-color: var(--bg-light-alt); color: var(--primary);
+}
+.custom-accordion .accordion-button::after {
+    background-size: 1rem; transition: transform var(--transition-fast);
+}
+.hover-bg-light:hover { background-color: var(--bg-light-alt) !important; transition: var(--transition-fast); }
+
+/* AI Q&A Chat Widget */
+.max-h-500 { max-height: 500px; }
+.ai-chat-body::-webkit-scrollbar { width: 6px; }
+.ai-chat-body::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 10px; }
+.typing-indicator span {
+    display: inline-block; width: 6px; height: 6px; background-color: var(--primary); border-radius: 50%;
+    animation: typing 1s infinite alternate; margin: 0 1px;
+}
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing { 0% { transform: translateY(0); opacity: 0.5; } 100% { transform: translateY(-3px); opacity: 1; } }
+
+/* Badge for Suggested Course */
+.bg-success-subtle { background-color: rgba(25, 135, 84, 0.1) !important; }
+.bg-warning-subtle { background-color: rgba(255, 193, 7, 0.1) !important; }
+
+/* =========================================
+   8. Learning Path & AI Simulator Styles
+   ========================================= */
+
+/* Custom Range Slider (Time Simulator) */
+.custom-range-slider {
+    -webkit-appearance: none; width: 100%; height: 8px; border-radius: 5px;
+    background: var(--border-color); outline: none; padding: 0; margin: 10px 0;
+}
+.custom-range-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 24px; height: 24px; border-radius: 50%; 
+    background: var(--primary); cursor: pointer; border: 3px solid var(--bg-surface);
+    box-shadow: 0 0 10px rgba(79, 70, 229, 0.4); transition: transform var(--transition-fast);
+}
+.custom-range-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+/* Skill Gap Table */
+.table-skill-gap th, .table-skill-gap td { padding: 1rem 0; }
+
+/* Roadmap Node Tree Visualization */
+.roadmap-tree { padding: 20px 0; }
+.roadmap-node { position: relative; }
+.node-indicator { display: flex; flex-direction: column; align-items: center; width: 40px; flex-shrink: 0; }
+.node-icon {
+    width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; z-index: 2; position: relative; transition: var(--transition-base);
+}
+.node-line { width: 3px; flex-grow: 1; background-color: var(--border-color); min-height: 40px; }
+.node-content { transition: transform var(--transition-base), box-shadow var(--transition-base); }
+.roadmap-node:not(.locked):hover .node-content { transform: translateX(5px); box-shadow: var(--shadow-md); }
+
+/* Roadmap States */
+.roadmap-node.completed .node-line { background-color: #22c55e; opacity: 0.5; }
+.roadmap-node.active .node-line { background: linear-gradient(to bottom, var(--primary) 0%, var(--border-color) 100%); }
+.roadmap-node.locked .node-content { filter: grayscale(50%); cursor: not-allowed; }
+
+/* Dark Mode Adjustments for Roadmap */
+[data-theme="dark"] .roadmap-node.locked .node-content, body.dark-mode .roadmap-node.locked .node-content { background-color: #1A2235 !important; }
+
+/* =========================================
+   9. Coding Lab (Web IDE) Styles
+   ========================================= */
+
+/* IDE Theme Specifics overrides */
+.coding-lab-layout .nav-tabs-custom { background: var(--bg-surface); padding-top: 5px; }
+.coding-lab-layout [data-bs-toggle="tab"] { border-radius: 0; margin-bottom: -2px; }
+
+/* AI Action Buttons */
+.ai-action-btn { transition: all 0.2s; }
+.ai-action-btn:hover { background-color: var(--primary); color: white; border-color: var(--primary); }
+
+/* Monaco Editor Container */
+.editor-wrapper { border: none; outline: none; }
+.editor-wrapper .monaco-editor { padding-top: 10px; }
+
+/* Panels toggling */
+.ide-panel-left.collapsed { width: 0 !important; overflow: hidden; opacity: 0; border: none !important; }
+.ide-panel-right.collapsed { width: 0 !important; overflow: hidden; opacity: 0; border: none !important; }
+
+/* ==========================================================================
+   10. AJAX Page Transitions & Premium Layout Additions
+   ========================================================================== */
+
+/* กล่องหลักสำหรับการสลับหน้า SPA เปลี่ยนแปลงแบบ Smooth Fade */
+#main-content-area {
+    transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 1;
+    transform: translateY(0);
+    will-change: opacity, transform;
+}
+
+/* คลาสที่จะถูกเพิ่มด้วยสคริปต์ jQuery ระหว่างกำลังโหลดหน้าเว็บชุดใหม่ */
+#main-content-area.page-fade-out {
+    opacity: 0;
+    transform: translateY(12px);
+}
+
+/* ปรับปรุงเบลอฉากหลังเอฟเฟกต์สำหรับกล่อง Loading Screen */
+#ajax-loading-screen {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: opacity 0.2s ease;
+}
+
+/* ทำให้การเปลี่ยนสีกายภาพของโครงสร้างหลักสมูทเมื่อสลับดาร์กโหมด */
+body {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
+}
+
+/* โครงสร้างพื้นหลังกราเดียนต์สำหรับหน้าแรก */
+.hero-gradient-bg {
+    position: relative;
+    overflow: hidden;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* เลเยอร์เรืองแสงวงกลมทรง Premium */
+.hero-glow {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    background: var(--ai-gradient);
+    filter: blur(150px);
+    opacity: 0.08;
+    top: -200px;
+    left: -100px;
+    border-radius: 50%;
+    pointer-events: none;
+}

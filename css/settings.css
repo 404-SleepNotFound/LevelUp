@@ -1,0 +1,88 @@
+/* =========================================
+   LevelUp - Settings Page Design System
+   ========================================= */
+
+/* Sidebar Navigation (Pills) */
+.settings-nav .nav-link {
+    color: #94a3b8;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border-radius: 8px !important;
+}
+.settings-nav .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #f8fafc;
+}
+.settings-nav .nav-link.active {
+    background-color: rgba(99, 102, 241, 0.15); /* Accent Indigo */
+    color: #818cf8;
+    font-weight: 600;
+}
+
+/* Inputs & Form Elements */
+.form-control:focus, .form-select:focus, textarea:focus {
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25) !important;
+}
+
+/* Custom Toggle Switch (iOS style) */
+.custom-switch .form-check-input {
+    width: 2.5em;
+    height: 1.25em;
+    background-color: #334155;
+    border-color: transparent;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+.custom-switch .form-check-input:checked {
+    background-color: #6366f1; /* Accent Color */
+    border-color: #6366f1;
+}
+.custom-switch .form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba%28255, 255, 255, 1%29'/%3e%3c/svg%3e");
+}
+
+/* AI Persona Cards */
+.persona-card .card-body {
+    transition: all 0.2s ease;
+    background-color: rgba(255, 255, 255, 0.02);
+}
+.persona-card:hover .card-body {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+.persona-card input:checked + .card-body {
+    border-color: #6366f1 !important;
+    background-color: rgba(99, 102, 241, 0.05);
+    box-shadow: 0 0 0 1px #6366f1;
+}
+
+/* Typography & Utils */
+.tracking-wide { letter-spacing: 0.05em; }
+.cursor-pointer { cursor: pointer; }
+
+/* Responsive Tabs for Mobile */
+@media (max-width: 767.98px) {
+    .settings-nav {
+        flex-direction: row !important;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+        -webkit-overflow-scrolling: touch;
+    }
+    .settings-nav::-webkit-scrollbar {
+        height: 4px;
+    }
+    .settings-nav::-webkit-scrollbar-thumb {
+        background-color: rgba(255,255,255,0.2);
+        border-radius: 4px;
+    }
+    .settings-nav .nav-link {
+        white-space: nowrap;
+        margin-bottom: 0 !important;
+        margin-right: 0.5rem;
+    }
+}

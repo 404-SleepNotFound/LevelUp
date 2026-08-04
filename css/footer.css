@@ -1,0 +1,100 @@
+/* =========================================
+   LevelUp - Footer & Floating Actions CSS
+   ========================================= */
+
+/* Main Footer Styling */
+.footer-wrapper {
+    position: relative;
+    z-index: 10;
+}
+
+/* Links */
+.footer-link {
+    color: #94a3b8; /* Tailwind slate-400 */
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+.footer-link:hover {
+    color: #818cf8; /* Primary Accent */
+    transform: translateX(3px);
+    display: inline-block;
+}
+
+/* Social Icons */
+.footer-social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #94a3b8;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+.footer-social-link:hover {
+    background-color: #6366f1;
+    color: #fff;
+    transform: translateY(-3px);
+}
+
+/* App Buttons */
+.hover-bg-light:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff !important;
+}
+
+/* AI Tip Card */
+.ai-tip-card {
+    background: linear-gradient(145deg, rgba(13, 17, 23, 1) 0%, rgba(30, 34, 45, 1) 100%);
+    box-shadow: inset 0 0 20px rgba(99, 102, 241, 0.05);
+}
+
+/* Floating Actions */
+.btn-back-to-top {
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+}
+.btn-back-to-top.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+.btn-back-to-top:hover {
+    background-color: #334155;
+}
+
+/* Ask AI Floating Button */
+.btn-ai-float {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-ai-float:hover {
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.5);
+    color: #fff;
+}
+.btn-ai-float::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%; width: 50%; height: 100%;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.3), transparent);
+    transform: skewX(-25deg);
+    animation: shine 4s infinite;
+}
+
+@keyframes shine {
+    0% { left: -100%; }
+    20% { left: 200%; }
+    100% { left: 200%; }
+}
+
+/* Utilities */
+.tracking-wide { letter-spacing: 0.05em; }
+.transition-all { transition: all 0.3s ease; }
