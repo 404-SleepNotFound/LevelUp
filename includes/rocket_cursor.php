@@ -75,6 +75,35 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
     const ctx = canvas.getContext('2d', { alpha: true });
     const rocket = document.querySelector('#levelup-rocket-cursor');
 
+    // 🌗 ตรวจพื้นหลังหน้าเว็บ เพื่อสลับโทนสีอนุภาคให้มองเห็นชัดทั้ง Light/Dark Mode
+    function detectLightBackground() {
+        try {
+            let el = document.body;
+            for (let i = 0; i < 4 && el; i++) {
+                const bg = getComputedStyle(el).backgroundColor;
+                const m = bg && bg.match(/[\d.]+/g);
+                if (m && m.length >= 3 && !(bg.startsWith('rgba') && parseFloat(m[3]) === 0)) {
+                    const [r, g, b] = m.map(Number);
+                    return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.6;
+                }
+                el = el.parentElement;
+            }
+        } catch (e) {}
+        return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
+    }
+
+    const isLightBg = detectLightBackground();
+
+    // 🎨 ชุดสีแยกตามโหมด: โทนพาสเทล/ขาว จะจมหายบนพื้นหลังสว่างเมื่อใช้ blend mode "lighter"
+    const STAR_COLORS = isLightBg
+        ? ['#1d3557', '#0077b6', '#e07a00', '#2a9d8f', '#7b2cbf']
+        : ['#ffffff', '#00f2fe', '#ffd700', '#a8ff78', '#e0c3fc'];
+    const FLAME_COLORS = isLightBg
+        ? ['#e85d04', '#d62828', '#9d0208']
+        : ['#fff375', '#ff7f11', '#ff3b00'];
+    const PLASMA_COLORS = isLightBg ? ['#0077b6', '#023e8a'] : ['#00f2fe', '#4facfe'];
+    const HOT_CORE_COLOR = isLightBg ? '#ff6d00' : '#fffbe6';
+
     // 🎯 พิกัดจุดหมุน และท่อไอพ่นจรวด
     const HOTSPOT_X = 21.2;
     const HOTSPOT_Y = 0.3;
@@ -130,12 +159,12 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
             p.size = 2.5 + Math.random() * 3.0;
 
             if (isPlasma) {
-                p.color = Math.random() > 0.5 ? '#00f2fe' : '#4facfe'; // เปลวพลาสม่าขณะนิ่ง
+                p.color = PLASMA_COLORS[Math.floor(Math.random() * PLASMA_COLORS.length)];
             } else {
                 const rand = Math.random();
-                if (rand > 0.6) p.color = '#fff375';
-                else if (rand > 0.25) p.color = '#ff7f11';
-                else p.color = '#ff3b00';
+                if (rand > 0.6) p.color = FLAME_COLORS[0];
+                else if (rand > 0.25) p.color = FLAME_COLORS[1];
+                else p.color = FLAME_COLORS[2];
             }
         }
 
@@ -170,14 +199,14 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
 
             p.size = 1.1 + Math.random() * 1.8;
 
-            const colors = ['#ffffff', '#00f2fe', '#ffd700', '#a8ff78', '#e0c3fc'];
+            const colors = STAR_COLORS;
             p.color = colors[Math.floor(Math.random() * colors.length)];
         }
 
         updateAndDraw(ctx) {
             ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
             ctx.save();
-            ctx.globalCompositeOperation = 'lighter';
+            ctx.globalCompositeOperation = isLightBg ? 'source-over' : 'lighter';
 
             let hasActive = false;
 
@@ -226,7 +255,7 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
 
                     // แกนร้อนสว่างตรงกลาง
                     ctx.globalAlpha = Math.min(1.0, progress * 1.3);
-                    ctx.fillStyle = '#fffbe6';
+                    ctx.fillStyle = HOT_CORE_COLOR;
                     ctx.beginPath();
                     ctx.ellipse(0, 0, r * stretch * 0.55, r * 0.55, 0, 0, Math.PI * 2);
                     ctx.fill();
