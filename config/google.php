@@ -7,7 +7,7 @@ if (session_status() === PHP_SESSION_NONE) {
 $clientID     = '391621497018-cbigmvo3gcaiqjk89rij042m30cqtmks.apps.googleusercontent.com';
 $clientSecret = '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';
 
-// กำหนด Redirect URI 
+// กำหนด Redirect URI ให้ตรงกับ Google Console
 $redirectUri  = 'https://levelup.quizchainat.com/index.php';
 
 // สร้าง Class จำลองรองรับกรณีที่ไม่ได้ติดตั้ง Composer SDK
@@ -38,7 +38,7 @@ if (!class_exists('Google\Client')) {
     class_alias('PureGoogleClient', 'Google\Client');
 }
 
-// สร้าง Object $client ส่งต่อไปยัง auth/login.php และไฟล์อื่นๆ
+// สร้าง Object $client
 $client = new Google\Client();
 $client->setClientId($clientID);
 $client->setClientSecret($clientSecret);
@@ -50,6 +50,7 @@ $client->addScope("profile");
 if (isset($_GET['code'])) {
     $code = $_GET['code'];
 
+    // 1. ส่ง Code ไปแลก Access Token ด้วย cURL
     $tokenUrl = 'https://oauth2.googleapis.com/token';
     $postData = array(
         'code'          => $code,
@@ -64,19 +65,35 @@ if (isset($_GET['code'])) {
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // ป้องกันปัญหา SSL บนเซิร์ฟเวอร์
     $response = curl_exec($ch);
     curl_close($ch);
 
     $tokenData = json_decode($response, true);
 
     if (isset($tokenData['access_token'])) {
-        $userInfoUrl = 'https://www.googleapis.com/oauth2/v2/userinfo?access_token=' . $tokenData['access_token'];
-        $userInfoJson = file_get_contents($userInfoUrl);
-        $userInfo = json_decode($userInfoJson, true);
+        // 2. ดึงข้อมูลโปรไฟล์ผู้ใช้ด้วย cURL (เสถียรกว่า file_get_contents)
+        $userInfoUrl = 'https://www.googleapis.com/oauth2/v2/userinfo';
+        
+        $ch2 = curl_init();
+        curl_setopt($ch2, CURLOPT_URL, $userInfoUrl);
+        curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch2, CURLOPT_HTTPHEADER, array(
+            'Authorization: Bearer ' . $tokenData['access_token']
+        ));
+        curl_setopt($ch2, CURLOPT_SSL_VERIFYPEER, false); // ป้องกันปัญหา SSL บนเซิร์ฟเวอร์
+        $userResponse = curl_exec($ch2);
+        curl_close($ch2);
 
-        $_SESSION['user_data'] = $userInfo;
+        $userInfo = json_decode($userResponse, true);
 
-        header('Location: /index.php');
-        exit;
+        // 3. ถ้าได้ข้อมูลผู้ใช้มาจริง ให้บันทึกลง Session
+        if (isset($userInfo['email'])) {
+            $_SESSION['user_data'] = $userInfo;
+
+            // รีเฟรชหน้าเพื่อลบ ?code= ออกจาก URL
+            header('Location: /index.php');
+            exit;
+        }
     }
 }
