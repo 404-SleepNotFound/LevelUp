@@ -47,7 +47,7 @@ $category_data = [
 ];
 
 // ---------------------------------------------------
-// DATABASE INTEGRATION
+// DATABASE CONNECT
 // ---------------------------------------------------
 if (file_exists($ROOT_PATH . 'config/db.php')) {
     require_once $ROOT_PATH . 'config/db.php';
@@ -57,28 +57,80 @@ if (file_exists($ROOT_PATH . 'config/db.php')) {
 
 $db = $conn ?? $pdo ?? null;
 $fallbackImg = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=600&auto=format&fit=crop';
+$courseTable = null;
 
 // ---------------------------------------------------
-// 2. ดึงการนับจำนวนคอร์สตามหมวดหมู่ด้วย GROUP BY (นับตรงๆ จาก category_id)
+// 2. ดึงการนับจำนวนคอร์สตามหมวดหมู่แบบ ROBUST
 // ---------------------------------------------------
 if ($db && $db instanceof PDO) {
-    try {
-        $sql = "SELECT category_id, COUNT(category_id) AS total_count 
-                FROM course 
-                GROUP BY category_id";
 
-        $stmt = $db->query($sql);
-
-        // ดึงผลลัพธ์เข้า Array ในรูปแบบ [category_id => total_count]
-        $countsMap = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
-
-        // นำผลลัพธ์มาแมปเข้ากับ $category_data ตรงๆ ด้วย id
-        foreach ($category_data as $key => &$cat) {
-            $cat['count'] = isset($countsMap[$cat['id']]) ? (int)$countsMap[$cat['id']] : 0;
+    // 2.1 ตรวจหาชื่อตารางที่ถูกต้องในระบบ
+    $possibleTables = ['course', 'courses', 'tb_course', 'tb_courses', 'tbl_course', 'tbl_courses'];
+    foreach ($possibleTables as $tbl) {
+        try {
+            $db->query("SELECT 1 FROM `$tbl` LIMIT 1");
+            $courseTable = $tbl;
+            break;
+        } catch (PDOException $e) {
+            continue;
         }
-        unset($cat);
-    } catch (PDOException $e) {
-        error_log("Error counting courses with GROUP BY: " . $e->getMessage());
+    }
+
+    // 2.2 ตรวจหาชื่อคอลัมน์เก็บหมวดหมู่ที่ถูกต้อง
+    $catColumn = null;
+    $possibleCols = ['category_id', 'cat_id', 'category', 'category_name', 'course_category', 'cat_name', 'tag', 'type'];
+    if ($courseTable) {
+        foreach ($possibleCols as $col) {
+            try {
+                $db->query("SELECT `$col` FROM `$courseTable` LIMIT 1");
+                $catColumn = $col;
+                break;
+            } catch (PDOException $e) {
+                continue;
+            }
+        }
+    }
+
+    // 2.3 รัน Query และแมปจำนวนคอร์สเข้า Array
+    if ($courseTable && $catColumn) {
+        try {
+            $sql = "SELECT `$catColumn` AS cat_key, COUNT(*) AS total_count 
+                    FROM `$courseTable` 
+                    WHERE `$catColumn` IS NOT NULL AND `$catColumn` != '' 
+                    GROUP BY `$catColumn`";
+            
+            $stmt = $db->query($sql);
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $countsMap = [];
+            foreach ($rows as $r) {
+                $k = trim((string)$r['cat_key']);
+                $countsMap[$k] = (int)$r['total_count'];
+            }
+
+            foreach ($category_data as $key => &$cat) {
+                $cId   = (string)$cat['id'];
+                $cName = mb_strtolower(trim($cat['name']));
+
+                if (isset($countsMap[$cId])) {
+                    $cat['count'] = $countsMap[$cId];
+                } elseif (isset($countsMap[$cat['name']])) {
+                    $cat['count'] = $countsMap[$cat['name']];
+                } else {
+                    $sum = 0;
+                    foreach ($countsMap as $dbKey => $cnt) {
+                        $dbKeyLower = mb_strtolower($dbKey);
+                        if ($dbKey === $cId || $dbKeyLower === $cName || (strlen($dbKeyLower) > 0 && strpos($dbKeyLower, $cName) !== false)) {
+                            $sum += $cnt;
+                        }
+                    }
+                    $cat['count'] = $sum;
+                }
+            }
+            unset($cat);
+        } catch (PDOException $e) {
+            error_log("Error counting courses: " . $e->getMessage());
+        }
     }
 }
 
@@ -87,24 +139,12 @@ if ($db && $db instanceof PDO) {
 // ---------------------------------------------------
 $popular_courses = [];
 
-if ($db && $db instanceof PDO) {
+if ($db && $db instanceof PDO && !empty($courseTable)) {
     try {
-        $raw_courses = [];
-        try {
-            $sql = "SELECT * FROM `course` ORDER BY `id` DESC LIMIT 4";
-            $stmt = $db->prepare($sql);
-            $stmt->execute();
-            $raw_courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            try {
-                $sql = "SELECT * FROM `courses` ORDER BY `id` DESC LIMIT 4";
-                $stmt = $db->prepare($sql);
-                $stmt->execute();
-                $raw_courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            } catch (PDOException $ex) {
-                $raw_courses = [];
-            }
-        }
+        $sql = "SELECT * FROM `$courseTable` ORDER BY `id` DESC LIMIT 4";
+        $stmt = $db->prepare($sql);
+        $stmt->execute();
+        $raw_courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($raw_courses as $c) {
             $rawImg = $c['cover_file'] ?? $c['cover'] ?? $c['img'] ?? $c['image'] ?? $c['thumbnail'] ?? '';
@@ -255,9 +295,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <style>
-    /* ==========================================
-       FIX: ป้องกันจอขาวกระพริบขณะโหลดหน้า (FOUC Fix)
-       ========================================== */
+    /* ป้องกันจอขาวกระพริบขณะโหลดหน้า (FOUC Fix) */
     html {
         background-color: #0b0f19 !important;
     }
@@ -844,6 +882,7 @@ if (file_exists($ROOT_PATH . 'includes/footer.php')) {
 
 <script>
     $(document).ready(function() {
+        // กรองซ้ำหมวดหมู่กรณีมี Card ชื่อซ้ำกันบน DOM
         var seenNames = {};
         $('#category-grid-container .category-col-item').each(function() {
             var catTitle = $(this).find('.category-item-title').text().trim();
@@ -856,6 +895,7 @@ if (file_exists($ROOT_PATH . 'includes/footer.php')) {
             }
         });
 
+        // ดักจับปุ่ม Logout เพื่อ Redirect ไปยังหน้า auth/logout.php โดยตรง
         $(document).on('click', 'a', function(e) {
             var href = $(this).attr('href');
             var text = $(this).text().toLowerCase();
