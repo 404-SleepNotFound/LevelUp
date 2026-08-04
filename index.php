@@ -322,6 +322,20 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
         color: #ffffff !important;
     }
 
+    /* FIX: Force btn-outline-light on Dark Background containers (e.g. CTA section) to remain white */
+    html[data-theme="light"] .keep-dark-bg .btn-outline-light,
+    html[data-theme="light"] .cta-section .btn-outline-light {
+        color: #ffffff !important;
+        border-color: rgba(255, 255, 255, 0.6) !important;
+    }
+
+    html[data-theme="light"] .keep-dark-bg .btn-outline-light:hover,
+    html[data-theme="light"] .cta-section .btn-outline-light:hover {
+        background-color: #ffffff !important;
+        color: #1e1b4b !important;
+        border-color: #ffffff !important;
+    }
+
     .opacity-10 { opacity: 0.1 !important; }
 
     .glass-card {
