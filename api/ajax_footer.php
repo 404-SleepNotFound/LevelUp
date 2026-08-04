@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $action = $_POST['action'] ?? '';
 
-// Mocking Backend Logic
+// 1. ระบบสมัคร Newsletter
 if ($action === 'subscribe_newsletter') {
     $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
     
@@ -19,14 +19,14 @@ if ($action === 'subscribe_newsletter') {
         exit;
     }
     
-    // TODO: Insert email to DB (e.g., `newsletters` table)
-    // จำลองการ delay ตอบกลับ
+    // จำลองการ delay ตอบกลับ (สามารถนำไปเขียนบันทึกลง Database ต่อได้)
     sleep(1); 
     
     echo json_encode(["status" => "success", "message" => "Subscribed successfully."]);
     exit;
 }
 
+// 2. ระบบส่ง Feedback
 if ($action === 'submit_feedback') {
     $type = htmlspecialchars($_POST['type'] ?? '');
     $message = htmlspecialchars($_POST['message'] ?? '');
@@ -36,7 +36,7 @@ if ($action === 'submit_feedback') {
         exit;
     }
 
-    // TODO: Insert feedback to DB or send to Admin Email
+    // จำลองการ delay ตอบกลับ (สามารถนำไปเขียนบันทึกลง Database ต่อได้)
     sleep(1);
 
     echo json_encode(["status" => "success", "message" => "Feedback received."]);
