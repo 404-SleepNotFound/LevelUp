@@ -29,21 +29,21 @@ $currentQuest = [
 ];
 
 // ---------------------------------------------------
-// ข้อมูลหมวดหมู่หลัก (Skill Trees - 12 หมวดหมู่)
+// ข้อมูลหมวดหมู่หลัก (Skill Trees - กำหนด ID 1-12 แมปตรงกับ DB)
 // ---------------------------------------------------
 $category_data = [
-    ['name' => 'Dev', 'icon' => 'bi-code-slash', 'color' => '#10B981', 'count' => 0],
-    ['name' => 'การตลาดดิจิทัล', 'icon' => 'bi-megaphone', 'color' => '#F59E0B', 'count' => 0],
-    ['name' => 'ดีไซน์ & กราฟิก', 'icon' => 'bi-palette', 'color' => '#EC4899', 'count' => 0],
-    ['name' => 'ธุรกิจ & การจัดการ', 'icon' => 'bi-briefcase', 'color' => '#3B82F6', 'count' => 0],
-    ['name' => 'ภาษาต่างประเทศ', 'icon' => 'bi-translate', 'color' => '#06B6D4', 'count' => 0],
-    ['name' => 'ถ่ายภาพ & ตัดต่อวิดีโอ', 'icon' => 'bi-camera-video', 'color' => '#F97316', 'count' => 0],
-    ['name' => 'วิทยาศาสตร์ข้อมูล & AI', 'icon' => 'bi-cpu', 'color' => '#6366F1', 'count' => 0],
-    ['name' => 'การเงิน & การลงทุน', 'icon' => 'bi-graph-up-arrow', 'color' => '#10B981', 'count' => 0],
-    ['name' => 'พัฒนาตนเอง', 'icon' => 'bi-journal-bookmark', 'color' => '#8B5CF6', 'count' => 0],
-    ['name' => 'ดนตรี & เสียง', 'icon' => 'bi-music-note-beamed', 'color' => '#E11D48', 'count' => 0],
-    ['name' => 'เขียนโปรแกรม & พัฒนาเว็บ', 'icon' => 'bi-code-square', 'color' => '#0284C7', 'count' => 0],
-    ['name' => 'เกม & 3D แอนิเมชัน', 'icon' => 'bi-controller', 'color' => '#A855F7', 'count' => 0]
+    1  => ['id' => 1,  'name' => 'Dev', 'icon' => 'bi-code-slash', 'color' => '#10B981', 'count' => 0],
+    2  => ['id' => 2,  'name' => 'การตลาดดิจิทัล', 'icon' => 'bi-megaphone', 'color' => '#F59E0B', 'count' => 0],
+    3  => ['id' => 3,  'name' => 'ดีไซน์ & กราฟิก', 'icon' => 'bi-palette', 'color' => '#EC4899', 'count' => 0],
+    4  => ['id' => 4,  'name' => 'ธุรกิจ & การจัดการ', 'icon' => 'bi-briefcase', 'color' => '#3B82F6', 'count' => 0],
+    5  => ['id' => 5,  'name' => 'ภาษาต่างประเทศ', 'icon' => 'bi-translate', 'color' => '#06B6D4', 'count' => 0],
+    6  => ['id' => 6,  'name' => 'ถ่ายภาพ & ตัดต่อวิดีโอ', 'icon' => 'bi-camera-video', 'color' => '#F97316', 'count' => 0],
+    7  => ['id' => 7,  'name' => 'วิทยาศาสตร์ข้อมูล & AI', 'icon' => 'bi-cpu', 'color' => '#6366F1', 'count' => 0],
+    8  => ['id' => 8,  'name' => 'การเงิน & การลงทุน', 'icon' => 'bi-graph-up-arrow', 'color' => '#10B981', 'count' => 0],
+    9  => ['id' => 9,  'name' => 'พัฒนาตนเอง', 'icon' => 'bi-journal-bookmark', 'color' => '#8B5CF6', 'count' => 0],
+    10 => ['id' => 10, 'name' => 'ดนตรี & เสียง', 'icon' => 'bi-music-note-beamed', 'color' => '#E11D48', 'count' => 0],
+    11 => ['id' => 11, 'name' => 'เขียนโปรแกรม & พัฒนาเว็บ', 'icon' => 'bi-code-square', 'color' => '#0284C7', 'count' => 0],
+    12 => ['id' => 12, 'name' => 'เกม & 3D แอนิเมชัน', 'icon' => 'bi-controller', 'color' => '#A855F7', 'count' => 0]
 ];
 
 // ---------------------------------------------------
@@ -63,10 +63,9 @@ $fallbackImg = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=8
 // ---------------------------------------------------
 if ($db && $db instanceof PDO) {
     // 2.1 ตรวจสอบชื่อตารางคอร์ส (course หรือ courses)
-    $courseTable = 'courses';
+    $courseTable = 'course';
     try {
         $db->query("SELECT 1 FROM `course` LIMIT 1");
-        $courseTable = 'course';
     } catch (PDOException $e) {
         $courseTable = 'courses';
     }
@@ -84,7 +83,7 @@ if ($db && $db instanceof PDO) {
         }
     }
 
-    // 2.3 รัน Query สั่ง GROUP BY เพียงครั้งเดียวเพื่อประสิทธิภาพสูงสุด
+    // 2.3 รัน Query สั่ง GROUP BY
     if ($catColumn) {
         try {
             $sql = "SELECT `$catColumn` AS cat_key, COUNT(*) AS total_count 
@@ -94,27 +93,34 @@ if ($db && $db instanceof PDO) {
             
             $stmt = $db->query($sql);
             
-            // ดึงผลลัพธ์เข้า Array ในรูปแบบ ['category_name' => total_count]
+            // ดึงผลลัพธ์เข้า Array ในรูปแบบ [cat_key => total_count]
             $countsMap = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
 
-            // นำผลลัพธ์จากการ GROUP BY มาแมปเข้ากับ $category_data
-            foreach ($category_data as $key => $cat) {
+            // นำผลลัพธ์จากการ GROUP BY มาแมปเข้ากับ $category_data โดยรองรับทั้ง ID ตัวเลข และ ชื่อหมวดหมู่
+            foreach ($category_data as $key => &$cat) {
+                $catId   = $cat['id'];
                 $catName = $cat['name'];
 
-                // 1. ตรวจสอบแบบตรงตัว (Exact Match)
-                if (isset($countsMap[$catName])) {
-                    $category_data[$key]['count'] = (int)$countsMap[$catName];
-                } else {
-                    // 2. ตรวจสอบแบบบางส่วน (Partial Match)
+                // 1. ตรวจสอบแมปด้วย ID เลขหมวดหมู่ (ตรงกับ category_id ใน DB)
+                if (isset($countsMap[$catId])) {
+                    $cat['count'] = (int)$countsMap[$catId];
+                } 
+                // 2. ตรวจสอบกรณี DB เก็บชื่อหมวดหมู่ตรงๆ
+                elseif (isset($countsMap[$catName])) {
+                    $cat['count'] = (int)$countsMap[$catName];
+                } 
+                // 3. ตรวจสอบกรณี String Match
+                else {
                     $matchedCount = 0;
                     foreach ($countsMap as $dbCat => $count) {
-                        if (mb_stripos((string)$dbCat, $catName) !== false || mb_stripos($catName, (string)$dbCat) !== false) {
+                        if ($dbCat == $catId || mb_stripos((string)$dbCat, $catName) !== false) {
                             $matchedCount += (int)$count;
                         }
                     }
-                    $category_data[$key]['count'] = $matchedCount;
+                    $cat['count'] = $matchedCount;
                 }
             }
+            unset($cat);
         } catch (PDOException $e) {
             error_log("Error counting courses with GROUP BY: " . $e->getMessage());
         }
@@ -601,23 +607,9 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
         </div>
 
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3 justify-content-center" id="category-grid-container">
-            <?php
-            $rendered_categories = [];
-            $seen_names = [];
-            if (!empty($category_data) && is_array($category_data)) {
-                foreach ($category_data as $cat) {
-                    $catName = trim($cat['name'] ?? '');
-                    if (!empty($catName) && !isset($seen_names[$catName])) {
-                        $seen_names[$catName] = true;
-                        $rendered_categories[] = $cat;
-                    }
-                }
-            }
-            ?>
-
-            <?php foreach ($rendered_categories as $cat): ?>
+            <?php foreach ($category_data as $cat): ?>
                 <div class="col category-col-item">
-                    <a href="<?= $ROOT_PATH; ?>student/courses.php?category=<?= urlencode($cat['name']) ?>" class="card glass-card category-card-compact ajax-link text-decoration-none p-3 h-100 d-flex flex-row align-items-center gap-3">
+                    <a href="<?= $ROOT_PATH; ?>student/courses.php?category=<?= urlencode($cat['id']) ?>" class="card glass-card category-card-compact ajax-link text-decoration-none p-3 h-100 d-flex flex-row align-items-center gap-3">
                         <div class="icon-box-sm rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(255, 255, 255, 0.05); color: <?= htmlspecialchars($cat['color'] ?? '#6366F1') ?>; border: 1px solid rgba(255, 255, 255, 0.1);">
                             <i class="bi <?= htmlspecialchars($cat['icon'] ?? 'bi-journal') ?> fs-5"></i>
                         </div>
