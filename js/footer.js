@@ -5,10 +5,10 @@
 document.addEventListener('DOMContentLoaded', () => {
     
     // ==========================================
-    // Force Hide App Store & Google Play UI
+    // Force Remove App Store & Google Play UI
     // ==========================================
-    const hideAppButtons = () => {
-        // 1. ค้นหา element ทั้งหมดที่มีข้อความ App Store หรือ Google Play
+    const removeAppButtons = () => {
+        // ค้นหา element ทั้งหมดที่มีข้อความ App Store หรือ Google Play แล้วลบออกจาก DOM
         const allElements = document.querySelectorAll('a, button, div, span, img');
         allElements.forEach(el => {
             const text = (el.innerText || el.textContent || '').trim();
@@ -23,19 +23,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 href.includes('apple.com') ||
                 href.includes('play.google.com')
             ) {
-                // ค้นหาปุ่มหลัก (แท็ก <a> หรือ <button>) แล้วสั่งซ่อนทันที
+                // ค้นหา element หลักแล้วลบออกจากหน้าเว็บ
                 const target = el.closest('a') || el.closest('button') || el;
-                target.style.setProperty('display', 'none', 'important');
-                target.style.setProperty('visibility', 'hidden', 'important');
+                if (target && target.parentNode) {
+                    target.parentNode.removeChild(target);
+                }
             }
         });
     };
 
-    // รันคำสั่งซ่อนปุ่มทันที
-    hideAppButtons();
-    // รันซ้ำอีกครั้งหลังจากโหลดผ่านไป 0.5 - 1 วินาที (ป้องกันกรณีเว็บโหลดช้า)
-    setTimeout(hideAppButtons, 500);
-    setTimeout(hideAppButtons, 1000);
+    // รันคำสั่งลบปุ่มทันที
+    removeAppButtons();
+    setTimeout(removeAppButtons, 300);
+    setTimeout(removeAppButtons, 800);
 
     // ==========================================
     // 1. AI Tips Randomizer
