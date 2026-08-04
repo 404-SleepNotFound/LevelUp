@@ -29,25 +29,25 @@ $currentQuest = [
 ];
 
 // ---------------------------------------------------
-// ข้อมูลหมวดหมู่หลัก (Skill Trees - กำหนด ID 1-12 แมปตรงกับ DB)
+// ข้อมูลหมวดหมู่หลัก (Skill Trees)
 // ---------------------------------------------------
 $category_data = [
-    1  => ['id' => 1,  'name' => 'Dev', 'icon' => 'bi-code-slash', 'color' => '#10B981', 'count' => 0],
-    2  => ['id' => 2,  'name' => 'การตลาดดิจิทัล', 'icon' => 'bi-megaphone', 'color' => '#F59E0B', 'count' => 0],
-    3  => ['id' => 3,  'name' => 'ดีไซน์ & กราฟิก', 'icon' => 'bi-palette', 'color' => '#EC4899', 'count' => 0],
-    4  => ['id' => 4,  'name' => 'ธุรกิจ & การจัดการ', 'icon' => 'bi-briefcase', 'color' => '#3B82F6', 'count' => 0],
-    5  => ['id' => 5,  'name' => 'ภาษาต่างประเทศ', 'icon' => 'bi-translate', 'color' => '#06B6D4', 'count' => 0],
-    6  => ['id' => 6,  'name' => 'ถ่ายภาพ & ตัดต่อวิดีโอ', 'icon' => 'bi-camera-video', 'color' => '#F97316', 'count' => 0],
-    7  => ['id' => 7,  'name' => 'วิทยาศาสตร์ข้อมูล & AI', 'icon' => 'bi-cpu', 'color' => '#6366F1', 'count' => 0],
-    8  => ['id' => 8,  'name' => 'การเงิน & การลงทุน', 'icon' => 'bi-graph-up-arrow', 'color' => '#10B981', 'count' => 0],
-    9  => ['id' => 9,  'name' => 'พัฒนาตนเอง', 'icon' => 'bi-journal-bookmark', 'color' => '#8B5CF6', 'count' => 0],
-    10 => ['id' => 10, 'name' => 'ดนตรี & เสียง', 'icon' => 'bi-music-note-beamed', 'color' => '#E11D48', 'count' => 0],
-    11 => ['id' => 11, 'name' => 'เขียนโปรแกรม & พัฒนาเว็บ', 'icon' => 'bi-code-square', 'color' => '#0284C7', 'count' => 0],
-    12 => ['id' => 12, 'name' => 'เกม & 3D แอนิเมชัน', 'icon' => 'bi-controller', 'color' => '#A855F7', 'count' => 0]
+    1  => ['id' => 1,  'name' => 'Dev', 'icon' => 'bi-code-slash', 'color' => '#34D399', 'count' => 0],
+    2  => ['id' => 2,  'name' => 'การตลาดดิจิทัล', 'icon' => 'bi-megaphone', 'color' => '#FBBF24', 'count' => 0],
+    3  => ['id' => 3,  'name' => 'ดีไซน์ & กราฟิก', 'icon' => 'bi-palette', 'color' => '#F472B6', 'count' => 0],
+    4  => ['id' => 4,  'name' => 'ธุรกิจ & การจัดการ', 'icon' => 'bi-briefcase', 'color' => '#60A5FA', 'count' => 0],
+    5  => ['id' => 5,  'name' => 'ภาษาต่างประเทศ', 'icon' => 'bi-translate', 'color' => '#22D3EE', 'count' => 0],
+    6  => ['id' => 6,  'name' => 'ถ่ายภาพ & ตัดต่อวิดีโอ', 'icon' => 'bi-camera-video', 'color' => '#FB923C', 'count' => 0],
+    7  => ['id' => 7,  'name' => 'วิทยาศาสตร์ข้อมูล & AI', 'icon' => 'bi-cpu', 'color' => '#818CF8', 'count' => 0],
+    8  => ['id' => 8,  'name' => 'การเงิน & การลงทุน', 'icon' => 'bi-graph-up-arrow', 'color' => '#34D399', 'count' => 0],
+    9  => ['id' => 9,  'name' => 'พัฒนาตนเอง', 'icon' => 'bi-journal-bookmark', 'color' => '#A78BFA', 'count' => 0],
+    10 => ['id' => 10, 'name' => 'ดนตรี & เสียง', 'icon' => 'bi-music-note-beamed', 'color' => '#FB7185', 'count' => 0],
+    11 => ['id' => 11, 'name' => 'เขียนโปรแกรม & พัฒนาเว็บ', 'icon' => 'bi-code-square', 'color' => '#38BDF8', 'count' => 0],
+    12 => ['id' => 12, 'name' => 'เกม & 3D แอนิเมชัน', 'icon' => 'bi-controller', 'color' => '#C084FC', 'count' => 0]
 ];
 
 // ---------------------------------------------------
-// DATABASE INTEGRATION
+// DATABASE CONNECT
 // ---------------------------------------------------
 if (file_exists($ROOT_PATH . 'config/db.php')) {
     require_once $ROOT_PATH . 'config/db.php';
@@ -57,28 +57,76 @@ if (file_exists($ROOT_PATH . 'config/db.php')) {
 
 $db = $conn ?? $pdo ?? null;
 $fallbackImg = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=600&auto=format&fit=crop';
+$courseTable = null;
 
 // ---------------------------------------------------
-// 2. ดึงการนับจำนวนคอร์สตามหมวดหมู่ด้วย GROUP BY (นับตรงๆ จาก category_id)
+// 2. ดึงการนับจำนวนคอร์สตามหมวดหมู่แบบ ROBUST
 // ---------------------------------------------------
 if ($db && $db instanceof PDO) {
-    try {
-        $sql = "SELECT category_id, COUNT(category_id) AS total_count 
-                FROM course 
-                GROUP BY category_id";
-
-        $stmt = $db->query($sql);
-
-        // ดึงผลลัพธ์เข้า Array ในรูปแบบ [category_id => total_count]
-        $countsMap = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
-
-        // นำผลลัพธ์มาแมปเข้ากับ $category_data ตรงๆ ด้วย id
-        foreach ($category_data as $key => &$cat) {
-            $cat['count'] = isset($countsMap[$cat['id']]) ? (int)$countsMap[$cat['id']] : 0;
+    $possibleTables = ['course', 'courses', 'tb_course', 'tb_courses', 'tbl_course', 'tbl_courses'];
+    foreach ($possibleTables as $tbl) {
+        try {
+            $db->query("SELECT 1 FROM `$tbl` LIMIT 1");
+            $courseTable = $tbl;
+            break;
+        } catch (PDOException $e) {
+            continue;
         }
-        unset($cat);
-    } catch (PDOException $e) {
-        error_log("Error counting courses with GROUP BY: " . $e->getMessage());
+    }
+
+    $catColumn = null;
+    $possibleCols = ['category_id', 'cat_id', 'category', 'category_name', 'course_category', 'cat_name', 'tag', 'type'];
+    if ($courseTable) {
+        foreach ($possibleCols as $col) {
+            try {
+                $db->query("SELECT `$col` FROM `$courseTable` LIMIT 1");
+                $catColumn = $col;
+                break;
+            } catch (PDOException $e) {
+                continue;
+            }
+        }
+    }
+
+    if ($courseTable && $catColumn) {
+        try {
+            $sql = "SELECT `$catColumn` AS cat_key, COUNT(*) AS total_count 
+                    FROM `$courseTable` 
+                    WHERE `$catColumn` IS NOT NULL AND `$catColumn` != '' 
+                    GROUP BY `$catColumn`";
+            
+            $stmt = $db->query($sql);
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $countsMap = [];
+            foreach ($rows as $r) {
+                $k = trim((string)$r['cat_key']);
+                $countsMap[$k] = (int)$r['total_count'];
+            }
+
+            foreach ($category_data as $key => &$cat) {
+                $cId   = (string)$cat['id'];
+                $cName = mb_strtolower(trim($cat['name']));
+
+                if (isset($countsMap[$cId])) {
+                    $cat['count'] = $countsMap[$cId];
+                } elseif (isset($countsMap[$cat['name']])) {
+                    $cat['count'] = $countsMap[$cat['name']];
+                } else {
+                    $sum = 0;
+                    foreach ($countsMap as $dbKey => $cnt) {
+                        $dbKeyLower = mb_strtolower($dbKey);
+                        if ($dbKey === $cId || $dbKeyLower === $cName || (strlen($dbKeyLower) > 0 && strpos($dbKeyLower, $cName) !== false)) {
+                            $sum += $cnt;
+                        }
+                    }
+                    $cat['count'] = $sum;
+                }
+            }
+            unset($cat);
+        } catch (PDOException $e) {
+            error_log("Error counting courses: " . $e->getMessage());
+        }
     }
 }
 
@@ -87,24 +135,12 @@ if ($db && $db instanceof PDO) {
 // ---------------------------------------------------
 $popular_courses = [];
 
-if ($db && $db instanceof PDO) {
+if ($db && $db instanceof PDO && !empty($courseTable)) {
     try {
-        $raw_courses = [];
-        try {
-            $sql = "SELECT * FROM `course` ORDER BY `id` DESC LIMIT 4";
-            $stmt = $db->prepare($sql);
-            $stmt->execute();
-            $raw_courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            try {
-                $sql = "SELECT * FROM `courses` ORDER BY `id` DESC LIMIT 4";
-                $stmt = $db->prepare($sql);
-                $stmt->execute();
-                $raw_courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            } catch (PDOException $ex) {
-                $raw_courses = [];
-            }
-        }
+        $sql = "SELECT * FROM `$courseTable` ORDER BY `id` DESC LIMIT 4";
+        $stmt = $db->prepare($sql);
+        $stmt->execute();
+        $raw_courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($raw_courses as $c) {
             $rawImg = $c['cover_file'] ?? $c['cover'] ?? $c['img'] ?? $c['image'] ?? $c['thumbnail'] ?? '';
@@ -119,11 +155,7 @@ if ($db && $db instanceof PDO) {
                     $imgPath = $ROOT_PATH . 'uploads/covers/' . basename($rawImg);
                 } elseif (file_exists($ROOT_PATH . 'uploads/' . basename($rawImg))) {
                     $imgPath = $ROOT_PATH . 'uploads/' . basename($rawImg);
-                } elseif (file_exists($ROOT_PATH . 'assets/images/default-course.jpg')) {
-                    $imgPath = $ROOT_PATH . 'assets/images/default-course.jpg';
                 }
-            } elseif (file_exists($ROOT_PATH . 'assets/images/default-course.jpg')) {
-                $imgPath = $ROOT_PATH . 'assets/images/default-course.jpg';
             }
 
             $duration = 'N/A';
@@ -221,7 +253,7 @@ $career_paths = [
         'quests' => 10,
         'duration' => 'แนะนำ 5 เดือน',
         'icon' => 'bi-server',
-        'bg_class' => 'btn-theme-dark-adaptive'
+        'bg_class' => 'bg-indigo'
     ]
 ];
 
@@ -240,161 +272,131 @@ $faq_list = [
     ]
 ];
 
-// Include Header
 if (file_exists($ROOT_PATH . 'includes/header.php')) {
     include $ROOT_PATH . 'includes/header.php';
 } else {
-    die("Error: ไม่พบไฟล์ '" . $ROOT_PATH . "includes/header.php' กรุณาตรวจสอบโครงสร้างโฟลเดอร์");
+    die("Error: ไม่พบไฟล์ header.php");
 }
 ?>
 
-<!-- 🎨 Custom Scrollbar CSS -->
 <link rel="stylesheet" href="<?php echo $ROOT_PATH; ?>css/custom-scrollbar.css">
-
-<!-- Include jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <style>
-    /* ==========================================
-       FIX: ป้องกันจอขาวกระพริบขณะโหลดหน้า (FOUC Fix)
-       ========================================== */
-    html {
-        background-color: #0b0f19 !important;
-    }
-
-    html[data-theme="light"] {
-        background-color: #f8fafc !important;
-    }
-
-    header, 
-    nav, 
-    .navbar, 
-    .site-header,
-    .main-header {
-        border-bottom: none !important;
-        box-shadow: none !important;
-    }
-
-    .hero-section {
-        border-top: none !important;
-    }
-
-    :root,
-    html[data-theme="dark"] {
-        --neon-indigo: #4F46E5;
-        --neon-purple: #9333EA;
-        --cyber-green: #10B981;
-        --plasma-orange: #F59E0B;
-        --bg-deep-space: #0b0f19;
-        --surface-card: rgba(15, 23, 42, 0.65);
-        --border-color: rgba(30, 41, 59, 0.8);
-        --text-main: #ffffff;
-        --text-muted: rgba(255, 255, 255, 0.75);
-        --hero-bg: radial-gradient(circle at 85% 30%, #1e1b4b 0%, #0b0f19 70%);
-        --section-bg-alt: rgba(15, 23, 42, 0.3);
-        --lab-bg: rgba(15, 23, 42, 0.4);
-        --terminal-bg: #04060d;
-        --input-placeholder: rgba(255, 255, 255, 0.65);
-        --btn-dark-bg: #1e293b;
-        --btn-dark-text: #ffffff;
-        --btn-dark-border: rgba(255, 255, 255, 0.15);
-    }
-
-    html[data-theme="light"] {
-        --neon-indigo: #4F46E5;
-        --neon-purple: #8B5CF6;
-        --cyber-green: #059669;
-        --plasma-orange: #D97706;
-        --bg-deep-space: #f8fafc;
-        --surface-card: rgba(255, 255, 255, 0.9);
-        --border-color: rgba(226, 232, 240, 0.9);
-        --text-main: #0f172a;
-        --text-muted: #64748b;
-        --hero-bg: radial-gradient(circle at 85% 30%, #e0e7ff 0%, #f8fafc 70%);
-        --section-bg-alt: #f1f5f9;
-        --lab-bg: #f1f5f9;
-        --terminal-bg: #0f172a;
-        --input-placeholder: #64748b;
-        --btn-dark-bg: #e2e8f0;
-        --btn-dark-text: #0f172a;
-        --btn-dark-border: #cbd5e1;
-    }
-
+    /* Global Reset & Base Styling Fixes */
     body {
-        background-color: var(--bg-deep-space) !important;
-        color: var(--text-main);
+        background-color: #0b0f19 !important;
+        color: #f8fafc !important;
         font-family: 'Inter', 'Prompt', sans-serif;
         overflow-x: hidden;
-        transition: background-color 0.3s ease, color 0.3s ease;
     }
 
-    .opacity-10 { opacity: 0.1 !important; }
-    .opacity-05 { opacity: 0.05 !important; }
-
-    .glass-card {
-        background: var(--surface-card);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: 1px solid var(--border-color);
-        border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .glass-card:hover {
-        transform: translateY(-5px);
-        border-color: rgba(99, 102, 241, 0.4);
-        box-shadow: 0 15px 35px rgba(79, 70, 229, 0.18);
-    }
-
-    .category-card-compact {
-        border: 1px solid var(--border-color);
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        background: var(--surface-card);
-    }
-
-    .category-card-compact:hover {
-        transform: translateY(-3px);
-        border-color: rgba(99, 102, 241, 0.5);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-    }
-
-    .category-card-compact:hover .icon-box-sm {
-        transform: scale(1.08);
-        transition: transform 0.2s ease;
-    }
-
+    /* Gradient Text Fixes */
     .ai-text-gradient {
-        background: linear-gradient(135deg, #6366F1, #10B981);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        background: linear-gradient(135deg, #6366F1 0%, #10B981 100%) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
         font-family: 'Outfit', sans-serif;
         font-weight: 800;
     }
 
+    /* Section Subtitle Fixes */
+    .section-subtitle {
+        color: #818CF8 !important;
+        letter-spacing: 1px;
+        font-weight: 700;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+    }
+
+    /* Universal Glass Card (Fixed Dark Translucent Theme) */
+    .glass-card {
+        background: rgba(15, 23, 42, 0.75) !important;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .glass-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(99, 102, 241, 0.5) !important;
+        box-shadow: 0 12px 35px rgba(79, 70, 229, 0.25);
+    }
+
+    /* Category Cards (Skill Trees) Specific Fix */
+    .category-card-compact {
+        background: rgba(15, 23, 42, 0.8) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 16px;
+        transition: all 0.25s ease-in-out;
+    }
+
+    .category-card-compact:hover {
+        transform: translateY(-3px);
+        background: rgba(30, 41, 59, 0.9) !important;
+        border-color: rgba(99, 102, 241, 0.6) !important;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    }
+
+    .category-item-title {
+        color: #ffffff !important;
+        font-weight: 600;
+    }
+
+    .category-item-count {
+        color: #94A3B8 !important;
+        font-size: 0.75rem;
+    }
+
+    /* General Typography Fixes for Dark Sections */
+    .text-white-heading {
+        color: #ffffff !important;
+    }
+
+    .text-muted-desc {
+        color: #CBD5E1 !important;
+    }
+
+    /* Buttons */
     .btn-premium {
-        background: linear-gradient(135deg, var(--neon-indigo), #6366F1);
-        color: white !important;
-        border: none;
-        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+        background: linear-gradient(135deg, #4F46E5, #6366F1) !important;
+        color: #ffffff !important;
+        border: none !important;
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
         transition: all 0.2s ease;
     }
 
     .btn-premium:hover {
         transform: scale(1.02);
-        box-shadow: 0 0 25px rgba(79, 70, 229, 0.5);
+        box-shadow: 0 0 25px rgba(79, 70, 229, 0.6);
+        color: #ffffff !important;
     }
 
+    .btn-theme-dark-adaptive {
+        background-color: #1e293b !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    }
+
+    .btn-theme-dark-adaptive:hover {
+        background-color: #334155 !important;
+        color: #ffffff !important;
+    }
+
+    /* Progress & Streaks */
     .xp-bar-container {
         height: 10px;
-        background-color: var(--border-color);
+        background-color: rgba(255, 255, 255, 0.1);
         border-radius: 99px;
         overflow: hidden;
     }
 
     .xp-bar-fill {
         height: 100%;
-        background: linear-gradient(90deg, var(--cyber-green), #34D399);
+        background: linear-gradient(90deg, #10B981, #34D399);
         transition: width 0.5s ease-in-out;
     }
 
@@ -404,7 +406,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 
     @keyframes floatAnimation {
         0% { transform: translateY(0px); }
-        50% { transform: translateY(-15px); }
+        50% { transform: translateY(-12px); }
         100% { transform: translateY(0px); }
     }
 
@@ -418,65 +420,42 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
     .fs-xs { font-size: 0.75rem; }
     .fs-sm { font-size: 0.875rem; }
 
-    .custom-accordion .accordion-button:not(.collapsed) {
-        color: #6366F1 !important;
-        background-color: transparent;
-        box-shadow: none;
-    }
-
-    .custom-accordion .accordion-button::after {
-        transition: transform 0.2s ease;
-    }
-
-    html[data-theme="dark"] .custom-accordion .accordion-button::after {
-        filter: invert(1);
-    }
-
-    .animate-blink {
-        animation: blink-caret 1s step-end infinite;
-    }
-
-    @keyframes blink-caret {
-        from, to { color: transparent; }
-        50% { color: #10B981; }
-    }
-
-    .avatar-glow {
-        border: 2px solid var(--cyber-green);
-        box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
-    }
-
+    /* Custom Search Input */
     .custom-search-input {
-        color: var(--text-main) !important;
+        color: #ffffff !important;
     }
 
     .custom-search-input::placeholder {
-        color: var(--input-placeholder) !important;
-        opacity: 1 !important;
+        color: #94A3B8 !important;
     }
 
-    .btn-theme-dark-adaptive {
-        background-color: var(--btn-dark-bg) !important;
-        color: var(--btn-dark-text) !important;
-        border: 1px solid var(--btn-dark-border) !important;
+    /* Accordion Fixes */
+    .custom-accordion .accordion-button {
+        background-color: transparent !important;
+        color: #ffffff !important;
+        box-shadow: none !important;
     }
 
-    html[data-theme="light"] .text-white { color: var(--text-main) !important; }
-    html[data-theme="light"] .text-light { color: var(--text-muted) !important; }
-    html[data-theme="light"] .icon-box { background-color: rgba(0, 0, 0, 0.04) !important; }
+    .custom-accordion .accordion-button:not(.collapsed) {
+        color: #818CF8 !important;
+    }
+
+    .custom-accordion .accordion-button::after {
+        filter: invert(1);
+    }
 </style>
 
 <!-- SECTION 1: HERO & GAMIFIED HERO DASHBOARD -->
-<section class="hero-section position-relative overflow-hidden" style="padding: 120px 0 80px 0; background: var(--hero-bg);">
-    <div class="position-absolute w-100 h-100 top-0 start-0 opacity-10" style="background-image: linear-gradient(var(--border-color) 1px, transparent 1px), linear-gradient(90deg, var(--border-color) 1px, transparent 1px); background-size: 32px 32px; pointer-events: none;"></div>
+<section class="hero-section position-relative overflow-hidden" style="padding: 100px 0 60px 0; background: radial-gradient(circle at 85% 30%, #1e1b4b 0%, #0b0f19 70%);">
+    <div class="position-absolute w-100 h-100 top-0 start-0 opacity-10" style="background-image: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 32px 32px; pointer-events: none;"></div>
 
     <div class="container position-relative z-3">
-        <div class="row align-items-center pt-4">
+        <div class="row align-items-center pt-3">
             <div class="col-lg-7 text-center text-lg-start mb-5 mb-lg-0">
 
                 <?php if ($isLoggedIn): ?>
-                    <div class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill mb-4" style="background-color: var(--surface-card); border: 1px solid var(--border-color);">
-                        <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
+                    <div class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill mb-4" style="background-color: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.15);">
+                        <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px;">
                             <i class="bi bi-fire fs-6"></i>
                         </div>
                         <span class="fw-bold text-white fs-sm"><?= htmlspecialchars($navUser['streak']) ?> Day Streak!</span>
@@ -484,14 +463,14 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                         <span class="text-light opacity-75 fw-medium fs-sm"><i class="bi bi-star-fill text-warning me-1"></i>Lvl <?= htmlspecialchars($navUser['level']) ?></span>
                     </div>
 
-                    <h1 class="display-4 fw-bold text-white mb-3 lh-sm" style="font-family: 'Outfit', sans-serif;">
-                        <img src="<?= htmlspecialchars($navUser['avatar']) ?>" alt="Avatar" class="rounded-circle avatar-glow me-2 align-middle" style="width: 50px; height: 50px; object-fit: cover;">
+                    <h1 class="display-4 fw-bold text-white-heading mb-3 lh-sm" style="font-family: 'Outfit', sans-serif;">
+                        <img src="<?= htmlspecialchars($navUser['avatar']) ?>" alt="Avatar" class="rounded-circle me-2 align-middle border border-2 border-success" style="width: 50px; height: 50px; object-fit: cover;">
                         ยินดีต้อนรับกลับมา, <span class="ai-text-gradient"><?= htmlspecialchars($navUser['username']) ?>!</span> 🚀
                     </h1>
 
                     <div class="glass-card p-4 mb-4 text-start">
                         <div class="d-flex justify-content-between align-items-end mb-2">
-                            <h6 class="fw-bold text-light opacity-75 mb-0 fs-sm"><i class="bi bi-journal-code text-info me-2"></i>เควสต์ปัจจุบัน: <?= htmlspecialchars($currentQuest['title']) ?></h6>
+                            <h6 class="fw-bold text-light opacity-90 mb-0 fs-sm"><i class="bi bi-journal-code text-info me-2"></i>เควสต์ปัจจุบัน: <?= htmlspecialchars($currentQuest['title']) ?></h6>
                             <span class="fw-bold text-success fs-sm"><?= htmlspecialchars($currentQuest['progress']) ?>%</span>
                         </div>
                         <div class="xp-bar-container mb-4">
@@ -504,13 +483,13 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                     </div>
 
                 <?php else: ?>
-                    <div class="d-inline-block px-3 py-1 rounded-pill mb-3" style="background-color: var(--surface-card); border: 1px solid var(--border-color);">
-                        <span class="ai-text-gradient fw-bold fs-xs"><i class="bi bi-stars me-1"></i> LevelUp Engine v2.5 สมบูรณ์แบบ</span>
+                    <div class="d-inline-block px-3 py-1 rounded-pill mb-3" style="background-color: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.15);">
+                        <span class="ai-text-gradient fw-bold fs-xs"><i class="bi bi-stars me-1"></i> LevelUp Engine v2.5</span>
                     </div>
-                    <h1 class="display-4 fw-bold text-white mb-4 lh-sm" style="font-family: 'Outfit', sans-serif;">
+                    <h1 class="display-4 fw-bold text-white-heading mb-4 lh-sm" style="font-family: 'Outfit', sans-serif;">
                         เรียนรู้ทักษะสาย Tech<br>ด้วย <span class="ai-text-gradient">AI Companion</span>
                     </h1>
-                    <p class="lead text-light opacity-75 mb-4 pe-lg-5 fs-sm" style="line-height: 1.7;">
+                    <p class="lead text-muted-desc mb-4 pe-lg-5 fs-sm" style="line-height: 1.7;">
                         ระบบอีเลิร์นนิงรูปแบบ Gamification ที่มาพร้อมกับเอไอโค้ชส่วนตัว ช่วยคุณวางแผนการเรียน แก้บั๊กโค้ดแบบ Real-time และจำลองแล็บเสมือนจริงเพื่อพัฒนาทักษะการทำงาน
                     </p>
                     <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start mb-4">
@@ -521,8 +500,8 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                 <div class="search-box-wrapper glass-card p-2 mx-auto mx-lg-0" style="max-width: 550px;">
                     <form action="<?= $ROOT_PATH; ?>student/courses.php" method="GET" id="ajax-search-form" class="d-flex">
                         <div class="input-group align-items-center">
-                            <span class="input-group-text bg-transparent border-0 ps-3 text-white opacity-75"><i class="bi bi-search"></i></span>
-                            <input type="text" class="form-control border-0 shadow-none py-3 bg-transparent fs-sm custom-search-input" name="q" placeholder="ค้นหาบทเรียน, คอร์ส หรือสกิลเทคโนโลยี..." autocomplete="off">
+                            <span class="input-group-text bg-transparent border-0 ps-3 text-light"><i class="bi bi-search"></i></span>
+                            <input type="text" class="form-control border-0 shadow-none py-2 bg-transparent fs-sm custom-search-input" name="q" placeholder="ค้นหาบทเรียน, คอร์ส หรือสกิลเทคโนโลยี..." autocomplete="off">
                             <button type="submit" class="btn btn-premium rounded-pill px-4 fw-bold fs-sm">ค้นหา</button>
                         </div>
                     </form>
@@ -531,15 +510,15 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 
             <div class="col-lg-5 d-none d-lg-block">
                 <div class="hero-image-wrapper position-relative text-center pe-4">
-                    <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop" alt="AI Workspace" class="img-fluid rounded-4 shadow-lg hero-float-anim" style="border: 1px solid var(--border-color); max-height: 420px; object-fit: cover; width: 100%;">
+                    <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop" alt="AI Workspace" class="img-fluid rounded-4 shadow-lg hero-float-anim" style="border: 1px solid rgba(255,255,255,0.15); max-height: 400px; object-fit: cover; width: 100%;">
 
-                    <div class="position-absolute glass-card p-2 px-3 d-flex align-items-center gap-3 shadow-lg" style="bottom: 20px; left: 15px; z-index: 10; min-width: 220px; background: rgba(15, 23, 42, 0.88); border: 1px solid rgba(255, 255, 255, 0.2);">
-                        <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center fs-5 flex-shrink-0" style="width: 40px; height: 40px; box-shadow: 0 0 15px var(--cyber-green);">
+                    <div class="position-absolute glass-card p-3 d-flex align-items-center gap-3 shadow-lg" style="bottom: -20px; left: -10px; z-index: 10; min-width: 240px; background: rgba(15, 23, 42, 0.95) !important;">
+                        <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center fs-5 flex-shrink-0" style="width: 42px; height: 42px; box-shadow: 0 0 15px rgba(16,185,129,0.5);">
                             <i class="bi bi-trophy-fill"></i>
                         </div>
                         <div class="text-start">
-                            <h6 class="mb-0 fw-bold fs-sm" style="color: #ffffff !important;">Quest Completed!</h6>
-                            <small class="fs-xs" style="color: rgba(255, 255, 255, 0.8) !important;">+1,200 XP Earned Today</small>
+                            <h6 class="mb-0 fw-bold text-white fs-sm">Quest Completed!</h6>
+                            <small class="text-success fw-semibold fs-xs">+1,200 XP Earned Today</small>
                         </div>
                     </div>
                 </div>
@@ -549,14 +528,14 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 </section>
 
 <!-- SECTION 2: SKILL TREES -->
-<section class="categories-section py-5">
+<section class="categories-section py-5" style="background-color: #0b0f19;">
     <div class="container py-2">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h6 class="ai-text-gradient text-uppercase fw-bold mb-1 fs-xs" style="letter-spacing: 1px;">Skill Trees</h6>
-                <h2 class="fw-bold text-white mb-0 fs-3" style="font-family: 'Outfit', sans-serif;">เลือกคอร์สตามเป้าหมายสกิล</h2>
+                <h6 class="section-subtitle mb-1">Skill Trees</h6>
+                <h2 class="fw-bold text-white-heading mb-0 fs-3" style="font-family: 'Outfit', sans-serif;">เลือกคอร์สตามเป้าหมายสกิล</h2>
             </div>
-            <a href="<?= $ROOT_PATH; ?>student/courses.php" class="btn btn-outline-light ajax-link btn-sm rounded-pill px-3 fs-xs fw-bold">
+            <a href="<?= $ROOT_PATH; ?>student/courses.php" class="btn btn-outline-light ajax-link btn-sm rounded-pill px-3 fs-xs fw-bold border-secondary">
                 ดูหมวดหมู่ทั้งหมด <i class="bi bi-arrow-right ms-1"></i>
             </a>
         </div>
@@ -564,13 +543,13 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3 justify-content-center" id="category-grid-container">
             <?php foreach ($category_data as $cat): ?>
                 <div class="col category-col-item">
-                    <a href="<?= $ROOT_PATH; ?>student/courses.php?category=<?= urlencode($cat['id']) ?>" class="card glass-card category-card-compact ajax-link text-decoration-none p-3 h-100 d-flex flex-row align-items-center gap-3">
-                        <div class="icon-box-sm rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(255, 255, 255, 0.05); color: <?= htmlspecialchars($cat['color'] ?? '#6366F1') ?>; border: 1px solid rgba(255, 255, 255, 0.1);">
+                    <a href="<?= $ROOT_PATH; ?>student/courses.php?category=<?= urlencode($cat['id']) ?>" class="card category-card-compact ajax-link text-decoration-none p-3 h-100 d-flex flex-row align-items-center gap-3">
+                        <div class="icon-box-sm rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(255, 255, 255, 0.06); color: <?= htmlspecialchars($cat['color'] ?? '#818CF8') ?>; border: 1px solid rgba(255, 255, 255, 0.1);">
                             <i class="bi <?= htmlspecialchars($cat['icon'] ?? 'bi-journal') ?> fs-5"></i>
                         </div>
                         <div class="overflow-hidden">
-                            <h6 class="fw-bold text-white mb-0 fs-sm text-truncate category-item-title"><?= htmlspecialchars($cat['name']) ?></h6>
-                            <small class="text-light opacity-50 fs-xs"><?= (int)($cat['count'] ?? 0) ?> คอร์ส</small>
+                            <h6 class="category-item-title mb-0 fs-sm text-truncate"><?= htmlspecialchars($cat['name']) ?></h6>
+                            <small class="category-item-count"><?= (int)($cat['count'] ?? 0) ?> คอร์ส</small>
                         </div>
                     </a>
                 </div>
@@ -580,14 +559,14 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 </section>
 
 <!-- SECTION 3: TRENDING QUESTS -->
-<section class="popular-courses-section py-5" style="background-color: var(--section-bg-alt);">
+<section class="popular-courses-section py-5" style="background-color: rgba(15, 23, 42, 0.5);">
     <div class="container">
         <div class="d-flex justify-content-between align-items-end mb-4">
             <div>
-                <h6 class="ai-text-gradient text-uppercase fw-bold mb-2 fs-xs" style="letter-spacing: 1px;">Trending Quests</h6>
-                <h2 class="fw-bold text-white mb-0" style="font-family: 'Outfit', sans-serif;">คอร์สเรียนยอดนิยมสัปดาห์นี้</h2>
+                <h6 class="section-subtitle mb-1">Trending Quests</h6>
+                <h2 class="fw-bold text-white-heading mb-0 fs-3" style="font-family: 'Outfit', sans-serif;">คอร์สเรียนยอดนิยมสัปดาห์นี้</h2>
             </div>
-            <a href="<?= $ROOT_PATH; ?>student/courses.php" class="btn btn-outline-secondary ajax-link btn-sm rounded-pill px-3 fs-xs">ดูทั้งหมด</a>
+            <a href="<?= $ROOT_PATH; ?>student/courses.php" class="btn btn-outline-secondary ajax-link btn-sm rounded-pill px-3 fs-xs text-light">ดูทั้งหมด</a>
         </div>
 
         <div class="row g-4">
@@ -616,15 +595,15 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                                     <h6 class="fw-bold text-white mb-2 line-clamp-2 fs-sm" style="min-height: 40px; line-height: 1.4; font-family: 'Outfit', sans-serif;">
                                         <?= htmlspecialchars($course['title']) ?>
                                     </h6>
-                                    <p class="text-light opacity-50 fs-xs mb-3">ผู้สอน: <?= htmlspecialchars($course['instructor'] ?? 'LevelUp Team') ?></p>
+                                    <p class="text-muted-desc fs-xs mb-3">ผู้สอน: <?= htmlspecialchars($course['instructor'] ?? 'LevelUp Team') ?></p>
 
                                     <div class="d-flex align-items-center gap-2 mb-3">
                                         <span class="text-warning fw-bold fs-xs">
                                             <i class="bi bi-star-fill me-1"></i><?= number_format((float)($course['rating'] ?? 5.0), 1) ?>
                                         </span>
-                                        <span class="text-light opacity-50 fs-xs">(<?= number_format((int)($course['reviews'] ?? 0)) ?>)</span>
-                                        <span class="text-light opacity-25">|</span>
-                                        <span class="text-light opacity-50 fs-xs">
+                                        <span class="text-muted-desc fs-xs">(<?= number_format((int)($course['reviews'] ?? 0)) ?>)</span>
+                                        <span class="text-secondary opacity-50">|</span>
+                                        <span class="text-muted-desc fs-xs">
                                             <i class="bi bi-people me-1"></i><?= number_format((int)($course['students'] ?? 0)) ?> คน
                                         </span>
                                     </div>
@@ -632,7 +611,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 
                                 <div class="d-flex justify-content-between align-items-center border-top border-secondary border-opacity-25 pt-2 mt-2">
                                     <div>
-                                        <span class="text-light opacity-50 fs-xs d-block">ระยะเวลา</span>
+                                        <span class="text-muted-desc fs-xs d-block">ระยะเวลา</span>
                                         <span class="fw-bold text-info fs-sm">
                                             <?= htmlspecialchars($course['duration'] ?? 'N/A') ?>
                                         </span>
@@ -645,7 +624,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                 <?php endforeach; ?>
             <?php else: ?>
                 <div class="col-12 text-center py-5">
-                    <p class="text-light opacity-50">ยังไม่มีข้อมูลคอร์สเรียนยอดนิยมในขณะนี้</p>
+                    <p class="text-muted-desc">ยังไม่มีข้อมูลคอร์สเรียนยอดนิยมในขณะนี้</p>
                 </div>
             <?php endif; ?>
         </div>
@@ -653,13 +632,13 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 </section>
 
 <!-- SECTION 4: CAREER MAPS & AI FEATURES -->
-<section class="py-5">
+<section class="py-5" style="background-color: #0b0f19;">
     <div class="container py-3">
         <div class="row align-items-center gy-5">
             <div class="col-lg-5">
-                <h6 class="ai-text-gradient text-uppercase fw-bold mb-2 fs-xs" style="letter-spacing: 1px;">Career Maps</h6>
-                <h2 class="fw-bold text-white mb-4" style="font-family: 'Outfit', sans-serif;">ก้าวตามโรดMAPสู่สายงานอาชีพ</h2>
-                <p class="text-light opacity-75 fs-sm mb-4">เราคัดกรองเนื้อหาเป็นลำดับขั้นเพื่อปูพื้นฐานจากศูนย์จนสามารถพัฒนาโปรเจกต์ส่งสมัครงานจริงได้อย่างเป็นระบบ</p>
+                <h6 class="section-subtitle mb-1">Career Maps</h6>
+                <h2 class="fw-bold text-white-heading mb-4 fs-3" style="font-family: 'Outfit', sans-serif;">ก้าวตามโรดMAPสู่สายงานอาชีพ</h2>
+                <p class="text-muted-desc fs-sm mb-4">เราคัดกรองเนื้อหาเป็นลำดับขั้นเพื่อปูพื้นฐานจากศูนย์จนสามารถพัฒนาโปรเจกต์ส่งสมัครงานจริงได้อย่างเป็นระบบ</p>
 
                 <div class="d-flex flex-column gap-3 mb-4">
                     <?php foreach ($career_paths as $path): ?>
@@ -670,7 +649,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                                 </div>
                                 <div>
                                     <h6 class="fw-bold text-white mb-0 fs-sm"><?= htmlspecialchars($path['title']) ?></h6>
-                                    <small class="text-light opacity-50 fs-xs"><?= htmlspecialchars($path['quests']) ?> เควสต์ย่อย • <?= htmlspecialchars($path['duration']) ?></small>
+                                    <small class="text-muted-desc fs-xs"><?= htmlspecialchars($path['quests']) ?> เควสต์ย่อย • <?= htmlspecialchars($path['duration']) ?></small>
                                 </div>
                             </div>
                             <i class="bi bi-chevron-right text-light opacity-50"></i>
@@ -683,24 +662,24 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
             <div class="col-lg-6 offset-lg-1">
                 <div class="row g-3">
                     <div class="col-12">
-                        <div class="glass-card text-white p-4" style="background: linear-gradient(135deg, var(--neon-indigo), #3730A3); border: none;">
+                        <div class="glass-card text-white p-4" style="background: linear-gradient(135deg, #4F46E5, #3730A3) !important; border: none !important;">
                             <i class="bi bi-robot fs-1 mb-2 text-warning"></i>
                             <h4 class="fw-bold text-white" style="font-family: 'Outfit', sans-serif;">24/7 AI Companion</h4>
-                            <p class="mb-0 fs-sm text-white opacity-75">ระบบที่คอยเป็นผู้ช่วยให้คำปรึกษาและตรวจโค้ดเสมือนมีรุ่นพี่โปรแกรมเมอร์คอยนั่งประกบอยู่เคียงข้างคุณตลอดการทำภารกิจ</p>
+                            <p class="mb-0 fs-sm text-white opacity-85">ระบบที่คอยเป็นผู้ช่วยให้คำปรึกษาและตรวจโค้ดเสมือนมีรุ่นพี่โปรแกรมเมอร์คอยนั่งประกบอยู่เคียงข้างคุณตลอดการทำภารกิจ</p>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="glass-card p-4 h-100">
                             <i class="bi bi-bullseye text-primary fs-2 mb-3"></i>
                             <h5 class="fw-bold text-white fs-sm" style="font-family: 'Outfit', sans-serif;">Skill Radar Graph</h5>
-                            <p class="text-light opacity-75 fs-xs mb-0">ระบบประเมินค่าพลังวิเคราะห์ทักษะความรู้แต่ละด้าน เพื่อบอกจุดเด่นจุดด้อยที่คุณควรปรับปรุง</p>
+                            <p class="text-muted-desc fs-xs mb-0">ระบบประเมินค่าพลังวิเคราะห์ทักษะความรู้แต่ละด้าน เพื่อบอกจุดเด่นจุดด้อยที่คุณควรปรับปรุง</p>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="glass-card p-4 h-100">
                             <i class="bi bi-magic text-success fs-2 mb-3"></i>
                             <h5 class="fw-bold text-white fs-sm" style="font-family: 'Outfit', sans-serif;">Dynamic Sandbox Labs</h5>
-                            <p class="text-light opacity-75 fs-xs mb-0">โจทย์เขียนโค้ดปรับระดับความยากง่ายอัตโนมัติอิงตามทักษะและผลงานก่อนหน้าของคุณ</p>
+                            <p class="text-muted-desc fs-xs mb-0">โจทย์เขียนโค้ดปรับระดับความยากง่ายอัตโนมัติอิงตามทักษะและผลงานก่อนหน้าของคุณ</p>
                         </div>
                     </div>
                 </div>
@@ -710,15 +689,15 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 </section>
 
 <!-- SECTION 5: VIRTUAL CYBER LAB PREVIEW -->
-<section class="lab-section py-5 text-center position-relative overflow-hidden" style="background-color: var(--lab-bg) !important;">
+<section class="lab-section py-5 text-center position-relative overflow-hidden" style="background-color: rgba(15, 23, 42, 0.7) !important;">
     <div class="container position-relative z-3 py-3">
         <span class="badge rounded-pill bg-primary bg-opacity-25 text-info border border-primary mb-3 px-3 py-2 fs-xs fw-bold">Cloud Terminal Environment</span>
-        <h2 class="fw-bold mb-3 text-white display-6" style="font-family: 'Outfit', sans-serif;">ลงมือปฏิบัติจริงบน Cyber Arena</h2>
-        <p class="lead text-light opacity-75 mx-auto mb-5 fs-sm" style="max-width: 650px;">
+        <h2 class="fw-bold mb-3 text-white-heading display-6" style="font-family: 'Outfit', sans-serif;">ลงมือปฏิบัติจริงบน Cyber Arena</h2>
+        <p class="lead text-muted-desc mx-auto mb-5 fs-sm" style="max-width: 650px;">
             ไม่จำเป็นต้องติดตั้งโปรแกรมหรือตั้งค่าสภาพแวดล้อมให้ปวดหัว รันคำสั่งคอมมานด์ไลน์และโค้ดโปรแกรมผ่านเว็บบราวเซอร์ของคุณได้ทันที
         </p>
 
-        <div class="browser-mockup glass-card shadow-lg text-start mx-auto border border-secondary border-opacity-50" style="max-width: 820px; background: var(--terminal-bg);">
+        <div class="browser-mockup glass-card shadow-lg text-start mx-auto border border-secondary border-opacity-50" style="max-width: 820px; background: #04060d !important;">
             <div class="browser-header p-3 border-bottom border-secondary border-opacity-25 d-flex align-items-center gap-2">
                 <span class="dot bg-danger rounded-circle" style="width:10px; height:10px; display:inline-block;"></span>
                 <span class="dot bg-warning rounded-circle" style="width:10px; height:10px; display:inline-block;"></span>
@@ -730,7 +709,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                 <span class="text-light opacity-50">&gt; next-gen-app@2.6.0 dev</span><br>
                 <span class="text-light opacity-50">&gt; vite</span><br><br>
                 <span class="text-info"> ➜ Local: http://localhost:5173/</span><br>
-                <span style="color: var(--plasma-orange);">[AI Analyzer]:</span> สแกนพบบั๊กคอมไพล์ในเส้นทาง Component บรรทัดที่ 42 แนะนำให้ใส่เครื่องหมายปิดปีกกาให้ถูกต้องครับ<br>
+                <span style="color: #F59E0B;">[AI Analyzer]:</span> สแกนพบบั๊กคอมไพล์ในเส้นทาง Component บรรทัดที่ 42 แนะนำให้ใส่เครื่องหมายปิดปีกกาให้ถูกต้องครับ<br>
                 <span class="text-white">user@levelup-sandbox:~$</span> <span class="text-white opacity-75 animate-blink">|</span>
             </div>
         </div>
@@ -742,7 +721,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 </section>
 
 <!-- SECTION 6: PLATFORM METRICS & FAQ -->
-<section class="py-5">
+<section class="py-5" style="background-color: #0b0f19;">
     <div class="container py-3">
         <div class="row align-items-center justify-content-center gy-4 mb-5 pb-5 border-bottom border-secondary border-opacity-25">
             <div class="col-12 col-xl-4 col-lg-5 mb-3 mb-lg-0">
@@ -752,7 +731,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                             <i class="bi bi-stars text-primary fs-6"></i>
                             <span class="fw-bold fs-xs text-primary text-uppercase" style="letter-spacing: 0.5px;">Tip of the Day</span>
                         </div>
-                        <p class="mb-0 fs-xs text-light opacity-75" style="line-height: 1.5;">
+                        <p class="mb-0 fs-xs text-muted-desc" style="line-height: 1.5;">
                             ระบบเรียนรู้ที่มี AI ช่วยโค้ช จะช่วยเพิ่มความเร็วในการทำเควสต์เขียนโค้ดได้ถึง 2 เท่า!
                         </p>
                     </div>
@@ -766,27 +745,27 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                 <div class="row text-center gy-3 justify-content-center align-items-center">
                     <div class="col-6 col-sm-3">
                         <h2 class="display-6 fw-bold mb-0 ai-text-gradient">250K+</h2>
-                        <p class="text-light opacity-50 fw-bold text-uppercase fs-xs mt-1 mb-0">LEARNERS</p>
+                        <p class="text-muted-desc fw-bold text-uppercase fs-xs mt-1 mb-0">LEARNERS</p>
                     </div>
                     <div class="col-6 col-sm-3">
                         <h2 class="display-6 fw-bold mb-0 ai-text-gradient">1,200+</h2>
-                        <p class="text-light opacity-50 fw-bold text-uppercase fs-xs mt-1 mb-0">QUESTS</p>
+                        <p class="text-muted-desc fw-bold text-uppercase fs-xs mt-1 mb-0">QUESTS</p>
                     </div>
                     <div class="col-6 col-sm-3">
                         <h2 class="display-6 fw-bold mb-0 ai-text-gradient">850+</h2>
-                        <p class="text-light opacity-50 fw-bold text-uppercase fs-xs mt-1 mb-0">CODING LABS</p>
+                        <p class="text-muted-desc fw-bold text-uppercase fs-xs mt-1 mb-0">CODING LABS</p>
                     </div>
                     <div class="col-6 col-sm-3">
                         <h2 class="display-6 fw-bold mb-0 ai-text-gradient" style="color: #6366F1 !important;">12M+</h2>
-                        <p class="text-light opacity-50 fw-bold text-uppercase fs-xs mt-1 mb-0">AI ANSWERS</p>
+                        <p class="text-muted-desc fw-bold text-uppercase fs-xs mt-1 mb-0">AI ANSWERS</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="text-center mb-5">
-            <h2 class="fw-bold text-white" style="font-family: 'Outfit', sans-serif;">คำถามที่พบบ่อย (FAQ)</h2>
-            <p class="text-light opacity-50 fs-sm">รวบรวมคำตอบเบื้องต้นสำหรับผู้เล่นใหม่ทุกท่าน</p>
+            <h2 class="fw-bold text-white-heading" style="font-family: 'Outfit', sans-serif;">คำถามที่พบบ่อย (FAQ)</h2>
+            <p class="text-muted-desc fs-sm">รวบรวมคำตอบเบื้องต้นสำหรับผู้เล่นใหม่ทุกท่าน</p>
         </div>
 
         <div class="row justify-content-center">
@@ -800,7 +779,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                                 </button>
                             </h2>
                             <div id="<?= htmlspecialchars($faq['id']) ?>" class="accordion-collapse collapse <?= $faq['show'] ? 'show' : '' ?>" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body text-light opacity-75 pt-0 fs-sm">
+                                <div class="accordion-body text-muted-desc pt-0 fs-sm">
                                     <?= htmlspecialchars($faq['answer']) ?>
                                 </div>
                             </div>
@@ -815,16 +794,16 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 <!-- SECTION 7: FINAL CALL TO ACTION (CTA) -->
 <section class="cta-section py-4 mb-5">
     <div class="container">
-        <div class="glass-card p-4 p-md-5 text-center position-relative overflow-hidden" style="background: linear-gradient(135deg, var(--neon-indigo), #3730A3); border: none;">
+        <div class="glass-card p-4 p-md-5 text-center position-relative overflow-hidden" style="background: linear-gradient(135deg, #4F46E5, #3730A3) !important; border: none !important;">
             <div class="position-relative z-3 text-white">
-                <h2 class="display-6 fw-bold mb-3" style="font-family: 'Outfit', sans-serif; color: #ffffff !important;">พร้อมที่จะอัปเกรดสถานะเลเวลของคุณหรือยัง?</h2>
-                <p class="lead mb-4 mx-auto fs-sm" style="max-width: 600px; color: rgba(255, 255, 255, 0.85) !important;">เข้าร่วมสมรภูมิพัฒนาทักษะแบบไร้ขีดจำกัด เก็บสะสมแต้มผลงานเพื่อเพิ่มโอกาสสู่สายอาชีพที่มั่นคง</p>
+                <h2 class="display-6 fw-bold mb-3 text-white" style="font-family: 'Outfit', sans-serif;">พร้อมที่จะอัปเกรดสถานะเลเวลของคุณหรือยัง?</h2>
+                <p class="lead mb-4 mx-auto fs-sm text-white opacity-85" style="max-width: 600px;">เข้าร่วมสมรภูมิพัฒนาทักษะแบบไร้ขีดจำกัด เก็บสะสมแต้มผลงานเพื่อเพิ่มโอกาสสู่สายอาชีพที่มั่นคง</p>
                 <div class="d-flex justify-content-center gap-3 flex-wrap">
                     <?php if (!$isLoggedIn): ?>
-                        <a href="<?= $ROOT_PATH; ?>auth/login.php" class="btn btn-light ajax-link btn-lg px-4 px-md-5 fw-bold rounded-pill fs-sm" style="color: #1e1b4b !important; background-color: #ffffff !important; border: none;">เข้าสู่ระบบผู้เล่น</a>
+                        <a href="<?= $ROOT_PATH; ?>auth/login.php" class="btn btn-light ajax-link btn-lg px-4 px-md-5 fw-bold rounded-pill fs-sm text-dark bg-white">เข้าสู่ระบบผู้เล่น</a>
                         <a href="<?= $ROOT_PATH; ?>auth/login.php" class="btn btn-outline-light ajax-link btn-lg px-4 rounded-pill fs-sm"><i class="bi bi-robot me-2"></i>คุยกับ AI โค้ช</a>
                     <?php else: ?>
-                        <a href="<?= $ROOT_PATH; ?>student/courses.php" class="btn btn-light ajax-link btn-lg px-4 px-md-5 fw-bold rounded-pill fs-sm" style="color: #1e1b4b !important; background-color: #ffffff !important; border: none;"><i class="bi bi-rocket-takeoff-fill me-2"></i>เริ่มลุยเควสต์เรียนรู้</a>
+                        <a href="<?= $ROOT_PATH; ?>student/courses.php" class="btn btn-light ajax-link btn-lg px-4 px-md-5 fw-bold rounded-pill fs-sm text-dark bg-white"><i class="bi bi-rocket-takeoff-fill me-2"></i>เริ่มลุยเควสต์เรียนรู้</a>
                         <a href="<?= $ROOT_PATH; ?>ai/ai-chat.php" class="btn btn-outline-light ajax-link btn-lg px-4 rounded-pill fs-sm"><i class="bi bi-robot me-2"></i>คุยกับ AI โค้ช</a>
                     <?php endif; ?>
                 </div>
@@ -834,16 +813,14 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 </section>
 
 <?php
-// Include Footer
 if (file_exists($ROOT_PATH . 'includes/footer.php')) {
     include $ROOT_PATH . 'includes/footer.php';
-} else {
-    echo "Warning: ไม่พบไฟล์ '" . $ROOT_PATH . "includes/footer.php'";
 }
 ?>
 
 <script>
     $(document).ready(function() {
+        // กรองการ์ดหมวดหมู่ซ้ำ
         var seenNames = {};
         $('#category-grid-container .category-col-item').each(function() {
             var catTitle = $(this).find('.category-item-title').text().trim();
@@ -856,6 +833,7 @@ if (file_exists($ROOT_PATH . 'includes/footer.php')) {
             }
         });
 
+        // ดักจับปุ่ม Logout เพื่อ Redirect ไปยัง auth/logout.php
         $(document).on('click', 'a', function(e) {
             var href = $(this).attr('href');
             var text = $(this).text().toLowerCase();
