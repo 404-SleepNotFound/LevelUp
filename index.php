@@ -9,6 +9,13 @@ $ROOT_PATH = ''; // หน้าหลัก Root Directory
 // ===================================================
 
 if (session_status() === PHP_SESSION_NONE) {
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path'     => '/',
+        'secure'   => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
     session_start();
 }
 
@@ -17,7 +24,7 @@ $sessionData = $_SESSION['user_login'] ?? $_SESSION ?? null;
 
 $navUser = [
     'username' => $sessionData['name'] ?? ($sessionData['username'] ?? 'User'),
-    'avatar'   => $sessionData['img'] ?? ($sessionData['avatar'] ?? 'assets/images/default-avatar.png'),
+    'avatar'   => $sessionData['picture'] ?? ($sessionData['img'] ?? ($sessionData['avatar'] ?? 'assets/images/default-avatar.png')),
     'level'    => $sessionData['level'] ?? 1,
     'exp'      => $sessionData['user_exp'] ?? ($sessionData['exp'] ?? 0),
     'streak'   => $sessionData['streak'] ?? 5
