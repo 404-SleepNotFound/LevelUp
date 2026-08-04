@@ -32,25 +32,23 @@ $currentQuest = [
 // ข้อมูลหมวดหมู่หลัก (Skill Trees - 12 หมวดหมู่)
 // ---------------------------------------------------
 $category_data = [
-    ['name' => 'Dev', 'icon' => 'bi-code-slash', 'color' => '#10B981', 'count' => 12],
-    ['name' => 'การตลาดดิจิทัล', 'icon' => 'bi-megaphone', 'color' => '#F59E0B', 'count' => 15],
-    ['name' => 'ดีไซน์ & กราฟิก', 'icon' => 'bi-palette', 'color' => '#EC4899', 'count' => 18],
-    ['name' => 'ธุรกิจ & การจัดการ', 'icon' => 'bi-briefcase', 'color' => '#3B82F6', 'count' => 20],
-    ['name' => 'ภาษาต่างประเทศ', 'icon' => 'bi-translate', 'color' => '#06B6D4', 'count' => 10],
-    ['name' => 'ถ่ายภาพ & ตัดต่อวิดีโอ', 'icon' => 'bi-camera-video', 'color' => '#F97316', 'count' => 8],
-    ['name' => 'วิทยาศาสตร์ข้อมูล & AI', 'icon' => 'bi-cpu', 'color' => '#6366F1', 'count' => 14],
-    ['name' => 'การเงิน & การลงทุน', 'icon' => 'bi-graph-up-arrow', 'color' => '#10B981', 'count' => 9],
-    ['name' => 'พัฒนาตนเอง', 'icon' => 'bi-journal-bookmark', 'color' => '#8B5CF6', 'count' => 16],
-    ['name' => 'ดนตรี & เสียง', 'icon' => 'bi-music-note-beamed', 'color' => '#E11D48', 'count' => 7],
-    ['name' => 'เขียนโปรแกรม & พัฒนาเว็บ', 'icon' => 'bi-code-square', 'color' => '#0284C7', 'count' => 22],
-    ['name' => 'เกม & 3D แอนิเมชัน', 'icon' => 'bi-controller', 'color' => '#A855F7', 'count' => 11]
+    ['name' => 'Dev', 'icon' => 'bi-code-slash', 'color' => '#10B981', 'count' => 0],
+    ['name' => 'การตลาดดิจิทัล', 'icon' => 'bi-megaphone', 'color' => '#F59E0B', 'count' => 0],
+    ['name' => 'ดีไซน์ & กราฟิก', 'icon' => 'bi-palette', 'color' => '#EC4899', 'count' => 0],
+    ['name' => 'ธุรกิจ & การจัดการ', 'icon' => 'bi-briefcase', 'color' => '#3B82F6', 'count' => 0],
+    ['name' => 'ภาษาต่างประเทศ', 'icon' => 'bi-translate', 'color' => '#06B6D4', 'count' => 0],
+    ['name' => 'ถ่ายภาพ & ตัดต่อวิดีโอ', 'icon' => 'bi-camera-video', 'color' => '#F97316', 'count' => 0],
+    ['name' => 'วิทยาศาสตร์ข้อมูล & AI', 'icon' => 'bi-cpu', 'color' => '#6366F1', 'count' => 0],
+    ['name' => 'การเงิน & การลงทุน', 'icon' => 'bi-graph-up-arrow', 'color' => '#10B981', 'count' => 0],
+    ['name' => 'พัฒนาตนเอง', 'icon' => 'bi-journal-bookmark', 'color' => '#8B5CF6', 'count' => 0],
+    ['name' => 'ดนตรี & เสียง', 'icon' => 'bi-music-note-beamed', 'color' => '#E11D48', 'count' => 0],
+    ['name' => 'เขียนโปรแกรม & พัฒนาเว็บ', 'icon' => 'bi-code-square', 'color' => '#0284C7', 'count' => 0],
+    ['name' => 'เกม & 3D แอนิเมชัน', 'icon' => 'bi-controller', 'color' => '#A855F7', 'count' => 0]
 ];
 
 // ---------------------------------------------------
-// 2. ดึงข้อมูลคอร์สเรียนยอดนิยมจาก DATABASE
+// DATABASE INTEGRATION
 // ---------------------------------------------------
-$popular_courses = [];
-
 if (file_exists($ROOT_PATH . 'config/db.php')) {
     require_once $ROOT_PATH . 'config/db.php';
 } elseif (file_exists($ROOT_PATH . 'db.php')) {
@@ -59,6 +57,53 @@ if (file_exists($ROOT_PATH . 'config/db.php')) {
 
 $db = $conn ?? $pdo ?? null;
 $fallbackImg = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=600&auto=format&fit=crop';
+
+// ---------------------------------------------------
+// 2. ดึงการนับจำนวนคอร์สตามหมวดหมู่จริงจาก DATABASE
+// ---------------------------------------------------
+if ($db && $db instanceof PDO) {
+    // 2.1 ตรวจสอบชื่อตารางคอร์ส (course หรือ courses)
+    $courseTable = 'courses';
+    try {
+        $db->query("SELECT 1 FROM `course` LIMIT 1");
+        $courseTable = 'course';
+    } catch (PDOException $e) {
+        $courseTable = 'courses';
+    }
+
+    // 2.2 ตรวจสอบชื่อคอลัมน์เก็บหมวดหมู่ในตาราง
+    $catColumn = null;
+    $possibleCols = ['category', 'category_name', 'course_category', 'cat_name', 'tag', 'tags'];
+    foreach ($possibleCols as $col) {
+        try {
+            $db->query("SELECT `$col` FROM `$courseTable` LIMIT 1");
+            $catColumn = $col;
+            break;
+        } catch (PDOException $e) {
+            continue;
+        }
+    }
+
+    // 2.3 นับจำนวนคอร์สที่มีอยู่จริงแยกตามหมวดหมู่ (Direct COUNT Query)
+    foreach ($category_data as $key => $cat) {
+        if ($catColumn) {
+            try {
+                $stmt = $db->prepare("SELECT COUNT(*) FROM `$courseTable` WHERE `$catColumn` = ? OR `$catColumn` LIKE ?");
+                $stmt->execute([$cat['name'], '%' . $cat['name'] . '%']);
+                $category_data[$key]['count'] = (int)$stmt->fetchColumn();
+            } catch (PDOException $e) {
+                $category_data[$key]['count'] = 0;
+            }
+        } else {
+            $category_data[$key]['count'] = 0;
+        }
+    }
+}
+
+// ---------------------------------------------------
+// 3. ดึงข้อมูลคอร์สเรียนยอดนิยมจาก DATABASE
+// ---------------------------------------------------
+$popular_courses = [];
 
 if ($db && $db instanceof PDO) {
     try {
@@ -232,14 +277,13 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
        FIX: ป้องกันจอขาวกระพริบขณะโหลดหน้า (FOUC Fix)
        ========================================== */
     html {
-        background-color: #0b0f19 !important; /* บังคับสีเข้มเริ่มต้นก่อนเรนเดอร์ */
+        background-color: #0b0f19 !important;
     }
 
     html[data-theme="light"] {
         background-color: #f8fafc !important;
     }
 
-    /* ลบเส้นขอบล่างและเงาระหว่าง Header กับ Body */
     header, 
     nav, 
     .navbar, 
@@ -558,7 +602,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                         </div>
                         <div class="overflow-hidden">
                             <h6 class="fw-bold text-white mb-0 fs-sm text-truncate category-item-title"><?= htmlspecialchars($cat['name']) ?></h6>
-                            <small class="text-light opacity-50 fs-xs"><?= htmlspecialchars($cat['count'] ?? 0) ?> บทเรียน</small>
+                            <small class="text-light opacity-50 fs-xs"><?= (int)($cat['count'] ?? 0) ?> คอร์ส</small>
                         </div>
                     </a>
                 </div>
