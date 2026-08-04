@@ -75,34 +75,12 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
     const ctx = canvas.getContext('2d', { alpha: true });
     const rocket = document.querySelector('#levelup-rocket-cursor');
 
-    // 🌗 ตรวจพื้นหลังหน้าเว็บ เพื่อสลับโทนสีอนุภาคให้มองเห็นชัดทั้ง Light/Dark Mode
-    function detectLightBackground() {
-        try {
-            let el = document.body;
-            for (let i = 0; i < 4 && el; i++) {
-                const bg = getComputedStyle(el).backgroundColor;
-                const m = bg && bg.match(/[\d.]+/g);
-                if (m && m.length >= 3 && !(bg.startsWith('rgba') && parseFloat(m[3]) === 0)) {
-                    const [r, g, b] = m.map(Number);
-                    return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.6;
-                }
-                el = el.parentElement;
-            }
-        } catch (e) {}
-        return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
-    }
-
-    const isLightBg = detectLightBackground();
-
-    // 🎨 ชุดสีแยกตามโหมด: โทนพาสเทล/ขาว จะจมหายบนพื้นหลังสว่างเมื่อใช้ blend mode "lighter"
-    const STAR_COLORS = isLightBg
-        ? ['#1d3557', '#0077b6', '#e07a00', '#2a9d8f', '#7b2cbf']
-        : ['#ffffff', '#00f2fe', '#ffd700', '#a8ff78', '#e0c3fc'];
-    const FLAME_COLORS = isLightBg
-        ? ['#e85d04', '#d62828', '#9d0208']
-        : ['#fff375', '#ff7f11', '#ff3b00'];
-    const PLASMA_COLORS = isLightBg ? ['#0077b6', '#023e8a'] : ['#00f2fe', '#4facfe'];
-    const HOT_CORE_COLOR = isLightBg ? '#ff6d00' : '#fffbe6';
+    // 🎨 ชุดสีเดียวที่อิ่มตัวพอจะมองเห็นชัดทั้งพื้นหลังสว่างและมืด (ไม่พึ่งการตรวจจับพื้นหลังที่ผิดพลาดได้ง่าย)
+    // ใช้คู่กับเส้นขอบเข้มบางๆ รอบอนุภาคเพื่อให้ตัดกับพื้นหลังเสมอ ไม่ว่าพื้นหลังจะเป็นสีอะไร
+    const STAR_COLORS = ['#4cc9f0', '#f72585', '#ffd60a', '#7209b7', '#2ec4b6'];
+    const FLAME_COLORS = ['#ff9e00', '#ff5400', '#d00000'];
+    const PLASMA_COLORS = ['#00b4d8', '#0077b6'];
+    const HOT_CORE_COLOR = '#ffd60a';
 
     // 🎯 พิกัดจุดหมุน และท่อไอพ่นจรวด
     const HOTSPOT_X = 21.2;
@@ -206,7 +184,7 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
         updateAndDraw(ctx) {
             ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
             ctx.save();
-            ctx.globalCompositeOperation = isLightBg ? 'source-over' : 'lighter';
+            ctx.globalCompositeOperation = 'source-over';
 
             let hasActive = false;
 
@@ -232,6 +210,9 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
                     ctx.beginPath();
                     ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
                     ctx.fill();
+                    ctx.lineWidth = 0.6;
+                    ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+                    ctx.stroke();
                 } else {
                     // 🔥 เปลวไฟแบบมีแกนสว่าง + แสงฟุ้งรอบตัว ยืดตามทิศทางการเคลื่อนที่
                     const speed = Math.hypot(p.vx, p.vy);
@@ -259,6 +240,9 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
                     ctx.beginPath();
                     ctx.ellipse(0, 0, r * stretch * 0.55, r * 0.55, 0, 0, Math.PI * 2);
                     ctx.fill();
+                    ctx.lineWidth = 0.5;
+                    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+                    ctx.stroke();
 
                     ctx.restore();
                 }
