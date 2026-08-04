@@ -4,7 +4,42 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     
+    // ==========================================
+    // Force Hide App Store & Google Play UI
+    // ==========================================
+    const hideAppButtons = () => {
+        // 1. ค้นหา element ทั้งหมดที่มีข้อความ App Store หรือ Google Play
+        const allElements = document.querySelectorAll('a, button, div, span, img');
+        allElements.forEach(el => {
+            const text = (el.innerText || el.textContent || '').trim();
+            const alt = el.getAttribute('alt') || '';
+            const href = el.getAttribute('href') || '';
+
+            if (
+                text.includes('App Store') || 
+                text.includes('Google Play') || 
+                alt.includes('App Store') || 
+                alt.includes('Google Play') ||
+                href.includes('apple.com') ||
+                href.includes('play.google.com')
+            ) {
+                // ค้นหาปุ่มหลัก (แท็ก <a> หรือ <button>) แล้วสั่งซ่อนทันที
+                const target = el.closest('a') || el.closest('button') || el;
+                target.style.setProperty('display', 'none', 'important');
+                target.style.setProperty('visibility', 'hidden', 'important');
+            }
+        });
+    };
+
+    // รันคำสั่งซ่อนปุ่มทันที
+    hideAppButtons();
+    // รันซ้ำอีกครั้งหลังจากโหลดผ่านไป 0.5 - 1 วินาที (ป้องกันกรณีเว็บโหลดช้า)
+    setTimeout(hideAppButtons, 500);
+    setTimeout(hideAppButtons, 1000);
+
+    // ==========================================
     // 1. AI Tips Randomizer
+    // ==========================================
     const aiTips = [
         "Doing labs immediately after lessons increases retention by 40%.",
         "Stuck on a bug? Ask the AI Tutor to explain the error, not just give the code.",
@@ -20,30 +55,34 @@ document.addEventListener('DOMContentLoaded', () => {
         tipElement.innerText = randomTip;
     }
 
+    // ==========================================
     // 2. Back to Top Logic
+    // ==========================================
     const backToTopBtn = document.getElementById('backToTopBtn');
-    
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 400) {
-            backToTopBtn.classList.add('show');
-            backToTopBtn.classList.remove('d-none');
-        } else {
-            backToTopBtn.classList.remove('show');
-            // Timeout allows the CSS transition (opacity/transform) to finish before display:none
-            setTimeout(() => {
-                if(window.scrollY <= 400) backToTopBtn.classList.add('d-none');
-            }, 300);
-        }
-    });
-
-    backToTopBtn.addEventListener('click', () => {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
+    if(backToTopBtn) {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 400) {
+                backToTopBtn.classList.add('show');
+                backToTopBtn.classList.remove('d-none');
+            } else {
+                backToTopBtn.classList.remove('show');
+                setTimeout(() => {
+                    if(window.scrollY <= 400) backToTopBtn.classList.add('d-none');
+                }, 300);
+            }
         });
-    });
 
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    }
+
+    // ==========================================
     // 3. Newsletter AJAX Submit
+    // ==========================================
     const newsletterForm = document.getElementById('newsletterForm');
     if(newsletterForm) {
         newsletterForm.addEventListener('submit', async (e) => {
@@ -86,7 +125,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // ==========================================
     // 4. Feedback Modal AJAX Submit
+    // ==========================================
     const feedbackForm = document.getElementById('feedbackForm');
     if(feedbackForm) {
         feedbackForm.addEventListener('submit', async (e) => {
@@ -125,18 +166,4 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
-    // 5. Hide App Store & Google Play UI dynamically (Added Workaround)
-    // โค้ดส่วนนี้จะค้นหาและทำการซ่อนปุ่ม App Store / Google Play จากหน้าเว็บโดยอัตโนมัติ
-    const appLinksAndButtons = document.querySelectorAll('a, button, div');
-    appLinksAndButtons.forEach(element => {
-        // ตรวจสอบข้อความข้างในว่ามีคำว่า App Store หรือ Google Play หรือไม่
-        const textContent = element.textContent || element.innerText;
-        if (element.tagName === 'A' || element.tagName === 'BUTTON') {
-            if (textContent.includes('App Store') || textContent.includes('Google Play')) {
-                element.style.display = 'none'; // สั่งซ่อนปุ่มทันที
-            }
-        }
-    });
-
 });
