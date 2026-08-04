@@ -229,8 +229,17 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 
 <style>
     /* ==========================================
-       FIX: ลบเส้นขอบล่างและเงาระหว่าง Header กับ Body
+       FIX: ป้องกันจอขาวกระพริบขณะโหลดหน้า (FOUC Fix)
        ========================================== */
+    html {
+        background-color: #0b0f19 !important; /* บังคับสีเข้มเริ่มต้นก่อนเรนเดอร์ */
+    }
+
+    html[data-theme="light"] {
+        background-color: #f8fafc !important;
+    }
+
+    /* ลบเส้นขอบล่างและเงาระหว่าง Header กับ Body */
     header, 
     nav, 
     .navbar, 
