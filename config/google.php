@@ -7,21 +7,46 @@ if (session_status() === PHP_SESSION_NONE) {
 $clientID     = '391621497018-cbigmvo3gcaiqjk89rij042m30cqtmks.apps.googleusercontent.com';
 $clientSecret = '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';
 
-// ตั้งค่าให้ Google ส่งข้อมูลกลับมาที่ index.php ตรงๆ
+// กำหนด Redirect URI (หากใช้ callback.php ให้เปลี่ยนเป็น https://levelup.quizchainat.com/auth/callback.php)
 $redirectUri  = 'https://levelup.quizchainat.com/index.php';
 
-// สร้าง URL สำหรับ Redirect ไปหน้า Login ของ Google
-$googleParams = [
-    'client_id'     => $clientID,
-    'redirect_uri'  => $redirectUri,
-    'response_type' => 'code',
-    'scope'         => 'openid email profile',
-    'access_type'   => 'online',
-    'prompt'        => 'select_account'
-];
-$googleAuthUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query($googleParams);
+// สร้าง Class จำลองรองรับกรณีที่ไม่ได้ติดตั้ง Composer SDK
+if (!class_exists('Google\Client')) {
+    class PureGoogleClient {
+        private $clientId;
+        private $clientSecret;
+        private $redirectUri;
+        private $scopes = [];
 
-// หากมีการส่ง code กลับมาจาก Google ให้ทำการแลก Token และดึงข้อมูลผู้ใช้ทันที
+        public function setClientId($id) { $this->clientId = $id; }
+        public function setClientSecret($secret) { $this->clientSecret = $secret; }
+        public function setRedirectUri($uri) { $this->redirectUri = $uri; }
+        public function addScope($scope) { $this->scopes[] = $scope; }
+        
+        public function createAuthUrl() {
+            $params = [
+                'client_id'     => $this->clientId,
+                'redirect_uri'  => $this->redirectUri,
+                'response_type' => 'code',
+                'scope'         => implode(' ', $this->scopes) ?: 'openid email profile',
+                'access_type'   => 'online',
+                'prompt'        => 'select_account'
+            ];
+            return 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query($params);
+        }
+    }
+    class_alias('PureGoogleClient', 'Google\Client');
+}
+
+// สร้าง Object $client ส่งต่อไปยัง auth/login.php
+$client = new Google\Client();
+$client->setClientId($clientID);
+$client->setClientSecret($clientSecret);
+$client->setRedirectUri($redirectUri);
+$client->addScope("email");
+$client->addScope("profile");
+
+// หากมีการส่ง code กลับมาจาก Google ให้ทำการแลก Token และดึงข้อมูลผู้ใช้
 if (isset($_GET['code'])) {
     $code = $_GET['code'];
 
@@ -45,15 +70,12 @@ if (isset($_GET['code'])) {
     $tokenData = json_decode($response, true);
 
     if (isset($tokenData['access_token'])) {
-        // ดึงข้อมูลโปรไฟล์ผู้ใช้จาก Google
         $userInfoUrl = 'https://www.googleapis.com/oauth2/v2/userinfo?access_token=' . $tokenData['access_token'];
         $userInfoJson = file_get_contents($userInfoUrl);
         $userInfo = json_decode($userInfoJson, true);
 
-        // บันทึกข้อมูลลง Session
         $_SESSION['user_data'] = $userInfo;
 
-        // รีเฟรช URL เพื่อลบ query string (?code=...) ออกจากช่องสแกน URL
         header('Location: /index.php');
         exit;
     }
