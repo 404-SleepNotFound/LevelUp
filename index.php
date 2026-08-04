@@ -59,7 +59,7 @@ $db = $conn ?? $pdo ?? null;
 $fallbackImg = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=600&auto=format&fit=crop';
 
 // ---------------------------------------------------
-// 2. ดึงการนับจำนวนคอร์สตามหมวดหมู่จริงจาก DATABASE
+// 2. ดึงการนับจำนวนคอร์สตามหมวดหมู่ด้วย GROUP BY (1 Query)
 // ---------------------------------------------------
 if ($db && $db instanceof PDO) {
     // 2.1 ตรวจสอบชื่อตารางคอร์ส (course หรือ courses)
@@ -73,7 +73,7 @@ if ($db && $db instanceof PDO) {
 
     // 2.2 ตรวจสอบชื่อคอลัมน์เก็บหมวดหมู่ในตาราง
     $catColumn = null;
-    $possibleCols = ['category', 'category_name', 'course_category', 'cat_name', 'tag', 'tags'];
+    $possibleCols = ['category_id', 'category', 'category_name', 'course_category', 'cat_name', 'tag'];
     foreach ($possibleCols as $col) {
         try {
             $db->query("SELECT `$col` FROM `$courseTable` LIMIT 1");
@@ -84,18 +84,39 @@ if ($db && $db instanceof PDO) {
         }
     }
 
-    // 2.3 นับจำนวนคอร์สที่มีอยู่จริงแยกตามหมวดหมู่ (Direct COUNT Query)
-    foreach ($category_data as $key => $cat) {
-        if ($catColumn) {
-            try {
-                $stmt = $db->prepare("SELECT COUNT(*) FROM `$courseTable` WHERE `$catColumn` = ? OR `$catColumn` LIKE ?");
-                $stmt->execute([$cat['name'], '%' . $cat['name'] . '%']);
-                $category_data[$key]['count'] = (int)$stmt->fetchColumn();
-            } catch (PDOException $e) {
-                $category_data[$key]['count'] = 0;
+    // 2.3 รัน Query สั่ง GROUP BY เพียงครั้งเดียวเพื่อประสิทธิภาพสูงสุด
+    if ($catColumn) {
+        try {
+            $sql = "SELECT `$catColumn` AS cat_key, COUNT(*) AS total_count 
+                    FROM `$courseTable` 
+                    WHERE `$catColumn` IS NOT NULL AND `$catColumn` != '' 
+                    GROUP BY `$catColumn`";
+            
+            $stmt = $db->query($sql);
+            
+            // ดึงผลลัพธ์เข้า Array ในรูปแบบ ['category_name' => total_count]
+            $countsMap = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+
+            // นำผลลัพธ์จากการ GROUP BY มาแมปเข้ากับ $category_data
+            foreach ($category_data as $key => $cat) {
+                $catName = $cat['name'];
+
+                // 1. ตรวจสอบแบบตรงตัว (Exact Match)
+                if (isset($countsMap[$catName])) {
+                    $category_data[$key]['count'] = (int)$countsMap[$catName];
+                } else {
+                    // 2. ตรวจสอบแบบบางส่วน (Partial Match)
+                    $matchedCount = 0;
+                    foreach ($countsMap as $dbCat => $count) {
+                        if (mb_stripos((string)$dbCat, $catName) !== false || mb_stripos($catName, (string)$dbCat) !== false) {
+                            $matchedCount += (int)$count;
+                        }
+                    }
+                    $category_data[$key]['count'] = $matchedCount;
+                }
             }
-        } else {
-            $category_data[$key]['count'] = 0;
+        } catch (PDOException $e) {
+            error_log("Error counting courses with GROUP BY: " . $e->getMessage());
         }
     }
 }
