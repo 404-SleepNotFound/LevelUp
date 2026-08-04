@@ -82,15 +82,12 @@ $appVersion = "1.0.0 (Build 2026.07)";
                     <h6 class="ft-text-main fs-sm fw-bold mb-3" style="font-family: 'Outfit', sans-serif;">Subscribe to Newsletter</h6>
                     
                     <!-- 🎯 ฟอร์ม Newsletter -->
-                    <form id="newsletterForm" class="d-flex gap-2 mb-4 align-items-stretch">
+                    <form id="newsletterForm" class="d-flex gap-2 align-items-stretch">
                         <input type="email" name="email" class="form-control ft-card-theme ft-text-main shadow-none placeholder-glow-custom" style="border-radius: 12px; padding: 10px 16px; font-size: 0.9rem;" placeholder="Enter your email" required>
                         <button type="submit" class="btn text-white rounded-3 px-4 fw-bold" style="background: linear-gradient(135deg, #4F46E5, #6366F1); border: none; border-radius: 12px !important; font-size: 0.9rem; white-space: nowrap;" id="btnNewsletter">Subscribe</button>
                     </form>
-                    
-                    <div class="d-flex gap-2">
-                        <a href="#" class="btn btn-sm rounded-3 d-flex align-items-center gap-2 px-3 ft-card-theme ft-text-main text-decoration-none"><i class="bi bi-apple fs-5"></i> App Store</a>
-                        <a href="#" class="btn btn-sm rounded-3 d-flex align-items-center gap-2 px-3 ft-card-theme ft-text-main text-decoration-none"><i class="bi bi-google-play fs-6"></i> Google Play</a>
-                    </div>
+
+                    <!-- ❌ ปุ่ม App Store และ Google Play ถูกลบออกเรียบร้อยแล้ว -->
                 </div>
 
                 <!-- Link Columns -->
@@ -291,7 +288,6 @@ $appVersion = "1.0.0 (Build 2026.07)";
          =================================================== -->
     <script>
     (function() {
-        // 📌 ป้องกันการเกิด Element ซ้อนกัน เมื่อโหลดหน้าผ่าน AJAX
         let cursor = document.getElementById('custom-rocket-cursor');
         if (!cursor) {
             cursor = document.createElement('div');
@@ -300,11 +296,9 @@ $appVersion = "1.0.0 (Build 2026.07)";
             document.body.appendChild(cursor);
         }
 
-        // 📌 ป้องกันการลง Event Listener ซ้ำซ้อน
         if (window.__rocketCursorActive) return;
         window.__rocketCursorActive = true;
 
-        // โหลดพิกัดเดิมจากหน้าเก่า (ป้องกันการกระตุกตอนเปลี่ยนหน้า)
         const savedX = sessionStorage.getItem('rocket_x');
         const savedY = sessionStorage.getItem('rocket_y');
         let mouseX = savedX !== null ? parseFloat(savedX) : -100;
@@ -312,7 +306,6 @@ $appVersion = "1.0.0 (Build 2026.07)";
         
         let isScheduled = false;
 
-        // ถ้ามีพิกัดเดิม เซ็ตตำแหน่งเตรียมไว้ก่อนเลย
         if (mouseX >= 0 && mouseY >= 0 && cursor) {
             cursor.style.transform = `translate3d(${mouseX - 12}px, ${mouseY - 10}px, 0) scaleX(-1)`;
         }
@@ -354,7 +347,6 @@ $appVersion = "1.0.0 (Build 2026.07)";
          🎨 STYLES: CSS Variables & Custom Rocket Cursor
          =================================================== -->
     <style>
-        /* 🚀 1. ซ่อนเมาส์ระบบแบบเด็ดขาดทุกสถานะ ป้องกันเมาส์จริงซ้อน */
         html, body, *, *::before, *::after,
         a, a:hover, a:active, a:focus,
         button, button:hover, button:active,
@@ -363,7 +355,6 @@ $appVersion = "1.0.0 (Build 2026.07)";
             cursor: none !important;
         }
 
-        /* 🚀 2. สไตล์ตัวจรวด 🚀 ใช้ GPU (translate3d) ในการประมวลผล */
         #custom-rocket-cursor {
             position: fixed;
             top: 0;
@@ -375,14 +366,13 @@ $appVersion = "1.0.0 (Build 2026.07)";
             user-select: none;
             will-change: transform;
             transition: transform 0.02s linear, opacity 0.1s ease-in-out;
-            opacity: 0; /* ซ่อนไว้ก่อนตั้งแต่แรกเกิด ป้องกันการวาร์ปไปมุมซ้ายบน */
+            opacity: 0;
         }
 
         #custom-rocket-cursor.is-visible {
             opacity: 1;
         }
 
-        /* 🎨 3. CSS Variables สำหรับ Light/Dark Mode ใน Footer */
         :root, html[data-theme="dark"] {
             --ft-bg: #0b0f19;
             --ft-card-bg: #0f172a;
