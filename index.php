@@ -32,18 +32,18 @@ $currentQuest = [
 // ข้อมูลหมวดหมู่หลัก (Skill Trees)
 // ---------------------------------------------------
 $category_data = [
-    1  => ['id' => 1,  'name' => 'Dev', 'icon' => 'bi-code-slash', 'color' => '#34D399', 'count' => 0],
-    2  => ['id' => 2,  'name' => 'การตลาดดิจิทัล', 'icon' => 'bi-megaphone', 'color' => '#FBBF24', 'count' => 0],
-    3  => ['id' => 3,  'name' => 'ดีไซน์ & กราฟิก', 'icon' => 'bi-palette', 'color' => '#F472B6', 'count' => 0],
-    4  => ['id' => 4,  'name' => 'ธุรกิจ & การจัดการ', 'icon' => 'bi-briefcase', 'color' => '#60A5FA', 'count' => 0],
-    5  => ['id' => 5,  'name' => 'ภาษาต่างประเทศ', 'icon' => 'bi-translate', 'color' => '#22D3EE', 'count' => 0],
-    6  => ['id' => 6,  'name' => 'ถ่ายภาพ & ตัดต่อวิดีโอ', 'icon' => 'bi-camera-video', 'color' => '#FB923C', 'count' => 0],
-    7  => ['id' => 7,  'name' => 'วิทยาศาสตร์ข้อมูล & AI', 'icon' => 'bi-cpu', 'color' => '#818CF8', 'count' => 0],
-    8  => ['id' => 8,  'name' => 'การเงิน & การลงทุน', 'icon' => 'bi-graph-up-arrow', 'color' => '#34D399', 'count' => 0],
-    9  => ['id' => 9,  'name' => 'พัฒนาตนเอง', 'icon' => 'bi-journal-bookmark', 'color' => '#A78BFA', 'count' => 0],
-    10 => ['id' => 10, 'name' => 'ดนตรี & เสียง', 'icon' => 'bi-music-note-beamed', 'color' => '#FB7185', 'count' => 0],
-    11 => ['id' => 11, 'name' => 'เขียนโปรแกรม & พัฒนาเว็บ', 'icon' => 'bi-code-square', 'color' => '#38BDF8', 'count' => 0],
-    12 => ['id' => 12, 'name' => 'เกม & 3D แอนิเมชัน', 'icon' => 'bi-controller', 'color' => '#C084FC', 'count' => 0]
+    1  => ['id' => 1,  'name' => 'Dev', 'icon' => 'bi-code-slash', 'color' => '#10B981', 'count' => 0],
+    2  => ['id' => 2,  'name' => 'การตลาดดิจิทัล', 'icon' => 'bi-megaphone', 'color' => '#F59E0B', 'count' => 0],
+    3  => ['id' => 3,  'name' => 'ดีไซน์ & กราฟิก', 'icon' => 'bi-palette', 'color' => '#EC4899', 'count' => 0],
+    4  => ['id' => 4,  'name' => 'ธุรกิจ & การจัดการ', 'icon' => 'bi-briefcase', 'color' => '#3B82F6', 'count' => 0],
+    5  => ['id' => 5,  'name' => 'ภาษาต่างประเทศ', 'icon' => 'bi-translate', 'color' => '#06B6D4', 'count' => 0],
+    6  => ['id' => 6,  'name' => 'ถ่ายภาพ & ตัดต่อวิดีโอ', 'icon' => 'bi-camera-video', 'color' => '#F97316', 'count' => 0],
+    7  => ['id' => 7,  'name' => 'วิทยาศาสตร์ข้อมูล & AI', 'icon' => 'bi-cpu', 'color' => '#6366F1', 'count' => 0],
+    8  => ['id' => 8,  'name' => 'การเงิน & การลงทุน', 'icon' => 'bi-graph-up-arrow', 'color' => '#10B981', 'count' => 0],
+    9  => ['id' => 9,  'name' => 'พัฒนาตนเอง', 'icon' => 'bi-journal-bookmark', 'color' => '#8B5CF6', 'count' => 0],
+    10 => ['id' => 10, 'name' => 'ดนตรี & เสียง', 'icon' => 'bi-music-note-beamed', 'color' => '#F43F5E', 'count' => 0],
+    11 => ['id' => 11, 'name' => 'เขียนโปรแกรม & พัฒนาเว็บ', 'icon' => 'bi-code-square', 'color' => '#0284C7', 'count' => 0],
+    12 => ['id' => 12, 'name' => 'เกม & 3D แอนิเมชัน', 'icon' => 'bi-controller', 'color' => '#A855F7', 'count' => 0]
 ];
 
 // ---------------------------------------------------
@@ -283,81 +283,119 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <style>
-    /* Global Reset & Base Styling Fixes */
+    /* ===================================================
+       THEME VARIABLES (DARK / LIGHT MODE)
+       =================================================== */
+    :root, html[data-theme="dark"] {
+        --lv-bg-dark: #0b0f19;
+        --lv-bg-alt: rgba(15, 23, 42, 0.5);
+        --lv-card-bg: rgba(15, 23, 42, 0.75);
+        --lv-card-hover: rgba(30, 41, 59, 0.9);
+        --lv-border-glow: rgba(99, 102, 241, 0.2);
+        --lv-card-border: rgba(255, 255, 255, 0.12);
+        --lv-cyan: #06b6d4;
+        --lv-indigo: #6366f1;
+        --lv-text-main: #f8fafc;
+        --lv-text-muted: #94a3b8;
+        --lv-hero-bg: radial-gradient(circle at 85% 30%, #1e1b4b 0%, #0b0f19 70%);
+        --lv-accordion-arrow: invert(1);
+        --lv-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    /* ☀️ CSS สำหรับโหมดสว่าง (Light Mode) */
+    html[data-theme="light"] {
+        --lv-bg-dark: #f8fafc;
+        --lv-bg-alt: #f1f5f9;
+        --lv-card-bg: rgba(255, 255, 255, 0.85);
+        --lv-card-hover: #ffffff;
+        --lv-border-glow: rgba(99, 102, 241, 0.15);
+        --lv-card-border: rgba(0, 0, 0, 0.08);
+        --lv-cyan: #0284c7;
+        --lv-indigo: #4f46e5;
+        --lv-text-main: #0f172a;
+        --lv-text-muted: #64748b;
+        --lv-hero-bg: radial-gradient(circle at 85% 30%, #e0e7ff 0%, #f8fafc 70%);
+        --lv-accordion-arrow: none;
+        --lv-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Global Body Styling */
     body {
-        background-color: #0b0f19 !important;
-        color: #f8fafc !important;
+        background-color: var(--lv-bg-dark) !important;
+        color: var(--lv-text-main) !important;
         font-family: 'Inter', 'Prompt', sans-serif;
         overflow-x: hidden;
+        transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     /* Gradient Text Fixes */
     .ai-text-gradient {
-        background: linear-gradient(135deg, #6366F1 0%, #10B981 100%) !important;
+        background: linear-gradient(135deg, var(--lv-indigo) 0%, #10B981 100%) !important;
         -webkit-background-clip: text !important;
         -webkit-text-fill-color: transparent !important;
         font-family: 'Outfit', sans-serif;
         font-weight: 800;
     }
 
-    /* Section Subtitle Fixes */
+    /* Section Subtitle */
     .section-subtitle {
-        color: #818CF8 !important;
+        color: var(--lv-indigo) !important;
         letter-spacing: 1px;
         font-weight: 700;
         font-size: 0.75rem;
         text-transform: uppercase;
     }
 
-    /* Universal Glass Card (Fixed Dark Translucent Theme) */
+    /* Adaptive Glass Cards */
     .glass-card {
-        background: rgba(15, 23, 42, 0.75) !important;
+        background: var(--lv-card-bg) !important;
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border: 1px solid var(--lv-card-border) !important;
         border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        box-shadow: var(--lv-box-shadow);
+        color: var(--lv-text-main) !important;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .glass-card:hover {
         transform: translateY(-4px);
         border-color: rgba(99, 102, 241, 0.5) !important;
-        box-shadow: 0 12px 35px rgba(79, 70, 229, 0.25);
+        box-shadow: 0 12px 35px rgba(79, 70, 229, 0.2);
     }
 
-    /* Category Cards (Skill Trees) Specific Fix */
+    /* Category Cards (Skill Trees) */
     .category-card-compact {
-        background: rgba(15, 23, 42, 0.8) !important;
-        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        background: var(--lv-card-bg) !important;
+        border: 1px solid var(--lv-card-border) !important;
         border-radius: 16px;
         transition: all 0.25s ease-in-out;
     }
 
     .category-card-compact:hover {
         transform: translateY(-3px);
-        background: rgba(30, 41, 59, 0.9) !important;
+        background: var(--lv-card-hover) !important;
         border-color: rgba(99, 102, 241, 0.6) !important;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
     }
 
     .category-item-title {
-        color: #ffffff !important;
+        color: var(--lv-text-main) !important;
         font-weight: 600;
     }
 
     .category-item-count {
-        color: #94A3B8 !important;
+        color: var(--lv-text-muted) !important;
         font-size: 0.75rem;
     }
 
-    /* General Typography Fixes for Dark Sections */
+    /* Typography Utilities */
     .text-white-heading {
-        color: #ffffff !important;
+        color: var(--lv-text-main) !important;
     }
 
     .text-muted-desc {
-        color: #CBD5E1 !important;
+        color: var(--lv-text-muted) !important;
     }
 
     /* Buttons */
@@ -375,21 +413,21 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
         color: #ffffff !important;
     }
 
-    .btn-theme-dark-adaptive {
-        background-color: #1e293b !important;
-        color: #ffffff !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    .btn-theme-adaptive {
+        background-color: var(--lv-card-bg) !important;
+        color: var(--lv-text-main) !important;
+        border: 1px solid var(--lv-card-border) !important;
     }
 
-    .btn-theme-dark-adaptive:hover {
-        background-color: #334155 !important;
-        color: #ffffff !important;
+    .btn-theme-adaptive:hover {
+        background-color: var(--lv-card-hover) !important;
+        color: var(--lv-text-main) !important;
     }
 
     /* Progress & Streaks */
     .xp-bar-container {
         height: 10px;
-        background-color: rgba(255, 255, 255, 0.1);
+        background-color: rgba(148, 163, 184, 0.2);
         border-radius: 99px;
         overflow: hidden;
     }
@@ -422,45 +460,69 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 
     /* Custom Search Input */
     .custom-search-input {
-        color: #ffffff !important;
+        color: var(--lv-text-main) !important;
     }
 
     .custom-search-input::placeholder {
-        color: #94A3B8 !important;
+        color: var(--lv-text-muted) !important;
     }
 
     /* Accordion Fixes */
     .custom-accordion .accordion-button {
         background-color: transparent !important;
-        color: #ffffff !important;
+        color: var(--lv-text-main) !important;
         box-shadow: none !important;
     }
 
     .custom-accordion .accordion-button:not(.collapsed) {
-        color: #818CF8 !important;
+        color: var(--lv-indigo) !important;
     }
 
     .custom-accordion .accordion-button::after {
-        filter: invert(1);
+        filter: var(--lv-accordion-arrow);
+    }
+
+    /* Section Backgrounds */
+    .bg-theme-main {
+        background-color: var(--lv-bg-dark) !important;
+    }
+
+    .bg-theme-alt {
+        background-color: var(--lv-bg-alt) !important;
+    }
+
+    /* Chat & Input Specific Light Mode Overrides */
+    html[data-theme="light"] .chat-history-item {
+        color: #475569;
+    }
+    html[data-theme="light"] .chat-history-item:hover {
+        background: rgba(0, 0, 0, 0.05);
+        color: #0f172a;
+    }
+    html[data-theme="light"] .chat-header h5 {
+        color: #0f172a !important;
+    }
+    html[data-theme="light"] #chatInput {
+        color: #0f172a !important;
     }
 </style>
 
 <!-- SECTION 1: HERO & GAMIFIED HERO DASHBOARD -->
-<section class="hero-section position-relative overflow-hidden" style="padding: 100px 0 60px 0; background: radial-gradient(circle at 85% 30%, #1e1b4b 0%, #0b0f19 70%);">
-    <div class="position-absolute w-100 h-100 top-0 start-0 opacity-10" style="background-image: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 32px 32px; pointer-events: none;"></div>
+<section class="hero-section position-relative overflow-hidden" style="padding: 100px 0 60px 0; background: var(--lv-hero-bg) !important;">
+    <div class="position-absolute w-100 h-100 top-0 start-0 opacity-10" style="background-image: linear-gradient(rgba(148, 163, 184, 0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(148, 163, 184, 0.2) 1px, transparent 1px); background-size: 32px 32px; pointer-events: none;"></div>
 
     <div class="container position-relative z-3">
         <div class="row align-items-center pt-3">
             <div class="col-lg-7 text-center text-lg-start mb-5 mb-lg-0">
 
                 <?php if ($isLoggedIn): ?>
-                    <div class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill mb-4" style="background-color: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.15);">
+                    <div class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill mb-4 glass-card">
                         <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px;">
                             <i class="bi bi-fire fs-6"></i>
                         </div>
-                        <span class="fw-bold text-white fs-sm"><?= htmlspecialchars($navUser['streak']) ?> Day Streak!</span>
+                        <span class="fw-bold text-white-heading fs-sm"><?= htmlspecialchars($navUser['streak']) ?> Day Streak!</span>
                         <div class="vr mx-2 bg-secondary opacity-50"></div>
-                        <span class="text-light opacity-75 fw-medium fs-sm"><i class="bi bi-star-fill text-warning me-1"></i>Lvl <?= htmlspecialchars($navUser['level']) ?></span>
+                        <span class="text-muted-desc fw-medium fs-sm"><i class="bi bi-star-fill text-warning me-1"></i>Lvl <?= htmlspecialchars($navUser['level']) ?></span>
                     </div>
 
                     <h1 class="display-4 fw-bold text-white-heading mb-3 lh-sm" style="font-family: 'Outfit', sans-serif;">
@@ -470,7 +532,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 
                     <div class="glass-card p-4 mb-4 text-start">
                         <div class="d-flex justify-content-between align-items-end mb-2">
-                            <h6 class="fw-bold text-light opacity-90 mb-0 fs-sm"><i class="bi bi-journal-code text-info me-2"></i>เควสต์ปัจจุบัน: <?= htmlspecialchars($currentQuest['title']) ?></h6>
+                            <h6 class="fw-bold text-white-heading mb-0 fs-sm"><i class="bi bi-journal-code text-info me-2"></i>เควสต์ปัจจุบัน: <?= htmlspecialchars($currentQuest['title']) ?></h6>
                             <span class="fw-bold text-success fs-sm"><?= htmlspecialchars($currentQuest['progress']) ?>%</span>
                         </div>
                         <div class="xp-bar-container mb-4">
@@ -478,12 +540,12 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                         </div>
                         <div class="d-flex flex-wrap gap-3">
                             <a href="<?= $ROOT_PATH; ?>student/lesson.php" class="btn btn-premium ajax-link px-4 py-2 rounded-pill fs-sm fw-bold"><i class="bi bi-play-fill me-1"></i> ลุยภารกิจต่อ</a>
-                            <a href="<?= $ROOT_PATH; ?>student/dashboard.php" class="btn btn-theme-dark-adaptive ajax-link px-4 py-2 rounded-pill fw-medium fs-sm"><i class="bi bi-grid-1x2-fill me-2"></i>ไปยังแดชบอร์ด</a>
+                            <a href="<?= $ROOT_PATH; ?>student/dashboard.php" class="btn btn-theme-adaptive ajax-link px-4 py-2 rounded-pill fw-medium fs-sm"><i class="bi bi-grid-1x2-fill me-2"></i>ไปยังแดชบอร์ด</a>
                         </div>
                     </div>
 
                 <?php else: ?>
-                    <div class="d-inline-block px-3 py-1 rounded-pill mb-3" style="background-color: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.15);">
+                    <div class="d-inline-block px-3 py-1 rounded-pill mb-3 glass-card">
                         <span class="ai-text-gradient fw-bold fs-xs"><i class="bi bi-stars me-1"></i> LevelUp Engine v2.5</span>
                     </div>
                     <h1 class="display-4 fw-bold text-white-heading mb-4 lh-sm" style="font-family: 'Outfit', sans-serif;">
@@ -500,7 +562,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                 <div class="search-box-wrapper glass-card p-2 mx-auto mx-lg-0" style="max-width: 550px;">
                     <form action="<?= $ROOT_PATH; ?>student/courses.php" method="GET" id="ajax-search-form" class="d-flex">
                         <div class="input-group align-items-center">
-                            <span class="input-group-text bg-transparent border-0 ps-3 text-light"><i class="bi bi-search"></i></span>
+                            <span class="input-group-text bg-transparent border-0 ps-3 text-muted-desc"><i class="bi bi-search"></i></span>
                             <input type="text" class="form-control border-0 shadow-none py-2 bg-transparent fs-sm custom-search-input" name="q" placeholder="ค้นหาบทเรียน, คอร์ส หรือสกิลเทคโนโลยี..." autocomplete="off">
                             <button type="submit" class="btn btn-premium rounded-pill px-4 fw-bold fs-sm">ค้นหา</button>
                         </div>
@@ -510,14 +572,14 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 
             <div class="col-lg-5 d-none d-lg-block">
                 <div class="hero-image-wrapper position-relative text-center pe-4">
-                    <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop" alt="AI Workspace" class="img-fluid rounded-4 shadow-lg hero-float-anim" style="border: 1px solid rgba(255,255,255,0.15); max-height: 400px; object-fit: cover; width: 100%;">
+                    <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop" alt="AI Workspace" class="img-fluid rounded-4 shadow-lg hero-float-anim" style="border: 1px solid var(--lv-card-border); max-height: 400px; object-fit: cover; width: 100%;">
 
-                    <div class="position-absolute glass-card p-3 d-flex align-items-center gap-3 shadow-lg" style="bottom: -20px; left: -10px; z-index: 10; min-width: 240px; background: rgba(15, 23, 42, 0.95) !important;">
+                    <div class="position-absolute glass-card p-3 d-flex align-items-center gap-3 shadow-lg" style="bottom: -20px; left: -10px; z-index: 10; min-width: 240px;">
                         <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center fs-5 flex-shrink-0" style="width: 42px; height: 42px; box-shadow: 0 0 15px rgba(16,185,129,0.5);">
                             <i class="bi bi-trophy-fill"></i>
                         </div>
                         <div class="text-start">
-                            <h6 class="mb-0 fw-bold text-white fs-sm">Quest Completed!</h6>
+                            <h6 class="mb-0 fw-bold text-white-heading fs-sm">Quest Completed!</h6>
                             <small class="text-success fw-semibold fs-xs">+1,200 XP Earned Today</small>
                         </div>
                     </div>
@@ -528,14 +590,14 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 </section>
 
 <!-- SECTION 2: SKILL TREES -->
-<section class="categories-section py-5" style="background-color: #0b0f19;">
+<section class="categories-section py-5 bg-theme-main">
     <div class="container py-2">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h6 class="section-subtitle mb-1">Skill Trees</h6>
                 <h2 class="fw-bold text-white-heading mb-0 fs-3" style="font-family: 'Outfit', sans-serif;">เลือกคอร์สตามเป้าหมายสกิล</h2>
             </div>
-            <a href="<?= $ROOT_PATH; ?>student/courses.php" class="btn btn-outline-light ajax-link btn-sm rounded-pill px-3 fs-xs fw-bold border-secondary">
+            <a href="<?= $ROOT_PATH; ?>student/courses.php" class="btn btn-theme-adaptive ajax-link btn-sm rounded-pill px-3 fs-xs fw-bold">
                 ดูหมวดหมู่ทั้งหมด <i class="bi bi-arrow-right ms-1"></i>
             </a>
         </div>
@@ -544,7 +606,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
             <?php foreach ($category_data as $cat): ?>
                 <div class="col category-col-item">
                     <a href="<?= $ROOT_PATH; ?>student/courses.php?category=<?= urlencode($cat['id']) ?>" class="card category-card-compact ajax-link text-decoration-none p-3 h-100 d-flex flex-row align-items-center gap-3">
-                        <div class="icon-box-sm rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(255, 255, 255, 0.06); color: <?= htmlspecialchars($cat['color'] ?? '#818CF8') ?>; border: 1px solid rgba(255, 255, 255, 0.1);">
+                        <div class="icon-box-sm rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(99, 102, 241, 0.1); color: <?= htmlspecialchars($cat['color'] ?? '#818CF8') ?>; border: 1px solid var(--lv-card-border);">
                             <i class="bi <?= htmlspecialchars($cat['icon'] ?? 'bi-journal') ?> fs-5"></i>
                         </div>
                         <div class="overflow-hidden">
@@ -559,14 +621,14 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 </section>
 
 <!-- SECTION 3: TRENDING QUESTS -->
-<section class="popular-courses-section py-5" style="background-color: rgba(15, 23, 42, 0.5);">
+<section class="popular-courses-section py-5 bg-theme-alt">
     <div class="container">
         <div class="d-flex justify-content-between align-items-end mb-4">
             <div>
                 <h6 class="section-subtitle mb-1">Trending Quests</h6>
                 <h2 class="fw-bold text-white-heading mb-0 fs-3" style="font-family: 'Outfit', sans-serif;">คอร์สเรียนยอดนิยมสัปดาห์นี้</h2>
             </div>
-            <a href="<?= $ROOT_PATH; ?>student/courses.php" class="btn btn-outline-secondary ajax-link btn-sm rounded-pill px-3 fs-xs text-light">ดูทั้งหมด</a>
+            <a href="<?= $ROOT_PATH; ?>student/courses.php" class="btn btn-theme-adaptive ajax-link btn-sm rounded-pill px-3 fs-xs">ดูทั้งหมด</a>
         </div>
 
         <div class="row g-4">
@@ -574,7 +636,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                 <?php foreach ($popular_courses as $course): ?>
                     <div class="col-12 col-md-6 col-lg-3">
                         <div class="card h-100 glass-card text-start overflow-hidden">
-                            <div class="position-relative overflow-hidden rounded-top" style="height: 160px; background-color: rgba(255, 255, 255, 0.05);">
+                            <div class="position-relative overflow-hidden rounded-top" style="height: 160px; background-color: rgba(0, 0, 0, 0.05);">
                                 <img src="<?= htmlspecialchars($course['image']) ?>" 
                                      class="card-img-top w-100 h-100 d-block" 
                                      alt="<?= htmlspecialchars($course['title']) ?>" 
@@ -592,7 +654,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 
                             <div class="card-body p-3 d-flex flex-column justify-content-between">
                                 <div>
-                                    <h6 class="fw-bold text-white mb-2 line-clamp-2 fs-sm" style="min-height: 40px; line-height: 1.4; font-family: 'Outfit', sans-serif;">
+                                    <h6 class="fw-bold text-white-heading mb-2 line-clamp-2 fs-sm" style="min-height: 40px; line-height: 1.4; font-family: 'Outfit', sans-serif;">
                                         <?= htmlspecialchars($course['title']) ?>
                                     </h6>
                                     <p class="text-muted-desc fs-xs mb-3">ผู้สอน: <?= htmlspecialchars($course['instructor'] ?? 'LevelUp Team') ?></p>
@@ -632,7 +694,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 </section>
 
 <!-- SECTION 4: CAREER MAPS & AI FEATURES -->
-<section class="py-5" style="background-color: #0b0f19;">
+<section class="py-5 bg-theme-main">
     <div class="container py-3">
         <div class="row align-items-center gy-5">
             <div class="col-lg-5">
@@ -648,15 +710,15 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                                     <i class="bi <?= htmlspecialchars($path['icon']) ?> fs-5"></i>
                                 </div>
                                 <div>
-                                    <h6 class="fw-bold text-white mb-0 fs-sm"><?= htmlspecialchars($path['title']) ?></h6>
+                                    <h6 class="fw-bold text-white-heading mb-0 fs-sm"><?= htmlspecialchars($path['title']) ?></h6>
                                     <small class="text-muted-desc fs-xs"><?= htmlspecialchars($path['quests']) ?> เควสต์ย่อย • <?= htmlspecialchars($path['duration']) ?></small>
                                 </div>
                             </div>
-                            <i class="bi bi-chevron-right text-light opacity-50"></i>
+                            <i class="bi bi-chevron-right text-muted-desc"></i>
                         </a>
                     <?php endforeach; ?>
                 </div>
-                <a href="<?= $isLoggedIn ? $ROOT_PATH . 'student/learning-path.php' : $ROOT_PATH . 'auth/login.php' ?>" class="btn btn-theme-dark-adaptive ajax-link rounded-pill fw-bold px-4 fs-sm">ดูแผนผังทั้งหมด</a>
+                <a href="<?= $isLoggedIn ? $ROOT_PATH . 'student/learning-path.php' : $ROOT_PATH . 'auth/login.php' ?>" class="btn btn-theme-adaptive ajax-link rounded-pill fw-bold px-4 fs-sm">ดูแผนผังทั้งหมด</a>
             </div>
 
             <div class="col-lg-6 offset-lg-1">
@@ -671,14 +733,14 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                     <div class="col-md-6">
                         <div class="glass-card p-4 h-100">
                             <i class="bi bi-bullseye text-primary fs-2 mb-3"></i>
-                            <h5 class="fw-bold text-white fs-sm" style="font-family: 'Outfit', sans-serif;">Skill Radar Graph</h5>
+                            <h5 class="fw-bold text-white-heading fs-sm" style="font-family: 'Outfit', sans-serif;">Skill Radar Graph</h5>
                             <p class="text-muted-desc fs-xs mb-0">ระบบประเมินค่าพลังวิเคราะห์ทักษะความรู้แต่ละด้าน เพื่อบอกจุดเด่นจุดด้อยที่คุณควรปรับปรุง</p>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="glass-card p-4 h-100">
                             <i class="bi bi-magic text-success fs-2 mb-3"></i>
-                            <h5 class="fw-bold text-white fs-sm" style="font-family: 'Outfit', sans-serif;">Dynamic Sandbox Labs</h5>
+                            <h5 class="fw-bold text-white-heading fs-sm" style="font-family: 'Outfit', sans-serif;">Dynamic Sandbox Labs</h5>
                             <p class="text-muted-desc fs-xs mb-0">โจทย์เขียนโค้ดปรับระดับความยากง่ายอัตโนมัติอิงตามทักษะและผลงานก่อนหน้าของคุณ</p>
                         </div>
                     </div>
@@ -689,9 +751,9 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 </section>
 
 <!-- SECTION 5: VIRTUAL CYBER LAB PREVIEW -->
-<section class="lab-section py-5 text-center position-relative overflow-hidden" style="background-color: rgba(15, 23, 42, 0.7) !important;">
+<section class="lab-section py-5 text-center position-relative overflow-hidden bg-theme-alt">
     <div class="container position-relative z-3 py-3">
-        <span class="badge rounded-pill bg-primary bg-opacity-25 text-info border border-primary mb-3 px-3 py-2 fs-xs fw-bold">Cloud Terminal Environment</span>
+        <span class="badge rounded-pill bg-primary bg-opacity-25 text-primary border border-primary mb-3 px-3 py-2 fs-xs fw-bold">Cloud Terminal Environment</span>
         <h2 class="fw-bold mb-3 text-white-heading display-6" style="font-family: 'Outfit', sans-serif;">ลงมือปฏิบัติจริงบน Cyber Arena</h2>
         <p class="lead text-muted-desc mx-auto mb-5 fs-sm" style="max-width: 650px;">
             ไม่จำเป็นต้องติดตั้งโปรแกรมหรือตั้งค่าสภาพแวดล้อมให้ปวดหัว รันคำสั่งคอมมานด์ไลน์และโค้ดโปรแกรมผ่านเว็บบราวเซอร์ของคุณได้ทันที
@@ -721,7 +783,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 </section>
 
 <!-- SECTION 6: PLATFORM METRICS & FAQ -->
-<section class="py-5" style="background-color: #0b0f19;">
+<section class="py-5 bg-theme-main">
     <div class="container py-3">
         <div class="row align-items-center justify-content-center gy-4 mb-5 pb-5 border-bottom border-secondary border-opacity-25">
             <div class="col-12 col-xl-4 col-lg-5 mb-3 mb-lg-0">
@@ -756,7 +818,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                         <p class="text-muted-desc fw-bold text-uppercase fs-xs mt-1 mb-0">CODING LABS</p>
                     </div>
                     <div class="col-6 col-sm-3">
-                        <h2 class="display-6 fw-bold mb-0 ai-text-gradient" style="color: #6366F1 !important;">12M+</h2>
+                        <h2 class="display-6 fw-bold mb-0 ai-text-gradient" style="color: var(--lv-indigo) !important;">12M+</h2>
                         <p class="text-muted-desc fw-bold text-uppercase fs-xs mt-1 mb-0">AI ANSWERS</p>
                     </div>
                 </div>
@@ -774,7 +836,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                     <?php foreach ($faq_list as $faq): ?>
                         <div class="accordion-item glass-card mb-3 border-0">
                             <h2 class="accordion-header">
-                                <button class="accordion-button <?= $faq['show'] ? '' : 'collapsed' ?> fw-bold text-white bg-transparent shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#<?= htmlspecialchars($faq['id']) ?>">
+                                <button class="accordion-button <?= $faq['show'] ? '' : 'collapsed' ?> fw-bold bg-transparent shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#<?= htmlspecialchars($faq['id']) ?>">
                                     <?= htmlspecialchars($faq['question']) ?>
                                 </button>
                             </h2>
