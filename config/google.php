@@ -1,5 +1,25 @@
 <?php
-require_once __DIR__ . '/../vendor/autoload.php';
+// ค้นหาและโหลด autoload.php จาก Composer
+$autoloadPaths = [
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../vendor/autoload.php',
+    __DIR__ . '/vendor/autoload.php',
+    $_SERVER['DOCUMENT_ROOT'] . '/vendor/autoload.php'
+];
+
+$loaded = false;
+foreach ($autoloadPaths as $path) {
+    if (file_exists($path)) {
+        require_once $path;
+        $loaded = true;
+        break;
+    }
+}
+
+// หากยังไม่พบไฟล์ autoload.php ให้แสดงข้อความแจ้งเตือนแทนการเกิด Fatal Error
+if (!$loaded) {
+    die('<b>Error:</b> ไม่พบไฟล์ <code>vendor/autoload.php</code> กรุณารันคำสั่ง <code>composer install</code> หรือ <code>composer require google/apiclient</code> บนเซิร์ฟเวอร์ของคุณก่อนใช้งาน');
+}
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
