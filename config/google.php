@@ -15,8 +15,8 @@ if (session_status() === PHP_SESSION_NONE) {
 $clientID     = '391621497018-cbigmvo3gcaiqjk89rij042m30cqtmks.apps.googleusercontent.com';
 $clientSecret = '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';
 
-// กำหนด Redirect URI ให้ตรงกับไฟล์ Callback ที่ใช้งานจริง
-$redirectUri = 'https://levelup.quizchainat.com/auth/callback_2.php';
+// กำหนด Redirect URI ให้ชี้ไปที่ callback.php
+$redirectUri = 'https://levelup.quizchainat.com/auth/callback.php';
 
 // สร้าง Class จำลองรองรับกรณีที่ไม่ได้ติดตั้ง Composer SDK
 if (!class_exists('Google\Client')) {
