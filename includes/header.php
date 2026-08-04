@@ -66,30 +66,28 @@ $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP
 if (!$isAjax):
 ?>
     <!DOCTYPE html>
-    <html lang="th" data-theme="dark">
+    <!-- ⚡ 1. ใส่ Inline Style และ Color Scheme ล็อคสีพื้นหลังระดับ Root ทันทีตั้งแต่ไบต์แรก -->
+    <html lang="th" data-theme="dark" style="background-color: #0b0f19 !important; color-scheme: dark;">
 
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        
+        <!-- ⚡ 2. บอก Engine เบราว์เซอร์ (Chrome/Safari/Edge) ให้เตรียม Canvas สีมืดไว้ล่วงหน้า -->
+        <meta name="color-scheme" content="dark light">
+        <meta name="theme-color" content="#0b0f19" id="meta-theme-color">
 
-        <!-- ⚡ 1. CRITICAL ANTI-FLASH FIX (ต้องอยู่บนสุดของ <head> ก่อนทุกไฟล์ CSS/JS ภายนอก) -->
-        <style>
-            :root, html {
-                color-scheme: dark;
-                background-color: #0b0f19 !important;
-            }
-            html[data-theme="light"] {
-                color-scheme: light;
-                background-color: #f8fafc !important;
-            }
-        </style>
-
+        <!-- ⚡ 3. สคริปต์สแกน LocalStorage และเปลี่ยนสี Root ทันที ก่อนอ่าน CSS/JS ภายนอก -->
         <script>
             (function() {
                 try {
-                    const savedTheme = localStorage.getItem('theme') || 'dark';
+                    var savedTheme = localStorage.getItem('theme') || 'dark';
                     document.documentElement.setAttribute('data-theme', savedTheme);
-                    document.documentElement.style.backgroundColor = (savedTheme === 'light') ? '#f8fafc' : '#0b0f19';
+                    var bg = (savedTheme === 'light') ? '#f8fafc' : '#0b0f19';
+                    document.documentElement.style.setProperty('background-color', bg, 'important');
+                    document.documentElement.style.colorScheme = savedTheme;
+                    var metaTheme = document.getElementById('meta-theme-color');
+                    if (metaTheme) metaTheme.setAttribute('content', bg);
                 } catch (e) {}
             })();
         </script>
@@ -150,7 +148,7 @@ if (!$isAjax):
                 --nav-dropdown-hover-text: #0f172a;
             }
 
-            /* 🛑 ป้องกันแสงขาววาบ (FOUC): เอา transition การเปลี่ยนสีตอนโหลดตั้งต้นออก */
+            /* 🛑 ป้องกันแสงขาววาบ (FOUC): ปิด transition ระหว่างโหลดหน้า */
             html,
             body {
                 background-color: var(--body-bg) !important;
@@ -158,7 +156,7 @@ if (!$isAjax):
                 min-height: 100vh;
             }
 
-            /* ให้มี animation เคลื่อนไหวเฉพาะตอนกดปุ่ม Theme เท่านั้น */
+            /* ให้มี animation เคลื่อนไหวเฉพาะตอนกดปุ่ม สลับ Theme เท่านั้น */
             html.theme-transitioning,
             html.theme-transitioning body {
                 transition: background-color 0.3s ease, color 0.3s ease !important;
@@ -171,7 +169,6 @@ if (!$isAjax):
                 transition: background-color 0.3s ease, border-color 0.3s ease;
             }
 
-            /* 🛠️ บังคับให้ไอคอนและข้อความอยู่บรรทัดเดียวกันเสมอ (ไม่ตกบรรทัด) */
             .lu-navbar .nav-link {
                 color: var(--nav-text) !important;
                 display: inline-flex !important;
@@ -217,7 +214,7 @@ if (!$isAjax):
                 white-space: nowrap !important;
             }
 
-            /* 🛠️ สี Dropdown */
+            /* สี Dropdown */
             .user-dropdown-menu {
                 background-color: var(--nav-dropdown-bg) !important;
                 border: 1px solid var(--nav-dropdown-border) !important;
@@ -267,7 +264,6 @@ if (!$isAjax):
                 padding: 0.5rem 1rem;
             }
 
-            /* 📱/💻 แก้ไขปุ่ม AI Chat และองค์ประกอบข้างเคียงไม่ให้เบี้ยวบน iPad / Safari */
             .user-action-panel {
                 flex-shrink: 0 !important;
             }
@@ -290,12 +286,10 @@ if (!$isAjax):
                 line-height: 1 !important;
             }
 
-            /* Toggle Icon ในโหมดสว่าง */
             html[data-theme="light"] .navbar-toggler-icon {
                 filter: none !important;
             }
 
-            /* 📱 แก้ไขการจัดระเบียบสำหรับหน้าจอ iPad และ แท็บเล็ต (768px - 1199px) */
             @media (min-width: 768px) and (max-width: 1199.98px) {
                 .lu-search-form {
                     max-width: 180px !important;
@@ -316,7 +310,6 @@ if (!$isAjax):
                 }
             }
 
-            /* 📱 การตั้งค่าโหมดมือถือขนาดเล็ก */
             @media (max-width: 991.98px) {
                 .navbar-collapse {
                     background-color: var(--nav-mobile-bg) !important;
@@ -327,7 +320,6 @@ if (!$isAjax):
                     box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15) !important;
                 }
 
-                /* บังคับเมนูรายการให้อยู่ชิดซ้ายบนมือถือ */
                 .navbar-nav {
                     align-items: flex-start !important;
                     width: 100% !important;
@@ -396,7 +388,8 @@ if (!$isAjax):
         </style>
     </head>
 
-    <body style="padding-top: 76px;">
+    <!-- ⚡ 4. กำหนด Inline style บนแท็ก body ป้องกันแสงขาวขณะเปลี่ยนผ่านไปโครงสร้างเพจ -->
+    <body style="padding-top: 76px; background-color: var(--body-bg, #0b0f19) !important;">
 
         <!-- ⏳ Cyber Loading Screen -->
         <div id="ajax-loading-screen" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:var(--body-bg); z-index:9999; opacity:0.95; align-items:center; justify-content:center; flex-direction:column;">
@@ -533,7 +526,6 @@ if (!$isAjax):
 
                 $('#theme-toggle-btn').on('click', function(e) {
                     e.preventDefault();
-                    // เพิ่ม Class เพื่อให้เปลี่ยนสีนุ่มนวลเฉพาะตอนผู้ใช้คลิกปุ่มสลับธีม
                     $('html').addClass('theme-transitioning');
                     
                     const activeTheme = $('html').attr('data-theme');
