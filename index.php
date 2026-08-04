@@ -284,11 +284,11 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 
 <style>
     /* ===================================================
-       THEME VARIABLES (FIX: Default เป็น Light Mode ป้องกันสีดำรั่ว)
+       THEME VARIABLES (FIXED: แก้ไขความโปร่งใสของ HEADER)
        =================================================== */
     :root {
         --lv-bg-dark: #f8fafc;
-        --lv-bg-alt: #ffffff;
+        --lv-bg-alt: #ffffff; /* ทึบแสง 100% ในโหมดสว่าง */
         --lv-card-bg: #ffffff;
         --lv-card-hover: #f1f5f9;
         --lv-border-glow: rgba(99, 102, 241, 0.15);
@@ -305,9 +305,9 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
     /* 🌙 DARK MODE SPECIFIC OVERRIDES */
     [data-theme="dark"], html[data-theme="dark"], body[data-theme="dark"] {
         --lv-bg-dark: #0b0f19;
-        --lv-bg-alt: rgba(15, 23, 42, 0.5);
-        --lv-card-bg: rgba(15, 23, 42, 0.75);
-        --lv-card-hover: rgba(30, 41, 59, 0.9);
+        --lv-bg-alt: #0f172a; /* FIX: เปลี่ยนจาก rgba(..., 0.5) เป็นสีทึบ #0f172a เพื่อไม่ให้โปร่งใส */
+        --lv-card-bg: rgba(15, 23, 42, 0.85);
+        --lv-card-hover: rgba(30, 41, 59, 0.95);
         --lv-border-glow: rgba(99, 102, 241, 0.2);
         --lv-card-border: rgba(255, 255, 255, 0.12);
         --lv-cyan: #06b6d4;
@@ -319,7 +319,16 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
         --lv-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     }
 
-    /* FIX: บังคับไร้ช่องว่าง Margin Collapse ระหว่าง Section และ Body */
+    /* FIX: จัดการให้ Header ทึบแสง อยู่บนสุด และไม่ซ้อนทับกับ Body */
+    header, nav, .navbar {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 1050 !important;
+        background-color: var(--lv-bg-alt) !important;
+        border-bottom: 1px solid var(--lv-card-border) !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+    }
+
     html, body {
         background-color: var(--lv-bg-dark) !important;
         color: var(--lv-text-main) !important;
@@ -330,15 +339,16 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
         transition: background-color 0.3s ease, color 0.3s ease;
     }
 
-    /* FIX: ป้องกัน Margin ดันกันจนเผยสีพื้นหลังดำ */
+    /* FIX: ให้ Hero Section ปรากฏต่อใต้ Header อย่างถูกต้อง */
+    .hero-section {
+        position: relative;
+        z-index: 1;
+        overflow: hidden;
+    }
+
     section, header, nav, footer {
         margin-top: 0 !important;
         margin-bottom: 0 !important;
-    }
-
-    header, nav, .navbar {
-        background-color: var(--lv-bg-alt) !important;
-        border-bottom: 1px solid var(--lv-card-border) !important;
     }
 
     /* Gradient Text Fixes */
@@ -861,7 +871,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
     </div>
 </section>
 
-<!-- SECTION 7: FINAL CALL TO ACTION (CTA) (FIX: เปลี่ยน mb-5 เป็น pb-5 ป้องกัน Margin Leak) -->
+<!-- SECTION 7: FINAL CALL TO ACTION (CTA) -->
 <section class="cta-section py-4 pb-5 bg-theme-main">
     <div class="container">
         <div class="glass-card p-4 p-md-5 text-center position-relative overflow-hidden" style="background: linear-gradient(135deg, #4F46E5, #3730A3) !important; border: none !important;">
