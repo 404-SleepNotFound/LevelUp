@@ -262,13 +262,13 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
         --cyber-green: #059669;
         --plasma-orange: #D97706;
         --bg-deep-space: #f8fafc;
-        --surface-card: rgba(255, 255, 255, 0.9);
-        --border-color: rgba(226, 232, 240, 0.9);
+        --surface-card: #ffffff;
+        --border-color: #e2e8f0;
         --text-main: #0f172a;
-        --text-muted: #64748b;
+        --text-muted: #475569;
         --hero-bg: radial-gradient(circle at 85% 30%, #e0e7ff 0%, #f8fafc 70%);
         --section-bg-alt: #f1f5f9;
-        --lab-bg: #f1f5f9;
+        --lab-bg: #f8fafc;
         --terminal-bg: #0f172a;
         --input-placeholder: #64748b;
         --btn-dark-bg: #e2e8f0;
@@ -284,6 +284,44 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
         transition: background-color 0.3s ease, color 0.3s ease;
     }
 
+    /* Adaptive Text Utility Classes */
+    .text-adaptive-main {
+        color: var(--text-main) !important;
+    }
+
+    .text-adaptive-muted {
+        color: var(--text-muted) !important;
+    }
+
+    /* Override Bootstrap text colors dynamically in Light Mode */
+    html[data-theme="light"] .text-white:not(.keep-white, .btn-premium, .badge, .cta-section *, .browser-mockup *, .keep-dark-bg *) {
+        color: var(--text-main) !important;
+    }
+
+    html[data-theme="light"] .text-light:not(.keep-white, .btn-premium, .badge, .cta-section *, .browser-mockup *, .keep-dark-bg *) {
+        color: var(--text-muted) !important;
+    }
+
+    html[data-theme="light"] .btn-outline-secondary {
+        color: #475569 !important;
+        border-color: #cbd5e1 !important;
+    }
+
+    html[data-theme="light"] .btn-outline-secondary:hover {
+        background-color: #e2e8f0 !important;
+        color: #0f172a !important;
+    }
+
+    html[data-theme="light"] .btn-outline-light {
+        color: #4F46E5 !important;
+        border-color: #6366F1 !important;
+    }
+
+    html[data-theme="light"] .btn-outline-light:hover {
+        background-color: #6366F1 !important;
+        color: #ffffff !important;
+    }
+
     .opacity-10 { opacity: 0.1 !important; }
 
     .glass-card {
@@ -292,14 +330,14 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
         -webkit-backdrop-filter: blur(16px);
         border: 1px solid var(--border-color);
         border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .glass-card:hover {
         transform: translateY(-5px);
         border-color: rgba(99, 102, 241, 0.4);
-        box-shadow: 0 15px 35px rgba(79, 70, 229, 0.18);
+        box-shadow: 0 15px 35px rgba(79, 70, 229, 0.15);
     }
 
     .category-card-compact {
@@ -311,7 +349,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
     .category-card-compact:hover {
         transform: translateY(-3px);
         border-color: rgba(99, 102, 241, 0.5);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
     }
 
     .category-card-compact:hover .icon-box-sm {
@@ -373,6 +411,10 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
     .fs-xs { font-size: 0.75rem; }
     .fs-sm { font-size: 0.875rem; }
 
+    .custom-accordion .accordion-button {
+        color: var(--text-main) !important;
+    }
+
     .custom-accordion .accordion-button:not(.collapsed) {
         color: #6366F1 !important;
         background-color: transparent;
@@ -426,19 +468,19 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                         <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
                             <i class="bi bi-fire fs-6"></i>
                         </div>
-                        <span class="fw-bold text-white fs-sm"><?= htmlspecialchars((string)$navUser['streak']) ?> Day Streak!</span>
+                        <span class="fw-bold text-adaptive-main fs-sm"><?= htmlspecialchars((string)$navUser['streak']) ?> Day Streak!</span>
                         <div class="vr mx-2 bg-secondary opacity-50"></div>
-                        <span class="text-light opacity-75 fw-medium fs-sm"><i class="bi bi-star-fill text-warning me-1"></i>Lvl <?= htmlspecialchars((string)$navUser['level']) ?></span>
+                        <span class="text-adaptive-muted fw-medium fs-sm"><i class="bi bi-star-fill text-warning me-1"></i>Lvl <?= htmlspecialchars((string)$navUser['level']) ?></span>
                     </div>
 
-                    <h1 class="display-4 fw-bold text-white mb-3 lh-sm" style="font-family: 'Outfit', sans-serif;">
+                    <h1 class="display-4 fw-bold text-adaptive-main mb-3 lh-sm" style="font-family: 'Outfit', sans-serif;">
                         <img src="<?= htmlspecialchars($navUser['avatar']) ?>" alt="Avatar" class="rounded-circle avatar-glow me-2 align-middle" style="width: 50px; height: 50px; object-fit: cover;">
                         ยินดีต้อนรับกลับมา, <span class="ai-text-gradient"><?= htmlspecialchars($navUser['username']) ?>!</span> 🚀
                     </h1>
 
                     <div class="glass-card p-4 mb-4 text-start">
                         <div class="d-flex justify-content-between align-items-end mb-2">
-                            <h6 class="fw-bold text-light opacity-75 mb-0 fs-sm"><i class="bi bi-journal-code text-info me-2"></i>เควสต์ปัจจุบัน: <?= htmlspecialchars($currentQuest['title']) ?></h6>
+                            <h6 class="fw-bold text-adaptive-muted mb-0 fs-sm"><i class="bi bi-journal-code text-info me-2"></i>เควสต์ปัจจุบัน: <?= htmlspecialchars($currentQuest['title']) ?></h6>
                             <span class="fw-bold text-success fs-sm"><?= htmlspecialchars((string)$currentQuest['progress']) ?>%</span>
                         </div>
                         <div class="xp-bar-container mb-4">
@@ -454,10 +496,10 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                     <div class="d-inline-block px-3 py-1 rounded-pill mb-3" style="background-color: var(--surface-card); border: 1px solid var(--border-color);">
                         <span class="ai-text-gradient fw-bold fs-xs"><i class="bi bi-stars me-1"></i> LevelUp Engine v2.5 สมบูรณ์แบบ</span>
                     </div>
-                    <h1 class="display-4 fw-bold text-white mb-4 lh-sm" style="font-family: 'Outfit', sans-serif;">
+                    <h1 class="display-4 fw-bold text-adaptive-main mb-4 lh-sm" style="font-family: 'Outfit', sans-serif;">
                         เรียนรู้ทักษะสาย Tech<br>ด้วย <span class="ai-text-gradient">AI Companion</span>
                     </h1>
-                    <p class="lead text-light opacity-75 mb-4 pe-lg-5 fs-sm" style="line-height: 1.7;">
+                    <p class="lead text-adaptive-muted mb-4 pe-lg-5 fs-sm" style="line-height: 1.7;">
                         ระบบอีเลิร์นนิงรูปแบบ Gamification ที่มาพร้อมกับเอไอโค้ชส่วนตัว ช่วยคุณวางแผนการเรียน แก้บั๊กโค้ดแบบ Real-time และจำลองแล็บเสมือนจริงเพื่อพัฒนาทักษะการทำงาน
                     </p>
                     <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start mb-4">
@@ -468,7 +510,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                 <div class="search-box-wrapper glass-card p-2 mx-auto mx-lg-0" style="max-width: 550px;">
                     <form action="<?= $ROOT_PATH; ?>student/courses.php" method="GET" id="ajax-search-form" class="d-flex">
                         <div class="input-group align-items-center">
-                            <span class="input-group-text bg-transparent border-0 ps-3 text-white opacity-75"><i class="bi bi-search"></i></span>
+                            <span class="input-group-text bg-transparent border-0 ps-3 text-adaptive-muted"><i class="bi bi-search"></i></span>
                             <input type="text" class="form-control border-0 shadow-none py-3 bg-transparent fs-sm custom-search-input" name="q" placeholder="ค้นหาบทเรียน, คอร์ส หรือสกิลเทคโนโลยี..." autocomplete="off">
                             <button type="submit" class="btn btn-premium rounded-pill px-4 fw-bold fs-sm">ค้นหา</button>
                         </div>
@@ -480,13 +522,13 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                 <div class="hero-image-wrapper position-relative text-center pe-4">
                     <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop" alt="AI Workspace" class="img-fluid rounded-4 shadow-lg hero-float-anim" style="border: 1px solid var(--border-color); max-height: 420px; object-fit: cover; width: 100%;">
 
-                    <div class="position-absolute glass-card p-2 px-3 d-flex align-items-center gap-3 shadow-lg" style="bottom: 20px; left: 15px; z-index: 10; min-width: 220px; background: rgba(15, 23, 42, 0.88); border: 1px solid rgba(255, 255, 255, 0.2);">
+                    <div class="position-absolute glass-card keep-dark-bg p-2 px-3 d-flex align-items-center gap-3 shadow-lg" style="bottom: 20px; left: 15px; z-index: 10; min-width: 220px; background: rgba(15, 23, 42, 0.88); border: 1px solid rgba(255, 255, 255, 0.2);">
                         <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center fs-5 flex-shrink-0" style="width: 40px; height: 40px; box-shadow: 0 0 15px var(--cyber-green);">
                             <i class="bi bi-trophy-fill"></i>
                         </div>
                         <div class="text-start">
-                            <h6 class="mb-0 fw-bold fs-sm" style="color: #ffffff !important;">Quest Completed!</h6>
-                            <small class="fs-xs" style="color: rgba(255, 255, 255, 0.8) !important;">+1,200 XP Earned Today</small>
+                            <h6 class="mb-0 fw-bold fs-sm keep-white" style="color: #ffffff !important;">Quest Completed!</h6>
+                            <small class="fs-xs keep-white" style="color: rgba(255, 255, 255, 0.8) !important;">+1,200 XP Earned Today</small>
                         </div>
                     </div>
                 </div>
@@ -501,7 +543,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h6 class="ai-text-gradient text-uppercase fw-bold mb-1 fs-xs" style="letter-spacing: 1px;">Skill Trees</h6>
-                <h2 class="fw-bold text-white mb-0 fs-3" style="font-family: 'Outfit', sans-serif;">เลือกคอร์สตามเป้าหมายสกิล</h2>
+                <h2 class="fw-bold text-adaptive-main mb-0 fs-3" style="font-family: 'Outfit', sans-serif;">เลือกคอร์สตามเป้าหมายสกิล</h2>
             </div>
             <a href="<?= $ROOT_PATH; ?>student/courses.php" class="btn btn-outline-light ajax-link btn-sm rounded-pill px-3 fs-xs fw-bold">
                 ดูหมวดหมู่ทั้งหมด <i class="bi bi-arrow-right ms-1"></i>
@@ -526,12 +568,12 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
             <?php foreach ($rendered_categories as $cat): ?>
                 <div class="col category-col-item">
                     <a href="<?= $ROOT_PATH; ?>student/courses.php?category=<?= urlencode($cat['name']) ?>" class="card glass-card category-card-compact ajax-link text-decoration-none p-3 h-100 d-flex flex-row align-items-center gap-3">
-                        <div class="icon-box-sm rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(255, 255, 255, 0.05); color: <?= htmlspecialchars($cat['color'] ?? '#6366F1') ?>; border: 1px solid rgba(255, 255, 255, 0.1);">
+                        <div class="icon-box-sm rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(99, 102, 241, 0.1); color: <?= htmlspecialchars($cat['color'] ?? '#6366F1') ?>; border: 1px solid var(--border-color);">
                             <i class="bi <?= htmlspecialchars($cat['icon'] ?? 'bi-journal') ?> fs-5"></i>
                         </div>
                         <div class="overflow-hidden">
-                            <h6 class="fw-bold text-white mb-0 fs-sm text-truncate category-item-title"><?= htmlspecialchars($cat['name']) ?></h6>
-                            <small class="text-light opacity-50 fs-xs"><?= htmlspecialchars((string)($cat['count'] ?? 0)) ?> บทเรียน</small>
+                            <h6 class="fw-bold text-adaptive-main mb-0 fs-sm text-truncate category-item-title"><?= htmlspecialchars($cat['name']) ?></h6>
+                            <small class="text-adaptive-muted fs-xs"><?= htmlspecialchars((string)($cat['count'] ?? 0)) ?> บทเรียน</small>
                         </div>
                     </a>
                 </div>
@@ -546,7 +588,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
         <div class="d-flex justify-content-between align-items-end mb-4">
             <div>
                 <h6 class="ai-text-gradient text-uppercase fw-bold mb-2 fs-xs" style="letter-spacing: 1px;">Trending Quests</h6>
-                <h2 class="fw-bold text-white mb-0" style="font-family: 'Outfit', sans-serif;">คอร์สเรียนยอดนิยมสัปดาห์นี้</h2>
+                <h2 class="fw-bold text-adaptive-main mb-0" style="font-family: 'Outfit', sans-serif;">คอร์สเรียนยอดนิยมสัปดาห์นี้</h2>
             </div>
             <a href="<?= $ROOT_PATH; ?>student/courses.php" class="btn btn-outline-secondary ajax-link btn-sm rounded-pill px-3 fs-xs">ดูทั้งหมด</a>
         </div>
@@ -556,7 +598,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                 <?php foreach ($popular_courses as $course): ?>
                     <div class="col-12 col-md-6 col-lg-3">
                         <div class="card h-100 glass-card text-start overflow-hidden">
-                            <div class="position-relative overflow-hidden rounded-top" style="height: 160px; background-color: rgba(255, 255, 255, 0.05);">
+                            <div class="position-relative overflow-hidden rounded-top" style="height: 160px; background-color: rgba(0, 0, 0, 0.05);">
                                 <img src="<?= htmlspecialchars($course['image']) ?>" 
                                      class="card-img-top w-100 h-100 d-block" 
                                      alt="<?= htmlspecialchars($course['title']) ?>" 
@@ -574,18 +616,18 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 
                             <div class="card-body p-3 d-flex flex-column justify-content-between">
                                 <div>
-                                    <h6 class="fw-bold text-white mb-2 line-clamp-2 fs-sm" style="min-height: 40px; line-height: 1.4; font-family: 'Outfit', sans-serif;">
+                                    <h6 class="fw-bold text-adaptive-main mb-2 line-clamp-2 fs-sm" style="min-height: 40px; line-height: 1.4; font-family: 'Outfit', sans-serif;">
                                         <?= htmlspecialchars($course['title']) ?>
                                     </h6>
-                                    <p class="text-light opacity-50 fs-xs mb-3">ผู้สอน: <?= htmlspecialchars($course['instructor'] ?? 'LevelUp Team') ?></p>
+                                    <p class="text-adaptive-muted fs-xs mb-3">ผู้สอน: <?= htmlspecialchars($course['instructor'] ?? 'LevelUp Team') ?></p>
 
                                     <div class="d-flex align-items-center gap-2 mb-3">
                                         <span class="text-warning fw-bold fs-xs">
                                             <i class="bi bi-star-fill me-1"></i><?= number_format((float)($course['rating'] ?? 5.0), 1) ?>
                                         </span>
-                                        <span class="text-light opacity-50 fs-xs">(<?= number_format((int)($course['reviews'] ?? 0)) ?>)</span>
-                                        <span class="text-light opacity-25">|</span>
-                                        <span class="text-light opacity-50 fs-xs">
+                                        <span class="text-adaptive-muted fs-xs">(<?= number_format((int)($course['reviews'] ?? 0)) ?>)</span>
+                                        <span class="text-adaptive-muted opacity-50">|</span>
+                                        <span class="text-adaptive-muted fs-xs">
                                             <i class="bi bi-people me-1"></i><?= number_format((int)($course['students'] ?? 0)) ?> คน
                                         </span>
                                     </div>
@@ -593,7 +635,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 
                                 <div class="d-flex justify-content-between align-items-center border-top border-secondary border-opacity-25 pt-2 mt-2">
                                     <div>
-                                        <span class="text-light opacity-50 fs-xs d-block">ระยะเวลา</span>
+                                        <span class="text-adaptive-muted fs-xs d-block">ระยะเวลา</span>
                                         <span class="fw-bold text-info fs-sm">
                                             <?= htmlspecialchars($course['duration'] ?? 'N/A') ?>
                                         </span>
@@ -606,7 +648,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                 <?php endforeach; ?>
             <?php else: ?>
                 <div class="col-12 text-center py-5">
-                    <p class="text-light opacity-50">ยังไม่มีข้อมูลคอร์สเรียนยอดนิยมในขณะนี้</p>
+                    <p class="text-adaptive-muted">ยังไม่มีข้อมูลคอร์สเรียนยอดนิยมในขณะนี้</p>
                 </div>
             <?php endif; ?>
         </div>
@@ -619,8 +661,8 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
         <div class="row align-items-center gy-5">
             <div class="col-lg-5">
                 <h6 class="ai-text-gradient text-uppercase fw-bold mb-2 fs-xs" style="letter-spacing: 1px;">Career Maps</h6>
-                <h2 class="fw-bold text-white mb-4" style="font-family: 'Outfit', sans-serif;">ก้าวตามโรดMAPสู่สายงานอาชีพ</h2>
-                <p class="text-light opacity-75 fs-sm mb-4">เราคัดกรองเนื้อหาเป็นลำดับขั้นเพื่อปูพื้นฐานจากศูนย์จนสามารถพัฒนาโปรเจกต์ส่งสมัครงานจริงได้อย่างเป็นระบบ</p>
+                <h2 class="fw-bold text-adaptive-main mb-4" style="font-family: 'Outfit', sans-serif;">ก้าวตามโรดMAPสู่สายงานอาชีพ</h2>
+                <p class="text-adaptive-muted fs-sm mb-4">เราคัดกรองเนื้อหาเป็นลำดับขั้นเพื่อปูพื้นฐานจากศูนย์จนสามารถพัฒนาโปรเจกต์ส่งสมัครงานจริงได้อย่างเป็นระบบ</p>
 
                 <div class="d-flex flex-column gap-3 mb-4">
                     <?php foreach ($career_paths as $path): ?>
@@ -630,11 +672,11 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                                     <i class="bi <?= htmlspecialchars($path['icon']) ?> fs-5"></i>
                                 </div>
                                 <div>
-                                    <h6 class="fw-bold text-white mb-0 fs-sm"><?= htmlspecialchars($path['title']) ?></h6>
-                                    <small class="text-light opacity-50 fs-xs"><?= htmlspecialchars((string)$path['quests']) ?> เควสต์ย่อย • <?= htmlspecialchars($path['duration']) ?></small>
+                                    <h6 class="fw-bold text-adaptive-main mb-0 fs-sm"><?= htmlspecialchars($path['title']) ?></h6>
+                                    <small class="text-adaptive-muted fs-xs"><?= htmlspecialchars((string)$path['quests']) ?> เควสต์ย่อย • <?= htmlspecialchars($path['duration']) ?></small>
                                 </div>
                             </div>
-                            <i class="bi bi-chevron-right text-light opacity-50"></i>
+                            <i class="bi bi-chevron-right text-adaptive-muted"></i>
                         </a>
                     <?php endforeach; ?>
                 </div>
@@ -644,24 +686,24 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
             <div class="col-lg-6 offset-lg-1">
                 <div class="row g-3">
                     <div class="col-12">
-                        <div class="glass-card text-white p-4" style="background: linear-gradient(135deg, var(--neon-indigo), #3730A3); border: none;">
+                        <div class="glass-card keep-dark-bg text-white p-4" style="background: linear-gradient(135deg, var(--neon-indigo), #3730A3); border: none;">
                             <i class="bi bi-robot fs-1 mb-2 text-warning"></i>
-                            <h4 class="fw-bold text-white" style="font-family: 'Outfit', sans-serif;">24/7 AI Companion</h4>
-                            <p class="mb-0 fs-sm text-white opacity-75">ระบบที่คอยเป็นผู้ช่วยให้คำปรึกษาและตรวจโค้ดเสมือนมีรุ่นพี่โปรแกรมเมอร์คอยนั่งประกบอยู่เคียงข้างคุณตลอดการทำภารกิจ</p>
+                            <h4 class="fw-bold keep-white" style="font-family: 'Outfit', sans-serif; color: #ffffff !important;">24/7 AI Companion</h4>
+                            <p class="mb-0 fs-sm keep-white" style="color: rgba(255, 255, 255, 0.85) !important;">ระบบที่คอยเป็นผู้ช่วยให้คำปรึกษาและตรวจโค้ดเสมือนมีรุ่นพี่โปรแกรมเมอร์คอยนั่งประกบอยู่เคียงข้างคุณตลอดการทำภารกิจ</p>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="glass-card p-4 h-100">
                             <i class="bi bi-bullseye text-primary fs-2 mb-3"></i>
-                            <h5 class="fw-bold text-white fs-sm" style="font-family: 'Outfit', sans-serif;">Skill Radar Graph</h5>
-                            <p class="text-light opacity-75 fs-xs mb-0">ระบบประเมินค่าพลังวิเคราะห์ทักษะความรู้แต่ละด้าน เพื่อบอกจุดเด่นจุดด้อยที่คุณควรปรับปรุง</p>
+                            <h5 class="fw-bold text-adaptive-main fs-sm" style="font-family: 'Outfit', sans-serif;">Skill Radar Graph</h5>
+                            <p class="text-adaptive-muted fs-xs mb-0">ระบบประเมินค่าพลังวิเคราะห์ทักษะความรู้แต่ละด้าน เพื่อบอกจุดเด่นจุดด้อยที่คุณควรปรับปรุง</p>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="glass-card p-4 h-100">
                             <i class="bi bi-magic text-success fs-2 mb-3"></i>
-                            <h5 class="fw-bold text-white fs-sm" style="font-family: 'Outfit', sans-serif;">Dynamic Sandbox Labs</h5>
-                            <p class="text-light opacity-75 fs-xs mb-0">โจทย์เขียนโค้ดปรับระดับความยากง่ายอัตโนมัติอิงตามทักษะและผลงานก่อนหน้าของคุณ</p>
+                            <h5 class="fw-bold text-adaptive-main fs-sm" style="font-family: 'Outfit', sans-serif;">Dynamic Sandbox Labs</h5>
+                            <p class="text-adaptive-muted fs-xs mb-0">โจทย์เขียนโค้ดปรับระดับความยากง่ายอัตโนมัติอิงตามทักษะและผลงานก่อนหน้าของคุณ</p>
                         </div>
                     </div>
                 </div>
@@ -673,9 +715,9 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 <!-- SECTION 5: VIRTUAL CYBER LAB PREVIEW -->
 <section class="lab-section py-5 text-center position-relative overflow-hidden" style="background-color: var(--lab-bg) !important;">
     <div class="container position-relative z-3 py-3">
-        <span class="badge rounded-pill bg-primary bg-opacity-25 text-info border border-primary mb-3 px-3 py-2 fs-xs fw-bold">Cloud Terminal Environment</span>
-        <h2 class="fw-bold mb-3 text-white display-6" style="font-family: 'Outfit', sans-serif;">ลงมือปฏิบัติจริงบน Cyber Arena</h2>
-        <p class="lead text-light opacity-75 mx-auto mb-5 fs-sm" style="max-width: 650px;">
+        <span class="badge rounded-pill bg-primary bg-opacity-25 text-primary border border-primary mb-3 px-3 py-2 fs-xs fw-bold">Cloud Terminal Environment</span>
+        <h2 class="fw-bold mb-3 text-adaptive-main display-6" style="font-family: 'Outfit', sans-serif;">ลงมือปฏิบัติจริงบน Cyber Arena</h2>
+        <p class="lead text-adaptive-muted mx-auto mb-5 fs-sm" style="max-width: 650px;">
             ไม่จำเป็นต้องติดตั้งโปรแกรมหรือตั้งค่าสภาพแวดล้อมให้ปวดหัว รันคำสั่งคอมมานด์ไลน์และโค้ดโปรแกรมผ่านเว็บบราวเซอร์ของคุณได้ทันที
         </p>
 
@@ -713,7 +755,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                             <i class="bi bi-stars text-primary fs-6"></i>
                             <span class="fw-bold fs-xs text-primary text-uppercase" style="letter-spacing: 0.5px;">Tip of the Day</span>
                         </div>
-                        <p class="mb-0 fs-xs text-light opacity-75" style="line-height: 1.5;">
+                        <p class="mb-0 fs-xs text-adaptive-muted" style="line-height: 1.5;">
                             ระบบเรียนรู้ที่มี AI ช่วยโค้ช จะช่วยเพิ่มความเร็วในการทำเควสต์เขียนโค้ดได้ถึง 2 เท่า!
                         </p>
                     </div>
@@ -727,27 +769,27 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                 <div class="row text-center gy-3 justify-content-center align-items-center">
                     <div class="col-6 col-sm-3">
                         <h2 class="display-6 fw-bold mb-0 ai-text-gradient">250K+</h2>
-                        <p class="text-light opacity-50 fw-bold text-uppercase fs-xs mt-1 mb-0">LEARNERS</p>
+                        <p class="text-adaptive-muted fw-bold text-uppercase fs-xs mt-1 mb-0">LEARNERS</p>
                     </div>
                     <div class="col-6 col-sm-3">
                         <h2 class="display-6 fw-bold mb-0 ai-text-gradient">1,200+</h2>
-                        <p class="text-light opacity-50 fw-bold text-uppercase fs-xs mt-1 mb-0">QUESTS</p>
+                        <p class="text-adaptive-muted fw-bold text-uppercase fs-xs mt-1 mb-0">QUESTS</p>
                     </div>
                     <div class="col-6 col-sm-3">
                         <h2 class="display-6 fw-bold mb-0 ai-text-gradient">850+</h2>
-                        <p class="text-light opacity-50 fw-bold text-uppercase fs-xs mt-1 mb-0">CODING LABS</p>
+                        <p class="text-adaptive-muted fw-bold text-uppercase fs-xs mt-1 mb-0">CODING LABS</p>
                     </div>
                     <div class="col-6 col-sm-3">
                         <h2 class="display-6 fw-bold mb-0 ai-text-gradient" style="color: #6366F1 !important;">12M+</h2>
-                        <p class="text-light opacity-50 fw-bold text-uppercase fs-xs mt-1 mb-0">AI ANSWERS</p>
+                        <p class="text-adaptive-muted fw-bold text-uppercase fs-xs mt-1 mb-0">AI ANSWERS</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="text-center mb-5">
-            <h2 class="fw-bold text-white" style="font-family: 'Outfit', sans-serif;">คำถามที่พบบ่อย (FAQ)</h2>
-            <p class="text-light opacity-50 fs-sm">รวบรวมคำตอบเบื้องต้นสำหรับผู้เล่นใหม่ทุกท่าน</p>
+            <h2 class="fw-bold text-adaptive-main" style="font-family: 'Outfit', sans-serif;">คำถามที่พบบ่อย (FAQ)</h2>
+            <p class="text-adaptive-muted fs-sm">รวบรวมคำตอบเบื้องต้นสำหรับผู้เล่นใหม่ทุกท่าน</p>
         </div>
 
         <div class="row justify-content-center">
@@ -756,12 +798,12 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                     <?php foreach ($faq_list as $faq): ?>
                         <div class="accordion-item glass-card mb-3 border-0">
                             <h2 class="accordion-header">
-                                <button class="accordion-button <?= $faq['show'] ? '' : 'collapsed' ?> fw-bold text-white bg-transparent shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#<?= htmlspecialchars($faq['id']) ?>">
+                                <button class="accordion-button <?= $faq['show'] ? '' : 'collapsed' ?> fw-bold text-adaptive-main bg-transparent shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#<?= htmlspecialchars($faq['id']) ?>">
                                     <?= htmlspecialchars($faq['question']) ?>
                                 </button>
                             </h2>
                             <div id="<?= htmlspecialchars($faq['id']) ?>" class="accordion-collapse collapse <?= $faq['show'] ? 'show' : '' ?>" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body text-light opacity-75 pt-0 fs-sm">
+                                <div class="accordion-body text-adaptive-muted pt-0 fs-sm">
                                     <?= htmlspecialchars($faq['answer']) ?>
                                 </div>
                             </div>
@@ -776,10 +818,10 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 <!-- SECTION 7: FINAL CALL TO ACTION (CTA) -->
 <section class="cta-section py-4 mb-5">
     <div class="container">
-        <div class="glass-card p-4 p-md-5 text-center position-relative overflow-hidden" style="background: linear-gradient(135deg, var(--neon-indigo), #3730A3); border: none;">
+        <div class="glass-card keep-dark-bg p-4 p-md-5 text-center position-relative overflow-hidden" style="background: linear-gradient(135deg, var(--neon-indigo), #3730A3); border: none;">
             <div class="position-relative z-3 text-white">
-                <h2 class="display-6 fw-bold mb-3" style="font-family: 'Outfit', sans-serif; color: #ffffff !important;">พร้อมที่จะอัปเกรดสถานะเลเวลของคุณหรือยัง?</h2>
-                <p class="lead mb-4 mx-auto fs-sm" style="max-width: 600px; color: rgba(255, 255, 255, 0.85) !important;">เข้าร่วมสมรภูมิพัฒนาทักษะแบบไร้ขีดจำกัด เก็บสะสมแต้มผลงานเพื่อเพิ่มโอกาสสู่สายอาชีพที่มั่นคง</p>
+                <h2 class="display-6 fw-bold mb-3 keep-white" style="font-family: 'Outfit', sans-serif; color: #ffffff !important;">พร้อมที่จะอัปเกรดสถานะเลเวลของคุณหรือยัง?</h2>
+                <p class="lead mb-4 mx-auto fs-sm keep-white" style="max-width: 600px; color: rgba(255, 255, 255, 0.85) !important;">เข้าร่วมสมรภูมิพัฒนาทักษะแบบไร้ขีดจำกัด เก็บสะสมแต้มผลงานเพื่อเพิ่มโอกาสสู่สายอาชีพที่มั่นคง</p>
                 <div class="d-flex justify-content-center gap-3 flex-wrap">
                     <?php if (!$isLoggedIn): ?>
                         <a href="<?= $ROOT_PATH; ?>auth/login.php" class="btn btn-light ajax-link btn-lg px-4 px-md-5 fw-bold rounded-pill fs-sm" style="color: #1e1b4b !important; background-color: #ffffff !important; border: none;">เข้าสู่ระบบผู้เล่น</a>
