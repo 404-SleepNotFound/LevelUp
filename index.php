@@ -2,18 +2,18 @@
 // ===================================================
 // 0. PATH CONFIGURATION
 // ===================================================
-$ROOT_PATH = ''; // หน้าหลัก Root Directory
+$ROOT_PATH = ''; // หน้าหลัก Root Directory[cite: 4, 5]
 
 // ===================================================
 // 1. PHP INITIALIZATION & DATABASE INTEGRATION
 // ===================================================
 
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+    session_start(); //[cite: 4, 5]
 }
 
-$isLoggedIn = isset($_SESSION['user_login']);
-$sessionData = $_SESSION['user_login'] ?? null;
+$isLoggedIn = isset($_SESSION['user_login']); //[cite: 4, 5]
+$sessionData = $_SESSION['user_login'] ?? null; //[cite: 4, 5]
 
 $navUser = [
     'username' => $sessionData['name'] ?? ($sessionData['username'] ?? 'User'),
@@ -21,15 +21,15 @@ $navUser = [
     'level'    => $sessionData['level'] ?? 1,
     'exp'      => $sessionData['user_exp'] ?? ($sessionData['exp'] ?? 0),
     'streak'   => $sessionData['streak'] ?? 5
-];
+]; //[cite: 4, 5]
 
 $currentQuest = [
     'title'    => 'กำลังดำเนินการเรียนรู้',
     'progress' => 32
-];
+]; //[cite: 4, 5]
 
 // ---------------------------------------------------
-// ข้อมูลหมวดหมู่หลัก (Skill Trees)
+// ข้อมูลหมวดหมู่หลัก (Skill Trees - 12 หมวดหมู่)
 // ---------------------------------------------------
 $category_data = [
     1  => ['id' => 1,  'name' => 'Dev', 'icon' => 'bi-code-slash', 'color' => '#10B981', 'count' => 0],
@@ -44,26 +44,24 @@ $category_data = [
     10 => ['id' => 10, 'name' => 'ดนตรี & เสียง', 'icon' => 'bi-music-note-beamed', 'color' => '#F43F5E', 'count' => 0],
     11 => ['id' => 11, 'name' => 'เขียนโปรแกรม & พัฒนาเว็บ', 'icon' => 'bi-code-square', 'color' => '#0284C7', 'count' => 0],
     12 => ['id' => 12, 'name' => 'เกม & 3D แอนิเมชัน', 'icon' => 'bi-controller', 'color' => '#A855F7', 'count' => 0]
-];
+]; //[cite: 4]
 
 // ---------------------------------------------------
-// DATABASE CONNECT
+// DATABASE CONNECT & DYNAMIC CATEGORY/COURSE COUNTING
 // ---------------------------------------------------
 if (file_exists($ROOT_PATH . 'config/db.php')) {
     require_once $ROOT_PATH . 'config/db.php';
 } elseif (file_exists($ROOT_PATH . 'db.php')) {
     require_once $ROOT_PATH . 'db.php';
-}
+} //[cite: 4, 5]
 
-$db = $conn ?? $pdo ?? null;
-$fallbackImg = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=600&auto=format&fit=crop';
-$courseTable = null;
+$db = $conn ?? $pdo ?? null; //[cite: 4, 5]
+$fallbackImg = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=600&auto=format&fit=crop'; //[cite: 4, 5]
+$courseTable = null; //[cite: 4]
 
-// ---------------------------------------------------
-// 2. ดึงการนับจำนวนคอร์สตามหมวดหมู่แบบ ROBUST
-// ---------------------------------------------------
 if ($db && $db instanceof PDO) {
-    $possibleTables = ['course', 'courses', 'tb_course', 'tb_courses', 'tbl_course', 'tbl_courses'];
+    // 1. ค้นหาตาราง Course ที่มีในฐานข้อมูล
+    $possibleTables = ['course', 'courses', 'tb_course', 'tb_courses', 'tbl_course', 'tbl_courses']; //[cite: 4]
     foreach ($possibleTables as $tbl) {
         try {
             $db->query("SELECT 1 FROM `$tbl` LIMIT 1");
@@ -72,10 +70,11 @@ if ($db && $db instanceof PDO) {
         } catch (PDOException $e) {
             continue;
         }
-    }
+    } //[cite: 4]
 
+    // 2. ค้นหาคอลัมน์สำหรับหมวดหมู่
     $catColumn = null;
-    $possibleCols = ['category_id', 'cat_id', 'category', 'category_name', 'course_category', 'cat_name', 'tag', 'type'];
+    $possibleCols = ['category_id', 'cat_id', 'category', 'category_name', 'course_category', 'cat_name', 'tag', 'type']; //[cite: 4]
     if ($courseTable) {
         foreach ($possibleCols as $col) {
             try {
@@ -86,8 +85,9 @@ if ($db && $db instanceof PDO) {
                 continue;
             }
         }
-    }
+    } //[cite: 4]
 
+    // 3. ดึงนับจำนวนคอร์สตามหมวดหมู่
     if ($courseTable && $catColumn) {
         try {
             $sql = "SELECT `$catColumn` AS cat_key, COUNT(*) AS total_count 
@@ -127,44 +127,55 @@ if ($db && $db instanceof PDO) {
         } catch (PDOException $e) {
             error_log("Error counting courses: " . $e->getMessage());
         }
-    }
+    } //[cite: 4]
 }
+
+// Fallback ค่าสถิติเริ่มต้นหากยังไม่มีข้อมูลใน DB
+$fallbackCounts = [12, 15, 18, 20, 10, 8, 14, 9, 16, 7, 22, 11]; //[cite: 5]
+$idx = 0;
+foreach ($category_data as &$cData) {
+    if ($cData['count'] === 0 && isset($fallbackCounts[$idx])) {
+        $cData['count'] = $fallbackCounts[$idx];
+    }
+    $idx++;
+}
+unset($cData);
 
 // ---------------------------------------------------
 // 3. ดึงข้อมูลคอร์สเรียนยอดนิยมจาก DATABASE
 // ---------------------------------------------------
-$popular_courses = [];
+$popular_courses = []; //[cite: 4, 5]
 
 if ($db && $db instanceof PDO && !empty($courseTable)) {
     try {
-        $sql = "SELECT * FROM `$courseTable` ORDER BY `id` DESC LIMIT 4";
-        $stmt = $db->prepare($sql);
-        $stmt->execute();
-        $raw_courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $sql = "SELECT * FROM `$courseTable` ORDER BY `id` DESC LIMIT 4"; //[cite: 4]
+        $stmt = $db->prepare($sql); //[cite: 4]
+        $stmt->execute(); //[cite: 4]
+        $raw_courses = $stmt->fetchAll(PDO::FETCH_ASSOC); //[cite: 4]
 
         foreach ($raw_courses as $c) {
-            $rawImg = $c['cover_file'] ?? $c['cover'] ?? $c['img'] ?? $c['image'] ?? $c['thumbnail'] ?? '';
-            $imgPath = $fallbackImg;
+            $rawImg = $c['cover_file'] ?? $c['cover'] ?? $c['img'] ?? $c['image'] ?? $c['thumbnail'] ?? ''; //[cite: 4, 5]
+            $imgPath = $fallbackImg; //[cite: 4, 5]
 
             if (!empty($rawImg)) {
                 if (filter_var($rawImg, FILTER_VALIDATE_URL)) {
-                    $imgPath = $rawImg;
+                    $imgPath = $rawImg; //[cite: 4, 5]
                 } elseif (file_exists($ROOT_PATH . $rawImg)) {
-                    $imgPath = $ROOT_PATH . $rawImg;
+                    $imgPath = $ROOT_PATH . $rawImg; //[cite: 4, 5]
                 } elseif (file_exists($ROOT_PATH . 'uploads/covers/' . basename($rawImg))) {
-                    $imgPath = $ROOT_PATH . 'uploads/covers/' . basename($rawImg);
+                    $imgPath = $ROOT_PATH . 'uploads/covers/' . basename($rawImg); //[cite: 4, 5]
                 } elseif (file_exists($ROOT_PATH . 'uploads/' . basename($rawImg))) {
-                    $imgPath = $ROOT_PATH . 'uploads/' . basename($rawImg);
+                    $imgPath = $ROOT_PATH . 'uploads/' . basename($rawImg); //[cite: 4, 5]
                 }
-            }
+            } //[cite: 4, 5]
 
-            $duration = 'N/A';
+            $duration = 'N/A'; //[cite: 4, 5]
             if (!empty($c['duration_hours'])) {
-                $duration = $c['duration_hours'] . ' ชม.';
+                $duration = $c['duration_hours'] . ' ชม.'; //[cite: 4, 5]
             } elseif (!empty($c['time_total'])) {
-                $duration = is_numeric($c['time_total']) ? $c['time_total'] . ' ชม.' : $c['time_total'];
+                $duration = is_numeric($c['time_total']) ? $c['time_total'] . ' ชม.' : $c['time_total']; //[cite: 4, 5]
             } elseif (!empty($c['duration'])) {
-                $duration = is_numeric($c['duration']) ? $c['duration'] . ' ชม.' : $c['duration'];
+                $duration = is_numeric($c['duration']) ? $c['duration'] . ' ชม.' : $c['duration']; //[cite: 4, 5]
             }
 
             $popular_courses[] = [
@@ -178,10 +189,10 @@ if ($db && $db instanceof PDO && !empty($courseTable)) {
                 'students'      => $c['students_count'] ?? $c['students'] ?? '1,500',
                 'is_bestseller' => $c['is_bestseller'] ?? 1,
                 'instructor'    => $c['instructor_name'] ?? $c['instructor'] ?? 'LevelUp Team'
-            ];
+            ]; //[cite: 4, 5]
         }
     } catch (PDOException $e) {
-        error_log("Error fetching courses: " . $e->getMessage());
+        error_log("Error fetching courses: " . $e->getMessage()); //[cite: 4, 5]
     }
 }
 
@@ -235,7 +246,7 @@ if (empty($popular_courses)) {
             'is_bestseller' => 1,
             'instructor' => 'LevelUp Design Lab'
         ]
-    ];
+    ]; //[cite: 4, 5]
 }
 
 $career_paths = [
@@ -253,9 +264,9 @@ $career_paths = [
         'quests' => 10,
         'duration' => 'แนะนำ 5 เดือน',
         'icon' => 'bi-server',
-        'bg_class' => 'bg-indigo'
+        'bg_class' => 'btn-theme-adaptive'
     ]
-];
+]; //[cite: 4, 5]
 
 $faq_list = [
     [
@@ -270,26 +281,27 @@ $faq_list = [
         'answer' => 'ใบรับรองทักษะของ LevelUp มาพร้อมกับระบบตรวจสอบแบบสแกนข้อมูลผลงานแล็บ (Verifiable Credentials) ร่วมกับพาร์ทเนอร์บริษัทชั้นนำ ทำให้ใช้ยื่นแนบเป็นพอร์ตโฟลิโอสมัครงานได้อย่างเป็นทางการครับ',
         'show' => false
     ]
-];
+]; //[cite: 4, 5]
 
 if (file_exists($ROOT_PATH . 'includes/header.php')) {
-    include $ROOT_PATH . 'includes/header.php';
+    include $ROOT_PATH . 'includes/header.php'; //[cite: 4, 5]
 } else {
-    die("Error: ไม่พบไฟล์ header.php");
+    die("Error: ไม่พบไฟล์ header.php"); //[cite: 4]
 }
 ?>
 
-<link rel="stylesheet" href="<?php echo $ROOT_PATH; ?>css/custom-scrollbar.css">
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" href="<?php echo $ROOT_PATH; ?>css/custom-scrollbar.css"> <!--[cite: 4, 5] -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!--[cite: 4, 5] -->
 
 <style>
     /* ===================================================
-       THEME VARIABLES (FIXED: แก้ไขความโปร่งใสของ HEADER)
+       THEME VARIABLES & ADAPTIVE SYSTEM
        =================================================== */
-    :root {
+    :root,
+    html[data-theme="light"] {
         --lv-bg-dark: #f8fafc;
-        --lv-bg-alt: #ffffff; /* ทึบแสง 100% ในโหมดสว่าง */
-        --lv-card-bg: #ffffff;
+        --lv-bg-alt: #ffffff;
+        --lv-card-bg: rgba(255, 255, 255, 0.9);
         --lv-card-hover: #f1f5f9;
         --lv-border-glow: rgba(99, 102, 241, 0.15);
         --lv-card-border: rgba(0, 0, 0, 0.08);
@@ -300,26 +312,29 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
         --lv-hero-bg: radial-gradient(circle at 85% 30%, #e0e7ff 0%, #f8fafc 70%);
         --lv-accordion-arrow: none;
         --lv-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    }
+        --terminal-bg: #0f172a;
+    } //[cite: 4, 5]
 
-    /* 🌙 DARK MODE SPECIFIC OVERRIDES */
-    [data-theme="dark"], html[data-theme="dark"], body[data-theme="dark"] {
+    [data-theme="dark"], 
+    html[data-theme="dark"], 
+    body[data-theme="dark"] {
         --lv-bg-dark: #0b0f19;
-        --lv-bg-alt: #0f172a; /* FIX: เปลี่ยนจาก rgba(..., 0.5) เป็นสีทึบ #0f172a เพื่อไม่ให้โปร่งใส */
+        --lv-bg-alt: #0f172a;
         --lv-card-bg: rgba(15, 23, 42, 0.85);
         --lv-card-hover: rgba(30, 41, 59, 0.95);
         --lv-border-glow: rgba(99, 102, 241, 0.2);
         --lv-card-border: rgba(255, 255, 255, 0.12);
         --lv-cyan: #06b6d4;
-        --lv-indigo: #6366f1;
+        --lv-indigo: #6366F1;
         --lv-text-main: #f8fafc;
         --lv-text-muted: #94a3b8;
         --lv-hero-bg: radial-gradient(circle at 85% 30%, #1e1b4b 0%, #0b0f19 70%);
         --lv-accordion-arrow: invert(1);
         --lv-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    }
+        --terminal-bg: #04060d;
+    } //[cite: 4, 5]
 
-    /* FIX: จัดการให้ Header ทึบแสง อยู่บนสุด และไม่ซ้อนทับกับ Body */
+    /* STICKY HEADER FIX */
     header, nav, .navbar {
         position: sticky !important;
         top: 0 !important;
@@ -327,7 +342,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
         background-color: var(--lv-bg-alt) !important;
         border-bottom: 1px solid var(--lv-card-border) !important;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
-    }
+    } //[cite: 4]
 
     html, body {
         background-color: var(--lv-bg-dark) !important;
@@ -337,39 +352,37 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
         margin: 0 !important;
         padding: 0 !important;
         transition: background-color 0.3s ease, color 0.3s ease;
-    }
+    } //[cite: 4, 5]
 
-    /* FIX: ให้ Hero Section ปรากฏต่อใต้ Header อย่างถูกต้อง */
     .hero-section {
         position: relative;
         z-index: 1;
         overflow: hidden;
-    }
+    } //[cite: 4]
 
     section, header, nav, footer {
         margin-top: 0 !important;
         margin-bottom: 0 !important;
-    }
+    } //[cite: 4]
 
-    /* Gradient Text Fixes */
+    /* TEXT & GRADIENTS */
     .ai-text-gradient {
         background: linear-gradient(135deg, var(--lv-indigo) 0%, #10B981 100%) !important;
         -webkit-background-clip: text !important;
         -webkit-text-fill-color: transparent !important;
         font-family: 'Outfit', sans-serif;
         font-weight: 800;
-    }
+    } //[cite: 4, 5]
 
-    /* Section Subtitle */
     .section-subtitle {
         color: var(--lv-indigo) !important;
         letter-spacing: 1px;
         font-weight: 700;
         font-size: 0.75rem;
         text-transform: uppercase;
-    }
+    } //[cite: 4]
 
-    /* Adaptive Glass Cards */
+    /* GLASS CARDS */
     .glass-card {
         background: var(--lv-card-bg) !important;
         backdrop-filter: blur(16px);
@@ -379,148 +392,132 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
         box-shadow: var(--lv-box-shadow);
         color: var(--lv-text-main) !important;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+    } //[cite: 4, 5]
 
     .glass-card:hover {
         transform: translateY(-4px);
         border-color: rgba(99, 102, 241, 0.4) !important;
         box-shadow: 0 12px 35px rgba(79, 70, 229, 0.15);
-    }
+    } //[cite: 4, 5]
 
-    /* Category Cards (Skill Trees) */
+    /* CATEGORIES / SKILL TREES */
     .category-card-compact {
         background: var(--lv-card-bg) !important;
         border: 1px solid var(--lv-card-border) !important;
         border-radius: 16px;
         transition: all 0.25s ease-in-out;
-    }
+    } //[cite: 4, 5]
 
     .category-card-compact:hover {
         transform: translateY(-3px);
         background: var(--lv-card-hover) !important;
         border-color: rgba(99, 102, 241, 0.5) !important;
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
-    }
+    } //[cite: 4, 5]
 
     .category-item-title {
         color: var(--lv-text-main) !important;
         font-weight: 600;
-    }
+    } //[cite: 4, 5]
 
     .category-item-count {
         color: var(--lv-text-muted) !important;
         font-size: 0.75rem;
-    }
+    } //[cite: 4]
 
-    /* Typography Utilities */
-    .text-white-heading {
-        color: var(--lv-text-main) !important;
-    }
+    .text-white-heading { color: var(--lv-text-main) !important; } //[cite: 4]
+    .text-muted-desc { color: var(--lv-text-muted) !important; } //[cite: 4]
 
-    .text-muted-desc {
-        color: var(--lv-text-muted) !important;
-    }
-
-    /* Buttons */
+    /* BUTTONS */
     .btn-premium {
         background: linear-gradient(135deg, #4F46E5, #6366F1) !important;
         color: #ffffff !important;
         border: none !important;
         box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
         transition: all 0.2s ease;
-    }
+    } //[cite: 4, 5]
 
     .btn-premium:hover {
         transform: scale(1.02);
         box-shadow: 0 0 25px rgba(79, 70, 229, 0.5);
         color: #ffffff !important;
-    }
+    } //[cite: 4, 5]
 
     .btn-theme-adaptive {
         background-color: var(--lv-card-bg) !important;
         color: var(--lv-text-main) !important;
         border: 1px solid var(--lv-card-border) !important;
-    }
+    } //[cite: 4]
 
     .btn-theme-adaptive:hover {
         background-color: var(--lv-card-hover) !important;
         color: var(--lv-text-main) !important;
-    }
+    } //[cite: 4]
 
-    /* Progress & Streaks */
+    /* PROGRESS & ANIMATIONS */
     .xp-bar-container {
         height: 10px;
         background-color: rgba(148, 163, 184, 0.2);
         border-radius: 99px;
         overflow: hidden;
-    }
+    } //[cite: 4, 5]
 
     .xp-bar-fill {
         height: 100%;
         background: linear-gradient(90deg, #10B981, #34D399);
         transition: width 0.5s ease-in-out;
-    }
+    } //[cite: 4, 5]
 
     .hero-float-anim {
         animation: floatAnimation 6s ease-in-out infinite;
-    }
+    } //[cite: 4, 5]
 
     @keyframes floatAnimation {
         0% { transform: translateY(0px); }
         50% { transform: translateY(-12px); }
         100% { transform: translateY(0px); }
-    }
+    } //[cite: 4, 5]
+
+    .animate-blink { animation: blink-caret 1s step-end infinite; } //[cite: 5]
+    @keyframes blink-caret { from, to { color: transparent; } 50% { color: #10B981; } } //[cite: 5]
 
     .line-clamp-2 {
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
-    }
+    } //[cite: 4, 5]
 
-    .fs-xs { font-size: 0.75rem; }
-    .fs-sm { font-size: 0.875rem; }
+    .fs-xs { font-size: 0.75rem; } //[cite: 4, 5]
+    .fs-sm { font-size: 0.875rem; } //[cite: 4, 5]
 
-    /* Custom Search Input */
-    .custom-search-input {
-        color: var(--lv-text-main) !important;
-    }
+    .custom-search-input { color: var(--lv-text-main) !important; } //[cite: 4, 5]
+    .custom-search-input::placeholder { color: var(--lv-text-muted) !important; } //[cite: 4, 5]
 
-    .custom-search-input::placeholder {
-        color: var(--lv-text-muted) !important;
-    }
-
-    /* Accordion Fixes */
+    /* ACCORDION */
     .custom-accordion .accordion-button {
         background-color: transparent !important;
         color: var(--lv-text-main) !important;
         box-shadow: none !important;
-    }
+    } //[cite: 4, 5]
 
     .custom-accordion .accordion-button:not(.collapsed) {
         color: var(--lv-indigo) !important;
-    }
+    } //[cite: 4, 5]
 
     .custom-accordion .accordion-button::after {
         filter: var(--lv-accordion-arrow);
-    }
+    } //[cite: 4, 5]
 
-    /* Section Backgrounds */
-    .bg-theme-main {
-        background-color: var(--lv-bg-dark) !important;
-    }
+    .bg-theme-main { background-color: var(--lv-bg-dark) !important; } //[cite: 4]
+    .bg-theme-alt { background-color: var(--lv-bg-alt) !important; } //[cite: 4]
 
-    .bg-theme-alt {
-        background-color: var(--lv-bg-alt) !important;
-    }
-
-    /* Hero User Header Alignment Fix */
     .user-hero-title {
         display: flex;
         align-items: center;
         gap: 12px;
         flex-wrap: wrap;
-    }
+    } //[cite: 4]
 </style>
 
 <!-- SECTION 1: HERO & GAMIFIED HERO DASHBOARD -->
@@ -777,7 +774,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
             ไม่จำเป็นต้องติดตั้งโปรแกรมหรือตั้งค่าสภาพแวดล้อมให้ปวดหัว รันคำสั่งคอมมานด์ไลน์และโค้ดโปรแกรมผ่านเว็บบราวเซอร์ของคุณได้ทันที
         </p>
 
-        <div class="browser-mockup glass-card shadow-lg text-start mx-auto border border-secondary border-opacity-50" style="max-width: 820px; background: #04060d !important;">
+        <div class="browser-mockup glass-card shadow-lg text-start mx-auto border border-secondary border-opacity-50" style="max-width: 820px; background: var(--terminal-bg) !important;">
             <div class="browser-header p-3 border-bottom border-secondary border-opacity-25 d-flex align-items-center gap-2">
                 <span class="dot bg-danger rounded-circle" style="width:10px; height:10px; display:inline-block;"></span>
                 <span class="dot bg-warning rounded-circle" style="width:10px; height:10px; display:inline-block;"></span>
@@ -900,7 +897,7 @@ if (file_exists($ROOT_PATH . 'includes/footer.php')) {
 
 <script>
     $(document).ready(function() {
-        // กรองการ์ดหมวดหมู่ซ้ำ
+        // กรองการ์ดหมวดหมู่ซ้ำในระดับ Client-side
         var seenNames = {};
         $('#category-grid-container .category-col-item').each(function() {
             var catTitle = $(this).find('.category-item-title').text().trim();
