@@ -8,7 +8,7 @@ $clientID     = '391621497018-cbigmvo3gcaiqjk89rij042m30cqtmks.apps.googleuserco
 $clientSecret = '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';
 
 // กำหนด Redirect URI ให้ตรงกับ Google Console
-$redirectUri  = 'https://levelup.quizchainat.com/index.php';
+$redirectUri = 'https://levelup.quizchainat.com/auth/callback.php';
 
 // สร้าง Class จำลองรองรับกรณีที่ไม่ได้ติดตั้ง Composer SDK
 if (!class_exists('Google\Client')) {
