@@ -34,8 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // รันคำสั่งลบปุ่มทันที
     removeAppButtons();
-    setTimeout(removeAppButtons, 300);
-    setTimeout(removeAppButtons, 800);
+    setTimeout(removeAppButtons, 500);
+    setTimeout(removeAppButtons, 1000);
 
     // ==========================================
     // 1. AI Tips Randomizer
