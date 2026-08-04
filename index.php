@@ -302,12 +302,12 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
         --lv-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     }
 
-    /* ☀️ CSS สำหรับโหมดสว่าง (Light Mode) */
+    /* ☀️ FIX: CSS สำหรับโหมดสว่าง (Light Mode) ครอบคลุมทุก Section */
     html[data-theme="light"] {
         --lv-bg-dark: #f8fafc;
-        --lv-bg-alt: #f1f5f9;
-        --lv-card-bg: rgba(255, 255, 255, 0.85);
-        --lv-card-hover: #ffffff;
+        --lv-bg-alt: #ffffff;
+        --lv-card-bg: #ffffff;
+        --lv-card-hover: #f1f5f9;
         --lv-border-glow: rgba(99, 102, 241, 0.15);
         --lv-card-border: rgba(0, 0, 0, 0.08);
         --lv-cyan: #0284c7;
@@ -319,13 +319,34 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
         --lv-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
     }
 
-    /* Global Body Styling */
+    /* Global Body & Main Background Fix */
     body {
         background-color: var(--lv-bg-dark) !important;
         color: var(--lv-text-main) !important;
         font-family: 'Inter', 'Prompt', sans-serif;
         overflow-x: hidden;
         transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* FIX: ลบแถบสีดำใต้ Navbar และระหว่าง Section */
+    html[data-theme="light"] body,
+    html[data-theme="light"] main,
+    html[data-theme="light"] section,
+    html[data-theme="light"] .bg-theme-main,
+    html[data-theme="light"] .bg-theme-alt,
+    html[data-theme="light"] .cta-section,
+    html[data-theme="light"] .popular-courses-section,
+    html[data-theme="light"] .categories-section,
+    html[data-theme="light"] .lab-section {
+        background-color: var(--lv-bg-dark) !important;
+        color: var(--lv-text-main) !important;
+    }
+
+    html[data-theme="light"] header,
+    html[data-theme="light"] nav,
+    html[data-theme="light"] .navbar {
+        background-color: #ffffff !important;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
     }
 
     /* Gradient Text Fixes */
@@ -360,8 +381,8 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 
     .glass-card:hover {
         transform: translateY(-4px);
-        border-color: rgba(99, 102, 241, 0.5) !important;
-        box-shadow: 0 12px 35px rgba(79, 70, 229, 0.2);
+        border-color: rgba(99, 102, 241, 0.4) !important;
+        box-shadow: 0 12px 35px rgba(79, 70, 229, 0.15);
     }
 
     /* Category Cards (Skill Trees) */
@@ -375,8 +396,8 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
     .category-card-compact:hover {
         transform: translateY(-3px);
         background: var(--lv-card-hover) !important;
-        border-color: rgba(99, 102, 241, 0.6) !important;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        border-color: rgba(99, 102, 241, 0.5) !important;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
     }
 
     .category-item-title {
@@ -403,13 +424,13 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
         background: linear-gradient(135deg, #4F46E5, #6366F1) !important;
         color: #ffffff !important;
         border: none !important;
-        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
         transition: all 0.2s ease;
     }
 
     .btn-premium:hover {
         transform: scale(1.02);
-        box-shadow: 0 0 25px rgba(79, 70, 229, 0.6);
+        box-shadow: 0 0 25px rgba(79, 70, 229, 0.5);
         color: #ffffff !important;
     }
 
@@ -491,28 +512,21 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
         background-color: var(--lv-bg-alt) !important;
     }
 
-    /* Chat & Input Specific Light Mode Overrides */
-    html[data-theme="light"] .chat-history-item {
-        color: #475569;
-    }
-    html[data-theme="light"] .chat-history-item:hover {
-        background: rgba(0, 0, 0, 0.05);
-        color: #0f172a;
-    }
-    html[data-theme="light"] .chat-header h5 {
-        color: #0f172a !important;
-    }
-    html[data-theme="light"] #chatInput {
-        color: #0f172a !important;
+    /* Hero User Header Alignment Fix (แก้การพับของข้อความในรูปภาพที่ 2) */
+    .user-hero-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
     }
 </style>
 
 <!-- SECTION 1: HERO & GAMIFIED HERO DASHBOARD -->
-<section class="hero-section position-relative overflow-hidden" style="padding: 100px 0 60px 0; background: var(--lv-hero-bg) !important;">
+<section class="hero-section position-relative overflow-hidden" style="padding: 40px 0 60px 0; background: var(--lv-hero-bg) !important;">
     <div class="position-absolute w-100 h-100 top-0 start-0 opacity-10" style="background-image: linear-gradient(rgba(148, 163, 184, 0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(148, 163, 184, 0.2) 1px, transparent 1px); background-size: 32px 32px; pointer-events: none;"></div>
 
     <div class="container position-relative z-3">
-        <div class="row align-items-center pt-3">
+        <div class="row align-items-center pt-2">
             <div class="col-lg-7 text-center text-lg-start mb-5 mb-lg-0">
 
                 <?php if ($isLoggedIn): ?>
@@ -525,10 +539,13 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                         <span class="text-muted-desc fw-medium fs-sm"><i class="bi bi-star-fill text-warning me-1"></i>Lvl <?= htmlspecialchars($navUser['level']) ?></span>
                     </div>
 
-                    <h1 class="display-4 fw-bold text-white-heading mb-3 lh-sm" style="font-family: 'Outfit', sans-serif;">
-                        <img src="<?= htmlspecialchars($navUser['avatar']) ?>" alt="Avatar" class="rounded-circle me-2 align-middle border border-2 border-success" style="width: 50px; height: 50px; object-fit: cover;">
-                        ยินดีต้อนรับกลับมา, <span class="ai-text-gradient"><?= htmlspecialchars($navUser['username']) ?>!</span> 🚀
-                    </h1>
+                    <!-- FIX: ปรับ Layout ให้รูปโปรไฟล์ ข้อความต้อนรับ และจรวดเรียงสวยงาม ไม่หลุดบรรทัด -->
+                    <div class="user-hero-title mb-3 justify-content-center justify-content-lg-start">
+                        <img src="<?= htmlspecialchars($navUser['avatar']) ?>" alt="Avatar" class="rounded-circle border border-2 border-primary shadow-sm" style="width: 54px; height: 54px; object-fit: cover;">
+                        <h1 class="display-5 fw-bold text-white-heading mb-0 lh-sm" style="font-family: 'Outfit', sans-serif;">
+                            ยินดีต้อนรับกลับมา, <span class="ai-text-gradient"><?= htmlspecialchars($navUser['username']) ?>!</span> 🚀
+                        </h1>
+                    </div>
 
                     <div class="glass-card p-4 mb-4 text-start">
                         <div class="d-flex justify-content-between align-items-end mb-2">
@@ -854,7 +871,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 </section>
 
 <!-- SECTION 7: FINAL CALL TO ACTION (CTA) -->
-<section class="cta-section py-4 mb-5">
+<section class="cta-section py-4 mb-5 bg-theme-main">
     <div class="container">
         <div class="glass-card p-4 p-md-5 text-center position-relative overflow-hidden" style="background: linear-gradient(135deg, #4F46E5, #3730A3) !important; border: none !important;">
             <div class="position-relative z-3 text-white">
