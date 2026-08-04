@@ -71,6 +71,29 @@ if (!$isAjax):
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+        <!-- ⚡ 1. CRITICAL ANTI-FLASH FIX (ต้องอยู่บนสุดของ <head> ก่อนทุกไฟล์ CSS/JS ภายนอก) -->
+        <style>
+            :root, html {
+                color-scheme: dark;
+                background-color: #0b0f19 !important;
+            }
+            html[data-theme="light"] {
+                color-scheme: light;
+                background-color: #f8fafc !important;
+            }
+        </style>
+
+        <script>
+            (function() {
+                try {
+                    const savedTheme = localStorage.getItem('theme') || 'dark';
+                    document.documentElement.setAttribute('data-theme', savedTheme);
+                    document.documentElement.style.backgroundColor = (savedTheme === 'light') ? '#f8fafc' : '#0b0f19';
+                } catch (e) {}
+            })();
+        </script>
+
         <title>LevelUp - AI Gamified Learning Platform</title>
 
         <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/8074/8074788.png" type="image/png">
@@ -80,22 +103,13 @@ if (!$isAjax):
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-        <!-- เพิ่ม jQuery & Bootstrap JS ในส่วน Header เพื่อให้ Dropdown และ Menu ทำงานได้ทันที -->
+        <!-- jQuery & Bootstrap JS -->
         <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-        <!-- SweetAlert2 CDN -->
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
         <!-- 🚀 เรียกใช้งาน Rocket Cursor -->
         <?php include_once __DIR__ . '/rocket_cursor.php'; ?>
-
-        <!-- ⚡ โหลดธีมจาก localStorage ทันที ป้องกันหน้าจอวูบวาบ -->
-        <script>
-            (function() {
-                const savedTheme = localStorage.getItem('theme') || 'dark';
-                document.documentElement.setAttribute('data-theme', savedTheme);
-            })();
-        </script>
 
         <style>
             /* 🎨 CSS Variables สำหรับ Header สลับโหมด Dark/Light */
@@ -136,13 +150,18 @@ if (!$isAjax):
                 --nav-dropdown-hover-text: #0f172a;
             }
 
-            /* 🛑 ป้องกันแสงขาววาบ (FOUC) โดยการตั้งค่าสีพื้นหลัง body ให้เปลี่ยนตาม Theme ทันที */
+            /* 🛑 ป้องกันแสงขาววาบ (FOUC): เอา transition การเปลี่ยนสีตอนโหลดตั้งต้นออก */
             html,
             body {
                 background-color: var(--body-bg) !important;
                 color: var(--body-text) !important;
-                transition: background-color 0.3s ease, color 0.3s ease;
                 min-height: 100vh;
+            }
+
+            /* ให้มี animation เคลื่อนไหวเฉพาะตอนกดปุ่ม Theme เท่านั้น */
+            html.theme-transitioning,
+            html.theme-transitioning body {
+                transition: background-color 0.3s ease, color 0.3s ease !important;
             }
 
             /* การประยุกต์ใช้ตัวแปร CSS กับ Header */
@@ -348,10 +367,7 @@ if (!$isAjax):
                 }
             }
 
-            /* =========================================
-               🔔 SweetAlert2 Dynamic Dark / Light Theme
-               ========================================= */
-            /* 🌙 Dark Mode */
+            /* SweetAlert2 Dynamic Dark / Light Theme */
             html[data-theme="dark"] .swal2-popup {
                 background-color: #0f172a !important;
                 color: #f8fafc !important;
@@ -365,7 +381,6 @@ if (!$isAjax):
                 color: #f8fafc !important;
             }
 
-            /* ☀️ Light Mode */
             html[data-theme="light"] .swal2-popup {
                 background-color: #ffffff !important;
                 color: #0f172a !important;
@@ -518,16 +533,22 @@ if (!$isAjax):
 
                 $('#theme-toggle-btn').on('click', function(e) {
                     e.preventDefault();
+                    // เพิ่ม Class เพื่อให้เปลี่ยนสีนุ่มนวลเฉพาะตอนผู้ใช้คลิกปุ่มสลับธีม
+                    $('html').addClass('theme-transitioning');
+                    
                     const activeTheme = $('html').attr('data-theme');
                     const nextTheme = activeTheme === 'dark' ? 'light' : 'dark';
 
                     localStorage.setItem('theme', nextTheme);
                     applyThemeUI(nextTheme);
+                    
+                    setTimeout(function() {
+                        $('html').removeClass('theme-transitioning');
+                    }, 300);
                 });
             });
         </script>
 
-        <!-- 📌 แก้ไขจุดนี้: เปลี่ยนจาก <div id="main-content-area"> เป็น <main id="content-area"> -->
         <main id="content-area">
         <?php
     endif;
