@@ -3,39 +3,6 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    
-    // ==========================================
-    // Force Remove App Store & Google Play UI
-    // ==========================================
-    const removeAppButtons = () => {
-        // ค้นหา element ทั้งหมดที่มีข้อความ App Store หรือ Google Play แล้วลบออกจาก DOM
-        const allElements = document.querySelectorAll('a, button, div, span, img');
-        allElements.forEach(el => {
-            const text = (el.innerText || el.textContent || '').trim();
-            const alt = el.getAttribute('alt') || '';
-            const href = el.getAttribute('href') || '';
-
-            if (
-                text.includes('App Store') || 
-                text.includes('Google Play') || 
-                alt.includes('App Store') || 
-                alt.includes('Google Play') ||
-                href.includes('apple.com') ||
-                href.includes('play.google.com')
-            ) {
-                // ค้นหา element หลักแล้วลบออกจากหน้าเว็บ
-                const target = el.closest('a') || el.closest('button') || el;
-                if (target && target.parentNode) {
-                    target.parentNode.removeChild(target);
-                }
-            }
-        });
-    };
-
-    // รันคำสั่งลบปุ่มทันที
-    removeAppButtons();
-    setTimeout(removeAppButtons, 500);
-    setTimeout(removeAppButtons, 1000);
 
     // ==========================================
     // 1. AI Tips Randomizer
