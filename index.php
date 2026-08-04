@@ -284,26 +284,9 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 
 <style>
     /* ===================================================
-       THEME VARIABLES (DARK / LIGHT MODE)
+       THEME VARIABLES (FIX: Default เป็น Light Mode ป้องกันสีดำรั่ว)
        =================================================== */
-    :root, html[data-theme="dark"] {
-        --lv-bg-dark: #0b0f19;
-        --lv-bg-alt: rgba(15, 23, 42, 0.5);
-        --lv-card-bg: rgba(15, 23, 42, 0.75);
-        --lv-card-hover: rgba(30, 41, 59, 0.9);
-        --lv-border-glow: rgba(99, 102, 241, 0.2);
-        --lv-card-border: rgba(255, 255, 255, 0.12);
-        --lv-cyan: #06b6d4;
-        --lv-indigo: #6366f1;
-        --lv-text-main: #f8fafc;
-        --lv-text-muted: #94a3b8;
-        --lv-hero-bg: radial-gradient(circle at 85% 30%, #1e1b4b 0%, #0b0f19 70%);
-        --lv-accordion-arrow: invert(1);
-        --lv-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    }
-
-    /* ☀️ FIX: CSS สำหรับโหมดสว่าง (Light Mode) ครอบคลุมทุก Section */
-    html[data-theme="light"] {
+    :root {
         --lv-bg-dark: #f8fafc;
         --lv-bg-alt: #ffffff;
         --lv-card-bg: #ffffff;
@@ -319,34 +302,43 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
         --lv-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
     }
 
-    /* Global Body & Main Background Fix */
-    body {
+    /* 🌙 DARK MODE SPECIFIC OVERRIDES */
+    [data-theme="dark"], html[data-theme="dark"], body[data-theme="dark"] {
+        --lv-bg-dark: #0b0f19;
+        --lv-bg-alt: rgba(15, 23, 42, 0.5);
+        --lv-card-bg: rgba(15, 23, 42, 0.75);
+        --lv-card-hover: rgba(30, 41, 59, 0.9);
+        --lv-border-glow: rgba(99, 102, 241, 0.2);
+        --lv-card-border: rgba(255, 255, 255, 0.12);
+        --lv-cyan: #06b6d4;
+        --lv-indigo: #6366f1;
+        --lv-text-main: #f8fafc;
+        --lv-text-muted: #94a3b8;
+        --lv-hero-bg: radial-gradient(circle at 85% 30%, #1e1b4b 0%, #0b0f19 70%);
+        --lv-accordion-arrow: invert(1);
+        --lv-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    /* FIX: บังคับไร้ช่องว่าง Margin Collapse ระหว่าง Section และ Body */
+    html, body {
         background-color: var(--lv-bg-dark) !important;
         color: var(--lv-text-main) !important;
         font-family: 'Inter', 'Prompt', sans-serif;
         overflow-x: hidden;
+        margin: 0 !important;
+        padding: 0 !important;
         transition: background-color 0.3s ease, color 0.3s ease;
     }
 
-    /* FIX: ลบแถบสีดำใต้ Navbar และระหว่าง Section */
-    html[data-theme="light"] body,
-    html[data-theme="light"] main,
-    html[data-theme="light"] section,
-    html[data-theme="light"] .bg-theme-main,
-    html[data-theme="light"] .bg-theme-alt,
-    html[data-theme="light"] .cta-section,
-    html[data-theme="light"] .popular-courses-section,
-    html[data-theme="light"] .categories-section,
-    html[data-theme="light"] .lab-section {
-        background-color: var(--lv-bg-dark) !important;
-        color: var(--lv-text-main) !important;
+    /* FIX: ป้องกัน Margin ดันกันจนเผยสีพื้นหลังดำ */
+    section, header, nav, footer {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
     }
 
-    html[data-theme="light"] header,
-    html[data-theme="light"] nav,
-    html[data-theme="light"] .navbar {
-        background-color: #ffffff !important;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+    header, nav, .navbar {
+        background-color: var(--lv-bg-alt) !important;
+        border-bottom: 1px solid var(--lv-card-border) !important;
     }
 
     /* Gradient Text Fixes */
@@ -512,7 +504,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
         background-color: var(--lv-bg-alt) !important;
     }
 
-    /* Hero User Header Alignment Fix (แก้การพับของข้อความในรูปภาพที่ 2) */
+    /* Hero User Header Alignment Fix */
     .user-hero-title {
         display: flex;
         align-items: center;
@@ -539,7 +531,6 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                         <span class="text-muted-desc fw-medium fs-sm"><i class="bi bi-star-fill text-warning me-1"></i>Lvl <?= htmlspecialchars($navUser['level']) ?></span>
                     </div>
 
-                    <!-- FIX: ปรับ Layout ให้รูปโปรไฟล์ ข้อความต้อนรับ และจรวดเรียงสวยงาม ไม่หลุดบรรทัด -->
                     <div class="user-hero-title mb-3 justify-content-center justify-content-lg-start">
                         <img src="<?= htmlspecialchars($navUser['avatar']) ?>" alt="Avatar" class="rounded-circle border border-2 border-primary shadow-sm" style="width: 54px; height: 54px; object-fit: cover;">
                         <h1 class="display-5 fw-bold text-white-heading mb-0 lh-sm" style="font-family: 'Outfit', sans-serif;">
@@ -870,8 +861,8 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
     </div>
 </section>
 
-<!-- SECTION 7: FINAL CALL TO ACTION (CTA) -->
-<section class="cta-section py-4 mb-5 bg-theme-main">
+<!-- SECTION 7: FINAL CALL TO ACTION (CTA) (FIX: เปลี่ยน mb-5 เป็น pb-5 ป้องกัน Margin Leak) -->
+<section class="cta-section py-4 pb-5 bg-theme-main">
     <div class="container">
         <div class="glass-card p-4 p-md-5 text-center position-relative overflow-hidden" style="background: linear-gradient(135deg, #4F46E5, #3730A3) !important; border: none !important;">
             <div class="position-relative z-3 text-white">
