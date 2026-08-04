@@ -125,4 +125,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // 5. Hide App Store & Google Play UI dynamically (Added Workaround)
+    // โค้ดส่วนนี้จะค้นหาและทำการซ่อนปุ่ม App Store / Google Play จากหน้าเว็บโดยอัตโนมัติ
+    const appLinksAndButtons = document.querySelectorAll('a, button, div');
+    appLinksAndButtons.forEach(element => {
+        // ตรวจสอบข้อความข้างในว่ามีคำว่า App Store หรือ Google Play หรือไม่
+        const textContent = element.textContent || element.innerText;
+        if (element.tagName === 'A' || element.tagName === 'BUTTON') {
+            if (textContent.includes('App Store') || textContent.includes('Google Play')) {
+                element.style.display = 'none'; // สั่งซ่อนปุ่มทันที
+            }
+        }
+    });
+
 });
