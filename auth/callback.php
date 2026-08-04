@@ -1,21 +1,20 @@
 ﻿<?php
-// 1. ตั้งค่า Cookie Path ให้ครอบคลุมทุกโฟลเดอร์ในเว็บ
-session_set_cookie_params([
-    'lifetime' => 0,
-    'path'     => '/',
-    'secure'   => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
-    'httponly' => true,
-    'samesite' => 'Lax'
-]);
-
+// 1. ตั้งค่า Cookie Path ให้ครอบคลุมทุกโฟลเดอร์ในเว็บ (ป้องกัน Session หลุดระหว่าง /auth/ กับหน้าแรก)
 if (session_status() === PHP_SESSION_NONE) {
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path'     => '/',
+        'secure'   => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
     session_start();
 }
 
 // ดึงค่าการตั้งค่าจาก config/google.php
 require_once __DIR__ . '/../config/google.php';
 
-// (แนะนำ) ตรวจสอบ CSRF State Token ถ้ามีการตั้งค่าตอนส่งผู้ใช้ไป Google
+// ตรวจสอบ CSRF State Token ถ้ามีการใช้งาน
 if (isset($_GET['state']) && isset($_SESSION['oauth2state'])) {
     if ($_GET['state'] !== $_SESSION['oauth2state']) {
         unset($_SESSION['oauth2state']);
@@ -43,7 +42,7 @@ if (isset($_GET['code'])) {
         CURLOPT_POST           => true,
         CURLOPT_POSTFIELDS     => http_build_query($postData),
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_SSL_VERIFYPEER => true, // ปรับเป็น true เพื่อความปลอดภัย
+        CURLOPT_SSL_VERIFYPEER => false, // เปลี่ยนเป็น true บน Production หากมี SSL Cert
     ]);
     
     $response  = curl_exec($ch);
@@ -65,7 +64,7 @@ if (isset($_GET['code'])) {
             CURLOPT_URL            => $userInfoUrl,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HTTPHEADER     => ['Authorization: Bearer ' . $tokenData['access_token']],
-            CURLOPT_SSL_VERIFYPEER => true // ปรับเป็น true เพื่อความปลอดภัย
+            CURLOPT_SSL_VERIFYPEER => false
         ]);
         
         $userResponse = curl_exec($ch2);
@@ -74,14 +73,21 @@ if (isset($_GET['code'])) {
         $userInfo = json_decode($userResponse, true);
 
         if (isset($userInfo['email'])) {
-            // บันทึก Session ทั้งสองรูปแบบ
-            $_SESSION['user_data']  = $userInfo;
+            // บันทึก Session ให้ละครบทุกคีย์ที่ index.php และระบบดึงไปใช้
+            $_SESSION['user_data'] = $userInfo;
+            $_SESSION['user_id']   = $userInfo['id'] ?? $userInfo['email'];
+            
             $_SESSION['user_login'] = [
-                'id'      => $userInfo['id'] ?? '',
-                'name'    => $userInfo['name'] ?? ($userInfo['email'] ?? 'Google User'),
-                'email'   => $userInfo['email'],
-                'picture' => $userInfo['picture'] ?? '',
-                'level'   => 1
+                'id'       => $userInfo['id'] ?? '',
+                'name'     => $userInfo['name'] ?? ($userInfo['email'] ?? 'Google User'),
+                'username' => $userInfo['name'] ?? ($userInfo['email'] ?? 'Google User'),
+                'email'    => $userInfo['email'],
+                'picture'  => $userInfo['picture'] ?? '',
+                'img'      => $userInfo['picture'] ?? '',
+                'avatar'   => $userInfo['picture'] ?? '',
+                'level'    => 1,
+                'user_exp' => 0,
+                'streak'   => 1
             ];
 
             // บันทึก Session ลงดิสก์ทันทีก่อนเปลี่ยนหน้า
@@ -97,7 +103,6 @@ if (isset($_GET['code'])) {
         echo "<h3 style='color: red;'>❌ การล็อกอินด้วย Google ล้มเหลว!</h3>";
         echo "<p>รายละเอียด Error จาก Google Response:</p>";
         echo "<pre style='background: #f4f4f4; padding: 15px; border-radius: 5px;'>";
-        // ป้องกัน XSS ด้วย htmlspecialchars
         echo htmlspecialchars(print_r($tokenData, true));
         echo "</pre>";
         echo "<p><b>ข้อสังเกต:</b> โปรดตรวจสอบค่า <code>\$redirectUri</code> ใน <code>config/google.php</code> ว่าตรงกับที่ตั้งไว้ใน Google Cloud Console หรือไม่</p>";
