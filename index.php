@@ -1,25 +1,20 @@
 <?php
-$ROOT_PATH = '';
-/**
- * LevelUp - Next-Gen E-Learning Platform
- * @page index.php (Home Dashboard & Marketing Showcase - Light/Dark Mode Supported)
- * @style Modern Premium Gamified AI Theme
- */
+// ===================================================
+// 0. PATH CONFIGURATION
+// ===================================================
+$ROOT_PATH = ''; // หน้าหลัก Root Directory
 
 // ===================================================
-// 1. PHP INITIALIZATION & DATABASE PLACEHOLDER VARIABLES
+// 1. PHP INITIALIZATION & DATABASE INTEGRATION
 // ===================================================
 
-// เริ่มต้น Session สำหรับระบบสมาชิกอย่างปลอดภัย
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// ตรวจสอบสถานะการเข้าสู่ระบบ
 $isLoggedIn = isset($_SESSION['user_login']);
 $sessionData = $_SESSION['user_login'] ?? null;
 
-// ข้อมูลสมาชิก (ปรับคีย์ให้ตรงกับ callback.php)
 $navUser = [
     'username' => $sessionData['name'] ?? ($sessionData['username'] ?? 'User'),
     'avatar'   => $sessionData['img'] ?? ($sessionData['avatar'] ?? 'assets/images/default-avatar.png'),
@@ -28,78 +23,162 @@ $navUser = [
     'streak'   => $sessionData['streak'] ?? 5
 ];
 
-// ข้อมูลเควสต์และการเรียนปัจจุบันของผู้ใช้
 $currentQuest = [
     'title'    => 'กำลังดำเนินการเรียนรู้',
     'progress' => 32
 ];
 
-// ข้อมูลหมวดหมู่ / Skill Trees
+// ---------------------------------------------------
+// ข้อมูลหมวดหมู่หลัก (Skill Trees - 12 หมวดหมู่)
+// ---------------------------------------------------
 $category_data = [
-    ['name' => 'Web Development', 'icon' => 'bi-code-slash', 'color' => '#10B981', 'count' => 24],
-    ['name' => 'AI & Machine Learning', 'icon' => 'bi-robot', 'color' => '#6366F1', 'count' => 18],
-    ['name' => 'Cybersecurity', 'icon' => 'bi-shield-check', 'color' => '#EF4444', 'count' => 12],
-    ['name' => 'UI/UX Design', 'icon' => 'bi-palette', 'color' => '#F59E0B', 'count' => 15],
-    ['name' => 'Data Science', 'icon' => 'bi-bar-chart-line', 'color' => '#8B5CF6', 'count' => 20]
+    ['name' => 'Dev', 'icon' => 'bi-code-slash', 'color' => '#10B981', 'count' => 12],
+    ['name' => 'การตลาดดิจิทัล', 'icon' => 'bi-megaphone', 'color' => '#F59E0B', 'count' => 15],
+    ['name' => 'ดีไซน์ & กราฟิก', 'icon' => 'bi-palette', 'color' => '#EC4899', 'count' => 18],
+    ['name' => 'ธุรกิจ & การจัดการ', 'icon' => 'bi-briefcase', 'color' => '#3B82F6', 'count' => 20],
+    ['name' => 'ภาษาต่างประเทศ', 'icon' => 'bi-translate', 'color' => '#06B6D4', 'count' => 10],
+    ['name' => 'ถ่ายภาพ & ตัดต่อวิดีโอ', 'icon' => 'bi-camera-video', 'color' => '#F97316', 'count' => 8],
+    ['name' => 'วิทยาศาสตร์ข้อมูล & AI', 'icon' => 'bi-cpu', 'color' => '#6366F1', 'count' => 14],
+    ['name' => 'การเงิน & การลงทุน', 'icon' => 'bi-graph-up-arrow', 'color' => '#10B981', 'count' => 9],
+    ['name' => 'พัฒนาตนเอง', 'icon' => 'bi-journal-bookmark', 'color' => '#8B5CF6', 'count' => 16],
+    ['name' => 'ดนตรี & เสียง', 'icon' => 'bi-music-note-beamed', 'color' => '#E11D48', 'count' => 7],
+    ['name' => 'เขียนโปรแกรม & พัฒนาเว็บ', 'icon' => 'bi-code-square', 'color' => '#0284C7', 'count' => 22],
+    ['name' => 'เกม & 3D แอนิเมชัน', 'icon' => 'bi-controller', 'color' => '#A855F7', 'count' => 11]
 ];
 
-// ข้อมูลคอร์สเรียนยอดนิยม
-$popular_courses = [
-    [
-        'id' => 1,
-        'title' => 'Python for AI & Machine Learning Masterclass',
-        'instructor' => 'Dr. Sarah Chen',
-        'level' => 'Intermediate',
-        'duration' => '24 ชม.',
-        'rating' => '4.9',
-        'reviews' => '4,200',
-        'students' => '15,400',
-        'price' => '฿1,290',
-        'is_bestseller' => true,
-        'image' => 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=400&auto=format&fit=crop'
-    ],
-    [
-        'id' => 2,
-        'title' => 'Complete Web Development Bootcamp 2026',
-        'instructor' => 'John Doe',
-        'level' => 'Beginner',
-        'duration' => '48 ชม.',
-        'rating' => '4.8',
-        'reviews' => '8,900',
-        'students' => '45,000',
-        'price' => '฿1,590',
-        'is_bestseller' => true,
-        'image' => 'https://images.unsplash.com/photo-1547658719-da2b51169166?q=80&w=400&auto=format&fit=crop'
-    ],
-    [
-        'id' => 3,
-        'title' => 'Cybersecurity: Penetration Testing Lab',
-        'instructor' => 'Alex Hacker',
-        'level' => 'Advanced',
-        'duration' => '18 ชม.',
-        'rating' => '4.7',
-        'reviews' => '1,200',
-        'students' => '8,500',
-        'price' => '฿1,990',
-        'is_bestseller' => false,
-        'image' => 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=400&auto=format&fit=crop'
-    ],
-    [
-        'id' => 4,
-        'title' => 'UI/UX Design Process & Figma Mastery',
-        'instructor' => 'Jane Smith',
-        'level' => 'All Levels',
-        'duration' => '12 ชม.',
-        'rating' => '4.9',
-        'reviews' => '3,500',
-        'students' => '12,000',
-        'price' => '฿990',
-        'is_bestseller' => true,
-        'image' => 'https://images.unsplash.com/photo-1618788372246-79faff0c3742?q=80&w=400&auto=format&fit=crop'
-    ]
-];
+// ---------------------------------------------------
+// 2. ดึงข้อมูลคอร์สเรียนยอดนิยมจาก DATABASE
+// ---------------------------------------------------
+$popular_courses = [];
 
-// ข้อมูลเส้นทางอาชีพ
+if (file_exists($ROOT_PATH . 'config/db.php')) {
+    require_once $ROOT_PATH . 'config/db.php';
+} elseif (file_exists($ROOT_PATH . 'db.php')) {
+    require_once $ROOT_PATH . 'db.php';
+}
+
+$db = $conn ?? $pdo ?? null;
+$fallbackImg = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=600&auto=format&fit=crop';
+
+if ($db && $db instanceof PDO) {
+    try {
+        $raw_courses = [];
+        try {
+            $sql = "SELECT * FROM `course` ORDER BY `id` DESC LIMIT 4";
+            $stmt = $db->prepare($sql);
+            $stmt->execute();
+            $raw_courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            try {
+                $sql = "SELECT * FROM `courses` ORDER BY `id` DESC LIMIT 4";
+                $stmt = $db->prepare($sql);
+                $stmt->execute();
+                $raw_courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            } catch (PDOException $ex) {
+                $raw_courses = [];
+            }
+        }
+
+        foreach ($raw_courses as $c) {
+            $rawImg = $c['cover_file'] ?? $c['cover'] ?? $c['img'] ?? $c['image'] ?? $c['thumbnail'] ?? '';
+            $imgPath = $fallbackImg;
+
+            if (!empty($rawImg)) {
+                if (filter_var($rawImg, FILTER_VALIDATE_URL)) {
+                    $imgPath = $rawImg;
+                } elseif (file_exists($ROOT_PATH . $rawImg)) {
+                    $imgPath = $ROOT_PATH . $rawImg;
+                } elseif (file_exists($ROOT_PATH . 'uploads/covers/' . basename($rawImg))) {
+                    $imgPath = $ROOT_PATH . 'uploads/covers/' . basename($rawImg);
+                } elseif (file_exists($ROOT_PATH . 'uploads/' . basename($rawImg))) {
+                    $imgPath = $ROOT_PATH . 'uploads/' . basename($rawImg);
+                } elseif (file_exists($ROOT_PATH . 'assets/images/default-course.jpg')) {
+                    $imgPath = $ROOT_PATH . 'assets/images/default-course.jpg';
+                }
+            } elseif (file_exists($ROOT_PATH . 'assets/images/default-course.jpg')) {
+                $imgPath = $ROOT_PATH . 'assets/images/default-course.jpg';
+            }
+
+            $duration = 'N/A';
+            if (!empty($c['duration_hours'])) {
+                $duration = $c['duration_hours'] . ' ชม.';
+            } elseif (!empty($c['time_total'])) {
+                $duration = is_numeric($c['time_total']) ? $c['time_total'] . ' ชม.' : $c['time_total'];
+            } elseif (!empty($c['duration'])) {
+                $duration = is_numeric($c['duration']) ? $c['duration'] . ' ชม.' : $c['duration'];
+            }
+
+            $popular_courses[] = [
+                'id'            => $c['id'] ?? $c['course_id'] ?? 1,
+                'title'         => $c['course_title'] ?? $c['title'] ?? $c['name'] ?? $c['course_name'] ?? 'คอร์สเรียน',
+                'level'         => $c['course_difficulty'] ?? $c['difficulty'] ?? $c['level'] ?? $c['course_level'] ?? 'All Levels',
+                'duration'      => $duration,
+                'image'         => $imgPath,
+                'rating'        => $c['rating'] ?? '5.0',
+                'reviews'       => $c['reviews'] ?? '120',
+                'students'      => $c['students_count'] ?? $c['students'] ?? '1,500',
+                'is_bestseller' => $c['is_bestseller'] ?? 1,
+                'instructor'    => $c['instructor_name'] ?? $c['instructor'] ?? 'LevelUp Team'
+            ];
+        }
+    } catch (PDOException $e) {
+        error_log("Error fetching courses: " . $e->getMessage());
+    }
+}
+
+if (empty($popular_courses)) {
+    $popular_courses = [
+        [
+            'id' => 1,
+            'title' => 'Full-Stack Modern Web Development 2026',
+            'level' => 'Beginner - Intermediate',
+            'duration' => '35 ชม.',
+            'image' => 'https://images.unsplash.com/photo-1587620962725-abab7fe55159?q=80&w=600&auto=format&fit=crop',
+            'rating' => '4.9',
+            'reviews' => '128',
+            'students' => '1420',
+            'is_bestseller' => 1,
+            'instructor' => 'LevelUp Team'
+        ],
+        [
+            'id' => 2,
+            'title' => 'AI & Machine Learning Essentials with Python',
+            'level' => 'Intermediate',
+            'duration' => '28 ชม.',
+            'image' => 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop',
+            'rating' => '5.0',
+            'reviews' => '95',
+            'students' => '890',
+            'is_bestseller' => 1,
+            'instructor' => 'LevelUp AI Specialist'
+        ],
+        [
+            'id' => 3,
+            'title' => 'Cybersecurity & Ethical Hacking Bootcamp',
+            'level' => 'All Levels',
+            'duration' => '40 ชม.',
+            'image' => 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=600&auto=format&fit=crop',
+            'rating' => '4.8',
+            'reviews' => '64',
+            'students' => '650',
+            'is_bestseller' => 0,
+            'instructor' => 'Cyber Security Team'
+        ],
+        [
+            'id' => 4,
+            'title' => 'UI/UX Design Masterclass & Figma Pro',
+            'level' => 'Beginner',
+            'duration' => '20 ชม.',
+            'image' => 'https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?q=80&w=600&auto=format&fit=crop',
+            'rating' => '4.9',
+            'reviews' => '210',
+            'students' => '2100',
+            'is_bestseller' => 1,
+            'instructor' => 'LevelUp Design Lab'
+        ]
+    ];
+}
+
 $career_paths = [
     [
         'slug' => 'frontend',
@@ -119,20 +198,11 @@ $career_paths = [
     ]
 ];
 
-// ข้อมูลสถิติแพลตฟอร์ม
-$platform_metrics = [
-    ['value' => '120+', 'label' => 'แผนการเรียนรู้'],
-    ['value' => '15,000+', 'label' => 'โจทย์ความท้าทาย'],
-    ['value' => '500,000+', 'label' => 'ผู้เล่นในระบบ'],
-    ['value' => '94%', 'label' => 'ได้งานทำหลังเรียนจบ']
-];
-
-// ข้อมูลคำถามที่พบบ่อย
 $faq_list = [
     [
         'id' => 'faq1',
         'question' => 'ไม่เคยมีพื้นฐานการเขียนโค้ดเลย จะเรียนได้ไหม?',
-        'answer' => 'เรียนได้แน่นอนครับ แพลตฟอร์มของเราถูกออกแบบเส้นทางเริ่มจาก Level 0 โดยมีระบบ AI โค้ดส่วนตัวคอยช่วยเหลือย่อยเนื้อหายยากๆ ให้กลายเป็นเรื่องเข้าใจง่าย',
+        'answer' => 'เรียนได้แน่นอนครับ แพลตฟอร์มของเราถูกออกแบบเส้นทางเริ่มจาก Level 0 โดยมีระบบ AI โค้ดส่วนตัวคอยช่วยเหลือย่อยเนื้อหาที่ยากให้กลายเป็นเรื่องเข้าใจง่าย',
         'show' => true
     ],
     [
@@ -143,20 +213,20 @@ $faq_list = [
     ]
 ];
 
-// ดึงไฟล์ Header ของระบบเข้ามาทำงาน
-if (file_exists('includes/header.php')) {
-    include 'includes/header.php';
+// Include Header
+if (file_exists($ROOT_PATH . 'includes/header.php')) {
+    include $ROOT_PATH . 'includes/header.php';
 } else {
-    die("Error: ไม่พบไฟล์ 'includes/header.php' กรุณาตรวจสอบโครงสร้างโฟลเดอร์");
+    die("Error: ไม่พบไฟล์ '" . $ROOT_PATH . "includes/header.php' กรุณาตรวจสอบโครงสร้างโฟลเดอร์");
 }
 ?>
 
-<!-- Include jQuery จาก CDN -->
+<!-- 🎨 Custom Scrollbar CSS -->
+<link rel="stylesheet" href="<?php echo $ROOT_PATH; ?>css/custom-scrollbar.css">
+
+<!-- Include jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<!-- ===================================================
-     GLOBAL STYLES (Cyberpunk UI / Dual Theme Support)
-     =================================================== -->
 <style>
     :root,
     html[data-theme="dark"] {
@@ -345,10 +415,6 @@ if (file_exists('includes/header.php')) {
     html[data-theme="light"] .icon-box { background-color: rgba(0, 0, 0, 0.04) !important; }
 </style>
 
-<!-- ===================================================
-     2. MAIN CONTENT AREA (HTML PRESENTATION)
-     =================================================== -->
-
 <!-- SECTION 1: HERO & GAMIFIED HERO DASHBOARD -->
 <section class="hero-section position-relative overflow-hidden" style="padding: 120px 0 80px 0; background: var(--hero-bg);">
     <div class="position-absolute w-100 h-100 top-0 start-0 opacity-10" style="background-image: linear-gradient(var(--border-color) 1px, transparent 1px), linear-gradient(90deg, var(--border-color) 1px, transparent 1px); background-size: 32px 32px; pointer-events: none;"></div>
@@ -381,8 +447,8 @@ if (file_exists('includes/header.php')) {
                             <div class="xp-bar-fill" style="width: <?= htmlspecialchars($currentQuest['progress']) ?>%;"></div>
                         </div>
                         <div class="d-flex flex-wrap gap-3">
-                            <a href="student/lesson.php" class="btn btn-premium ajax-link px-4 py-2 rounded-pill fs-sm fw-bold"><i class="bi bi-play-fill me-1"></i> ลุยภารกิจต่อ</a>
-                            <a href="student/dashboard.php" class="btn btn-theme-dark-adaptive ajax-link px-4 py-2 rounded-pill fw-medium fs-sm"><i class="bi bi-grid-1x2-fill me-2"></i>ไปยังแดชบอร์ด</a>
+                            <a href="<?= $ROOT_PATH; ?>student/lesson.php" class="btn btn-premium ajax-link px-4 py-2 rounded-pill fs-sm fw-bold"><i class="bi bi-play-fill me-1"></i> ลุยภารกิจต่อ</a>
+                            <a href="<?= $ROOT_PATH; ?>student/dashboard.php" class="btn btn-theme-dark-adaptive ajax-link px-4 py-2 rounded-pill fw-medium fs-sm"><i class="bi bi-grid-1x2-fill me-2"></i>ไปยังแดชบอร์ด</a>
                         </div>
                     </div>
 
@@ -397,13 +463,12 @@ if (file_exists('includes/header.php')) {
                         ระบบอีเลิร์นนิงรูปแบบ Gamification ที่มาพร้อมกับเอไอโค้ชส่วนตัว ช่วยคุณวางแผนการเรียน แก้บั๊กโค้ดแบบ Real-time และจำลองแล็บเสมือนจริงเพื่อพัฒนาทักษะการทำงาน
                     </p>
                     <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start mb-4">
-                        <a href="auth/login.php" class="btn btn-premium ajax-link btn-lg px-4 rounded-pill fs-sm fw-bold">เข้าสู่ระบบใช้งานฟรี</a>
+                        <a href="<?= $ROOT_PATH; ?>auth/login.php" class="btn btn-premium ajax-link btn-lg px-4 rounded-pill fs-sm fw-bold">เข้าสู่ระบบใช้งานฟรี</a>
                     </div>
                 <?php endif; ?>
 
-                <!-- กล่องค้นหาหลัก -->
                 <div class="search-box-wrapper glass-card p-2 mx-auto mx-lg-0" style="max-width: 550px;">
-                    <form action="<?= $isLoggedIn ? 'student/courses.php' : 'auth/login.php' ?>" method="GET" id="ajax-search-form" class="d-flex">
+                    <form action="<?= $ROOT_PATH; ?>student/courses.php" method="GET" id="ajax-search-form" class="d-flex">
                         <div class="input-group align-items-center">
                             <span class="input-group-text bg-transparent border-0 ps-3 text-white opacity-75"><i class="bi bi-search"></i></span>
                             <input type="text" class="form-control border-0 shadow-none py-3 bg-transparent fs-sm custom-search-input" name="q" placeholder="ค้นหาบทเรียน, คอร์ส หรือสกิลเทคโนโลยี..." autocomplete="off">
@@ -417,13 +482,13 @@ if (file_exists('includes/header.php')) {
                 <div class="hero-image-wrapper position-relative text-center pe-4">
                     <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop" alt="AI Workspace" class="img-fluid rounded-4 shadow-lg hero-float-anim" style="border: 1px solid var(--border-color); max-height: 420px; object-fit: cover; width: 100%;">
 
-                    <div class="position-absolute glass-card p-2 px-3 d-flex align-items-center gap-3 shadow-lg" style="bottom: 20px; left: 15px; z-index: 10; min-width: 220px; background: rgba(15, 23, 42, 0.85);">
-                        <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center fs-5" style="width: 40px; height: 40px; box-shadow: 0 0 15px var(--cyber-green);">
+                    <div class="position-absolute glass-card p-2 px-3 d-flex align-items-center gap-3 shadow-lg" style="bottom: 20px; left: 15px; z-index: 10; min-width: 220px; background: rgba(15, 23, 42, 0.88); border: 1px solid rgba(255, 255, 255, 0.2);">
+                        <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center fs-5 flex-shrink-0" style="width: 40px; height: 40px; box-shadow: 0 0 15px var(--cyber-green);">
                             <i class="bi bi-trophy-fill"></i>
                         </div>
                         <div class="text-start">
-                            <h6 class="mb-0 fw-bold text-white fs-sm">Quest Completed!</h6>
-                            <small class="text-light opacity-75 fs-xs">+1,200 XP Earned Today</small>
+                            <h6 class="mb-0 fw-bold fs-sm" style="color: #ffffff !important;">Quest Completed!</h6>
+                            <small class="fs-xs" style="color: rgba(255, 255, 255, 0.8) !important;">+1,200 XP Earned Today</small>
                         </div>
                     </div>
                 </div>
@@ -440,21 +505,35 @@ if (file_exists('includes/header.php')) {
                 <h6 class="ai-text-gradient text-uppercase fw-bold mb-1 fs-xs" style="letter-spacing: 1px;">Skill Trees</h6>
                 <h2 class="fw-bold text-white mb-0 fs-3" style="font-family: 'Outfit', sans-serif;">เลือกคอร์สตามเป้าหมายสกิล</h2>
             </div>
-            <a href="<?= $isLoggedIn ? 'student/courses.php' : 'auth/login.php' ?>" class="btn btn-outline-light ajax-link btn-sm rounded-pill px-3 fs-xs fw-bold">
+            <a href="<?= $ROOT_PATH; ?>student/courses.php" class="btn btn-outline-light ajax-link btn-sm rounded-pill px-3 fs-xs fw-bold">
                 ดูหมวดหมู่ทั้งหมด <i class="bi bi-arrow-right ms-1"></i>
             </a>
         </div>
 
-        <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3">
-            <?php foreach ($category_data as $cat): ?>
-                <div class="col">
-                    <a href="<?= $isLoggedIn ? 'student/courses.php?category=' . urlencode($cat['name']) : 'auth/login.php' ?>" class="card glass-card category-card-compact ajax-link text-decoration-none p-3 h-100 d-flex flex-row align-items-center gap-3">
-                        <div class="icon-box-sm rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(255, 255, 255, 0.05); color: <?= $cat['color'] ?>; border: 1px solid rgba(255, 255, 255, 0.1);">
-                            <i class="bi <?= htmlspecialchars($cat['icon']) ?> fs-5"></i>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3 justify-content-center" id="category-grid-container">
+            <?php
+            $rendered_categories = [];
+            $seen_names = [];
+            if (!empty($category_data) && is_array($category_data)) {
+                foreach ($category_data as $cat) {
+                    $catName = trim($cat['name'] ?? '');
+                    if (!empty($catName) && !isset($seen_names[$catName])) {
+                        $seen_names[$catName] = true;
+                        $rendered_categories[] = $cat;
+                    }
+                }
+            }
+            ?>
+
+            <?php foreach ($rendered_categories as $cat): ?>
+                <div class="col category-col-item">
+                    <a href="<?= $ROOT_PATH; ?>student/courses.php?category=<?= urlencode($cat['name']) ?>" class="card glass-card category-card-compact ajax-link text-decoration-none p-3 h-100 d-flex flex-row align-items-center gap-3">
+                        <div class="icon-box-sm rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(255, 255, 255, 0.05); color: <?= htmlspecialchars($cat['color'] ?? '#6366F1') ?>; border: 1px solid rgba(255, 255, 255, 0.1);">
+                            <i class="bi <?= htmlspecialchars($cat['icon'] ?? 'bi-journal') ?> fs-5"></i>
                         </div>
                         <div class="overflow-hidden">
-                            <h6 class="fw-bold text-white mb-0 fs-sm text-truncate"><?= htmlspecialchars($cat['name']) ?></h6>
-                            <small class="text-light opacity-50 fs-xs"><?= htmlspecialchars($cat['count']) ?> บทเรียน</small>
+                            <h6 class="fw-bold text-white mb-0 fs-sm text-truncate category-item-title"><?= htmlspecialchars($cat['name']) ?></h6>
+                            <small class="text-light opacity-50 fs-xs"><?= htmlspecialchars($cat['count'] ?? 0) ?> บทเรียน</small>
                         </div>
                     </a>
                 </div>
@@ -471,47 +550,67 @@ if (file_exists('includes/header.php')) {
                 <h6 class="ai-text-gradient text-uppercase fw-bold mb-2 fs-xs" style="letter-spacing: 1px;">Trending Quests</h6>
                 <h2 class="fw-bold text-white mb-0" style="font-family: 'Outfit', sans-serif;">คอร์สเรียนยอดนิยมสัปดาห์นี้</h2>
             </div>
-            <a href="<?= $isLoggedIn ? 'student/courses.php' : 'auth/login.php' ?>" class="btn btn-outline-secondary ajax-link btn-sm rounded-pill px-3 fs-xs">ดูทั้งหมด</a>
+            <a href="<?= $ROOT_PATH; ?>student/courses.php" class="btn btn-outline-secondary ajax-link btn-sm rounded-pill px-3 fs-xs">ดูทั้งหมด</a>
         </div>
 
         <div class="row g-4">
-            <?php foreach ($popular_courses as $course): ?>
-                <div class="col-12 col-md-6 col-lg-3">
-                    <div class="card h-100 glass-card text-start overflow-hidden">
-                        <div class="position-relative">
-                            <img src="<?= htmlspecialchars($course['image']) ?>" class="card-img-top" alt="Thumbnail" style="height: 160px; object-fit: cover; opacity: 0.9;">
-                            <?php if ($course['is_bestseller']): ?>
-                                <span class="position-absolute top-0 start-0 m-3 badge bg-danger text-white fs-xs px-2 py-1 rounded fw-bold">BEST SELLER</span>
-                            <?php endif; ?>
-                            <span class="position-absolute bottom-0 end-0 m-2 badge bg-dark text-light border border-secondary border-opacity-50 fs-xs"><?= htmlspecialchars($course['level']) ?></span>
-                        </div>
-
-                        <div class="card-body p-3 d-flex flex-column justify-content-between">
-                            <div>
-                                <h6 class="fw-bold text-white mb-2 line-clamp-2 fs-sm" style="min-height: 40px; line-height: 1.4; font-family: 'Outfit', sans-serif;">
-                                    <?= htmlspecialchars($course['title']) ?>
-                                </h6>
-                                <p class="text-light opacity-50 fs-xs mb-3">ผู้สอน: <?= htmlspecialchars($course['instructor']) ?></p>
-
-                                <div class="d-flex align-items-center gap-2 mb-3">
-                                    <span class="text-warning fw-bold fs-xs"><i class="bi bi-star-fill me-1"></i><?= htmlspecialchars($course['rating']) ?></span>
-                                    <span class="text-light opacity-50 fs-xs">(<?= htmlspecialchars($course['reviews']) ?>)</span>
-                                    <span class="text-light opacity-25">|</span>
-                                    <span class="text-light opacity-50 fs-xs"><i class="bi bi-people me-1"></i><?= htmlspecialchars($course['students']) ?> คน</span>
-                                </div>
+            <?php if (!empty($popular_courses)): ?>
+                <?php foreach ($popular_courses as $course): ?>
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <div class="card h-100 glass-card text-start overflow-hidden">
+                            <div class="position-relative overflow-hidden rounded-top" style="height: 160px; background-color: rgba(255, 255, 255, 0.05);">
+                                <img src="<?= htmlspecialchars($course['image']) ?>" 
+                                     class="card-img-top w-100 h-100 d-block" 
+                                     alt="<?= htmlspecialchars($course['title']) ?>" 
+                                     style="object-fit: cover;"
+                                     onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=600&auto=format&fit=crop';">
+                                
+                                <?php if (!empty($course['is_bestseller'])): ?>
+                                    <span class="position-absolute top-0 start-0 m-2 badge bg-danger text-white fs-xs px-2 py-1 rounded fw-bold shadow-sm" style="z-index: 2;">BEST SELLER</span>
+                                <?php endif; ?>
+                                
+                                <span class="position-absolute bottom-0 end-0 m-2 badge bg-dark text-light border border-secondary border-opacity-50 fs-xs shadow-sm" style="z-index: 2; backdrop-filter: blur(4px);">
+                                    <?= htmlspecialchars($course['level'] ?? 'All Levels') ?>
+                                </span>
                             </div>
 
-                            <div class="d-flex justify-content-between align-items-center border-top border-secondary border-opacity-25 pt-2 mt-2">
+                            <div class="card-body p-3 d-flex flex-column justify-content-between">
                                 <div>
-                                    <span class="text-light opacity-50 fs-xs d-block">ราคาแพ็กเกจ</span>
-                                    <span class="fw-bold text-info fs-sm"><?= htmlspecialchars($course['price']) ?></span>
+                                    <h6 class="fw-bold text-white mb-2 line-clamp-2 fs-sm" style="min-height: 40px; line-height: 1.4; font-family: 'Outfit', sans-serif;">
+                                        <?= htmlspecialchars($course['title']) ?>
+                                    </h6>
+                                    <p class="text-light opacity-50 fs-xs mb-3">ผู้สอน: <?= htmlspecialchars($course['instructor'] ?? 'LevelUp Team') ?></p>
+
+                                    <div class="d-flex align-items-center gap-2 mb-3">
+                                        <span class="text-warning fw-bold fs-xs">
+                                            <i class="bi bi-star-fill me-1"></i><?= number_format((float)($course['rating'] ?? 5.0), 1) ?>
+                                        </span>
+                                        <span class="text-light opacity-50 fs-xs">(<?= number_format((int)($course['reviews'] ?? 0)) ?>)</span>
+                                        <span class="text-light opacity-25">|</span>
+                                        <span class="text-light opacity-50 fs-xs">
+                                            <i class="bi bi-people me-1"></i><?= number_format((int)($course['students'] ?? 0)) ?> คน
+                                        </span>
+                                    </div>
                                 </div>
-                                <a href="<?= $isLoggedIn ? 'student/course-detail.php?id=' . $course['id'] : 'auth/login.php' ?>" class="btn btn-premium ajax-link btn-sm rounded-pill px-3 fs-xs fw-bold">ดูรายละเอียด</a>
+
+                                <div class="d-flex justify-content-between align-items-center border-top border-secondary border-opacity-25 pt-2 mt-2">
+                                    <div>
+                                        <span class="text-light opacity-50 fs-xs d-block">ระยะเวลา</span>
+                                        <span class="fw-bold text-info fs-sm">
+                                            <?= htmlspecialchars($course['duration'] ?? 'N/A') ?>
+                                        </span>
+                                    </div>
+                                    <a href="<?= $isLoggedIn ? $ROOT_PATH . 'student/course-detail.php?id=' . $course['id'] : $ROOT_PATH . 'auth/login.php' ?>" class="btn btn-premium ajax-link btn-sm rounded-pill px-3 fs-xs fw-bold">ดูรายละเอียด</a>
+                                </div>
                             </div>
                         </div>
                     </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="col-12 text-center py-5">
+                    <p class="text-light opacity-50">ยังไม่มีข้อมูลคอร์สเรียนยอดนิยมในขณะนี้</p>
                 </div>
-            <?php endforeach; ?>
+            <?php endif; ?>
         </div>
     </div>
 </section>
@@ -527,7 +626,7 @@ if (file_exists('includes/header.php')) {
 
                 <div class="d-flex flex-column gap-3 mb-4">
                     <?php foreach ($career_paths as $path): ?>
-                        <a href="<?= $isLoggedIn ? 'student/learning-path.php?path=' . urlencode($path['slug']) : 'auth/login.php' ?>" class="glass-card ajax-link p-3 text-decoration-none d-flex align-items-center justify-content-between">
+                        <a href="<?= $isLoggedIn ? $ROOT_PATH . 'student/learning-path.php?path=' . urlencode($path['slug']) : $ROOT_PATH . 'auth/login.php' ?>" class="glass-card ajax-link p-3 text-decoration-none d-flex align-items-center justify-content-between">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="<?= htmlspecialchars($path['bg_class']) ?> text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                                     <i class="bi <?= htmlspecialchars($path['icon']) ?> fs-5"></i>
@@ -541,7 +640,7 @@ if (file_exists('includes/header.php')) {
                         </a>
                     <?php endforeach; ?>
                 </div>
-                <a href="<?= $isLoggedIn ? 'student/learning-path.php' : 'auth/login.php' ?>" class="btn btn-theme-dark-adaptive ajax-link rounded-pill fw-bold px-4 fs-sm">ดูแผนผังทั้งหมด</a>
+                <a href="<?= $isLoggedIn ? $ROOT_PATH . 'student/learning-path.php' : $ROOT_PATH . 'auth/login.php' ?>" class="btn btn-theme-dark-adaptive ajax-link rounded-pill fw-bold px-4 fs-sm">ดูแผนผังทั้งหมด</a>
             </div>
 
             <div class="col-lg-6 offset-lg-1">
@@ -550,7 +649,7 @@ if (file_exists('includes/header.php')) {
                         <div class="glass-card text-white p-4" style="background: linear-gradient(135deg, var(--neon-indigo), #3730A3); border: none;">
                             <i class="bi bi-robot fs-1 mb-2 text-warning"></i>
                             <h4 class="fw-bold text-white" style="font-family: 'Outfit', sans-serif;">24/7 AI Companion</h4>
-                            <p class="mb-0 text-white-50 fs-sm">ระบบที่คอยเป็นผู้ช่วยให้คำปรึกษาและตรวจโค้ดเสมือนมีรุ่นพี่โปรแกรมเมอร์คอยนั่งประกบอยู่เคียงข้างคุณตลอดการทำภารกิจ</p>
+                            <p class="mb-0 fs-sm text-white opacity-75">ระบบที่คอยเป็นผู้ช่วยให้คำปรึกษาและตรวจโค้ดเสมือนมีรุ่นพี่โปรแกรมเมอร์คอยนั่งประกบอยู่เคียงข้างคุณตลอดการทำภารกิจ</p>
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -600,7 +699,7 @@ if (file_exists('includes/header.php')) {
         </div>
 
         <div class="mt-5">
-            <a href="<?= $isLoggedIn ? 'student/virtual-lab.php' : 'auth/login.php' ?>" class="btn btn-premium ajax-link px-5 py-3 rounded-pill fw-bold fs-sm">เปิดใช้งาน Sandbox Area <i class="bi bi-controller ms-2"></i></a>
+            <a href="<?= $isLoggedIn ? $ROOT_PATH . 'student/virtual-lab.php' : $ROOT_PATH . 'auth/login.php' ?>" class="btn btn-premium ajax-link px-5 py-3 rounded-pill fw-bold fs-sm">เปิดใช้งาน Sandbox Area <i class="bi bi-controller ms-2"></i></a>
         </div>
     </div>
 </section>
@@ -608,13 +707,44 @@ if (file_exists('includes/header.php')) {
 <!-- SECTION 6: PLATFORM METRICS & FAQ -->
 <section class="py-5">
     <div class="container py-3">
-        <div class="row text-center gy-4 mb-5 pb-5 border-bottom border-secondary border-opacity-25">
-            <?php foreach ($platform_metrics as $metric): ?>
-                <div class="col-6 col-md-3">
-                    <h2 class="display-5 fw-bold mb-0 ai-text-gradient"><?= htmlspecialchars($metric['value']) ?></h2>
-                    <p class="text-light opacity-50 fw-bold text-uppercase fs-xs mt-1"><?= htmlspecialchars($metric['label']) ?></p>
+        <div class="row align-items-center justify-content-center gy-4 mb-5 pb-5 border-bottom border-secondary border-opacity-25">
+            <div class="col-12 col-xl-4 col-lg-5 mb-3 mb-lg-0">
+                <div class="glass-card p-3 p-md-4 d-flex align-items-center justify-content-between gap-3 h-100">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <i class="bi bi-stars text-primary fs-6"></i>
+                            <span class="fw-bold fs-xs text-primary text-uppercase" style="letter-spacing: 0.5px;">Tip of the Day</span>
+                        </div>
+                        <p class="mb-0 fs-xs text-light opacity-75" style="line-height: 1.5;">
+                            ระบบเรียนรู้ที่มี AI ช่วยโค้ช จะช่วยเพิ่มความเร็วในการทำเควสต์เขียนโค้ดได้ถึง 2 เท่า!
+                        </p>
+                    </div>
+                    <div class="flex-shrink-0 text-warning fs-2 opacity-75">
+                        <i class="bi bi-lightbulb-fill"></i>
+                    </div>
                 </div>
-            <?php endforeach; ?>
+            </div>
+
+            <div class="col-12 col-xl-8 col-lg-7">
+                <div class="row text-center gy-3 justify-content-center align-items-center">
+                    <div class="col-6 col-sm-3">
+                        <h2 class="display-6 fw-bold mb-0 ai-text-gradient">250K+</h2>
+                        <p class="text-light opacity-50 fw-bold text-uppercase fs-xs mt-1 mb-0">LEARNERS</p>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <h2 class="display-6 fw-bold mb-0 ai-text-gradient">1,200+</h2>
+                        <p class="text-light opacity-50 fw-bold text-uppercase fs-xs mt-1 mb-0">QUESTS</p>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <h2 class="display-6 fw-bold mb-0 ai-text-gradient">850+</h2>
+                        <p class="text-light opacity-50 fw-bold text-uppercase fs-xs mt-1 mb-0">CODING LABS</p>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <h2 class="display-6 fw-bold mb-0 ai-text-gradient" style="color: #6366F1 !important;">12M+</h2>
+                        <p class="text-light opacity-50 fw-bold text-uppercase fs-xs mt-1 mb-0">AI ANSWERS</p>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="text-center mb-5">
@@ -650,11 +780,16 @@ if (file_exists('includes/header.php')) {
     <div class="container">
         <div class="glass-card p-4 p-md-5 text-center position-relative overflow-hidden" style="background: linear-gradient(135deg, var(--neon-indigo), #3730A3); border: none;">
             <div class="position-relative z-3 text-white">
-                <h2 class="display-6 fw-bold mb-3 text-white" style="font-family: 'Outfit', sans-serif;">พร้อมที่จะอัปเกรดสถานะเลเวลของคุณหรือยัง?</h2>
-                <p class="lead mb-4 text-white-50 mx-auto fs-sm" style="max-width: 600px;">เข้าร่วมสมรภูมิพัฒนาทักษะแบบไร้ขีดจำกัด เก็บสะสมแต้มผลงานเพื่อเพิ่มโอกาสสู่สายอาชีพที่มั่นคง</p>
+                <h2 class="display-6 fw-bold mb-3" style="font-family: 'Outfit', sans-serif; color: #ffffff !important;">พร้อมที่จะอัปเกรดสถานะเลเวลของคุณหรือยัง?</h2>
+                <p class="lead mb-4 mx-auto fs-sm" style="max-width: 600px; color: rgba(255, 255, 255, 0.85) !important;">เข้าร่วมสมรภูมิพัฒนาทักษะแบบไร้ขีดจำกัด เก็บสะสมแต้มผลงานเพื่อเพิ่มโอกาสสู่สายอาชีพที่มั่นคง</p>
                 <div class="d-flex justify-content-center gap-3 flex-wrap">
-                    <a href="auth/login.php" class="btn btn-light ajax-link btn-lg px-4 px-md-5 fw-bold text-primary rounded-pill fs-sm">เข้าสู่ระบบผู้เล่น</a>
-                    <a href="<?= $isLoggedIn ? 'ai/ai-chat.php' : 'auth/login.php' ?>" class="btn btn-outline-light ajax-link btn-lg px-4 rounded-pill fs-sm"><i class="bi bi-robot me-2"></i>คุยกับ AI โค้ช</a>
+                    <?php if (!$isLoggedIn): ?>
+                        <a href="<?= $ROOT_PATH; ?>auth/login.php" class="btn btn-light ajax-link btn-lg px-4 px-md-5 fw-bold rounded-pill fs-sm" style="color: #1e1b4b !important; background-color: #ffffff !important; border: none;">เข้าสู่ระบบผู้เล่น</a>
+                        <a href="<?= $ROOT_PATH; ?>auth/login.php" class="btn btn-outline-light ajax-link btn-lg px-4 rounded-pill fs-sm"><i class="bi bi-robot me-2"></i>คุยกับ AI โค้ช</a>
+                    <?php else: ?>
+                        <a href="<?= $ROOT_PATH; ?>student/courses.php" class="btn btn-light ajax-link btn-lg px-4 px-md-5 fw-bold rounded-pill fs-sm" style="color: #1e1b4b !important; background-color: #ffffff !important; border: none;"><i class="bi bi-rocket-takeoff-fill me-2"></i>เริ่มลุยเควสต์เรียนรู้</a>
+                        <a href="<?= $ROOT_PATH; ?>ai/ai-chat.php" class="btn btn-outline-light ajax-link btn-lg px-4 rounded-pill fs-sm"><i class="bi bi-robot me-2"></i>คุยกับ AI โค้ช</a>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -662,27 +797,35 @@ if (file_exists('includes/header.php')) {
 </section>
 
 <?php
-// ดึงไฟล์ Footer เข้ามาทำงานปิดหน้าเว็บ
-if (file_exists('includes/footer.php')) {
-    include 'includes/footer.php';
+// Include Footer
+if (file_exists($ROOT_PATH . 'includes/footer.php')) {
+    include $ROOT_PATH . 'includes/footer.php';
 } else {
-    echo "Warning: ไม่พบไฟล์ 'includes/footer.php'";
+    echo "Warning: ไม่พบไฟล์ '" . $ROOT_PATH . "includes/footer.php'";
 }
 ?>
 
-<!-- ===================================================
-     3. JAVASCRIPT SPECIAL INTERCEPTOR
-     =================================================== -->
 <script>
     $(document).ready(function() {
-        // ดักจับเหตุการณ์การคลิกบนหน้าเว็บเพื่อความปลอดภัยของลิงก์ Logout
+        var seenNames = {};
+        $('#category-grid-container .category-col-item').each(function() {
+            var catTitle = $(this).find('.category-item-title').text().trim();
+            if (catTitle) {
+                if (seenNames[catTitle]) {
+                    $(this).remove();
+                } else {
+                    seenNames[catTitle] = true;
+                }
+            }
+        });
+
         $(document).on('click', 'a', function(e) {
             var href = $(this).attr('href');
             var text = $(this).text().toLowerCase();
 
             if (href && (href.indexOf('logout.php') !== -1 || text.indexOf('logout') !== -1 || text.indexOf('ออกจากระบบ') !== -1)) {
                 e.stopPropagation();
-                window.location.href = 'auth/logout.php';
+                window.location.href = '<?= $ROOT_PATH; ?>auth/logout.php';
             }
         });
     });
