@@ -1,97 +1,93 @@
 ﻿<?php
-// 1. เริ่ม Session และเปิดการแสดง Error ทั้งหมด
+// 1. ตั้งค่า Cookie Path ให้ครอบคลุมทุกโฟลเดอร์ในเว็บ (ป้องกัน Session หลุดระหว่าง /auth/ กับหน้าแรก)
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path'     => '/',
+    'secure'   => isset($_SERVER['HTTPS']),
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 
 // ดึงค่าการตั้งค่าจาก config/google.php
 require_once __DIR__ . '/../config/google.php';
 
-echo "<h2>🔍 เริ่มการตรวจสอบระบบ Google Login</h2>";
+if (isset($_GET['code'])) {
+    $code = $_GET['code'];
 
-if (!isset($_GET['code'])) {
-    die("<h3 style='color:red;'>❌ ขั้นตอนที่ 1 พัง: ไม่ได้รับค่า 'code' จาก Google</h3>");
-}
-echo "<p style='color:green;'>✅ <b>ขั้นตอนที่ 1 ผ่าน:</b> รับค่า Code จาก Google สำเร็จแล้ว</p>";
-
-// 1. แลกเปลี่ยน Authorization Code เป็น Access Token
-$tokenUrl = 'https://oauth2.googleapis.com/token';
-$postData = array(
-    'code'          => $_GET['code'],
-    'client_id'     => $clientID,
-    'client_secret' => $clientSecret,
-    'redirect_uri'  => $redirectUri,
-    'grant_type'    => 'authorization_code'
-);
-
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, $tokenUrl);
-curl_setopt($ch, CURLOPT_POST, true);
-curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-$response = curl_exec($ch);
-$curlErr = curl_error($ch);
-curl_close($ch);
-
-if ($curlErr) {
-    die("<h3 style='color:red;'>❌ cURL Error ( Token Request Failed ): {$curlErr}</h3>");
-}
-
-$tokenData = json_decode($response, true);
-
-echo "<h4>📦 ข้อมูล Response จาก Google Token:</h4><pre>";
-print_r($tokenData);
-echo "</pre>";
-
-if (!isset($tokenData['access_token'])) {
-    die("<h3 style='color:red;'>❌ ขั้นตอนที่ 2 พัง: Google ไม่ยอมออก access_token ให้ (โปรดเช็ก config/google.php)</h3>");
-}
-echo "<p style='color:green;'>✅ <b>ขั้นตอนที่ 2 ผ่าน:</b> ได้รับ access_token เรียบร้อยแล้ว</p>";
-
-// 2. ดึงข้อมูลโปรไฟล์ผู้ใช้จาก Google API
-$userInfoUrl = 'https://www.googleapis.com/oauth2/v2/userinfo';
-
-$ch2 = curl_init();
-curl_setopt($ch2, CURLOPT_URL, $userInfoUrl);
-curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch2, CURLOPT_HTTPHEADER, array(
-    'Authorization: Bearer ' . $tokenData['access_token']
-));
-curl_setopt($ch2, CURLOPT_SSL_VERIFYPEER, false);
-$userResponse = curl_exec($ch2);
-$curlErr2 = curl_error($ch2);
-curl_close($ch2);
-
-if ($curlErr2) {
-    die("<h3 style='color:red;'>❌ cURL Error ( UserInfo Request Failed ): {$curlErr2}</h3>");
-}
-
-$userInfo = json_decode($userResponse, true);
-
-echo "<h4>👤 ข้อมูล Profile จาก Google:</h4><pre>";
-print_r($userInfo);
-echo "</pre>";
-
-// 3. ทดสอบการบันทึกลง Session
-if (isset($userInfo['email'])) {
-    $_SESSION['user_data'] = $userInfo;
-    $_SESSION['user_login'] = array(
-        'id'      => $userInfo['id'] ?? '',
-        'name'    => $userInfo['name'] ?? ($userInfo['email'] ?? 'Google User'),
-        'email'   => $userInfo['email'],
-        'picture' => $userInfo['picture'] ?? '',
-        'level'   => 1
+    // แลกเปลี่ยน Authorization Code เป็น Access Token
+    $tokenUrl = 'https://oauth2.googleapis.com/token';
+    $postData = array(
+        'code'          => $code,
+        'client_id'     => $clientID,
+        'client_secret' => $clientSecret,
+        'redirect_uri'  => $redirectUri,
+        'grant_type'    => 'authorization_code'
     );
 
-    echo "<h3 style='color:green;'>🎉 สำเร็จ! บันทึก Session เรียบร้อยแล้ว</h3>";
-    echo "<h4>ข้อมูล Session ปัจจุบัน:</h4><pre>";
-    print_r($_SESSION);
-    echo "</pre>";
-    echo "<a href='../index.php' style='padding:10px 20px; background:blue; color:white; text-decoration:none; border-radius:5px;'>คลิกตรงนี้เพื่อกลับหน้าหลัก</a>";
-} else {
-    echo "<h3 style='color:red;'>❌ ขั้นตอนที่ 3 พัง: ดึงข้อมูล Email จาก Google ไม่สำเร็จ</h3>";
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $tokenUrl);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    $tokenData = json_decode($response, true);
+
+    // เช็กว่า Google คืนค่า access_token มาจริงไหม
+    if (isset($tokenData['access_token'])) {
+        $userInfoUrl = 'https://www.googleapis.com/oauth2/v2/userinfo';
+        
+        $ch2 = curl_init();
+        curl_setopt($ch2, CURLOPT_URL, $userInfoUrl);
+        curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch2, CURLOPT_HTTPHEADER, array(
+            'Authorization: Bearer ' . $tokenData['access_token']
+        ));
+        curl_setopt($ch2, CURLOPT_SSL_VERIFYPEER, false);
+        $userResponse = curl_exec($ch2);
+        curl_close($ch2);
+
+        $userInfo = json_decode($userResponse, true);
+
+        if (isset($userInfo['email'])) {
+            // บันทึก Session ทั้งสองรูปแบบ
+            $_SESSION['user_data']  = $userInfo;
+            $_SESSION['user_login'] = array(
+                'id'      => $userInfo['id'] ?? '',
+                'name'    => $userInfo['name'] ?? ($userInfo['email'] ?? 'Google User'),
+                'email'   => $userInfo['email'],
+                'picture' => $userInfo['picture'] ?? '',
+                'level'   => 1
+            );
+
+            // บันทึก Session ลงดิสก์ทันทีก่อนเปลี่ยนหน้า
+            session_write_close();
+            
+            // ส่งกลับหน้าแรก
+            header('Location: ../index.php');
+            exit;
+        }
+    } else {
+        // หากแลก Token ไม่สำเร็จ แสดง Error ออกหน้าจอเพื่อตรวจสอบ
+        echo "<div style='padding: 20px; font-family: sans-serif;'>";
+        echo "<h3 style='color: red;'>❌ การล็อกอินด้วย Google ล้มเหลว!</h3>";
+        echo "<p>รายละเอียด Error จาก Google Response:</p>";
+        echo "<pre style='background: #f4f4f4; padding: 15px; border-radius: 5px;'>";
+        print_r($tokenData);
+        echo "</pre>";
+        echo "<p><b>ข้อสังเกต:</b> โปรดตรวจสอบค่า <code>\$redirectUri</code> ใน <code>config/google.php</code> ว่าตรงกับที่ตั้งไว้ใน Google Cloud Console หรือไม่</p>";
+        echo "<a href='../auth/login.php'>กลับหน้าล็อกอิน</a>";
+        echo "</div>";
+        exit;
+    }
 }
+
+// ถ้าไม่มี code ส่งมา ให้เด้งกลับหน้าแรก
+header('Location: ../index.php');
+exit;
