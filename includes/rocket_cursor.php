@@ -101,29 +101,29 @@
             </defs>
 
             <g id="rocket-group">
-                <!-- Swept Aerodynamic Left Fin (Matching design in image 4) -->
-                <path d="M21 26 L8 35 L11 44 L21 38 Z" fill="url(#fin-left-grad)"/>
-                <path d="M12 37.8 L8 35 L11 44 L16 41 Z" fill="#1E3A8A" opacity="0.35"/>
+                <!-- Swept Aerodynamic Left Fin (Shortened & Proportional) -->
+                <path d="M21 28 L13 34 L15 41 L21 38 Z" fill="url(#fin-left-grad)"/>
+                <path d="M16 38.5 L13 34 L15 41 L18 40 Z" fill="#1E3A8A" opacity="0.35"/>
 
-                <!-- Swept Aerodynamic Right Fin (Matching design in image 4) -->
-                <path d="M43 26 L56 35 L53 44 L43 38 Z" fill="url(#fin-right-grad)"/>
-                <path d="M52 37.8 L56 35 L53 44 L48 41 Z" fill="#0F172A" opacity="0.35"/>
+                <!-- Swept Aerodynamic Right Fin (Shortened & Proportional) -->
+                <path d="M43 28 L51 34 L49 41 L43 38 Z" fill="url(#fin-right-grad)"/>
+                <path d="M48 38.5 L51 34 L49 41 L46 40 Z" fill="#0F172A" opacity="0.35"/>
 
                 <!-- Engine Exhaust Nozzle Bell -->
                 <path d="M27 38 H37 L35 44 H29 Z" fill="url(#nozzle-grad)"/>
                 <ellipse cx="32" cy="44" rx="3" ry="0.9" fill="#020617"/>
 
-                <!-- Fuselage Main Body Capsule -->
-                <path d="M32 2 C32 2 44 14 43 38 C43 40.5 38 42 32 42 C26 42 21 40.5 21 38 C20 14 32 2 32 2 Z" fill="url(#fuselage-grad)"/>
+                <!-- Fuselage Main Body Capsule (Starts below red nose cone to eliminate white border) -->
+                <path d="M23 16.5 C21 24 21 38 21 38 C21 40.5 26 42 32 42 C38 42 43 40.5 43 38 C43 38 43 24 41 16.5 C36.5 17.8 27.5 17.8 23 16.5 Z" fill="url(#fuselage-grad)"/>
 
                 <!-- Fuselage 3D Volumetric Shadow Overlay -->
-                <path d="M32 2 C32 2 44 14 43 38 C43 40.5 38 42 32 42 C32 42 41 37 41 24 C41 12 32 2 32 2 Z" fill="url(#fuselage-shadow-grad)"/>
+                <path d="M32 16.5 C32 16.5 41 20 41 38 C41 40.5 38 42 32 42 C32 42 41 37 41 24 C41 20 32 16.5 32 16.5 Z" fill="url(#fuselage-shadow-grad)"/>
 
                 <!-- High-Gloss Specular Reflection Curve on Body -->
-                <path d="M29 18 C26.8 24 26.2 31 27.2 38" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round" opacity="0.75"/>
+                <path d="M29 19 C26.8 24 26.2 31 27.2 38" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round" opacity="0.75"/>
 
-                <!-- Clean Red Nose Cone Cap (No messy white border at tip or edges) -->
-                <path d="M32 2 C35.2 6.5 38.8 12.5 39.2 16.5 C34.8 17.8 29.2 17.8 24.8 16.5 C25.2 12.5 28.8 6.5 32 2 Z" fill="url(#nose-grad)"/>
+                <!-- Red Nose Cone Cap (Seamless fit at apex with ZERO white background bleed) -->
+                <path d="M32 2 C36.5 6.5 41 12 41 16.5 C36.5 17.8 27.5 17.8 23 16.5 C23 12 27.5 6.5 32 2 Z" fill="url(#nose-grad)"/>
 
                 <!-- Porthole Window Bezel & Lens -->
                 <circle cx="32" cy="25" r="5.8" fill="#475569"/>
