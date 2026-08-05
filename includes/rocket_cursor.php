@@ -73,20 +73,20 @@
                     <stop offset="100%" stop-color="#B91C1C"/>
                 </linearGradient>
 
-                <!-- Left Fin Gradient -->
-                <linearGradient id="fin-left-grad" x1="10" y1="28" x2="22" y2="44" gradientUnits="userSpaceOnUse">
+                <!-- Left Fin Gradient (Swept-wing like picture 4) -->
+                <linearGradient id="fin-left-grad" x1="8" y1="26" x2="21" y2="44" gradientUnits="userSpaceOnUse">
                     <stop offset="0%" stop-color="#38BDF8"/>
                     <stop offset="100%" stop-color="#1D4ED8"/>
                 </linearGradient>
 
                 <!-- Right Fin Gradient -->
-                <linearGradient id="fin-right-grad" x1="54" y1="28" x2="42" y2="44" gradientUnits="userSpaceOnUse">
+                <linearGradient id="fin-right-grad" x1="56" y1="26" x2="43" y2="44" gradientUnits="userSpaceOnUse">
                     <stop offset="0%" stop-color="#0284C7"/>
                     <stop offset="100%" stop-color="#1E3A8A"/>
                 </linearGradient>
 
                 <!-- Glass Porthole Lens Gradient -->
-                <radialGradient id="glass-grad" cx="30" cy="20" r="6" gradientUnits="userSpaceOnUse">
+                <radialGradient id="glass-grad" cx="30" cy="22" r="6" gradientUnits="userSpaceOnUse">
                     <stop offset="0%" stop-color="#38BDF8"/>
                     <stop offset="70%" stop-color="#0284C7"/>
                     <stop offset="100%" stop-color="#0369A1"/>
@@ -101,13 +101,13 @@
             </defs>
 
             <g id="rocket-group">
-                <!-- Swept Aerodynamic Left Fin -->
-                <path d="M22 28 L10 40 C8.5 42 11 45 15 44 L22 38 Z" fill="url(#fin-left-grad)"/>
-                <path d="M22 28 L12 39 C13.5 41 15 42 17 41 L22 38 Z" fill="#1D4ED8" opacity="0.3"/>
+                <!-- Swept Aerodynamic Left Fin (Matching design in image 4) -->
+                <path d="M21 26 L8 35 L11 44 L21 38 Z" fill="url(#fin-left-grad)"/>
+                <path d="M12 37.8 L8 35 L11 44 L16 41 Z" fill="#1E3A8A" opacity="0.35"/>
 
-                <!-- Swept Aerodynamic Right Fin -->
-                <path d="M42 28 L54 40 C55.5 42 53 45 49 44 L42 38 Z" fill="url(#fin-right-grad)"/>
-                <path d="M42 28 L52 39 C50.5 41 49 42 47 41 L42 38 Z" fill="#1E3A8A" opacity="0.3"/>
+                <!-- Swept Aerodynamic Right Fin (Matching design in image 4) -->
+                <path d="M43 26 L56 35 L53 44 L43 38 Z" fill="url(#fin-right-grad)"/>
+                <path d="M52 37.8 L56 35 L53 44 L48 41 Z" fill="#0F172A" opacity="0.35"/>
 
                 <!-- Engine Exhaust Nozzle Bell -->
                 <path d="M27 38 H37 L35 44 H29 Z" fill="url(#nozzle-grad)"/>
@@ -119,18 +119,17 @@
                 <!-- Fuselage 3D Volumetric Shadow Overlay -->
                 <path d="M32 2 C32 2 44 14 43 38 C43 40.5 38 42 32 42 C32 42 41 37 41 24 C41 12 32 2 32 2 Z" fill="url(#fuselage-shadow-grad)"/>
 
-                <!-- High-Gloss Specular Reflection Curve -->
-                <path d="M30 5 C26.5 16 25.5 28 27 38" stroke="#FFFFFF" stroke-width="1.4" stroke-linecap="round" opacity="0.8"/>
+                <!-- High-Gloss Specular Reflection Curve on Body -->
+                <path d="M29 18 C26.8 24 26.2 31 27.2 38" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round" opacity="0.75"/>
 
-                <!-- Red Nose Cone Cap (Origin Tip at X:32, Y:2) -->
-                <path d="M32 2 C34.5 6 38.5 13 39 16 C35 17.5 29 17.5 25 16 C25.5 13 29.5 6 32 2 Z" fill="url(#nose-grad)"/>
-                <path d="M32 2 C31 5.5 28 11.5 26.5 15" stroke="#FFFFFF" stroke-width="0.8" opacity="0.75" stroke-linecap="round"/>
+                <!-- Clean Red Nose Cone Cap (No messy white border at tip or edges) -->
+                <path d="M32 2 C35.2 6.5 38.8 12.5 39.2 16.5 C34.8 17.8 29.2 17.8 24.8 16.5 C25.2 12.5 28.8 6.5 32 2 Z" fill="url(#nose-grad)"/>
 
                 <!-- Porthole Window Bezel & Lens -->
-                <circle cx="32" cy="24" r="6" fill="#475569"/>
-                <circle cx="32" cy="24" r="4.8" fill="url(#glass-grad)"/>
-                <path d="M29.5 22 C30.2 20.8 31.5 20.2 33 20.3" stroke="#FFFFFF" stroke-width="1.1" stroke-linecap="round" opacity="0.9"/>
-                <circle cx="30" cy="25.5" r="0.8" fill="#FFFFFF" opacity="0.85"/>
+                <circle cx="32" cy="25" r="5.8" fill="#475569"/>
+                <circle cx="32" cy="25" r="4.5" fill="url(#glass-grad)"/>
+                <path d="M29.8 23.2 C30.4 22.2 31.4 21.7 32.8 21.8" stroke="#FFFFFF" stroke-width="1.0" stroke-linecap="round" opacity="0.9"/>
+                <circle cx="30.2" cy="26.2" r="0.7" fill="#FFFFFF" opacity="0.85"/>
             </g>
         </svg>
 
