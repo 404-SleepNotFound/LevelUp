@@ -190,15 +190,15 @@
         100% { transform: scale(1.3); opacity: 0.8; }
     }
 
-    /* Hover Target Indicator Ring */
+    /* Hover Target Indicator Ring - Centered around rocket body */
     .rocket-target-ring {
         position: absolute;
-        top: 2.625px;
+        top: 24px;
         left: 21px;
-        width: 40px;
-        height: 40px;
-        margin-top: -20px;
-        margin-left: -20px;
+        width: 48px;
+        height: 48px;
+        margin-top: -24px;
+        margin-left: -24px;
         border: 2px dashed rgba(99, 102, 241, 0.8);
         border-radius: 50%;
         opacity: 0;
@@ -299,16 +299,11 @@
             rocket.style.marginTop = (-hotspot.y) + 'px';
             rocket.style.transformOrigin = hotspot.x + 'px ' + hotspot.y + 'px';
 
-            // Update internal pin & ring position
+            // Update internal pin position
             var pin = rocket.querySelector('.rocket-tip-pin');
-            var ring = rocket.querySelector('.rocket-target-ring');
             if (pin) {
                 pin.style.left = hotspot.x + 'px';
                 pin.style.top = hotspot.y + 'px';
-            }
-            if (ring) {
-                ring.style.left = hotspot.x + 'px';
-                ring.style.top = hotspot.y + 'px';
             }
         }
 
