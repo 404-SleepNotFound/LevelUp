@@ -764,7 +764,7 @@
                 y: y,
                 vx: vx + (Math.random() - 0.5) * 1.2,
                 vy: vy + (Math.random() - 0.5) * 1.2,
-                size: isHoveredState ? Math.random() * 1.6 + 1.0 : Math.random() * 1.4 + 0.9,
+                size: Math.random() * 1.5 + 3.5,
                 color: pickConfettiColor(),
                 alpha: 1.0,
                 decay: Math.random() * 0.03 + 0.02
@@ -781,7 +781,7 @@
                     y: nozzle.y,
                     vx: Math.cos(pAngle) * speed,
                     vy: Math.sin(pAngle) * speed,
-                    size: Math.random() * 1.8 + 1.0,
+                    size: Math.random() * 1.5 + 3.5,
                     color: pickConfettiColor(),
                     alpha: 1.0,
                     decay: Math.random() * 0.04 + 0.025
