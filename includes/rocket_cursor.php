@@ -184,11 +184,13 @@
     }
 
     #rocket-cursor-wrapper.idle-stage-2 .rocket-shield-ring {
-        opacity: 0.6;
+        opacity: 0.65;
+        transform: scale(0.85);
         animation: shieldRotate 5s infinite linear;
     }
     #rocket-cursor-wrapper.idle-stage-3 .rocket-shield-ring {
         opacity: 0.85;
+        transform: scale(1);
         animation: shieldRotate 3.5s infinite linear;
     }
 
@@ -404,10 +406,14 @@
         var isInitialized = false;
 
         var idleTime = 0;
-        var idleStage = 0; // 0: Active, 1: Drift (0.8s+), 2: Radar Scan (3s+), 3: Orbit Acrobatics (7s+)
+        var idleStage = 0; // 0: Active, 1: Drift (0.8s+), 2: Orbital Insertion (3s+), 3: Orbit Acrobatics (7s+)
         var idleTimerStage1 = null;
         var idleTimerStage2 = null;
         var idleTimerStage3 = null;
+
+        // Smoothing state variables for seamless Stage 2 -> Stage 3 transitions
+        var currentIdleOffsetX = 0;
+        var currentIdleOffsetY = 0;
 
         function resetIdleTimer() {
             idleStage = 0;
@@ -426,15 +432,15 @@
                 wrapper.classList.add('idle-stage-1');
             }, 800);
 
-            // Stage 2: Deep Radar Scan (after 3.0s)
+            // Stage 2: Gravitational Orbital Insertion (after 3.0s)
             idleTimerStage2 = setTimeout(function() {
                 idleStage = 2;
                 rocket.classList.add('idle-stage-2');
                 wrapper.classList.add('idle-stage-2');
-                createBurstSparks(pos.x, pos.y, 8); // Minor scan energy pulse
+                createBurstSparks(pos.x, pos.y, 8); // Minor gravitational pulse
             }, 3000);
 
-            // Stage 3: Orbit Satellite & Stardust Field (after 7.0s)
+            // Stage 3: Full Satellite Orbit & Stardust Field (after 7.0s)
             idleTimerStage3 = setTimeout(function() {
                 idleStage = 3;
                 rocket.classList.add('idle-stage-3');
@@ -600,9 +606,9 @@
                 var shortestDiff = Math.atan2(Math.sin(radDiff), Math.cos(radDiff)) * (180 / Math.PI);
                 angle += shortestDiff * 0.2;
 
-                // Idle bobbing, sway & acrobatic rotations
-                var idleOffsetX = 0;
-                var idleOffsetY = 0;
+                // Target offsets for smooth LERP positioning
+                var targetIdleX = 0;
+                var targetIdleY = 0;
                 var idleSway = 0;
 
                 if (idleStage > 0) {
@@ -610,40 +616,45 @@
 
                     // Stage 1 Motion (0.8s - 3s): Gentle zero-G float
                     if (idleStage === 1) {
-                        idleOffsetY = Math.sin(idleTime) * 4;
-                        idleOffsetX = Math.cos(idleTime * 0.7) * 2;
+                        targetIdleY = Math.sin(idleTime) * 4;
+                        targetIdleX = Math.cos(idleTime * 0.7) * 2;
                         idleSway = Math.sin(idleTime * 0.5) * 4;
                     }
 
-                    // Stage 2 Motion (3s - 7s): Tactical Recon Patrol (Ultra-smooth Infinity Figure-8)
+                    // Stage 2 Motion (3s - 7s): Orbital Insertion Spiral (Smoothly transitions from radius 20px -> 80px)
                     if (idleStage === 2) {
-                        var t2 = idleTime * 0.9;
-                        var radiusX = 46; // Broad horizontal sweep
-                        var radiusY = 22; // Smooth vertical dip
+                        // Normalize progress ratio (0.0 at 3s -> 1.0 at 7s)
+                        var stage2Progress = Math.min(Math.max((idleTime - 0.88) / 4.0, 0), 1);
+                        
+                        // Smooth easing curve (ease-out-cubic for smooth deceleration into Stage 3 orbit radius)
+                        var radiusProgress = 1 - Math.pow(1 - stage2Progress, 2.5);
+                        var currentRadius = 22 + (80 - 22) * radiusProgress;
 
-                        // Lemniscate Figure-8 curve formula
-                        idleOffsetX = Math.sin(t2) * radiusX;
-                        idleOffsetY = Math.sin(2 * t2) * radiusY;
+                        // Continuous orbital angle synced seamlessly with Stage 3 rotational speed
+                        var orbitalAngle = idleTime * 0.5;
 
-                        // Continuous derivatives (velocity vectors) for seamless smooth angular turns
-                        var vx2 = Math.cos(t2) * radiusX;
-                        var vy2 = 2 * Math.cos(2 * t2) * radiusY;
+                        targetIdleX = Math.cos(orbitalAngle) * currentRadius;
+                        targetIdleY = Math.sin(orbitalAngle) * currentRadius;
+
+                        // Tangent velocity vector calculation for seamless flight direction matching
+                        var vx2 = -Math.sin(orbitalAngle) * currentRadius;
+                        var vy2 = Math.cos(orbitalAngle) * currentRadius;
 
                         targetAngle = Math.atan2(vy2, vx2) * (180 / Math.PI) + 90;
 
-                        // Emit cyan radar scan pulses ahead of flight path
-                        if (Math.random() < 0.4) {
-                            createRadarScanPulse(pos.x + idleOffsetX, pos.y + idleOffsetY, targetAngle);
+                        // Emit cyan radar scan pulses ahead of expanding flight path
+                        if (Math.random() < 0.35) {
+                            createRadarScanPulse(pos.x + targetIdleX, pos.y + targetIdleY, targetAngle);
                         }
                     }
 
-                    // Stage 3 Motion (7s+ Continuous Loop): Orbiting around central planet (radius 80px)
+                    // Stage 3 Motion (7s+ Continuous Loop): Perfect circular planetary orbit (Radius 80px)
                     if (idleStage === 3) {
-                        var orbitSpeed = idleTime * 0.5; // Controlled rotation speed
-                        var rocketRadius = 80; // Rocket 80px radius orbit around (0,0) center planet
+                        var orbitSpeed = idleTime * 0.5; // Matches Stage 2 speed perfectly
+                        var rocketRadius = 80;
 
-                        idleOffsetX = Math.cos(orbitSpeed) * rocketRadius;
-                        idleOffsetY = Math.sin(orbitSpeed) * rocketRadius;
+                        targetIdleX = Math.cos(orbitSpeed) * rocketRadius;
+                        targetIdleY = Math.sin(orbitSpeed) * rocketRadius;
 
                         // Tangent flight vector so rocket nose points forward along circular path
                         var vx = -Math.sin(orbitSpeed);
@@ -654,8 +665,8 @@
 
                         // Continuous thruster trail shooting backwards out of rocket engine along orbit arc
                         if (Math.random() < 0.6) {
-                            var orbTailX = (pos.x + idleOffsetX) - vx * 24;
-                            var orbTailY = (pos.y + idleOffsetY) - vy * 24;
+                            var orbTailX = (pos.x + targetIdleX) - vx * 24;
+                            var orbTailY = (pos.y + targetIdleY) - vy * 24;
                             createThrusterParticle(orbTailX, orbTailY, -vx * 1.5, -vy * 1.5, true);
                         }
 
@@ -680,25 +691,30 @@
                     // Periodic idle thruster pulse particles
                     if (Math.random() < 0.15) {
                         var idleRad = (angle + idleSway - 90) * (Math.PI / 180);
-                        var idleTailX = (pos.x + idleOffsetX) - Math.cos(idleRad) * 30;
-                        var idleTailY = (pos.y + idleOffsetY) - Math.sin(idleRad) * 30;
+                        var idleTailX = (pos.x + currentIdleOffsetX) - Math.cos(idleRad) * 30;
+                        var idleTailY = (pos.y + currentIdleOffsetY) - Math.sin(idleRad) * 30;
                         createThrusterParticle(idleTailX, idleTailY, -Math.cos(idleRad) * 0.8, -Math.sin(idleRad) * 0.8, false);
                     }
                 }
+
+                // Smooth LERP interpolation for idle offsets to eliminate any sudden movement jumps
+                var idleLerp = 0.15;
+                currentIdleOffsetX += (targetIdleX - currentIdleOffsetX) * idleLerp;
+                currentIdleOffsetY += (targetIdleY - currentIdleOffsetY) * idleLerp;
 
                 var renderAngle = angle + idleSway;
 
                 // Wrapper stays positioned at origin (pos.x, pos.y) where the central planet sits at (0,0)
                 wrapper.style.transform = 'translate3d(' + pos.x.toFixed(2) + 'px, ' + pos.y.toFixed(2) + 'px, 0)';
                 
-                // Rocket offsets by idleOffsetX/idleOffsetY and rotates around its calibrated nose tip
-                rocket.style.transform = 'translate3d(' + idleOffsetX.toFixed(2) + 'px, ' + idleOffsetY.toFixed(2) + 'px, 0) rotate(' + renderAngle.toFixed(2) + 'deg)';
+                // Rocket offsets by currentIdleOffsetX/currentIdleOffsetY and rotates around its calibrated nose tip
+                rocket.style.transform = 'translate3d(' + currentIdleOffsetX.toFixed(2) + 'px, ' + currentIdleOffsetY.toFixed(2) + 'px, 0) rotate(' + renderAngle.toFixed(2) + 'deg)';
 
                 // Spawn Thruster Flame Particles from tail (offset behind tip)
                 if (speed > 0.8 || isHovered) {
                     var rad = (angle - 90) * (Math.PI / 180);
-                    var tailX = (pos.x + idleOffsetX) - Math.cos(rad) * 30;
-                    var tailY = (pos.y + idleOffsetY) - Math.sin(rad) * 30;
+                    var tailX = (pos.x + currentIdleOffsetX) - Math.cos(rad) * 30;
+                    var tailY = (pos.y + currentIdleOffsetY) - Math.sin(rad) * 30;
                     var backVx = -Math.cos(rad) * (speed * 0.3 + 1);
                     var backVy = -Math.sin(rad) * (speed * 0.3 + 1);
 
