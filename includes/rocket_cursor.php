@@ -263,58 +263,6 @@
         animation: planetFloat 4s infinite ease-in-out;
     }
 
-    .rocket-shield-ring {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 64px;
-        height: 64px;
-        margin-top: -32px;
-        margin-left: -32px;
-        border: 1.5px solid rgba(99, 102, 241, 0.85);
-        border-top: 2px solid rgba(2, 132, 199, 1);
-        border-bottom: 2px solid rgba(168, 85, 247, 1);
-        border-radius: 50%;
-        opacity: 0;
-        pointer-events: none;
-        transform: scale(0.5) rotate(0deg);
-        transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
-        box-shadow: 0 0 14px rgba(99, 102, 241, 0.45);
-    }
-
-    .rocket-core-aura {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 60px;
-        height: 60px;
-        margin-top: -30px;
-        margin-left: -30px;
-        background: radial-gradient(circle, rgba(56, 189, 248, 0.35) 0%, rgba(139, 92, 246, 0.25) 45%, rgba(236, 72, 153, 0) 70%);
-        border-radius: 50%;
-        filter: blur(4px);
-        opacity: 0;
-        pointer-events: none;
-        transform: scale(0.5);
-        transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
-    }
-
-    .rocket-shockwave-ring {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 20px;
-        height: 20px;
-        margin-top: -10px;
-        margin-left: -10px;
-        border: 2px solid rgba(56, 189, 248, 0.9);
-        border-radius: 50%;
-        opacity: 0;
-        pointer-events: none;
-        transform: scale(0.2);
-        box-shadow: 0 0 15px rgba(168, 85, 247, 0.8);
-    }
-
     #rocket-cursor-wrapper.trigger-shockwave .rocket-shockwave-ring {
         animation: shockwaveExpand 0.85s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
     }
@@ -478,37 +426,6 @@
         background: linear-gradient(180deg, #FFFFFF 0%, #00F0FF 30%, #A855F7 70%, rgba(255, 0, 127, 0) 100%) !important;
         transform: scaleY(2.2) scaleX(1.4) !important;
         filter: drop-shadow(0 0 20px rgba(0, 240, 255, 1)) drop-shadow(0 0 32px rgba(255, 0, 127, 1)) !important;
-    }
-
-    #rocket-cursor-main.is-hovering .rocket-svg {
-        filter: drop-shadow(0px 0px 14px rgba(99, 102, 241, 0.85));
-    }
-
-    #rocket-cursor-main.is-hovering .rocket-target-ring {
-        opacity: 1;
-        transform: scale(1.1) rotate(90deg);
-    }
-
-    #rocket-cursor-main.is-hovering .rocket-flame-core {
-        background: linear-gradient(180deg, #38BDF8 0%, #6366F1 60%, rgba(99, 102, 241, 0) 100%);
-        filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.95));
-    }
-
-    /* Moving & Dragging Active State */
-    #rocket-cursor-main.is-moving .rocket-flame-core {
-        transform: scaleY(1.5) scaleX(1.2) !important;
-        filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.95));
-    }
-
-    #rocket-cursor-main.is-moving .rocket-flame-glow {
-        transform: scale(1.4) !important;
-    }
-
-    /* Click Active State & Extreme Plasma Flare */
-    #rocket-cursor-main.is-clicking .rocket-flame-core {
-        background: linear-gradient(180deg, #FFFFFF 0%, #38BDF8 30%, #6366F1 70%, rgba(239, 68, 68, 0) 100%) !important;
-        transform: scaleY(2.2) scaleX(1.4) !important;
-        filter: drop-shadow(0 0 16px rgba(56, 189, 248, 1)) !important;
     }
 
     #rocket-cursor-main.is-clicking .rocket-flame-glow {
@@ -805,40 +722,6 @@
             }
         }
 
-        function createRadarScanPulse(px, py, angleDeg) {
-            var nozzle = getEngineNozzlePos(px, py, angleDeg);
-            var rad = (angleDeg + 90 + (Math.random() - 0.5) * 60) * (Math.PI / 180);
-            var speed = Math.random() * 1.2 + 0.4;
-            
-            particles.push({
-                x: nozzle.x + Math.cos(rad) * 4,
-                y: nozzle.y + Math.sin(rad) * 4,
-                vx: Math.cos(rad) * speed,
-                vy: Math.sin(rad) * speed,
-                size: Math.random() * 1.8 + 0.8,
-                color: Math.random() > 0.4 ? '#38BDF8' : '#818CF8',
-                alpha: 0.7,
-                decay: 0.035
-            });
-        }
-
-        function createGravitationalPulse(x, y) {
-            for (var i = 0; i < 20; i++) {
-                var pAngle = (i / 20) * Math.PI * 2;
-                var speed = Math.random() * 2.5 + 1.2;
-                particles.push({
-                    x: x,
-                    y: y,
-                    vx: Math.cos(pAngle) * speed,
-                    vy: Math.sin(pAngle) * speed,
-                    size: Math.random() * 2.2 + 0.8,
-                    color: i % 2 === 0 ? '#38BDF8' : '#A855F7',
-                    alpha: 0.85,
-                    decay: 0.028
-                });
-            }
-        }
-
         function render() {
             if (isInitialized) {
                 var lerpFactor = 0.25;
@@ -916,12 +799,12 @@
                             var orbRad = Math.random() * Math.PI * 2;
                             var orbDist = currentRadius + (Math.random() - 0.5) * 12;
                             var vibrantColors = [
-                                '#00F0FF', // Electric Neon Cyan
-                                '#A855F7', // Bright Violet
-                                '#FF007F', // Vivid Neon Pink
-                                '#FFE600', // Electric Yellow
-                                '#00FFCC', // Neon Turquoise
-                                '#FF3366'  // Bright Coral Red
+                                '#00F0FF',
+                                '#A855F7',
+                                '#FF007F',
+                                '#FFE600',
+                                '#00FFCC',
+                                '#FF3366'
                             ];
                             
                             particles.push({
@@ -938,6 +821,22 @@
                             });
                         }
                     }
+                }
+
+                currentIdleOffsetX = targetIdleX;
+                currentIdleOffsetY = targetIdleY;
+
+                wrapper.style.transform = 'translate3d(' + (pos.x + targetIdleX) + 'px, ' + (pos.y + targetIdleY) + 'px, 0)';
+                rocket.style.transform = 'rotate(' + (angle + idleSway) + 'deg)';
+
+                if (speed > 0.8) {
+                    rocket.classList.add('is-moving');
+                    var nozzle = getEngineNozzlePos(pos.x + targetIdleX, pos.y + targetIdleY, angle + idleSway);
+                    createThrusterParticle(nozzle.x, nozzle.y, -dx * 0.3, -dy * 0.3, isHovered);
+                } else {
+                    rocket.classList.remove('is-moving');
+                }
+
                 while (particles.length > 150) {
                     particles.shift();
                 }
@@ -961,7 +860,6 @@
                     }
 
                     ctx.save();
-                    // Additive blending for hyper-bright glowing laser effects
                     ctx.globalCompositeOperation = 'lighter';
                     ctx.globalAlpha = Math.max(0, p.alpha);
                     
