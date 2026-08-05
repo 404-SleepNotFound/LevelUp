@@ -66,7 +66,8 @@
     *, *::before, *::after,
     html, body, html *, body *,
     a, button, input, select, textarea, label, [role="button"],
-    .btn, .glass-card, .accordion-button, .card, iframe, svg, img {
+    .btn, .glass-card, .accordion-button, .card, iframe, svg, img,
+    option, summary, details, [tabindex] {
         cursor: none !important;
     }
 
@@ -419,9 +420,9 @@
         // Initialize calibrated tip offset
         updateHotspotOffsets(21.0, 2.625);
 
-        var mouse = { x: 0, y: 0 };
-        var pos = { x: 0, y: 0 };
-        var lastPos = { x: 0, y: 0 };
+        var mouse = { x: -100, y: -100 };
+        var pos = { x: -100, y: -100 };
+        var lastPos = { x: -100, y: -100 };
         var angle = 0;
         var targetAngle = 0;
         var particles = [];
@@ -469,13 +470,13 @@
             }, 7000);
         }
 
-        function onMouseMove(e) {
-            mouse.x = e.clientX;
-            mouse.y = e.clientY;
+        function updateMousePosition(clientX, clientY) {
+            mouse.x = clientX;
+            mouse.y = clientY;
 
             resetIdleTimer();
 
-            // FIRST MOUSE MOVE FIX: Snap directly to mouse coordinates without LERP delay on refresh
+            // FIRST MOUSE MOVE FIX: Snap directly to mouse coordinates without LERP delay
             if (!isInitialized) {
                 pos.x = mouse.x;
                 pos.y = mouse.y;
@@ -494,17 +495,21 @@
             }
         }
 
+        function onMouseMove(e) {
+            updateMousePosition(e.clientX, e.clientY);
+        }
+
         window.addEventListener('mousemove', onMouseMove, { passive: true });
+        window.addEventListener('pointermove', onMouseMove, { passive: true });
 
         document.addEventListener('mouseleave', function() {
             wrapper.style.opacity = '0';
             canvas.style.opacity = '0';
         });
 
-        document.addEventListener('mouseenter', function() {
-            if (isInitialized) {
-                wrapper.style.opacity = '1';
-                canvas.style.opacity = '1';
+        document.addEventListener('mouseenter', function(e) {
+            if (e.clientX && e.clientY) {
+                updateMousePosition(e.clientX, e.clientY);
             }
         });
 
@@ -605,10 +610,10 @@
                     targetAngle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
                 }
 
-                var dAngle = targetAngle - angle;
-                while (dAngle < -180) dAngle += 360;
-                while (dAngle > 180) dAngle -= 360;
-                angle += dAngle * 0.2;
+                // SHORTEST PATH ANGULAR INTERPOLATION (Fixes wild spinning bug)
+                var radDiff = (targetAngle - angle) * (Math.PI / 180);
+                var shortestDiff = Math.atan2(Math.sin(radDiff), Math.cos(radDiff)) * (180 / Math.PI);
+                angle += shortestDiff * 0.2;
 
                 // IDLE BOBBING, SWAY & ACROBATIC ROTATIONS
                 var idleOffsetX = 0;
