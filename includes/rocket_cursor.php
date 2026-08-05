@@ -91,57 +91,6 @@
 
 <style>
     /* ------------------------------------------------------------------
-       1. GLOBAL CURSOR RESET (Ensures default cursor stays hidden)
-       ------------------------------------------------------------------ */
-    *, *::before, *::after,
-    html, body, html *, body *,
-    a, button, input, select, textarea, label, [role="button"],
-    .btn, .glass-card, .accordion-button, .card, iframe, svg, img,
-    option, summary, details, [tabindex] {
-        cursor: none !important;
-    }
-
-    /* Force hide legacy or duplicate cursor elements */
-    #custom-cursor, .custom-cursor, #cursor, .cursor, .custom-mouse,
-    #mouse-pointer, [data-cursor], .cursor-follower, .mouse-cursor {
-        display: none !important;
-        opacity: 0 !important;
-        visibility: hidden !important;
-        pointer-events: none !important;
-    }
-
-    /* ------------------------------------------------------------------
-       2. CURSOR WRAPPER & HIGH Z-INDEX STACKING
-       ------------------------------------------------------------------ */
-    #rocket-cursor-wrapper {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 0 !important;
-        height: 0 !important;
-        pointer-events: none !important;
-        z-index: 2147483647 !important;
-        isolation: isolate !important;
-        transform: translate3d(-100px, -100px, 0);
-        will-change: transform;
-        display: block;
-        opacity: 0;
-        transition: opacity 0.25s ease;
-    }
-
-    #rocket-particle-canvas {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100vw !important;
-        height: 100vh !important;
-        pointer-events: none !important;
-        z-index: 2147483646 !important;
-        opacity: 0;
-        transition: opacity 0.25s ease;
-    }
-
-    /* ------------------------------------------------------------------
        3. CENTER PLANET & ORBIT CORE (FIXED AT RADIUS 0,0 ORIGIN)
        ------------------------------------------------------------------ */
     #rocket-center-core {
@@ -164,7 +113,7 @@
         opacity: 0;
         pointer-events: none;
         transform: scale(0.3);
-        transition: opacity 0.4s ease, transform 0.4s ease;
+        transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
         filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.8));
     }
 
@@ -189,7 +138,7 @@
         opacity: 0;
         pointer-events: none;
         transform: scale(0.5) rotate(0deg);
-        transition: opacity 0.4s ease, transform 0.4s ease;
+        transition: opacity 0.5s ease, transform 0.5s ease;
     }
 
     .rocket-core-aura {
@@ -206,23 +155,32 @@
         opacity: 0;
         pointer-events: none;
         transform: scale(0.5);
-        transition: all 0.4s ease;
+        transition: all 0.5s ease;
     }
 
-    /* Activate Center Mini Planet & Orbiting Shield in Idle Stages */
-    #rocket-cursor-wrapper.idle-stage-2 .rocket-mini-planet,
+    /* Activate Center Mini Planet & Orbiting Shield in Stage 2 & 3 */
+    #rocket-cursor-wrapper.idle-stage-2 .rocket-mini-planet {
+        opacity: 0.85;
+        transform: scale(0.95);
+    }
     #rocket-cursor-wrapper.idle-stage-3 .rocket-mini-planet {
         opacity: 1;
         transform: scale(1.15);
     }
 
-    #rocket-cursor-wrapper.idle-stage-2 .rocket-shield-ring,
+    #rocket-cursor-wrapper.idle-stage-2 .rocket-shield-ring {
+        opacity: 0.6;
+        animation: shieldRotate 5s infinite linear;
+    }
     #rocket-cursor-wrapper.idle-stage-3 .rocket-shield-ring {
         opacity: 0.85;
         animation: shieldRotate 3.5s infinite linear;
     }
 
-    #rocket-cursor-wrapper.idle-stage-2 .rocket-core-aura,
+    #rocket-cursor-wrapper.idle-stage-2 .rocket-core-aura {
+        opacity: 0.7;
+        animation: auraPulse 2.5s infinite alternate ease-in-out;
+    }
     #rocket-cursor-wrapper.idle-stage-3 .rocket-core-aura {
         opacity: 1;
         animation: auraPulse 2s infinite alternate ease-in-out;
@@ -686,6 +644,26 @@
             });
         }
 
+        // Radar Scan Energy Wave Pulse for Stage 2
+        function createRadarScanPulse(cx, cy, arcAngle) {
+            var pRad = arcAngle;
+            var scanDist = 48;
+            var pulseX = cx + Math.cos(pRad) * scanDist;
+            var pulseY = cy + Math.sin(pRad) * scanDist;
+
+            // Cyan Sonar Beam Spark
+            particles.push({
+                x: pulseX,
+                y: pulseY,
+                vx: (Math.random() - 0.5) * 1.2,
+                vy: (Math.random() - 0.5) * 1.2,
+                size: Math.random() * 3.5 + 1.5,
+                color: Math.random() > 0.3 ? '#00F0FF' : '#38BDF8',
+                alpha: 0.9,
+                decay: 0.025
+            });
+        }
+
         function createBurstSparks(x, y, count) {
             for (var i = 0; i < count; i++) {
                 var pAngle = Math.random() * Math.PI * 2;
@@ -738,7 +716,7 @@
                     targetAngle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
                 }
 
-                // SHORTEST PATH ANGULAR INTERPOLATION (Fixes wild spinning bug)
+                // SHORTEST PATH ANGULAR INTERPOLATION
                 var radDiff = (targetAngle - angle) * (Math.PI / 180);
                 var shortestDiff = Math.atan2(Math.sin(radDiff), Math.cos(radDiff)) * (180 / Math.PI);
                 angle += shortestDiff * 0.2;
@@ -752,19 +730,32 @@
                     idleTime += 0.04;
 
                     // Stage 1 Motion (0.8s - 3s): Gentle zero-G float
-                    idleOffsetY = Math.sin(idleTime) * 4;
-                    idleOffsetX = Math.cos(idleTime * 0.7) * 2;
-                    idleSway = Math.sin(idleTime * 0.5) * 4;
+                    if (idleStage === 1) {
+                        idleOffsetY = Math.sin(idleTime) * 4;
+                        idleOffsetX = Math.cos(idleTime * 0.7) * 2;
+                        idleSway = Math.sin(idleTime * 0.5) * 4;
+                    }
 
-                    // Stage 2 Motion (3s - 7s): Plasma Charge & Infinity Figure-8 Float
-                    if (idleStage >= 2) {
-                        idleOffsetY += Math.sin(idleTime * 2) * 5;
-                        idleOffsetX += Math.cos(idleTime * 1) * 6;
-                        idleSway += Math.sin(idleTime * 1.5) * 8;
-                        
-                        // Plasma energy particles emission
-                        if (Math.random() < 0.25) {
-                            createThrusterParticle(pos.x + (Math.random() - 0.5) * 16, pos.y + (Math.random() - 0.5) * 16, (Math.random() - 0.5) * 0.8, (Math.random() - 0.5) * 0.8, true);
+                    // Stage 2 Motion (3s - 7s): NEW Pre-Orbit Radar Scan (Radius ~48px around planet)
+                    if (idleStage === 2) {
+                        var scanRadius = 48; // Kept at a clean 48px distance so rocket never overlaps mini planet
+                        var scanArc = Math.sin(idleTime * 1.2) * 1.0; // Smooth 115-degree arc sweep back and forth
+                        var arcAngle = scanArc - Math.PI / 2;
+
+                        idleOffsetX = Math.cos(arcAngle) * scanRadius;
+                        idleOffsetY = Math.sin(arcAngle) * scanRadius;
+
+                        // Tangent flight direction facing forward along the scanning arc
+                        var scanVx = -Math.sin(arcAngle) * Math.cos(idleTime * 1.2);
+                        var scanVy = Math.cos(arcAngle) * Math.cos(idleTime * 1.2);
+
+                        if (Math.abs(scanVx) > 0.05 || Math.abs(scanVy) > 0.05) {
+                            targetAngle = Math.atan2(scanVy, scanVx) * (180 / Math.PI) + 90;
+                        }
+
+                        // Emit cyan radar scan pulses & thruster energy
+                        if (Math.random() < 0.4) {
+                            createRadarScanPulse(pos.x, pos.y, arcAngle);
                         }
                     }
 
