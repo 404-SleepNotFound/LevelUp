@@ -751,18 +751,23 @@
             };
         }
 
+        // Confetti-style multicolor palette (matches the small, crisp, varied-color look)
+        var confettiColors = ['#22D3EE', '#F472B6', '#FBBF24', '#34D399', '#A78BFA', '#38BDF8', '#F87171'];
+
+        function pickConfettiColor() {
+            return confettiColors[Math.floor(Math.random() * confettiColors.length)];
+        }
+
         function createThrusterParticle(x, y, vx, vy, isHoveredState) {
             particles.push({
                 x: x,
                 y: y,
                 vx: vx + (Math.random() - 0.5) * 1.2,
                 vy: vy + (Math.random() - 0.5) * 1.2,
-                size: isHoveredState ? Math.random() * 3.6 + 2.0 : Math.random() * 3.0 + 1.6,
-                color: isHoveredState ?
-                    (Math.random() > 0.4 ? '#38BDF8' : '#6366F1') :
-                    (Math.random() > 0.5 ? '#F59E0B' : '#EF4444'),
+                size: isHoveredState ? Math.random() * 1.6 + 1.0 : Math.random() * 1.4 + 0.9,
+                color: pickConfettiColor(),
                 alpha: 1.0,
-                decay: Math.random() * 0.025 + 0.015
+                decay: Math.random() * 0.03 + 0.02
             });
         }
 
@@ -770,16 +775,16 @@
             var nozzle = getEngineNozzlePos(centerX, centerY, currentAngleDeg);
             for (var i = 0; i < count; i++) {
                 var pAngle = Math.random() * Math.PI * 2;
-                var speed = Math.random() * 6 + 2.5;
+                var speed = Math.random() * 5 + 2;
                 particles.push({
                     x: nozzle.x,
                     y: nozzle.y,
                     vx: Math.cos(pAngle) * speed,
                     vy: Math.sin(pAngle) * speed,
-                    size: Math.random() * 4 + 1.8,
-                    color: i % 2 === 0 ? '#38BDF8' : '#FDE047',
+                    size: Math.random() * 1.8 + 1.0,
+                    color: pickConfettiColor(),
                     alpha: 1.0,
-                    decay: Math.random() * 0.035 + 0.02
+                    decay: Math.random() * 0.04 + 0.025
                 });
             }
         }
@@ -794,7 +799,7 @@
                 y: nozzle.y + Math.sin(rad) * 4,
                 vx: Math.cos(rad) * speed,
                 vy: Math.sin(rad) * speed,
-                size: Math.random() * 1.8 + 0.8,
+                size: Math.random() * 1.1 + 0.6,
                 color: Math.random() > 0.4 ? idlePalette[themeMode].radar[0] : idlePalette[themeMode].radar[1],
                 alpha: 0.7,
                 decay: 0.035
@@ -804,16 +809,16 @@
         function createGravitationalPulse(x, y) {
             for (var i = 0; i < 28; i++) {
                 var pAngle = (i / 28) * Math.PI * 2;
-                var speed = Math.random() * 3.6 + 1.6;
+                var speed = Math.random() * 3 + 1.4;
                 particles.push({
                     x: x,
                     y: y,
                     vx: Math.cos(pAngle) * speed,
                     vy: Math.sin(pAngle) * speed,
-                    size: Math.random() * 3.2 + 1.4,
-                    color: i % 2 === 0 ? idlePalette[themeMode].pulse[0] : idlePalette[themeMode].pulse[1],
+                    size: Math.random() * 1.6 + 0.9,
+                    color: pickConfettiColor(),
                     alpha: 1.0,
-                    decay: 0.022
+                    decay: 0.024
                 });
             }
         }
@@ -968,14 +973,14 @@
                     ctx.globalCompositeOperation = 'lighter';
                     ctx.globalAlpha = Math.max(0, p.alpha);
 
-                    var radGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 1.5);
+                    var radGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
                     radGrad.addColorStop(0, p.color);
-                    radGrad.addColorStop(0.5, p.color);
+                    radGrad.addColorStop(0.7, p.color);
                     radGrad.addColorStop(1, 'transparent');
 
                     ctx.fillStyle = radGrad;
                     ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size * 1.5, 0, Math.PI * 2);
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.restore();
                 }
