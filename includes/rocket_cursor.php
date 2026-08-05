@@ -3,7 +3,7 @@
  * LevelUp Rocket Cursor Component v3.6 (Redesigned Proportional Sci-Fi Edition)
  * - Complete Redesign: Aerodynamic vector model with balanced proportions & sleek lighting.
  * - Calibrated Hotspot: Mouse click origin aligned perfectly to rocket nose tip.
- * - Dynamic Plasma Flame & Particle Trail effect.
+ * - Dynamic Plasma Flame, Radar Scan, Gravitational Orbit & Particle Trail effect.
  * Usage in PHP: <?php include 'rocket-cursor.php'; ?>
  */
 ?>
@@ -73,7 +73,7 @@
                     <stop offset="100%" stop-color="#B91C1C"/>
                 </linearGradient>
 
-                <!-- Left Fin Gradient (Swept-wing like picture 4) -->
+                <!-- Left Fin Gradient -->
                 <linearGradient id="fin-left-grad" x1="8" y1="26" x2="21" y2="44" gradientUnits="userSpaceOnUse">
                     <stop offset="0%" stop-color="#38BDF8"/>
                     <stop offset="100%" stop-color="#1D4ED8"/>
@@ -101,29 +101,29 @@
             </defs>
 
             <g id="rocket-group">
-                <!-- Swept Aerodynamic Left Fin (Shortened & Proportional) -->
+                <!-- Swept Aerodynamic Left Fin -->
                 <path d="M21 28 L13 34 L15 41 L21 38 Z" fill="url(#fin-left-grad)"/>
                 <path d="M16 38.5 L13 34 L15 41 L18 40 Z" fill="#1E3A8A" opacity="0.35"/>
 
-                <!-- Swept Aerodynamic Right Fin (Shortened & Proportional) -->
+                <!-- Swept Aerodynamic Right Fin -->
                 <path d="M43 28 L51 34 L49 41 L43 38 Z" fill="url(#fin-right-grad)"/>
                 <path d="M48 38.5 L51 34 L49 41 L46 40 Z" fill="#0F172A" opacity="0.35"/>
 
-                <!-- Prominent Heavy Sci-Fi Engine Nozzle Bell (Widened & Scaled Up) -->
+                <!-- Heavy Engine Nozzle Bell -->
                 <path d="M24 37 H40 L38 45 H26 Z" fill="url(#nozzle-grad)"/>
                 <ellipse cx="32" cy="45" rx="6" ry="1.8" fill="#020617"/>
                 <ellipse cx="32" cy="45" rx="4.5" ry="1.2" fill="#38BDF8" opacity="0.85"/>
 
-                <!-- Fuselage Main Body Capsule (Starts below red nose cone to eliminate white border) -->
+                <!-- Fuselage Main Body Capsule -->
                 <path d="M23 16.5 C21 24 21 38 21 38 C21 40.5 26 42 32 42 C38 42 43 40.5 43 38 C43 38 43 24 41 16.5 C36.5 17.8 27.5 17.8 23 16.5 Z" fill="url(#fuselage-grad)"/>
 
                 <!-- Fuselage 3D Volumetric Shadow Overlay -->
                 <path d="M32 16.5 C32 16.5 41 20 41 38 C41 40.5 38 42 32 42 C32 42 41 37 41 24 C41 20 32 16.5 32 16.5 Z" fill="url(#fuselage-shadow-grad)"/>
 
-                <!-- High-Gloss Specular Reflection Curve on Body -->
+                <!-- High-Gloss Specular Reflection Curve -->
                 <path d="M29 19 C26.8 24 26.2 31 27.2 38" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round" opacity="0.75"/>
 
-                <!-- Red Nose Cone Cap (Seamless fit at apex with ZERO white background bleed) -->
+                <!-- Red Nose Cone Cap -->
                 <path d="M32 2 C36.5 6.5 41 12 41 16.5 C36.5 17.8 27.5 17.8 23 16.5 C23 12 27.5 6.5 32 2 Z" fill="url(#nose-grad)"/>
 
                 <!-- Porthole Window Bezel & Lens -->
@@ -139,13 +139,11 @@
     </div>
 </div>
 
-<!-- Canvas Element for Thruster Particle Particles -->
+<!-- Canvas Element for Particle Trail Effects -->
 <canvas id="rocket-particle-canvas"></canvas>
 
 <style>
-    /* ------------------------------------------------------------------
-       1. GLOBAL CURSOR OVERRIDE & FIXED CONTAINERS
-       ------------------------------------------------------------------ */
+    /* 1. GLOBAL CURSOR OVERRIDE & FIXED CONTAINERS */
     html, body, a, button, input, select, textarea, [role="button"] {
         cursor: none !important;
     }
@@ -174,9 +172,7 @@
         transition: opacity 0.3s ease;
     }
 
-    /* ------------------------------------------------------------------
-       2. CENTER PLANET & ORBIT CORE
-       ------------------------------------------------------------------ */
+    /* 2. CENTER PLANET & ORBIT CORE */
     #rocket-center-core {
         position: absolute;
         top: 0;
@@ -269,7 +265,7 @@
         100% { transform: scale(7.5); opacity: 0; border-width: 1px; }
     }
 
-    /* Idle States */
+    /* Idle Animation States */
     #rocket-cursor-wrapper.idle-stage-1 .rocket-mini-planet { opacity: 0.35; transform: scale(0.6); }
     #rocket-cursor-wrapper.idle-stage-1 .rocket-shield-ring { opacity: 0.3; transform: scale(0.6) rotate(0deg); animation: shieldRotate 8s infinite linear; }
     #rocket-cursor-wrapper.idle-stage-1 .rocket-core-aura { opacity: 0.35; transform: scale(0.6); }
@@ -297,9 +293,7 @@
         100% { transform: scale(1.35); opacity: 0.95; }
     }
 
-    /* ------------------------------------------------------------------
-       3. ROCKET MAIN BODY & HOTSPOT CALIBRATION
-       ------------------------------------------------------------------ */
+    /* 3. ROCKET MAIN BODY & HOTSPOT CALIBRATION */
     #rocket-cursor-main {
         position: absolute;
         top: 0;
@@ -307,7 +301,7 @@
         width: 42px;
         height: 42px;
         margin-left: -21px;
-        margin-top: -1.31px; /* Calibrated origin alignment for nose tip Y:2 in 64x64 grid */
+        margin-top: -1.31px;
         pointer-events: none !important;
         transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
         transform-origin: 21px 1.31px !important;
@@ -320,14 +314,14 @@
         transition: filter 0.2s ease;
     }
 
-    /* Plasma Engine Flame Cone Base (Directly under Nozzle Bell) */
+    /* Plasma Engine Flame Cone Base */
     .rocket-flame-container {
         position: absolute;
-        top: 29.5px; /* Precision alignment directly at engine nozzle exit */
+        top: 29.5px;
         left: 50%;
         transform: translateX(-50%);
         width: 14px;
-        height: 15px; /* Compact & proportional length */
+        height: 15px;
         pointer-events: none;
         display: flex;
         justify-content: center;
@@ -407,12 +401,12 @@
         animation-duration: 0.08s;
     }
 
-    /* Click Active Down State */
+    /* Click Active State */
     #rocket-cursor-main.is-clicking {
         transform: scale(0.9) rotate(-10deg);
     }
 
-    /* Touchscreen Hide Fallback */
+    /* Touch Device Fallback */
     @media (hover: none) and (pointer: coarse) {
         #rocket-cursor-wrapper, #rocket-particle-canvas {
             display: none !important;
@@ -470,7 +464,7 @@
 
         window.addEventListener('resize', resizeCanvas);
 
-        // Calibrated Tip Offset (Origin Tip X: 32, Y: 2 in SVG 64x64) -> (X: 21px, Y: 1.31px)
+        // Calibrated Tip Offset
         var hotspot = { x: 21.0, y: 1.31 };
 
         function updateHotspotOffsets(hx, hy) {
@@ -609,10 +603,8 @@
             }
         }, { passive: true });
 
-        // Helper to calculate exact engine nozzle exit position based on current rocket angle
         function getEngineNozzlePos(centerX, centerY, currentAngleDeg) {
             var rad = (currentAngleDeg - 90) * (Math.PI / 180);
-            // Distance from rocket origin tip to engine nozzle base (~28px)
             var nozzleDist = 28;
             return {
                 x: centerX - Math.cos(rad) * nozzleDist,
@@ -775,7 +767,7 @@
                                 y: pos.y + Math.sin(orbRad) * orbDist,
                                 vx: -Math.sin(orbRad) * (Math.random() * 0.6 + 0.1),
                                 vy: Math.cos(orbRad) * (Math.random() * 0.6 + 0.1),
-                                size: Math.random() * 2.5 + 2.5, // คงขนาดละอองฝุ่นดั้งเดิม (2.5 - 5.0px) ตามคำสั่งไม่ให้ลดขนาด
+                                size: Math.random() * 2.5 + 2.5, // คงขนาดละอองฝุ่นดั้งเดิม (2.5 - 5.0px)
                                 color: vibrantColors[Math.floor(Math.random() * vibrantColors.length)],
                                 alpha: 0,
                                 targetAlpha: Math.random() * 0.5 + 0.2,
@@ -812,4 +804,46 @@
                 }
 
                 ctx.clearRect(0, 0, width, height);
-<!-- ... existing code -->
+
+                for (var i = particles.length - 1; i >= 0; i--) {
+                    var p = particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+
+                    if (p.fadeIn && p.alpha < p.targetAlpha) {
+                        p.alpha += p.fadeIn;
+                    } else {
+                        p.alpha -= p.decay;
+                    }
+
+                    if (p.alpha <= 0) {
+                        particles.splice(i, 1);
+                        continue;
+                    }
+
+                    ctx.save();
+                    ctx.globalAlpha = Math.max(0, p.alpha);
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                lastPos.x = pos.x;
+                lastPos.y = pos.y;
+            }
+
+            requestAnimationFrame(render);
+        }
+
+        requestAnimationFrame(render);
+    }
+
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        initCursor();
+    } else {
+        document.addEventListener('DOMContentLoaded', initCursor);
+    }
+})();
+</script>
