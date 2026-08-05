@@ -20,8 +20,8 @@ $appVersion = "1.0.0 (Build 2026.07)";
             <i class="bi bi-arrow-up fs-5 ft-text-main"></i>
         </button>
 
-        <!-- Ask AI Shortcut -->
-        <a class="btn text-white rounded-pill shadow-lg px-4 py-2 d-flex align-items-center gap-2 fw-bold ajax-link text-decoration-none" style="background: linear-gradient(135deg, #4F46E5, #6366F1); border: none;" href="ai-chat.php">
+        <!-- Ask AI Shortcut (แก้ไขลิงก์ชี้เข้าโฟลเดอร์ ai/ เรียบร้อยแล้ว) -->
+        <a class="btn text-white rounded-pill shadow-lg px-4 py-2 d-flex align-items-center gap-2 fw-bold ajax-link text-decoration-none" style="background: linear-gradient(135deg, #4F46E5, #6366F1); border: none;" href="<?= $ROOT_PATH ?? '' ?>ai/ai-chat.php">
             <i class="bi bi-robot fs-5"></i> Ask AI
         </a>
     </div>
@@ -73,7 +73,7 @@ $appVersion = "1.0.0 (Build 2026.07)";
             <div class="row g-4 mb-5">
                 <!-- Brand & Newsletter -->
                 <div class="col-lg-3 pe-lg-4">
-                    <a class="navbar-brand d-flex align-items-center gap-2 text-decoration-none mb-3 ajax-link" href="index.php">
+                    <a class="navbar-brand d-flex align-items-center gap-2 text-decoration-none mb-3 ajax-link" href="<?= $ROOT_PATH ?? '' ?>index.php">
                         <div class="lu-logo-icon fs-5 text-info"><i class="bi bi-rocket-takeoff-fill"></i></div>
                         <span class="fw-bold fs-4 ft-text-main" style="font-family: 'Outfit', sans-serif;">LevelUp</span>
                     </a>
@@ -86,29 +86,27 @@ $appVersion = "1.0.0 (Build 2026.07)";
                         <input type="email" name="email" class="form-control ft-card-theme ft-text-main shadow-none placeholder-glow-custom" style="border-radius: 12px; padding: 10px 16px; font-size: 0.9rem;" placeholder="Enter your email" required>
                         <button type="submit" class="btn text-white rounded-3 px-4 fw-bold" style="background: linear-gradient(135deg, #4F46E5, #6366F1); border: none; border-radius: 12px !important; font-size: 0.9rem; white-space: nowrap;" id="btnNewsletter">Subscribe</button>
                     </form>
-
-                    <!-- ❌ ปุ่ม App Store และ Google Play ถูกลบออกเรียบร้อยแล้ว -->
                 </div>
 
                 <!-- Link Columns -->
                 <div class="col-6 col-md-3 col-lg-2">
                     <h6 class="ft-text-main fs-sm fw-bold text-uppercase tracking-wide mb-4" style="font-family: 'Outfit', sans-serif;">Platform</h6>
                     <ul class="list-unstyled d-flex flex-column gap-2 fs-sm">
-                        <li><a href="index.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Home</a></li>
-                        <li><a href="courses.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Quests</a></li>
-                        <li><a href="learning-path.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Roadmaps</a></li>
-                        <li><a href="coding-lab.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Coding Lab</a></li>
-                        <li><a href="virtual-lab.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Virtual Lab</a></li>
-                        <li><a href="ai-chat.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">AI Tutor</a></li>
+                        <li><a href="<?= $ROOT_PATH ?? '' ?>index.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Home</a></li>
+                        <li><a href="<?= $ROOT_PATH ?? '' ?>student/courses.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Quests</a></li>
+                        <li><a href="<?= $ROOT_PATH ?? '' ?>student/learning-path.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Roadmaps</a></li>
+                        <li><a href="<?= $ROOT_PATH ?? '' ?>student/coding-lab.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Coding Lab</a></li>
+                        <li><a href="<?= $ROOT_PATH ?? '' ?>student/virtual-lab.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Virtual Lab</a></li>
+                        <li><a href="<?= $ROOT_PATH ?? '' ?>ai/ai-chat.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">AI Tutor</a></li>
                     </ul>
                 </div>
 
                 <div class="col-6 col-md-3 col-lg-2">
                     <h6 class="ft-text-main fs-sm fw-bold text-uppercase tracking-wide mb-4" style="font-family: 'Outfit', sans-serif;">Categories</h6>
                     <ul class="list-unstyled d-flex flex-column gap-2 fs-sm">
-                        <li><a href="courses.php?category=Programming" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Programming</a></li>
-                        <li><a href="courses.php?category=Web+Dev" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Web Development</a></li>
-                        <li><a href="courses.php?category=AI" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">AI & Machine Learning</a></li>
+                        <li><a href="<?= $ROOT_PATH ?? '' ?>student/courses.php?category=Programming" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Programming</a></li>
+                        <li><a href="<?= $ROOT_PATH ?? '' ?>student/courses.php?category=Web+Dev" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Web Development</a></li>
+                        <li><a href="<?= $ROOT_PATH ?? '' ?>student/courses.php?category=AI" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">AI & Machine Learning</a></li>
                         <li><a href="#" class="ft-text-muted text-decoration-none hover-text-primary">Data Science</a></li>
                         <li><a href="#" class="ft-text-muted text-decoration-none hover-text-primary">Cloud Computing</a></li>
                         <li><a href="#" class="ft-text-muted text-decoration-none hover-text-primary">Cybersecurity</a></li>
@@ -118,8 +116,8 @@ $appVersion = "1.0.0 (Build 2026.07)";
                 <div class="col-6 col-md-3 col-lg-2">
                     <h6 class="ft-text-main fs-sm fw-bold text-uppercase tracking-wide mb-4" style="font-family: 'Outfit', sans-serif;">Career Paths</h6>
                     <ul class="list-unstyled d-flex flex-column gap-2 fs-sm">
-                        <li><a href="learning-path.php?path=frontend" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Front-end Developer</a></li>
-                        <li><a href="learning-path.php?path=backend" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Back-end Developer</a></li>
+                        <li><a href="<?= $ROOT_PATH ?? '' ?>student/learning-path.php?path=frontend" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Front-end Developer</a></li>
+                        <li><a href="<?= $ROOT_PATH ?? '' ?>student/learning-path.php?path=backend" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Back-end Developer</a></li>
                         <li><a href="#" class="ft-text-muted text-decoration-none hover-text-primary">Data Scientist</a></li>
                         <li><a href="#" class="ft-text-muted text-decoration-none hover-text-primary">AI Engineer</a></li>
                         <li><a href="#" class="ft-text-muted text-decoration-none hover-text-primary">DevOps Engineer</a></li>
