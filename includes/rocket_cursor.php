@@ -51,10 +51,19 @@
        1. GLOBAL CURSOR RESET (Fixes default mouse returning on hover)
        ------------------------------------------------------------------ */
     *, *::before, *::after,
-    html, body, 
+    html, body, html *, body *,
     a, button, input, select, textarea, label, [role="button"],
     .btn, .glass-card, .accordion-button, .card, iframe, svg, img {
         cursor: none !important;
+    }
+
+    /* Force hide legacy or duplicate cursor elements */
+    #custom-cursor, .custom-cursor, #cursor, .cursor, .custom-mouse,
+    #mouse-pointer, [data-cursor], .cursor-follower, .mouse-cursor {
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
     }
 
     /* ------------------------------------------------------------------
@@ -73,6 +82,7 @@
         transform: translate3d(0, 0, 0);
         will-change: transform;
         display: block;
+        opacity: 0; /* Hidden until JS initializes to prevent static ghosting */
     }
 
     #rocket-particle-canvas {
@@ -207,8 +217,22 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         /* ------------------------------------------------------------------
-           1. DOM SETUP & DOM-TREE HOISTING (Ensures highest rendering z-index)
+           1. DOM SETUP & DUPLICATE CLEANUP (Prevents overlapping rockets)
            ------------------------------------------------------------------ */
+        // Auto-cleanup duplicate cursor elements if php included this file multiple times
+        var wrappers = document.querySelectorAll('#rocket-cursor-wrapper');
+        if (wrappers.length > 1) {
+            for (var i = 1; i < wrappers.length; i++) {
+                wrappers[i].parentNode.removeChild(wrappers[i]);
+            }
+        }
+        var canvases = document.querySelectorAll('#rocket-particle-canvas');
+        if (canvases.length > 1) {
+            for (var j = 1; j < canvases.length; j++) {
+                canvases[j].parentNode.removeChild(canvases[j]);
+            }
+        }
+
         var wrapper = document.getElementById('rocket-cursor-wrapper');
         var rocket = document.getElementById('rocket-cursor-main');
         var canvas = document.getElementById('rocket-particle-canvas');
@@ -218,6 +242,9 @@
         // Move cursor elements to absolute end of document body to break out of all parent stacking contexts
         document.body.appendChild(canvas);
         document.body.appendChild(wrapper);
+
+        // Show wrapper now that JS is ready and position is controlled
+        wrapper.style.opacity = '1';
 
         var ctx = canvas.getContext('2d');
         var width = canvas.width = window.innerWidth;
