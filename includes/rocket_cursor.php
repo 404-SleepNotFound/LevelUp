@@ -288,14 +288,14 @@
         position: absolute;
         top: 2.625px;
         left: 21px;
-        width: 9px;
-        height: 9px;
-        margin-top: -4.5px;
-        margin-left: -4.5px;
-        background: #38BDF8;
-        border: 1.5px solid #FFFFFF;
+        width: 12px;
+        height: 12px;
+        margin-top: -6px;
+        margin-left: -6px;
+        background: #EF4444;
+        border: 2px solid #FFFFFF;
         border-radius: 50%;
-        box-shadow: 0 0 12px #38BDF8, 0 0 20px rgba(56, 189, 248, 0.8);
+        box-shadow: 0 0 12px #EF4444, 0 0 24px #F59E0B;
         opacity: 0;
         pointer-events: none;
         transition: opacity 0.5s ease;
@@ -303,13 +303,23 @@
 
     #rocket-cursor-main.idle-stage-3 .rocket-mini-drone {
         opacity: 1;
-        animation: droneWideOrbit 3.2s infinite linear;
+        top: -58.7px;
+        left: -7.6px;
+        animation: droneRedPulse 0.35s infinite alternate ease-in-out;
     }
 
-    /* WIDER ORBIT RADIUS: Expanded to 80px orbit path around rocket tip hotspot */
-    @keyframes droneWideOrbit {
-        0% { transform: rotate(0deg) translate(80px) rotate(0deg); }
-        100% { transform: rotate(360deg) translate(80px) rotate(-360deg); }
+    /* RED ALERT BEACON: High-contrast flashing red beacon with evasive micro-jiggle */
+    @keyframes droneRedPulse {
+        0% {
+            background: #EF4444;
+            box-shadow: 0 0 10px #EF4444, 0 0 20px #EF4444;
+            transform: scale(0.85) translate(0, 0);
+        }
+        100% {
+            background: #FF0055;
+            box-shadow: 0 0 22px #FF0055, 0 0 35px #F59E0B, 0 0 45px #EF4444;
+            transform: scale(1.35) translate(2px, -2px);
+        }
     }
 
     #rocket-cursor-main.is-hovering .rocket-svg {
@@ -621,10 +631,10 @@
                         }
                     }
 
-                    // Stage 3 Motion (7s+ Continuous Loop): Circular Orbit Flight along circular path
+                    // Stage 3 Motion (7s+ Continuous Loop): Dogfight Chase Orbit along 80px Radius
                     if (idleStage === 3) {
-                        var orbitSpeed = idleTime * 1.6;
-                        var rocketRadius = 52; // Circular orbit radius around mouse hotspot
+                        var orbitSpeed = idleTime * 0.5; // Significantly slowed down orbital rotation speed
+                        var rocketRadius = 80; // Rocket flies at 80px radius matching drone chase path
 
                         idleOffsetX = Math.cos(orbitSpeed) * rocketRadius;
                         idleOffsetY = Math.sin(orbitSpeed) * rocketRadius;
@@ -637,25 +647,25 @@
                         targetAngle = Math.atan2(vy, vx) * (180 / Math.PI) + 90;
 
                         // Continuous thruster trail shooting backwards out of rocket engine along orbit arc
-                        if (Math.random() < 0.55) {
+                        if (Math.random() < 0.6) {
                             var orbTailX = (pos.x + idleOffsetX) - vx * 24;
                             var orbTailY = (pos.y + idleOffsetY) - vy * 24;
-                            createThrusterParticle(orbTailX, orbTailY, -vx * 1.2, -vy * 1.2, true);
+                            createThrusterParticle(orbTailX, orbTailY, -vx * 1.5, -vy * 1.5, true);
                         }
 
-                        // Spawn periodic wider orbital stardust trailing particles continuously
-                        if (Math.random() < 0.35) {
+                        // Spawn periodic stardust trailing particles along 80px orbit chase track
+                        if (Math.random() < 0.4) {
                             var orbRad = Math.random() * Math.PI * 2;
-                            var orbDist = 80 + Math.random() * 20; // Expanded wide orbit path
+                            var orbDist = 80 + (Math.random() - 0.5) * 16;
                             particles.push({
                                 x: pos.x + Math.cos(orbRad) * orbDist,
                                 y: pos.y + Math.sin(orbRad) * orbDist,
-                                vx: -Math.sin(orbRad) * 0.8,
-                                vy: Math.cos(orbRad) * 0.8,
-                                size: Math.random() * 3 + 1.5,
-                                color: Math.random() > 0.5 ? '#38BDF8' : '#EC4899',
-                                alpha: 0.85,
-                                decay: 0.018
+                                vx: -Math.sin(orbRad) * 0.5,
+                                vy: Math.cos(orbRad) * 0.5,
+                                size: Math.random() * 3.5 + 1.5,
+                                color: Math.random() > 0.4 ? '#EF4444' : (Math.random() > 0.5 ? '#38BDF8' : '#F59E0B'),
+                                alpha: 0.9,
+                                decay: 0.015
                             });
                         }
                     }
