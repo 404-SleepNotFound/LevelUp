@@ -401,9 +401,24 @@
         animation-duration: 0.08s;
     }
 
-    /* Click Active State */
+    /* Moving & Dragging Active State */
+    #rocket-cursor-main.is-moving .rocket-flame-core {
+        transform: scaleY(1.4) scaleX(1.15);
+        filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.95));
+    }
+
+    #rocket-cursor-main.is-moving .rocket-flame-glow {
+        transform: scale(1.3);
+    }
+
+    /* Click Active State & Flame Flare */
     #rocket-cursor-main.is-clicking {
-        transform: scale(0.9) rotate(-10deg);
+        transform: scale(0.85) rotate(-12deg);
+    }
+
+    #rocket-cursor-main.is-clicking .rocket-flame-core {
+        background: linear-gradient(180deg, #FFFFFF 0%, #38BDF8 30%, #6366F1 70%, rgba(239, 68, 68, 0) 100%);
+        transform: scaleY(1.8) scaleX(1.3);
     }
 
     /* Touch Device Fallback */
@@ -561,25 +576,25 @@
         function onMouseMove(e) {
             updateMousePosition(e.clientX, e.clientY);
         }
-
-        window.addEventListener('mousemove', onMouseMove, { passive: true });
-        window.addEventListener('pointermove', onMouseMove, { passive: true });
-
-        document.addEventListener('mouseleave', function() {
-            wrapper.style.opacity = '0';
-            canvas.style.opacity = '0';
-        });
-
-        document.addEventListener('mouseenter', function(e) {
+        window.addEventListener('mouseenter', function(e) {
             if (e.clientX && e.clientY) {
                 updateMousePosition(e.clientX, e.clientY);
             }
         });
 
+        /* Click Effect: Shockwave + Explosive Particle Sparks */
         window.addEventListener('mousedown', function() {
             rocket.classList.add('is-clicking');
+
+            // Trigger Shockwave Expansion Ring on Click
+            wrapper.classList.remove('trigger-shockwave');
+            void wrapper.offsetWidth;
+            wrapper.classList.add('trigger-shockwave');
+
             if (isInitialized) {
-                createBurstSparks(pos.x + currentIdleOffsetX, pos.y + currentIdleOffsetY, targetAngle, 16);
+                // Burst of sparks & shockwave particles on click
+                createBurstSparks(pos.x + currentIdleOffsetX, pos.y + currentIdleOffsetY, targetAngle, 28);
+                createGravitationalPulse(pos.x + currentIdleOffsetX, pos.y + currentIdleOffsetY);
             }
         });
 
@@ -631,16 +646,16 @@
             var nozzle = getEngineNozzlePos(centerX, centerY, currentAngleDeg);
             for (var i = 0; i < count; i++) {
                 var pAngle = Math.random() * Math.PI * 2;
-                var speed = Math.random() * 3.5 + 1.0;
+                var speed = Math.random() * 5.0 + 1.5;
                 particles.push({
                     x: nozzle.x,
                     y: nozzle.y,
                     vx: Math.cos(pAngle) * speed,
                     vy: Math.sin(pAngle) * speed,
-                    size: Math.random() * 2.5 + 1.0,
-                    color: i % 2 === 0 ? '#38BDF8' : '#FDE047',
+                    size: Math.random() * 3.2 + 1.2,
+                    color: i % 3 === 0 ? '#38BDF8' : (i % 3 === 1 ? '#FDE047' : '#FF3B5C'),
                     alpha: 1.0,
-                    decay: Math.random() * 0.05 + 0.03
+                    decay: Math.random() * 0.04 + 0.02
                 });
             }
         }
@@ -792,13 +807,21 @@
                 wrapper.style.transform = 'translate3d(' + pos.x.toFixed(2) + 'px, ' + pos.y.toFixed(2) + 'px, 0)';
                 rocket.style.transform = 'translate3d(' + currentIdleOffsetX.toFixed(2) + 'px, ' + currentIdleOffsetY.toFixed(2) + 'px, 0) rotate(' + renderAngle.toFixed(2) + 'deg) scale(' + clickScale + ')';
 
-                if (speed > 0.8 || isHovered) {
+                /* Mouse Drag / Movement Effect */
+                if (speed > 0.3 || isHovered) {
+                    rocket.classList.add('is-moving');
                     var mainNozzle = getEngineNozzlePos(pos.x + currentIdleOffsetX, pos.y + currentIdleOffsetY, renderAngle);
                     var rad = (renderAngle - 90) * (Math.PI / 180);
-                    var backVx = -Math.cos(rad) * (speed * 0.3 + 1);
-                    var backVy = -Math.sin(rad) * (speed * 0.3 + 1);
-
-                    createThrusterParticle(mainNozzle.x, mainNozzle.y, backVx, backVy, isHovered);
+                    
+                    // Generate particle trail proportional to drag/movement speed
+                    var spawnCount = Math.min(Math.ceil(speed * 0.7), 4);
+                    for (var pIdx = 0; pIdx < spawnCount; pIdx++) {
+                        var backVx = -Math.cos(rad) * (speed * 0.35 + 1.2) + (Math.random() - 0.5) * 1.5;
+                        var backVy = -Math.sin(rad) * (speed * 0.35 + 1.2) + (Math.random() - 0.5) * 1.5;
+                        createThrusterParticle(mainNozzle.x, mainNozzle.y, backVx, backVy, isHovered);
+                    }
+                } else {
+                    rocket.classList.remove('is-moving');
                 }
 
                 // Enforce max active particle buffer cap
