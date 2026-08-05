@@ -311,7 +311,7 @@
         margin-left: -21px;
         margin-top: -1.31px;
         pointer-events: none !important;
-        transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+        transition: filter 0.2s ease;
         transform-origin: 21px 1.31px !important;
     }
 
@@ -344,6 +344,7 @@
         border-radius: 50% 50% 40% 40% / 80% 80% 20% 20%;
         animation: rocketPlasmaBurn 0.08s infinite alternate ease-in-out;
         filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.9));
+        transition: transform 0.15s ease, background 0.2s ease, filter 0.2s ease;
     }
 
     .rocket-flame-glow {
@@ -355,6 +356,7 @@
         border-radius: 50% 50% 45% 45%;
         filter: blur(2px);
         animation: rocketPlasmaGlow 0.12s infinite alternate ease-in-out;
+        transition: transform 0.15s ease;
     }
 
     .rocket-flame-aura {
@@ -368,8 +370,8 @@
     }
 
     @keyframes rocketPlasmaBurn {
-        0% { transform: scaleY(0.8) scaleX(0.85); opacity: 0.9; }
-        100% { transform: scaleY(1.05) scaleX(1.05); opacity: 1; }
+        0% { transform: scaleY(0.85) scaleX(0.85); opacity: 0.9; }
+        100% { transform: scaleY(1.1) scaleX(1.05); opacity: 1; }
     }
 
     @keyframes rocketPlasmaGlow {
@@ -406,27 +408,28 @@
 
     #rocket-cursor-main.is-hovering .rocket-flame-core {
         background: linear-gradient(180deg, #38BDF8 0%, #6366F1 60%, rgba(99, 102, 241, 0) 100%);
-        animation-duration: 0.08s;
+        filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.95));
     }
 
     /* Moving & Dragging Active State */
     #rocket-cursor-main.is-moving .rocket-flame-core {
-        transform: scaleY(1.4) scaleX(1.15);
-        filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.95));
+        transform: scaleY(1.5) scaleX(1.2) !important;
+        filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.95));
     }
 
     #rocket-cursor-main.is-moving .rocket-flame-glow {
-        transform: scale(1.3);
+        transform: scale(1.4) !important;
     }
 
-    /* Click Active State & Flame Flare */
-    #rocket-cursor-main.is-clicking {
-        transform: scale(0.85) rotate(-12deg);
-    }
-
+    /* Click Active State & Extreme Plasma Flare */
     #rocket-cursor-main.is-clicking .rocket-flame-core {
-        background: linear-gradient(180deg, #FFFFFF 0%, #38BDF8 30%, #6366F1 70%, rgba(239, 68, 68, 0) 100%);
-        transform: scaleY(1.8) scaleX(1.3);
+        background: linear-gradient(180deg, #FFFFFF 0%, #38BDF8 30%, #6366F1 70%, rgba(239, 68, 68, 0) 100%) !important;
+        transform: scaleY(2.2) scaleX(1.4) !important;
+        filter: drop-shadow(0 0 16px rgba(56, 189, 248, 1)) !important;
+    }
+
+    #rocket-cursor-main.is-clicking .rocket-flame-glow {
+        transform: scale(1.8) !important;
     }
 
     /* Touch Device Fallback */
@@ -469,7 +472,6 @@
 
         if (!wrapper || !rocket || !canvas) return;
 
-        // Enable custom cursor CSS class safely once elements exist
         document.documentElement.classList.add('has-rocket-cursor');
 
         document.body.appendChild(canvas);
@@ -512,6 +514,11 @@
         var particles = [];
         var isHovered = false;
         var isInitialized = false;
+
+        // Smooth Click Recoil Dynamics State
+        var isClicking = false;
+        var clickScale = 1.0;
+        var clickAngleOffset = 0;
 
         var idleTime = 0;
         var stage2Time = 0;
@@ -589,7 +596,6 @@
             updateMousePosition(e.clientX, e.clientY);
         }
 
-        // Global Mouse Events with Capture Phase to prevent cursor drops
         window.addEventListener('mousemove', onMouseMove, { capture: true, passive: true });
 
         document.addEventListener('mouseenter', function(e) {
@@ -605,23 +611,22 @@
             if (canvas) canvas.style.opacity = '0';
         });
 
-        /* Click Effect: Shockwave + Explosive Particle Sparks */
         window.addEventListener('mousedown', function() {
+            isClicking = true;
             rocket.classList.add('is-clicking');
 
-            // Trigger Shockwave Expansion Ring on Click
             wrapper.classList.remove('trigger-shockwave');
             void wrapper.offsetWidth;
             wrapper.classList.add('trigger-shockwave');
 
             if (isInitialized) {
-                // Burst of sparks & shockwave particles on click
-                createBurstSparks(pos.x + currentIdleOffsetX, pos.y + currentIdleOffsetY, targetAngle, 28);
+                createBurstSparks(pos.x + currentIdleOffsetX, pos.y + currentIdleOffsetY, targetAngle, 32);
                 createGravitationalPulse(pos.x + currentIdleOffsetX, pos.y + currentIdleOffsetY);
             }
         });
 
         window.addEventListener('mouseup', function() {
+            isClicking = false;
             rocket.classList.remove('is-clicking');
         });
 
@@ -654,14 +659,14 @@
             particles.push({
                 x: x,
                 y: y,
-                vx: vx + (Math.random() - 0.5) * 1.2,
-                vy: vy + (Math.random() - 0.5) * 1.2,
-                size: isHoveredState ? Math.random() * 2.5 + 1.2 : Math.random() * 2.0 + 1.0,
+                vx: vx + (Math.random() - 0.5) * 1.5,
+                vy: vy + (Math.random() - 0.5) * 1.5,
+                size: isHoveredState ? Math.random() * 2.8 + 1.4 : Math.random() * 2.2 + 1.0,
                 color: isHoveredState ? 
                     (Math.random() > 0.4 ? '#38BDF8' : '#6366F1') : 
                     (Math.random() > 0.5 ? '#F59E0B' : '#EF4444'),
-                alpha: 0.9,
-                decay: Math.random() * 0.04 + 0.025
+                alpha: 0.95,
+                decay: Math.random() * 0.035 + 0.02
             });
         }
 
@@ -669,16 +674,16 @@
             var nozzle = getEngineNozzlePos(centerX, centerY, currentAngleDeg);
             for (var i = 0; i < count; i++) {
                 var pAngle = Math.random() * Math.PI * 2;
-                var speed = Math.random() * 5.0 + 1.5;
+                var speed = Math.random() * 6.5 + 2.0;
                 particles.push({
                     x: nozzle.x,
                     y: nozzle.y,
                     vx: Math.cos(pAngle) * speed,
                     vy: Math.sin(pAngle) * speed,
-                    size: Math.random() * 3.2 + 1.2,
+                    size: Math.random() * 3.5 + 1.2,
                     color: i % 3 === 0 ? '#38BDF8' : (i % 3 === 1 ? '#FDE047' : '#FF3B5C'),
                     alpha: 1.0,
-                    decay: Math.random() * 0.04 + 0.02
+                    decay: Math.random() * 0.035 + 0.018
                 });
             }
         }
@@ -701,18 +706,18 @@
         }
 
         function createGravitationalPulse(x, y) {
-            for (var i = 0; i < 18; i++) {
-                var pAngle = (i / 18) * Math.PI * 2;
-                var speed = Math.random() * 2.2 + 1.0;
+            for (var i = 0; i < 20; i++) {
+                var pAngle = (i / 20) * Math.PI * 2;
+                var speed = Math.random() * 2.5 + 1.2;
                 particles.push({
                     x: x,
                     y: y,
                     vx: Math.cos(pAngle) * speed,
                     vy: Math.sin(pAngle) * speed,
-                    size: Math.random() * 2.0 + 0.8,
+                    size: Math.random() * 2.2 + 0.8,
                     color: i % 2 === 0 ? '#38BDF8' : '#A855F7',
-                    alpha: 0.8,
-                    decay: 0.03
+                    alpha: 0.85,
+                    decay: 0.028
                 });
             }
         }
@@ -810,7 +815,7 @@
                                 size: Math.random() * 3.2 + 2.0,
                                 color: vibrantColors[Math.floor(Math.random() * vibrantColors.length)],
                                 alpha: 0,
-                                targetAlpha: Math.random() * 0.3 + 0.25, // Natural ambient glow opacity (0.25 - 0.55)
+                                targetAlpha: Math.random() * 0.3 + 0.25,
                                 fadeIn: Math.random() * 0.05 + 0.03,
                                 decay: Math.random() * 0.018 + 0.008
                             });
@@ -829,13 +834,16 @@
                 currentIdleOffsetX += (targetIdleX - currentIdleOffsetX) * idleLerp;
                 currentIdleOffsetY += (targetIdleY - currentIdleOffsetY) * idleLerp;
 
-                var isClicking = rocket.classList.contains('is-clicking');
-                var clickScale = isClicking ? 0.88 : 1.0;
-                var clickAngleOffset = isClicking ? -10 : 0;
+                // Smoothly lerp click scale & recoil tilt offset
+                var targetClickScale = isClicking ? 0.82 : 1.0;
+                var targetClickAngleOffset = isClicking ? -12.0 : 0.0;
+                clickScale += (targetClickScale - clickScale) * 0.35;
+                clickAngleOffset += (targetClickAngleOffset - clickAngleOffset) * 0.35;
+
                 var renderAngle = angle + idleSway + clickAngleOffset;
 
                 wrapper.style.transform = 'translate3d(' + pos.x.toFixed(2) + 'px, ' + pos.y.toFixed(2) + 'px, 0)';
-                rocket.style.transform = 'translate3d(' + currentIdleOffsetX.toFixed(2) + 'px, ' + currentIdleOffsetY.toFixed(2) + 'px, 0) rotate(' + renderAngle.toFixed(2) + 'deg) scale(' + clickScale + ')';
+                rocket.style.transform = 'translate3d(' + currentIdleOffsetX.toFixed(2) + 'px, ' + currentIdleOffsetY.toFixed(2) + 'px, 0) rotate(' + renderAngle.toFixed(2) + 'deg) scale(' + clickScale.toFixed(3) + ')';
 
                 /* Mouse Drag / Movement Effect */
                 if (speed > 0.3 || isHovered) {
@@ -844,18 +852,17 @@
                     var rad = (renderAngle - 90) * (Math.PI / 180);
                     
                     // Generate particle trail proportional to drag/movement speed
-                    var spawnCount = Math.min(Math.ceil(speed * 0.7), 4);
+                    var spawnCount = Math.min(Math.ceil(speed * 0.8), 5);
                     for (var pIdx = 0; pIdx < spawnCount; pIdx++) {
-                        var backVx = -Math.cos(rad) * (speed * 0.35 + 1.2) + (Math.random() - 0.5) * 1.5;
-                        var backVy = -Math.sin(rad) * (speed * 0.35 + 1.2) + (Math.random() - 0.5) * 1.5;
+                        var backVx = -Math.cos(rad) * (speed * 0.4 + 1.4) + (Math.random() - 0.5) * 1.8;
+                        var backVy = -Math.sin(rad) * (speed * 0.4 + 1.4) + (Math.random() - 0.5) * 1.8;
                         createThrusterParticle(mainNozzle.x, mainNozzle.y, backVx, backVy, isHovered);
                     }
                 } else {
                     rocket.classList.remove('is-moving');
                 }
 
-                // Enforce max active particle buffer cap
-                while (particles.length > 100) {
+                while (particles.length > 120) {
                     particles.shift();
                 }
 
@@ -880,7 +887,6 @@
                     ctx.save();
                     ctx.globalAlpha = Math.max(0, p.alpha);
                     
-                    // Soft Radial Glow Particle Rendering (Eliminates solid sticker dots in Light Mode)
                     var radGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
                     radGrad.addColorStop(0, p.color);
                     radGrad.addColorStop(0.5, p.color);
