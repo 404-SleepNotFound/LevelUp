@@ -621,19 +621,35 @@
                         }
                     }
 
-                    // Stage 3 Motion (7s+ Continuous Loop): Wide Space Orbit & Roll Spin
+                    // Stage 3 Motion (7s+ Continuous Loop): Circular Orbit Flight along circular path
                     if (idleStage === 3) {
-                        idleSway += idleTime * 40; // Continuous smooth roll loop indefinitely
-                        idleOffsetY += Math.sin(idleTime * 1.5) * 10;
-                        idleOffsetX += Math.cos(idleTime * 1.2) * 8;
+                        var orbitSpeed = idleTime * 1.6;
+                        var rocketRadius = 52; // Circular orbit radius around mouse hotspot
+
+                        idleOffsetX = Math.cos(orbitSpeed) * rocketRadius;
+                        idleOffsetY = Math.sin(orbitSpeed) * rocketRadius;
+
+                        // Tangent flight vector so rocket nose points forward along circular path
+                        var vx = -Math.sin(orbitSpeed);
+                        var vy = Math.cos(orbitSpeed);
+
+                        // Direct angle along orbital movement direction
+                        targetAngle = Math.atan2(vy, vx) * (180 / Math.PI) + 90;
+
+                        // Continuous thruster trail shooting backwards out of rocket engine along orbit arc
+                        if (Math.random() < 0.55) {
+                            var orbTailX = (pos.x + idleOffsetX) - vx * 24;
+                            var orbTailY = (pos.y + idleOffsetY) - vy * 24;
+                            createThrusterParticle(orbTailX, orbTailY, -vx * 1.2, -vy * 1.2, true);
+                        }
 
                         // Spawn periodic wider orbital stardust trailing particles continuously
                         if (Math.random() < 0.35) {
                             var orbRad = Math.random() * Math.PI * 2;
-                            var orbDist = 75 + Math.random() * 20; // Expanded wide orbit path
+                            var orbDist = 80 + Math.random() * 20; // Expanded wide orbit path
                             particles.push({
                                 x: pos.x + Math.cos(orbRad) * orbDist,
-                                y: pos.x ? pos.y + Math.sin(orbRad) * orbDist : pos.y,
+                                y: pos.y + Math.sin(orbRad) * orbDist,
                                 vx: -Math.sin(orbRad) * 0.8,
                                 vy: Math.cos(orbRad) * 0.8,
                                 size: Math.random() * 3 + 1.5,
