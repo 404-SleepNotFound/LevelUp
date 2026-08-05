@@ -1,13 +1,13 @@
 <?php
 /**
- * LevelUp Rocket Cursor Component v3.0 (No-Canvas Lightweight Version)
- * Fixes F5 Refresh Warp Issue & Removes Canvas overhead.
+ * LevelUp Rocket Cursor Component v3.5 (Ultimate Version)
+ * Fixes F5 Refresh Warp Issue & Includes Particle Thrusters + Click Spark Burst.
  * Usage in PHP: <?php include 'rocket-cursor.php'; ?>
  */
 ?>
 <div id="rocket-cursor-wrapper" aria-hidden="true">
     <div id="rocket-cursor-main">
-        <!-- Pure CSS Engine Flame Effect -->
+        <!-- Pure CSS Engine Flame Effect Base -->
         <div class="rocket-flame-container">
             <div class="rocket-flame-core"></div>
             <div class="rocket-flame-glow"></div>
@@ -42,6 +42,9 @@
         <div class="rocket-target-ring"></div>
     </div>
 </div>
+
+<!-- Canvas for Engine Smoke & Spark Particles -->
+<canvas id="rocket-particle-canvas"></canvas>
 
 <style>
     /* ------------------------------------------------------------------
@@ -82,6 +85,18 @@
         transition: opacity 0.25s ease;
     }
 
+    #rocket-particle-canvas {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        pointer-events: none !important;
+        z-index: 2147483646 !important; /* Just below main rocket */
+        opacity: 0;
+        transition: opacity 0.25s ease;
+    }
+
     /* ------------------------------------------------------------------
        3. ROCKET ANIMATION & VISUAL STYLING
        ------------------------------------------------------------------ */
@@ -105,7 +120,7 @@
         transition: filter 0.2s ease;
     }
 
-    /* Engine Flame Effect (Pure CSS Animations) */
+    /* Engine Flame Effect (Pure CSS Animations Base) */
     .rocket-flame-container {
         position: absolute;
         bottom: -8px;
@@ -190,7 +205,7 @@
 
     /* Hide custom cursor on touchscreens */
     @media (hover: none) and (pointer: coarse) {
-        #rocket-cursor-wrapper {
+        #rocket-cursor-wrapper, #rocket-particle-canvas {
             display: none !important;
         }
         *, *::before, *::after, html, body, a, button, input {
@@ -216,20 +231,38 @@
                 wrappers[i].parentNode.removeChild(wrappers[i]);
             }
         }
+        var canvases = document.querySelectorAll('#rocket-particle-canvas');
+        if (canvases.length > 1) {
+            for (var j = 1; j < canvases.length; j++) {
+                canvases[j].parentNode.removeChild(canvases[j]);
+            }
+        }
 
         var wrapper = document.getElementById('rocket-cursor-wrapper');
         var rocket = document.getElementById('rocket-cursor-main');
+        var canvas = document.getElementById('rocket-particle-canvas');
 
-        if (!wrapper || !rocket) return;
+        if (!wrapper || !rocket || !canvas) return;
 
         // Move cursor elements to end of document body to guarantee stacking context
+        document.body.appendChild(canvas);
         document.body.appendChild(wrapper);
+
+        var ctx = canvas.getContext('2d');
+        var width = canvas.width = window.innerWidth;
+        var height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', function() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
 
         var mouse = { x: 0, y: 0 };
         var pos = { x: 0, y: 0 };
         var lastPos = { x: 0, y: 0 };
         var angle = 0;
         var targetAngle = 0;
+        var particles = [];
         var isHovered = false;
         var isInitialized = false; // Flag to fix F5 refresh warp jump
 
@@ -244,10 +277,16 @@
                 lastPos.x = mouse.x;
                 lastPos.y = mouse.y;
                 
-                // Set CSS transform instantly before revealing wrapper
+                // Set CSS transform instantly before revealing elements
                 wrapper.style.transform = 'translate3d(' + pos.x + 'px, ' + pos.y + 'px, 0)';
                 wrapper.style.opacity = '1';
+                canvas.style.opacity = '1';
                 isInitialized = true;
+            } else {
+                if (wrapper.style.opacity === '0') {
+                    wrapper.style.opacity = '1';
+                    canvas.style.opacity = '1';
+                }
             }
         }
 
@@ -255,16 +294,21 @@
 
         document.addEventListener('mouseleave', function() {
             wrapper.style.opacity = '0';
+            canvas.style.opacity = '0';
         });
 
         document.addEventListener('mouseenter', function() {
             if (isInitialized) {
                 wrapper.style.opacity = '1';
+                canvas.style.opacity = '1';
             }
         });
 
         window.addEventListener('mousedown', function() {
             rocket.classList.add('is-clicking');
+            if (isInitialized) {
+                createBurstSparks(pos.x, pos.y, 16);
+            }
         });
 
         window.addEventListener('mouseup', function() {
@@ -287,6 +331,44 @@
             }
         }, { passive: true });
 
+        /* ------------------------------------------------------------------
+           PARTICLE ENGINE (Smoke, Fire Thrusters & Click Sparks)
+           ------------------------------------------------------------------ */
+        function createThrusterParticle(x, y, vx, vy, isHoveredState) {
+            particles.push({
+                x: x,
+                y: y,
+                vx: vx + (Math.random() - 0.5) * 1.5,
+                vy: vy + (Math.random() - 0.5) * 1.5,
+                size: isHoveredState ? Math.random() * 5 + 3 : Math.random() * 4 + 2,
+                color: isHoveredState ? 
+                    (Math.random() > 0.4 ? '#38BDF8' : '#6366F1') : 
+                    (Math.random() > 0.5 ? '#F59E0B' : '#EF4444'),
+                alpha: 1,
+                decay: Math.random() * 0.04 + 0.02
+            });
+        }
+
+        function createBurstSparks(x, y, count) {
+            for (var i = 0; i < count; i++) {
+                var pAngle = Math.random() * Math.PI * 2;
+                var speed = Math.random() * 5 + 2;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(pAngle) * speed,
+                    vy: Math.sin(pAngle) * speed,
+                    size: Math.random() * 4 + 2,
+                    color: '#10B981',
+                    alpha: 1,
+                    decay: 0.03
+                });
+            }
+        }
+
+        /* ------------------------------------------------------------------
+           MAIN ANIMATION LOOP (LERP & Rotation)
+           ------------------------------------------------------------------ */
         function render() {
             if (isInitialized) {
                 // Linear Interpolation (Smooth Rocket Follow)
@@ -312,6 +394,39 @@
                 // Update transforms
                 wrapper.style.transform = 'translate3d(' + pos.x.toFixed(2) + 'px, ' + pos.y.toFixed(2) + 'px, 0)';
                 rocket.style.transform = 'rotate(' + angle.toFixed(2) + 'deg)';
+
+                // Spawn Thruster Flame Particles when moving or hovering
+                if (speed > 0.8 || isHovered) {
+                    var rad = (angle - 90) * (Math.PI / 180);
+                    var tailX = pos.x - Math.cos(rad) * 22;
+                    var tailY = pos.y - Math.sin(rad) * 22;
+                    var backVx = -Math.cos(rad) * (speed * 0.3 + 1);
+                    var backVy = -Math.sin(rad) * (speed * 0.3 + 1);
+
+                    createThrusterParticle(tailX, tailY, backVx, backVy, isHovered);
+                }
+
+                // Draw Particles on Canvas
+                ctx.clearRect(0, 0, width, height);
+                for (var i = particles.length - 1; i >= 0; i--) {
+                    var p = particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.alpha -= p.decay;
+
+                    if (p.alpha <= 0) {
+                        particles.splice(i, 1);
+                        continue;
+                    }
+
+                    ctx.save();
+                    ctx.globalAlpha = p.alpha;
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
 
                 lastPos.x = pos.x;
                 lastPos.y = pos.y;
