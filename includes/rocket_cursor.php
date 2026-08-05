@@ -27,7 +27,16 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
     #levelup-rocket-cursor {
         transition: opacity 0.15s ease-out;
     }
-    
+
+    /* 🖱️ บังคับให้ช่องกรอกข้อมูลมีเคอร์เซอร์ I-beam ที่มองเห็นได้เสมอ
+       เพราะเว็บนี้มักตั้ง cursor: none ไว้ที่ระดับ global อยู่แล้ว (ต้นเหตุที่ต้องมีจรวดคัสตอมนี้)
+       ถ้าปล่อยให้กลับไปใช้ "native" เฉยๆ มันจะไปเจอ cursor:none ของเว็บเดิมซ้ำ เลยหายไปทั้งคู่ */
+    html body input:not([type="button"]):not([type="submit"]):not([type="checkbox"]):not([type="radio"]):not([type="reset"]),
+    html body textarea,
+    html body [contenteditable="true"] {
+        cursor: text !important;
+    }
+
     /* เรืองแสงเมื่อ Hover ปุ่ม */
     #levelup-rocket-cursor.is-hovering {
         filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.9)) !important;
