@@ -15,14 +15,14 @@
             <svg viewBox="0 0 40 40" class="planet-svg" xmlns="http://www.w3.org/2000/svg">
                 <defs>
                     <radialGradient id="mini-planet-grad" cx="35%" cy="30%" r="65%">
-                        <stop offset="0%" stop-color="#38BDF8"/>
-                        <stop offset="50%" stop-color="#6366F1"/>
-                        <stop offset="100%" stop-color="#312E81"/>
+                        <stop offset="0%" stop-color="#00F0FF"/>
+                        <stop offset="50%" stop-color="#8B5CF6"/>
+                        <stop offset="100%" stop-color="#1E1B4B"/>
                     </radialGradient>
                     <linearGradient id="ring-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#0284C7" stop-opacity="1"/>
-                        <stop offset="50%" stop-color="#8B5CF6" stop-opacity="0.95"/>
-                        <stop offset="100%" stop-color="#EC4899" stop-opacity="0.9"/>
+                        <stop offset="0%" stop-color="#00F0FF" stop-opacity="1"/>
+                        <stop offset="50%" stop-color="#A855F7" stop-opacity="0.95"/>
+                        <stop offset="100%" stop-color="#FF007F" stop-opacity="0.95"/>
                     </linearGradient>
                 </defs>
                 <!-- Planet Back Orbit Ring -->
@@ -30,7 +30,7 @@
                 <!-- Planet Sphere Body -->
                 <circle cx="20" cy="20" r="8.5" fill="url(#mini-planet-grad)"/>
                 <!-- Planet Highlight Arc -->
-                <path d="M 14 17 A 6.5 6.5 0 0 1 23 14" fill="none" stroke="#FFFFFF" stroke-width="1" opacity="0.6"/>
+                <path d="M 14 17 A 6.5 6.5 0 0 1 23 14" fill="none" stroke="#FFFFFF" stroke-width="1" opacity="0.8"/>
                 <!-- Planet Front Orbit Ring -->
                 <path d="M 4 20 A 17 5 0 0 0 36 20" fill="none" stroke="url(#ring-grad)" stroke-width="2" transform="rotate(-22 20 20)"/>
             </svg>
@@ -54,9 +54,9 @@
                 <!-- Sleek Fuselage Metallic Gradient -->
                 <linearGradient id="fuselage-grad" x1="16" y1="2" x2="48" y2="44" gradientUnits="userSpaceOnUse">
                     <stop offset="0%" stop-color="#FFFFFF"/>
-                    <stop offset="40%" stop-color="#F8FAFC"/>
+                    <stop offset="40%" stop-color="#F1F5F9"/>
                     <stop offset="80%" stop-color="#E2E8F0"/>
-                    <stop offset="100%" stop-color="#CBD5E1"/>
+                    <stop offset="100%" stop-color="#94A3B8"/>
                 </linearGradient>
 
                 <!-- 3D Curved Body Shadow -->
@@ -66,28 +66,28 @@
                     <stop offset="100%" stop-color="#0F172A" stop-opacity="0.45"/>
                 </linearGradient>
 
-                <!-- Red Nose Cone Gradient -->
+                <!-- Ultra Vibrant Red Nose Cone Gradient -->
                 <linearGradient id="nose-grad" x1="32" y1="2" x2="32" y2="18" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stop-color="#FF3B5C"/>
-                    <stop offset="60%" stop-color="#EF4444"/>
-                    <stop offset="100%" stop-color="#B91C1C"/>
+                    <stop offset="0%" stop-color="#FF0055"/>
+                    <stop offset="60%" stop-color="#FF2A00"/>
+                    <stop offset="100%" stop-color="#D90038"/>
                 </linearGradient>
 
-                <!-- Left Fin Gradient -->
+                <!-- Neon Left Fin Gradient -->
                 <linearGradient id="fin-left-grad" x1="8" y1="26" x2="21" y2="44" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stop-color="#38BDF8"/>
-                    <stop offset="100%" stop-color="#1D4ED8"/>
+                    <stop offset="0%" stop-color="#00F0FF"/>
+                    <stop offset="100%" stop-color="#3B82F6"/>
                 </linearGradient>
 
-                <!-- Right Fin Gradient -->
+                <!-- Neon Right Fin Gradient -->
                 <linearGradient id="fin-right-grad" x1="56" y1="26" x2="43" y2="44" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stop-color="#0284C7"/>
-                    <stop offset="100%" stop-color="#1E3A8A"/>
+                    <stop offset="0%" stop-color="#00D2FF"/>
+                    <stop offset="100%" stop-color="#1D4ED8"/>
                 </linearGradient>
 
                 <!-- Glass Porthole Lens Gradient -->
                 <radialGradient id="glass-grad" cx="30" cy="22" r="6" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stop-color="#38BDF8"/>
+                    <stop offset="0%" stop-color="#00F0FF"/>
                     <stop offset="70%" stop-color="#0284C7"/>
                     <stop offset="100%" stop-color="#0369A1"/>
                 </radialGradient>
@@ -202,7 +202,59 @@
         pointer-events: none;
         transform: scale(0.3);
         transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1), transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-        filter: drop-shadow(0 4px 12px rgba(56, 189, 248, 0.5)) drop-shadow(0 2px 6px rgba(99, 102, 241, 0.4));
+        filter: drop-shadow(0 0 14px rgba(0, 240, 255, 0.85)) drop-shadow(0 0 24px rgba(168, 85, 247, 0.7));
+    }
+
+    .rocket-shield-ring {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 64px;
+        height: 64px;
+        margin-top: -32px;
+        margin-left: -32px;
+        border: 1.5px solid rgba(168, 85, 247, 0.9);
+        border-top: 2px solid rgba(0, 240, 255, 1);
+        border-bottom: 2px solid rgba(255, 0, 127, 1);
+        border-radius: 50%;
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(0.5) rotate(0deg);
+        transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+        box-shadow: 0 0 18px rgba(0, 240, 255, 0.65), inset 0 0 12px rgba(168, 85, 247, 0.4);
+    }
+
+    .rocket-core-aura {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 60px;
+        height: 60px;
+        margin-top: -30px;
+        margin-left: -30px;
+        background: radial-gradient(circle, rgba(0, 240, 255, 0.5) 0%, rgba(168, 85, 247, 0.35) 45%, rgba(255, 0, 127, 0) 70%);
+        border-radius: 50%;
+        filter: blur(4px);
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(0.5);
+        transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+    }
+
+    .rocket-shockwave-ring {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 20px;
+        height: 20px;
+        margin-top: -10px;
+        margin-left: -10px;
+        border: 2px solid rgba(0, 240, 255, 1);
+        border-radius: 50%;
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(0.2);
+        box-shadow: 0 0 20px rgba(0, 240, 255, 1), 0 0 30px rgba(255, 0, 127, 0.8);
     }
 
     .planet-svg {
@@ -340,10 +392,10 @@
     .rocket-flame-core {
         width: 7px;
         height: 100%;
-        background: linear-gradient(180deg, #FFFFFF 0%, #FDE047 25%, #F97316 65%, rgba(239, 68, 68, 0) 100%);
+        background: linear-gradient(180deg, #FFFFFF 0%, #FFE600 25%, #FF5500 65%, rgba(255, 0, 85, 0) 100%);
         border-radius: 50% 50% 40% 40% / 80% 80% 20% 20%;
         animation: rocketPlasmaBurn 0.08s infinite alternate ease-in-out;
-        filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.9));
+        filter: drop-shadow(0 0 8px #FFE600) drop-shadow(0 0 16px #FF3300);
         transition: transform 0.15s ease, background 0.2s ease, filter 0.2s ease;
     }
 
@@ -352,7 +404,7 @@
         top: 0px;
         width: 11px;
         height: 12px;
-        background: linear-gradient(180deg, rgba(253, 224, 71, 0.95) 0%, rgba(249, 115, 22, 0.7) 65%, rgba(239, 68, 68, 0) 100%);
+        background: linear-gradient(180deg, rgba(255, 230, 0, 1) 0%, rgba(255, 85, 0, 0.85) 65%, rgba(255, 0, 85, 0) 100%);
         border-radius: 50% 50% 45% 45%;
         filter: blur(2px);
         animation: rocketPlasmaGlow 0.12s infinite alternate ease-in-out;
@@ -362,9 +414,9 @@
     .rocket-flame-aura {
         position: absolute;
         top: -2px;
-        width: 16px;
-        height: 16px;
-        background: radial-gradient(circle, rgba(249, 115, 22, 0.5) 0%, rgba(168, 85, 247, 0.2) 65%, transparent 100%);
+        width: 18px;
+        height: 18px;
+        background: radial-gradient(circle, rgba(255, 85, 0, 0.7) 0%, rgba(255, 0, 127, 0.4) 60%, transparent 100%);
         border-radius: 50%;
         filter: blur(3px);
     }
@@ -388,13 +440,44 @@
         height: 52px;
         margin-top: -26px;
         margin-left: -26px;
-        border: 1.5px dashed rgba(56, 189, 248, 0.85);
+        border: 2px dashed rgba(0, 240, 255, 0.95);
         border-radius: 50%;
         opacity: 0;
         transform: scale(0.6) rotate(0deg);
         transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
         pointer-events: none;
-        box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+        box-shadow: 0 0 14px rgba(0, 240, 255, 0.6);
+    }
+
+    #rocket-cursor-main.is-hovering .rocket-svg {
+        filter: drop-shadow(0px 0px 16px rgba(0, 240, 255, 0.95)) drop-shadow(0px 0px 28px rgba(168, 85, 247, 0.8));
+    }
+
+    #rocket-cursor-main.is-hovering .rocket-target-ring {
+        opacity: 1;
+        transform: scale(1.1) rotate(90deg);
+    }
+
+    #rocket-cursor-main.is-hovering .rocket-flame-core {
+        background: linear-gradient(180deg, #FFFFFF 0%, #00F0FF 40%, #8B5CF6 80%, rgba(139, 92, 246, 0) 100%);
+        filter: drop-shadow(0 0 12px rgba(0, 240, 255, 1));
+    }
+
+    /* Moving & Dragging Active State */
+    #rocket-cursor-main.is-moving .rocket-flame-core {
+        transform: scaleY(1.5) scaleX(1.2) !important;
+        filter: drop-shadow(0 0 16px rgba(0, 240, 255, 1)) drop-shadow(0 0 24px rgba(255, 0, 127, 0.8));
+    }
+
+    #rocket-cursor-main.is-moving .rocket-flame-glow {
+        transform: scale(1.4) !important;
+    }
+
+    /* Click Active State & Extreme Plasma Flare */
+    #rocket-cursor-main.is-clicking .rocket-flame-core {
+        background: linear-gradient(180deg, #FFFFFF 0%, #00F0FF 30%, #A855F7 70%, rgba(255, 0, 127, 0) 100%) !important;
+        transform: scaleY(2.2) scaleX(1.4) !important;
+        filter: drop-shadow(0 0 20px rgba(0, 240, 255, 1)) drop-shadow(0 0 32px rgba(255, 0, 127, 1)) !important;
     }
 
     #rocket-cursor-main.is-hovering .rocket-svg {
@@ -661,12 +744,12 @@
                 y: y,
                 vx: vx + (Math.random() - 0.5) * 1.5,
                 vy: vy + (Math.random() - 0.5) * 1.5,
-                size: isHoveredState ? Math.random() * 2.8 + 1.4 : Math.random() * 2.2 + 1.0,
+                size: isHoveredState ? Math.random() * 3.2 + 1.6 : Math.random() * 2.5 + 1.2,
                 color: isHoveredState ? 
-                    (Math.random() > 0.4 ? '#38BDF8' : '#6366F1') : 
-                    (Math.random() > 0.5 ? '#F59E0B' : '#EF4444'),
-                alpha: 0.95,
-                decay: Math.random() * 0.035 + 0.02
+                    (Math.random() > 0.4 ? '#00F0FF' : '#A855F7') : 
+                    (Math.random() > 0.5 ? '#FFE600' : '#FF0055'),
+                alpha: 1.0,
+                decay: Math.random() * 0.03 + 0.018
             });
         }
 
@@ -674,16 +757,50 @@
             var nozzle = getEngineNozzlePos(centerX, centerY, currentAngleDeg);
             for (var i = 0; i < count; i++) {
                 var pAngle = Math.random() * Math.PI * 2;
-                var speed = Math.random() * 6.5 + 2.0;
+                var speed = Math.random() * 7.5 + 2.5;
                 particles.push({
                     x: nozzle.x,
                     y: nozzle.y,
                     vx: Math.cos(pAngle) * speed,
                     vy: Math.sin(pAngle) * speed,
-                    size: Math.random() * 3.5 + 1.2,
-                    color: i % 3 === 0 ? '#38BDF8' : (i % 3 === 1 ? '#FDE047' : '#FF3B5C'),
+                    size: Math.random() * 4.0 + 1.5,
+                    color: i % 3 === 0 ? '#00F0FF' : (i % 3 === 1 ? '#FFE600' : '#FF0055'),
                     alpha: 1.0,
-                    decay: Math.random() * 0.035 + 0.018
+                    decay: Math.random() * 0.03 + 0.015
+                });
+            }
+        }
+
+        function createRadarScanPulse(px, py, angleDeg) {
+            var nozzle = getEngineNozzlePos(px, py, angleDeg);
+            var rad = (angleDeg + 90 + (Math.random() - 0.5) * 60) * (Math.PI / 180);
+            var speed = Math.random() * 1.5 + 0.5;
+            
+            particles.push({
+                x: nozzle.x + Math.cos(rad) * 4,
+                y: nozzle.y + Math.sin(rad) * 4,
+                vx: Math.cos(rad) * speed,
+                vy: Math.sin(rad) * speed,
+                size: Math.random() * 2.2 + 1.0,
+                color: Math.random() > 0.4 ? '#00F0FF' : '#A855F7',
+                alpha: 0.85,
+                decay: 0.03
+            });
+        }
+
+        function createGravitationalPulse(x, y) {
+            for (var i = 0; i < 24; i++) {
+                var pAngle = (i / 24) * Math.PI * 2;
+                var speed = Math.random() * 3.0 + 1.5;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(pAngle) * speed,
+                    vy: Math.sin(pAngle) * speed,
+                    size: Math.random() * 2.8 + 1.0,
+                    color: i % 2 === 0 ? '#00F0FF' : '#FF007F',
+                    alpha: 1.0,
+                    decay: 0.025
                 });
             }
         }
@@ -799,12 +916,12 @@
                             var orbRad = Math.random() * Math.PI * 2;
                             var orbDist = currentRadius + (Math.random() - 0.5) * 12;
                             var vibrantColors = [
-                                '#38BDF8', // Cyan / Electric Sky
-                                '#6366F1', // Indigo Glow
-                                '#8B5CF6', // Vivid Violet
-                                '#C084FC', // Soft Purple Glow
-                                '#0284C7', // Deep Cyan Accent
-                                '#F472B6'  // Soft Cosmic Pink
+                                '#00F0FF', // Electric Neon Cyan
+                                '#A855F7', // Bright Violet
+                                '#FF007F', // Vivid Neon Pink
+                                '#FFE600', // Electric Yellow
+                                '#00FFCC', // Neon Turquoise
+                                '#FF3366'  // Bright Coral Red
                             ];
                             
                             particles.push({
@@ -812,57 +929,16 @@
                                 y: pos.y + Math.sin(orbRad) * orbDist,
                                 vx: -Math.sin(orbRad) * (Math.random() * 0.4 + 0.1),
                                 vy: Math.cos(orbRad) * (Math.random() * 0.4 + 0.1),
-                                size: Math.random() * 3.2 + 2.0,
+                                size: Math.random() * 3.6 + 2.2,
                                 color: vibrantColors[Math.floor(Math.random() * vibrantColors.length)],
                                 alpha: 0,
-                                targetAlpha: Math.random() * 0.3 + 0.25,
+                                targetAlpha: Math.random() * 0.4 + 0.35,
                                 fadeIn: Math.random() * 0.05 + 0.03,
                                 decay: Math.random() * 0.018 + 0.008
                             });
                         }
                     }
-
-                    if (Math.random() < 0.12) {
-                        var renderAngleNow = angle + idleSway;
-                        var idleNozzle = getEngineNozzlePos(pos.x + currentIdleOffsetX, pos.y + currentIdleOffsetY, renderAngleNow);
-                        var idleRad = (renderAngleNow - 90) * (Math.PI / 180);
-                        createThrusterParticle(idleNozzle.x, idleNozzle.y, -Math.cos(idleRad) * 0.8, -Math.sin(idleRad) * 0.8, false);
-                    }
-                }
-
-                var idleLerp = 0.15;
-                currentIdleOffsetX += (targetIdleX - currentIdleOffsetX) * idleLerp;
-                currentIdleOffsetY += (targetIdleY - currentIdleOffsetY) * idleLerp;
-
-                // Smoothly lerp click scale & recoil tilt offset
-                var targetClickScale = isClicking ? 0.82 : 1.0;
-                var targetClickAngleOffset = isClicking ? -12.0 : 0.0;
-                clickScale += (targetClickScale - clickScale) * 0.35;
-                clickAngleOffset += (targetClickAngleOffset - clickAngleOffset) * 0.35;
-
-                var renderAngle = angle + idleSway + clickAngleOffset;
-
-                wrapper.style.transform = 'translate3d(' + pos.x.toFixed(2) + 'px, ' + pos.y.toFixed(2) + 'px, 0)';
-                rocket.style.transform = 'translate3d(' + currentIdleOffsetX.toFixed(2) + 'px, ' + currentIdleOffsetY.toFixed(2) + 'px, 0) rotate(' + renderAngle.toFixed(2) + 'deg) scale(' + clickScale.toFixed(3) + ')';
-
-                /* Mouse Drag / Movement Effect */
-                if (speed > 0.3 || isHovered) {
-                    rocket.classList.add('is-moving');
-                    var mainNozzle = getEngineNozzlePos(pos.x + currentIdleOffsetX, pos.y + currentIdleOffsetY, renderAngle);
-                    var rad = (renderAngle - 90) * (Math.PI / 180);
-                    
-                    // Generate particle trail proportional to drag/movement speed
-                    var spawnCount = Math.min(Math.ceil(speed * 0.8), 5);
-                    for (var pIdx = 0; pIdx < spawnCount; pIdx++) {
-                        var backVx = -Math.cos(rad) * (speed * 0.4 + 1.4) + (Math.random() - 0.5) * 1.8;
-                        var backVy = -Math.sin(rad) * (speed * 0.4 + 1.4) + (Math.random() - 0.5) * 1.8;
-                        createThrusterParticle(mainNozzle.x, mainNozzle.y, backVx, backVy, isHovered);
-                    }
-                } else {
-                    rocket.classList.remove('is-moving');
-                }
-
-                while (particles.length > 120) {
+                while (particles.length > 150) {
                     particles.shift();
                 }
 
@@ -885,6 +961,8 @@
                     }
 
                     ctx.save();
+                    // Additive blending for hyper-bright glowing laser effects
+                    ctx.globalCompositeOperation = 'lighter';
                     ctx.globalAlpha = Math.max(0, p.alpha);
                     
                     var radGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
@@ -894,7 +972,7 @@
 
                     ctx.fillStyle = radGrad;
                     ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size * 1.4, 0, Math.PI * 2);
+                    ctx.arc(p.x, p.y, p.size * 1.5, 0, Math.PI * 2);
                     ctx.fill();
 
                     ctx.restore();
