@@ -144,7 +144,15 @@
 
 <style>
     /* 1. GLOBAL CURSOR OVERRIDE & FIXED CONTAINERS */
-    html, body, a, button, input, select, textarea, [role="button"] {
+    /* Only hide system cursor when rocket script is active */
+    html.has-rocket-cursor, 
+    html.has-rocket-cursor body, 
+    html.has-rocket-cursor a, 
+    html.has-rocket-cursor button, 
+    html.has-rocket-cursor input, 
+    html.has-rocket-cursor select, 
+    html.has-rocket-cursor textarea, 
+    html.has-rocket-cursor [role="button"] {
         cursor: none !important;
     }
 
@@ -426,7 +434,7 @@
         #rocket-cursor-wrapper, #rocket-particle-canvas {
             display: none !important;
         }
-        *, *::before, *::after, html, body, a, button, input {
+        html.has-rocket-cursor, html.has-rocket-cursor body, html.has-rocket-cursor a, html.has-rocket-cursor button, html.has-rocket-cursor input {
             cursor: auto !important;
         }
     }
@@ -437,6 +445,7 @@
     'use strict';
 
     if (window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches) {
+        document.documentElement.classList.remove('has-rocket-cursor');
         return;
     }
 
@@ -459,6 +468,9 @@
         var canvas = document.getElementById('rocket-particle-canvas');
 
         if (!wrapper || !rocket || !canvas) return;
+
+        // Enable custom cursor CSS class safely once elements exist
+        document.documentElement.classList.add('has-rocket-cursor');
 
         document.body.appendChild(canvas);
         document.body.appendChild(wrapper);
@@ -576,10 +588,21 @@
         function onMouseMove(e) {
             updateMousePosition(e.clientX, e.clientY);
         }
-        window.addEventListener('mouseenter', function(e) {
+
+        // Global Mouse Events with Capture Phase to prevent cursor drops
+        window.addEventListener('mousemove', onMouseMove, { capture: true, passive: true });
+
+        document.addEventListener('mouseenter', function(e) {
             if (e.clientX && e.clientY) {
                 updateMousePosition(e.clientX, e.clientY);
             }
+            if (wrapper) wrapper.style.opacity = '1';
+            if (canvas) canvas.style.opacity = '1';
+        });
+
+        document.addEventListener('mouseleave', function() {
+            if (wrapper) wrapper.style.opacity = '0';
+            if (canvas) canvas.style.opacity = '0';
         });
 
         /* Click Effect: Shockwave + Explosive Particle Sparks */
