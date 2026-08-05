@@ -128,7 +128,7 @@
         opacity: 0;
         pointer-events: none;
         transform: scale(0.3);
-        transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        transition: opacity 1.2s cubic-bezier(0.25, 1, 0.5, 1), transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.8));
     }
 
@@ -153,7 +153,7 @@
         opacity: 0;
         pointer-events: none;
         transform: scale(0.5) rotate(0deg);
-        transition: opacity 0.5s ease, transform 0.5s ease;
+        transition: opacity 1.2s ease-in-out, transform 1.2s ease-in-out;
     }
 
     .rocket-core-aura {
@@ -170,33 +170,48 @@
         opacity: 0;
         pointer-events: none;
         transform: scale(0.5);
-        transition: all 0.5s ease;
+        transition: opacity 1.2s ease-in-out, transform 1.2s ease-in-out;
     }
 
-    /* Activate Center Mini Planet & Orbiting Shield in Stage 2 & 3 */
+    /* Stage 1: Soft Charging Warm-up */
+    #rocket-cursor-wrapper.idle-stage-1 .rocket-mini-planet {
+        opacity: 0.3;
+        transform: scale(0.55);
+    }
+    #rocket-cursor-wrapper.idle-stage-1 .rocket-shield-ring {
+        opacity: 0.25;
+        transform: scale(0.6) rotate(0deg);
+        animation: shieldRotate 8s infinite linear;
+    }
+    #rocket-cursor-wrapper.idle-stage-1 .rocket-core-aura {
+        opacity: 0.3;
+        transform: scale(0.6);
+    }
+
+    /* Stage 2: Gravitational Orbital Insertion */
     #rocket-cursor-wrapper.idle-stage-2 .rocket-mini-planet {
         opacity: 0.85;
         transform: scale(0.95);
     }
-    #rocket-cursor-wrapper.idle-stage-3 .rocket-mini-planet {
-        opacity: 1;
-        transform: scale(1.15);
-    }
-
     #rocket-cursor-wrapper.idle-stage-2 .rocket-shield-ring {
         opacity: 0.65;
         transform: scale(0.85);
         animation: shieldRotate 5s infinite linear;
     }
+    #rocket-cursor-wrapper.idle-stage-2 .rocket-core-aura {
+        opacity: 0.7;
+        animation: auraPulse 2.5s infinite alternate ease-in-out;
+    }
+
+    /* Stage 3: Full Orbit Acrobatics */
+    #rocket-cursor-wrapper.idle-stage-3 .rocket-mini-planet {
+        opacity: 1;
+        transform: scale(1.15);
+    }
     #rocket-cursor-wrapper.idle-stage-3 .rocket-shield-ring {
         opacity: 0.85;
         transform: scale(1);
         animation: shieldRotate 3.5s infinite linear;
-    }
-
-    #rocket-cursor-wrapper.idle-stage-2 .rocket-core-aura {
-        opacity: 0.7;
-        animation: auraPulse 2.5s infinite alternate ease-in-out;
     }
     #rocket-cursor-wrapper.idle-stage-3 .rocket-core-aura {
         opacity: 1;
@@ -411,6 +426,10 @@
         var idleTimerStage2 = null;
         var idleTimerStage3 = null;
 
+        // Blend factors (0.0 to 1.0) for seamless transition between Stage 1 -> 2 -> 3
+        var stage2Blend = 0;
+        var stage3Blend = 0;
+
         // Smoothing state variables for seamless Stage 2 -> Stage 3 transitions
         var currentIdleOffsetX = 0;
         var currentIdleOffsetY = 0;
@@ -418,6 +437,9 @@
         function resetIdleTimer() {
             idleStage = 0;
             idleTime = 0;
+            stage2Blend = 0;
+            stage3Blend = 0;
+
             rocket.classList.remove('idle-stage-1', 'idle-stage-2', 'idle-stage-3');
             wrapper.classList.remove('idle-stage-1', 'idle-stage-2', 'idle-stage-3');
 
@@ -615,62 +637,73 @@
                     idleTime += 0.04;
 
                     // Stage 1 Motion (0.8s - 3s): Gentle zero-G float
+                    var stage1X = Math.cos(idleTime * 0.7) * 2;
+                    var stage1Y = Math.sin(idleTime) * 4;
+                    var stage1Sway = Math.sin(idleTime * 0.5) * 4;
+
+                    // Stage 2 Motion (3s - 7s): Orbital Insertion Spiral
+                    var orbitalAngle = idleTime * 0.5;
+                    var stage2Progress = Math.min(Math.max((idleTime - 0.88) / 4.0, 0), 1);
+                    var radiusProgress = 1 - Math.pow(1 - stage2Progress, 2.5);
+                    var currentRadius = 22 + (80 - 22) * radiusProgress;
+
+                    var stage2X = Math.cos(orbitalAngle) * currentRadius;
+                    var stage2Y = Math.sin(orbitalAngle) * currentRadius;
+                    var vx2 = -Math.sin(orbitalAngle) * currentRadius;
+                    var vy2 = Math.cos(orbitalAngle) * currentRadius;
+                    var stage2Angle = Math.atan2(vy2, vx2) * (180 / Math.PI) + 90;
+
+                    // Stage 3 Motion (7s+): Perfect circular planetary orbit (Radius 80px)
+                    var orbitSpeed = idleTime * 0.5;
+                    var stage3X = Math.cos(orbitSpeed) * 80;
+                    var stage3Y = Math.sin(orbitSpeed) * 80;
+                    var vx3 = -Math.sin(orbitSpeed);
+                    var vy3 = Math.cos(orbitSpeed);
+                    var stage3Angle = Math.atan2(vy3, vx3) * (180 / Math.PI) + 90;
+
+                    // Smoothly ramp blending weights (1.2s smooth cross-fade duration)
                     if (idleStage === 1) {
-                        targetIdleY = Math.sin(idleTime) * 4;
-                        targetIdleX = Math.cos(idleTime * 0.7) * 2;
-                        idleSway = Math.sin(idleTime * 0.5) * 4;
+                        stage2Blend += (0 - stage2Blend) * 0.08;
+                        stage3Blend += (0 - stage3Blend) * 0.08;
+                    } else if (idleStage === 2) {
+                        stage2Blend += (1 - stage2Blend) * 0.05; // Smooth ramp up into Stage 2
+                        stage3Blend += (0 - stage3Blend) * 0.08;
+                    } else if (idleStage === 3) {
+                        stage2Blend = 1;
+                        stage3Blend += (1 - stage3Blend) * 0.05; // Smooth ramp up into Stage 3
                     }
 
-                    // Stage 2 Motion (3s - 7s): Orbital Insertion Spiral (Smoothly transitions from radius 20px -> 80px)
-                    if (idleStage === 2) {
-                        // Normalize progress ratio (0.0 at 3s -> 1.0 at 7s)
-                        var stage2Progress = Math.min(Math.max((idleTime - 0.88) / 4.0, 0), 1);
-                        
-                        // Smooth easing curve (ease-out-cubic for smooth deceleration into Stage 3 orbit radius)
-                        var radiusProgress = 1 - Math.pow(1 - stage2Progress, 2.5);
-                        var currentRadius = 22 + (80 - 22) * radiusProgress;
+                    // Blend offsets smoothly across Stage 1 -> 2 -> 3
+                    var blendS1S2X = stage1X + (stage2X - stage1X) * stage2Blend;
+                    var blendS1S2Y = stage1Y + (stage2Y - stage1Y) * stage2Blend;
+                    targetIdleX = blendS1S2X + (stage3X - blendS1S2X) * stage3Blend;
+                    targetIdleY = blendS1S2Y + (stage3Y - blendS1S2Y) * stage3Blend;
 
-                        // Continuous orbital angle synced seamlessly with Stage 3 rotational speed
-                        var orbitalAngle = idleTime * 0.5;
-
-                        targetIdleX = Math.cos(orbitalAngle) * currentRadius;
-                        targetIdleY = Math.sin(orbitalAngle) * currentRadius;
-
-                        // Tangent velocity vector calculation for seamless flight direction matching
-                        var vx2 = -Math.sin(orbitalAngle) * currentRadius;
-                        var vy2 = Math.cos(orbitalAngle) * currentRadius;
-
-                        targetAngle = Math.atan2(vy2, vx2) * (180 / Math.PI) + 90;
-
-                        // Emit cyan radar scan pulses ahead of expanding flight path
-                        if (Math.random() < 0.35) {
-                            createRadarScanPulse(pos.x + targetIdleX, pos.y + targetIdleY, targetAngle);
-                        }
+                    // Smoothly blend rotation targets based on current active stage
+                    if (stage3Blend > 0.01) {
+                        var angleDiff3 = Math.atan2(Math.sin((stage3Angle - stage2Angle) * Math.PI / 180), Math.cos((stage3Angle - stage2Angle) * Math.PI / 180)) * 180 / Math.PI;
+                        var currentStage23Angle = stage2Angle + angleDiff3 * stage3Blend;
+                        var finalAngleDiff = Math.atan2(Math.sin((currentStage23Angle - targetAngle) * Math.PI / 180), Math.cos((currentStage23Angle - targetAngle) * Math.PI / 180)) * 180 / Math.PI;
+                        targetAngle += finalAngleDiff * 0.15;
+                    } else if (stage2Blend > 0.01) {
+                        var angleDiff2 = Math.atan2(Math.sin((stage2Angle - targetAngle) * Math.PI / 180), Math.cos((stage2Angle - targetAngle) * Math.PI / 180)) * 180 / Math.PI;
+                        targetAngle += angleDiff2 * stage2Blend * 0.15;
                     }
 
-                    // Stage 3 Motion (7s+ Continuous Loop): Perfect circular planetary orbit (Radius 80px)
-                    if (idleStage === 3) {
-                        var orbitSpeed = idleTime * 0.5; // Matches Stage 2 speed perfectly
-                        var rocketRadius = 80;
+                    idleSway = stage1Sway * (1 - stage2Blend);
 
-                        targetIdleX = Math.cos(orbitSpeed) * rocketRadius;
-                        targetIdleY = Math.sin(orbitSpeed) * rocketRadius;
+                    // Stage 2 & 3 particle effects
+                    if (idleStage === 2 && Math.random() < 0.35 * stage2Blend) {
+                        createRadarScanPulse(pos.x + targetIdleX, pos.y + targetIdleY, targetAngle);
+                    }
 
-                        // Tangent flight vector so rocket nose points forward along circular path
-                        var vx = -Math.sin(orbitSpeed);
-                        var vy = Math.cos(orbitSpeed);
-
-                        // Direct angle along orbital movement direction
-                        targetAngle = Math.atan2(vy, vx) * (180 / Math.PI) + 90;
-
-                        // Continuous thruster trail shooting backwards out of rocket engine along orbit arc
+                    if (idleStage === 3 && stage3Blend > 0.5) {
                         if (Math.random() < 0.6) {
-                            var orbTailX = (pos.x + targetIdleX) - vx * 24;
-                            var orbTailY = (pos.y + targetIdleY) - vy * 24;
-                            createThrusterParticle(orbTailX, orbTailY, -vx * 1.5, -vy * 1.5, true);
+                            var orbTailX = (pos.x + targetIdleX) - vx3 * 24;
+                            var orbTailY = (pos.y + targetIdleY) - vy3 * 24;
+                            createThrusterParticle(orbTailX, orbTailY, -vx3 * 1.5, -vy3 * 1.5, true);
                         }
 
-                        // Dense & colorful vibrant stardust trailing particles along exact 80px orbit track
                         if (Math.random() < 0.75) {
                             var orbRad = Math.random() * Math.PI * 2;
                             var orbDist = 80 + (Math.random() - 0.5) * 10;
