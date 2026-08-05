@@ -80,6 +80,12 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
     const canvas = document.querySelector('#levelup-particle-canvas');
     const ctx = canvas.getContext('2d', { alpha: true });
     const rocket = document.querySelector('#levelup-rocket-cursor');
+    
+    // 🛡️ บังคับย้าย Canvas และ Rocket ไปไว้ใน <body> ชั้นนอกสุด เพื่อป้องกันปัญหา Z-Index (Stacking Context)
+    if (document.body) {
+        if (canvas.parentNode !== document.body) document.body.appendChild(canvas);
+        if (rocket.parentNode !== document.body) document.body.appendChild(rocket);
+    }
 
     // 🎨 โทนสีอนุภาค
     const STAR_COLORS = ['#ffffff', '#8ab4f8', '#b388ff'];
