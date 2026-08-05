@@ -48,8 +48,24 @@
         <!-- Hover Target Indicator Ring -->
         <div class="rocket-target-ring"></div>
 
-        <!-- Deep Idle Stage 2: Plasma Core Aura & Rotating Shield Matrix -->
-        <div class="rocket-core-aura"></div>
+        <!-- Mini Planet Core (Replaces blurry core effect) & Shield Matrix -->
+        <div class="rocket-mini-planet">
+            <svg viewBox="0 0 32 32" class="planet-svg" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <radialGradient id="mini-planet-grad" cx="30%" cy="30%" r="70%">
+                        <stop offset="0%" stop-color="#38BDF8"/>
+                        <stop offset="60%" stop-color="#6366F1"/>
+                        <stop offset="100%" stop-color="#1E1B4B"/>
+                    </radialGradient>
+                </defs>
+                <!-- Planet Back Ring Orbit -->
+                <path d="M 4 16 A 12 4 0 0 1 28 16" fill="none" stroke="rgba(56, 189, 248, 0.6)" stroke-width="1.8" transform="rotate(-20 16 16)" />
+                <!-- Planet Sphere Body -->
+                <circle cx="16" cy="16" r="6.5" fill="url(#mini-planet-grad)" />
+                <!-- Planet Front Ring Orbit -->
+                <path d="M 28 16 A 12 4 0 0 1 4 16" fill="none" stroke="rgba(168, 85, 247, 0.95)" stroke-width="1.8" transform="rotate(-20 16 16)" />
+            </svg>
+        </div>
         <div class="rocket-shield-ring"></div>
     </div>
 </div>
@@ -214,18 +230,111 @@
     /* Hover Target Indicator Ring - Centered around rocket body */
     .rocket-target-ring {
         position: absolute;
-        top: 24px;
+        top: 21px;
         left: 21px;
-        width: 48px;
-        height: 48px;
-        margin-top: -24px;
-        margin-left: -24px;
-        border: 2px dashed rgba(99, 102, 241, 0.8);
+        width: 52px;
+        height: 52px;
+        margin-top: -26px;
+        margin-left: -26px;
+        border: 1.5px dashed rgba(56, 189, 248, 0.85);
         border-radius: 50%;
         opacity: 0;
-        transform: scale(0.5) rotate(0deg);
+        transform: scale(0.6) rotate(0deg);
         transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
         pointer-events: none;
+        box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+    }
+
+    /* Hover State */
+    #rocket-cursor-main.is-hovering {
+        transform: scale(1.2);
+    }
+
+    /* ------------------------------------------------------------------
+       MINI PLANET & ROTATING SHIELD MATRIX (PREVENTS OVERLAPPING RINGS)
+       ------------------------------------------------------------------ */
+    .rocket-mini-planet {
+        position: absolute;
+        top: 21px;
+        left: 21px;
+        width: 36px;
+        height: 36px;
+        margin-top: -18px;
+        margin-left: -18px;
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(0.4);
+        transition: opacity 0.4s ease, transform 0.4s ease;
+        filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.6));
+    }
+
+    .planet-svg {
+        width: 100%;
+        height: 100%;
+        animation: planetFloat 4s infinite ease-in-out;
+    }
+
+    .rocket-shield-ring {
+        position: absolute;
+        top: 21px;
+        left: 21px;
+        width: 58px;
+        height: 58px;
+        margin-top: -29px;
+        margin-left: -29px;
+        border: 1.5px solid rgba(56, 189, 248, 0.4);
+        border-top-color: rgba(168, 85, 247, 0.85);
+        border-bottom-color: rgba(168, 85, 247, 0.85);
+        border-radius: 50%;
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(0.6) rotate(0deg);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    /* Activate Mini Planet & Orbiting Shield in Idle Stage 2 */
+    #rocket-cursor-main.idle-stage-2 .rocket-mini-planet {
+        opacity: 0.95;
+        transform: scale(1);
+    }
+
+    #rocket-cursor-main.idle-stage-2 .rocket-shield-ring {
+        opacity: 0.7;
+        animation: shieldRotate 4s infinite linear;
+    }
+
+    #rocket-cursor-main.idle-stage-2 .rocket-flame-core {
+        background: linear-gradient(180deg, #38BDF8 0%, #A855F7 60%, rgba(168, 85, 247, 0) 100%);
+    }
+
+    /* Prevent Ring Overlapping on Hover (Hide secondary idle shield when hovering) */
+    #rocket-cursor-main.is-hovering .rocket-shield-ring {
+        opacity: 0 !important;
+        transform: scale(0.5);
+    }
+
+    #rocket-cursor-main.is-hovering .rocket-mini-planet {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+
+    @keyframes planetFloat {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-3px) rotate(6deg); }
+    }
+
+    @keyframes shieldRotate {
+        0% { transform: scale(1) rotate(0deg); }
+        100% { transform: scale(1) rotate(360deg); }
+    }
+
+    #rocket-cursor-main.is-hovering .rocket-svg {
+        filter: drop-shadow(0px 0px 14px rgba(99, 102, 241, 0.85));
+    }
+
+    #rocket-cursor-main.is-hovering .rocket-target-ring {
+        opacity: 1;
+        transform: scale(1) rotate(90deg);
     }
 
     /* Hover State */
@@ -824,4 +933,4 @@
         requestAnimationFrame(render);
     });
 })();
-</script>ห
+</script>
