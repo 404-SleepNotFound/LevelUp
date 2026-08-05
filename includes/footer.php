@@ -1,22 +1,22 @@
 <?php
 /**
  * LevelUp - Next-Gen E-Learning Platform
- * @page includes/footer.php (Combined Footer & Rocket Custom Cursor)
+ * @page includes/footer.php (Combined Footer & Rocket Custom Cursor Integration)
  */
 
-// Mock Admin Status 
-$isAdmin = false;
-$appVersion = "1.0.0 (Build 2026.07)";
+$isAdmin = $isAdmin ?? false;
+$appVersion = $appVersion ?? "1.0.0 (Build 2026.08)";
+$ROOT_PATH = $ROOT_PATH ?? '';
 ?>
 
-    </main> <!-- ปิดแท็ก <main> ที่เปิดไว้ใน header.php -->
+    </main> <!-- Closing <main> tag opened in header.php -->
 
     <!-- =========================================
          Global Floating Elements
          ========================================= -->
     <div class="global-floating-actions d-flex flex-column align-items-end gap-3 position-fixed bottom-0 end-0 p-4" style="z-index: 1040;">
         <!-- Back to Top Button -->
-        <button class="btn ft-card-theme rounded-circle shadow-lg d-none align-items-center justify-content-center btn-back-to-top transition-all" id="backToTopBtn" style="width: 45px; height: 45px;">
+        <button class="btn ft-card-theme rounded-circle shadow-lg d-none align-items-center justify-content-center btn-back-to-top transition-all" id="backToTopBtn" style="width: 45px; height: 45px;" aria-label="Back to Top">
             <i class="bi bi-arrow-up fs-5 ft-text-main"></i>
         </button>
     </div>
@@ -33,8 +33,12 @@ $appVersion = "1.0.0 (Build 2026.07)";
                     <div class="card h-100 p-4 shadow-sm ft-card-theme" style="border-radius: 20px;">
                         <div class="d-flex justify-content-between align-items-start gap-3">
                             <div class="flex-grow-1">
-                                <h6 class="fw-bold mb-2 d-flex align-items-center gap-2" style="color: #6366F1; font-family: 'Outfit', sans-serif;"><i class="bi bi-stars"></i> Tip of the Day</h6>
-                                <p class="ft-text-muted fs-sm mb-0 lh-base" id="dailyAiTip">ระบบเรียนรู้ที่มี AI ช่วยโค้ช จะช่วยเพิ่มความเร็วในการทำเควสต์เขียนโค้ดได้ถึง 2 เท่า!</p>
+                                <h6 class="fw-bold mb-2 d-flex align-items-center gap-2" style="color: #6366F1; font-family: 'Outfit', sans-serif;">
+                                    <i class="bi bi-stars"></i> Tip of the Day
+                                </h6>
+                                <p class="ft-text-muted fs-sm mb-0 lh-base" id="dailyAiTip">
+                                    ระบบเรียนรู้ที่มี AI ช่วยโค้ช จะช่วยเพิ่มความเร็วในการทำเควสต์เขียนโค้ดได้ถึง 2 เท่า!
+                                </p>
                             </div>
                             <div class="flex-shrink-0 text-warning opacity-50 pt-1">
                                 <i class="bi bi-lightbulb-fill fs-1"></i>
@@ -68,7 +72,7 @@ $appVersion = "1.0.0 (Build 2026.07)";
             <div class="row g-4 mb-5">
                 <!-- Brand & Newsletter -->
                 <div class="col-lg-3 pe-lg-4">
-                    <a class="navbar-brand d-flex align-items-center gap-2 text-decoration-none mb-3 ajax-link" href="<?= $ROOT_PATH ?? '' ?>index.php">
+                    <a class="navbar-brand d-flex align-items-center gap-2 text-decoration-none mb-3 ajax-link" href="<?= $ROOT_PATH ?>index.php">
                         <div class="lu-logo-icon fs-5 text-info"><i class="bi bi-rocket-takeoff-fill"></i></div>
                         <span class="fw-bold fs-4 ft-text-main" style="font-family: 'Outfit', sans-serif;">LevelUp</span>
                     </a>
@@ -76,7 +80,7 @@ $appVersion = "1.0.0 (Build 2026.07)";
                     
                     <h6 class="ft-text-main fs-sm fw-bold mb-3" style="font-family: 'Outfit', sans-serif;">Subscribe to Newsletter</h6>
                     
-                    <!-- 🎯 ฟอร์ม Newsletter -->
+                    <!-- Newsletter Form -->
                     <form id="newsletterForm" class="d-flex gap-2 align-items-stretch">
                         <input type="email" name="email" class="form-control ft-card-theme ft-text-main shadow-none placeholder-glow-custom" style="border-radius: 12px; padding: 10px 16px; font-size: 0.9rem;" placeholder="Enter your email" required>
                         <button type="submit" class="btn text-white rounded-3 px-4 fw-bold" style="background: linear-gradient(135deg, #4F46E5, #6366F1); border: none; border-radius: 12px !important; font-size: 0.9rem; white-space: nowrap;" id="btnNewsletter">Subscribe</button>
@@ -87,54 +91,54 @@ $appVersion = "1.0.0 (Build 2026.07)";
                 <div class="col-6 col-md-3 col-lg-2">
                     <h6 class="ft-text-main fs-sm fw-bold text-uppercase tracking-wide mb-4" style="font-family: 'Outfit', sans-serif;">Platform</h6>
                     <ul class="list-unstyled d-flex flex-column gap-2 fs-sm">
-                        <li><a href="<?= $ROOT_PATH ?? '' ?>index.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Home</a></li>
-                        <li><a href="<?= $ROOT_PATH ?? '' ?>student/courses.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Quests</a></li>
-                        <li><a href="<?= $ROOT_PATH ?? '' ?>student/learning-path.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Roadmaps</a></li>
-                        <li><a href="<?= $ROOT_PATH ?? '' ?>student/coding-lab.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Coding Lab</a></li>
-                        <li><a href="<?= $ROOT_PATH ?? '' ?>student/virtual-lab.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Virtual Lab</a></li>
-                        <li><a href="<?= $ROOT_PATH ?? '' ?>ai/ai-chat.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">AI Tutor</a></li>
+                        <li><a href="<?= $ROOT_PATH ?>index.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Home</a></li>
+                        <li><a href="<?= $ROOT_PATH ?>student/courses.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Quests</a></li>
+                        <li><a href="<?= $ROOT_PATH ?>student/learning-path.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Roadmaps</a></li>
+                        <li><a href="<?= $ROOT_PATH ?>student/coding-lab.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Coding Lab</a></li>
+                        <li><a href="<?= $ROOT_PATH ?>student/virtual-lab.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Virtual Lab</a></li>
+                        <li><a href="<?= $ROOT_PATH ?>ai/ai-chat.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">AI Tutor</a></li>
                     </ul>
                 </div>
 
                 <div class="col-6 col-md-3 col-lg-2">
                     <h6 class="ft-text-main fs-sm fw-bold text-uppercase tracking-wide mb-4" style="font-family: 'Outfit', sans-serif;">Categories</h6>
                     <ul class="list-unstyled d-flex flex-column gap-2 fs-sm">
-                        <li><a href="<?= $ROOT_PATH ?? '' ?>student/courses.php?category=Programming" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Programming</a></li>
-                        <li><a href="<?= $ROOT_PATH ?? '' ?>student/courses.php?category=Web+Dev" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Web Development</a></li>
-                        <li><a href="<?= $ROOT_PATH ?? '' ?>student/courses.php?category=AI" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">AI & Machine Learning</a></li>
-                        <li><a href="#" class="ft-text-muted text-decoration-none hover-text-primary">Data Science</a></li>
-                        <li><a href="#" class="ft-text-muted text-decoration-none hover-text-primary">Cloud Computing</a></li>
-                        <li><a href="#" class="ft-text-muted text-decoration-none hover-text-primary">Cybersecurity</a></li>
+                        <li><a href="<?= $ROOT_PATH ?>student/courses.php?category=1" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Programming</a></li>
+                        <li><a href="<?= $ROOT_PATH ?>student/courses.php?category=11" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Web Development</a></li>
+                        <li><a href="<?= $ROOT_PATH ?>student/courses.php?category=7" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">AI & Data Science</a></li>
+                        <li><a href="<?= $ROOT_PATH ?>student/courses.php?category=3" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Design & Graphics</a></li>
+                        <li><a href="<?= $ROOT_PATH ?>student/courses.php?category=2" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Digital Marketing</a></li>
+                        <li><a href="<?= $ROOT_PATH ?>student/courses.php?category=12" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Game & 3D Dev</a></li>
                     </ul>
                 </div>
 
                 <div class="col-6 col-md-3 col-lg-2">
                     <h6 class="ft-text-main fs-sm fw-bold text-uppercase tracking-wide mb-4" style="font-family: 'Outfit', sans-serif;">Career Paths</h6>
                     <ul class="list-unstyled d-flex flex-column gap-2 fs-sm">
-                        <li><a href="<?= $ROOT_PATH ?? '' ?>student/learning-path.php?path=frontend" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Front-end Developer</a></li>
-                        <li><a href="<?= $ROOT_PATH ?? '' ?>student/learning-path.php?path=backend" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Back-end Developer</a></li>
-                        <li><a href="#" class="ft-text-muted text-decoration-none hover-text-primary">Data Scientist</a></li>
-                        <li><a href="#" class="ft-text-muted text-decoration-none hover-text-primary">AI Engineer</a></li>
-                        <li><a href="#" class="ft-text-muted text-decoration-none hover-text-primary">DevOps Engineer</a></li>
+                        <li><a href="<?= $ROOT_PATH ?>student/learning-path.php?path=frontend" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Front-end Developer</a></li>
+                        <li><a href="<?= $ROOT_PATH ?>student/learning-path.php?path=backend" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Back-end Developer</a></li>
+                        <li><a href="<?= $ROOT_PATH ?>student/learning-path.php?path=fullstack" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Full-stack Engineer</a></li>
+                        <li><a href="<?= $ROOT_PATH ?>student/learning-path.php?path=ai" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">AI Specialist</a></li>
+                        <li><a href="<?= $ROOT_PATH ?>student/learning-path.php?path=devops" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">DevOps Engineer</a></li>
                     </ul>
                 </div>
 
                 <div class="col-6 col-md-3 col-lg-3">
                     <h6 class="ft-text-main fs-sm fw-bold text-uppercase tracking-wide mb-4" style="font-family: 'Outfit', sans-serif;">Resources & Support</h6>
                     <ul class="list-unstyled d-flex flex-column gap-2 fs-sm mb-4">
-                        <li><a href="#" class="ft-text-muted text-decoration-none hover-text-primary">Documentation</a></li>
-                        <li><a href="#" class="ft-text-muted text-decoration-none hover-text-primary">Community Forum</a></li>
-                        <li><a href="#" class="ft-text-muted text-decoration-none hover-text-primary">Help Center & FAQ</a></li>
+                        <li><a href="<?= $ROOT_PATH ?>docs/index.php" class="ft-text-muted text-decoration-none hover-text-primary">Documentation</a></li>
+                        <li><a href="<?= $ROOT_PATH ?>community/index.php" class="ft-text-muted text-decoration-none hover-text-primary">Community Forum</a></li>
+                        <li><a href="<?= $ROOT_PATH ?>help/faq.php" class="ft-text-muted text-decoration-none hover-text-primary">Help Center & FAQ</a></li>
                         <li><a href="#" class="text-decoration-none" style="color: #10B981;" data-bs-toggle="modal" data-bs-target="#feedbackModal">Give Feedback / Report Bug</a></li>
                     </ul>
                     
                     <h6 class="ft-text-main fs-sm fw-bold text-uppercase tracking-wide mb-3" style="font-family: 'Outfit', sans-serif;">Connect</h6>
                     <div class="d-flex gap-3">
-                        <a href="#" class="ft-text-muted fs-5 hover-text-primary"><i class="bi bi-twitter-x"></i></a>
-                        <a href="#" class="ft-text-muted fs-5 hover-text-primary"><i class="bi bi-github"></i></a>
-                        <a href="#" class="ft-text-muted fs-5 hover-text-primary"><i class="bi bi-linkedin"></i></a>
-                        <a href="#" class="ft-text-muted fs-5 hover-text-primary"><i class="bi bi-discord"></i></a>
-                        <a href="#" class="ft-text-muted fs-5 hover-text-primary"><i class="bi bi-youtube"></i></a>
+                        <a href="https://twitter.com" target="_blank" class="ft-text-muted fs-5 hover-text-primary" aria-label="Twitter"><i class="bi bi-twitter-x"></i></a>
+                        <a href="https://github.com" target="_blank" class="ft-text-muted fs-5 hover-text-primary" aria-label="GitHub"><i class="bi bi-github"></i></a>
+                        <a href="https://linkedin.com" target="_blank" class="ft-text-muted fs-5 hover-text-primary" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+                        <a href="https://discord.com" target="_blank" class="ft-text-muted fs-5 hover-text-primary" aria-label="Discord"><i class="bi bi-discord"></i></a>
+                        <a href="https://youtube.com" target="_blank" class="ft-text-muted fs-5 hover-text-primary" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
                     </div>
                 </div>
             </div>
@@ -160,15 +164,15 @@ $appVersion = "1.0.0 (Build 2026.07)";
 
                 <div class="col-md-4 d-flex justify-content-center justify-content-md-end gap-3 align-items-center">
                     <div class="d-flex gap-2">
-                        <span class="badge ft-card-theme ft-text-main px-2 py-1"><i class="bi bi-globe me-1"></i> EN</span>
-                        <span class="badge ft-card-theme ft-text-main px-2 py-1"><i class="bi bi-moon-stars me-1"></i> Dark/Light</span>
+                        <span class="badge ft-card-theme ft-text-main px-2 py-1"><i class="bi bi-globe me-1"></i> TH / EN</span>
+                        <span class="badge ft-card-theme ft-text-main px-2 py-1 cursor-pointer" onclick="toggleMainTheme()"><i class="bi bi-moon-stars me-1"></i> Toggle Mode</span>
                     </div>
-                    <span class="ms-2">v<?php echo $appVersion; ?></span>
+                    <span class="ms-2">v<?php echo htmlspecialchars($appVersion); ?></span>
                 </div>
             </div>
 
             <!-- 4. Admin Server Info -->
-            <?php if($isAdmin): ?>
+            <?php if ($isAdmin): ?>
             <div class="mt-4 p-2 bg-danger bg-opacity-10 border border-danger border-opacity-25 rounded-3 text-danger fs-xs font-monospace text-center">
                 [ADMIN DEBUG] Server: Node-BKK-01 | DB: Connected (4ms) | AI API: Alive | Mem: 42%
             </div>
@@ -183,27 +187,36 @@ $appVersion = "1.0.0 (Build 2026.07)";
     <div class="modal fade" id="feedbackModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content ft-modal-theme rounded-4 shadow-lg">
-                <div class="modal-header ft-border-bottom">
-                    <h5 class="modal-title fw-bold ft-text-main" style="font-family: 'Outfit', sans-serif;"><i class="bi bi-chat-right-text me-2" style="color: #6366F1;"></i> Send Feedback</h5>
+                <div class="modal-header ft-border-bottom border-0">
+                    <h5 class="modal-title fw-bold ft-text-main" style="font-family: 'Outfit', sans-serif;">
+                        <i class="bi bi-chat-right-text me-2" style="color: #6366F1;"></i> Send Feedback
+                    </h5>
                     <button type="button" class="btn-close ft-btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
                     <form id="feedbackForm">
                         <div class="mb-3">
                             <label class="form-label fs-sm ft-text-muted">Feedback Type</label>
-                            <select name="type" class="form-select ft-modal-input ft-text-main shadow-none">
+                            <select name="type" class="form-select ft-modal-input ft-text-main shadow-none" required>
                                 <option value="suggestion">💡 Feature Suggestion</option>
                                 <option value="bug">🐛 Report a Bug</option>
+                                <option value="course">📚 Course Content Feedback</option>
                                 <option value="other">💬 General Feedback</option>
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fs-sm ft-text-muted">Message</label>
-                            <textarea name="message" class="form-control ft-modal-input ft-text-main shadow-none" rows="4" placeholder="Tell us what you think..." required></textarea>
+                            <label class="form-label fs-sm ft-text-muted">Your Email (Optional)</label>
+                            <input type="email" name="email" class="form-control ft-modal-input ft-text-main shadow-none" placeholder="name@example.com">
                         </div>
-                        <div class="text-end">
-                            <button type="button" class="btn btn-outline-secondary rounded-pill me-2" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn text-white rounded-pill px-4 fw-bold" style="background: linear-gradient(135deg, #4F46E5, #6366F1); border: none;" id="btnSubmitFeedback">Send</button>
+                        <div class="mb-3">
+                            <label class="form-label fs-sm ft-text-muted">Message / Bug Details</label>
+                            <textarea name="message" class="form-control ft-modal-input ft-text-main shadow-none" rows="4" placeholder="Describe your experience or issues encountered..." required></textarea>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2 pt-2">
+                            <button type="button" class="btn btn-secondary btn-sm px-3 rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn text-white btn-sm px-4 rounded-pill fw-bold" style="background: linear-gradient(135deg, #4F46E5, #6366F1); border: none;" id="btnSubmitFeedback">
+                                Send Feedback
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -211,244 +224,195 @@ $appVersion = "1.0.0 (Build 2026.07)";
         </div>
     </div>
 
-    <!-- Scripts หลักของระบบ -->
-    <script src="assets/js/footer.js"></script>
-    <script src="assets/js/script.js"></script>
+    <?php
+    // Include Rocket Custom Cursor component if exists
+    $rocket_path = __DIR__ . '/rocket-cursor.php';
+    if (file_exists($rocket_path)) {
+        include $rocket_path;
+    }
+    ?>
 
-    <!-- ===================================================
-         AJAX NAVIGATION ENGINE WITH FAILSAFE FALLBACK
-         =================================================== -->
-    <script>
-    $(document).ready(function() {
-        $(document).on('click', '.ajax-link', function(e) {
-            var url = $(this).attr('href');
-            if (url && url !== '#' && !url.startsWith('javascript:') && !url.startsWith('#')) {
-                if ($('#content-area').length > 0) {
-                    e.preventDefault();
-                    loadPage(url);
-                }
-            }
-        });
-
-        function loadPage(url) {
-            $('#content-area').animate({ opacity: 0.4 }, 120, function() {
-                $.ajax({
-                    url: url,
-                    type: 'GET',
-                    success: function(response) {
-                        var $parsedResponse = $(response);
-                        var newContent = $parsedResponse.filter('#content-area').html() || $parsedResponse.find('#content-area').html();
-                        if (newContent) {
-                            $('#content-area').html(newContent).animate({ opacity: 1 }, 120);
-                            history.pushState({ url: url }, '', url);
-                            window.scrollTo({ top: 0, behavior: 'instant' });
-                        } else {
-                            window.location.href = url;
-                        }
-                    },
-                    error: function() {
-                        window.location.href = url;
-                    }
-                });
-            });
-        }
-
-        window.onpopstate = function(event) {
-            if (event.state && event.state.url && $('#content-area').length > 0) {
-                loadPage(event.state.url);
-            } else {
-                location.reload();
-            }
-        };
-
-        var btn = $('#backToTopBtn');
-        $(window).scroll(function() {
-            if ($(window).scrollTop() > 300) {
-                btn.removeClass('d-none').addClass('d-flex');
-            } else {
-                btn.addClass('d-none').removeClass('d-flex');
-            }
-        });
-        btn.on('click', function(e) {
-            e.preventDefault();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-    });
-    </script>
-
-    <!-- ===================================================
-         🚀 ROCKET CUSTOM CURSOR ENGINE (SINGLETON & AJAX-SAFE)
-         =================================================== -->
-    <script>
-    (function() {
-        let cursor = document.getElementById('custom-rocket-cursor');
-        if (!cursor) {
-            cursor = document.createElement('div');
-            cursor.id = 'custom-rocket-cursor';
-            cursor.innerHTML = '🚀';
-            document.body.appendChild(cursor);
-        }
-
-        if (window.__rocketCursorActive) return;
-        window.__rocketCursorActive = true;
-
-        const savedX = sessionStorage.getItem('rocket_x');
-        const savedY = sessionStorage.getItem('rocket_y');
-        let mouseX = savedX !== null ? parseFloat(savedX) : -100;
-        let mouseY = savedY !== null ? parseFloat(savedY) : -100;
-        
-        let isScheduled = false;
-
-        if (mouseX >= 0 && mouseY >= 0 && cursor) {
-            cursor.style.transform = `translate3d(${mouseX - 12}px, ${mouseY - 10}px, 0) scaleX(-1)`;
-        }
-
-        function render() {
-            const el = document.getElementById('custom-rocket-cursor');
-            if (el && mouseX >= 0 && mouseY >= 0) {
-                el.style.transform = `translate3d(${mouseX - 12}px, ${mouseY - 10}px, 0) scaleX(-1)`;
-                el.classList.add('is-visible');
-            }
-            isScheduled = false;
-        }
-
-        window.addEventListener('mousemove', function(e) {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-            
-            sessionStorage.setItem('rocket_x', mouseX);
-            sessionStorage.setItem('rocket_y', mouseY);
-
-            if (!isScheduled) {
-                isScheduled = true;
-                requestAnimationFrame(render);
-            }
-        }, { passive: true });
-
-        document.addEventListener('mouseleave', function() {
-            const el = document.getElementById('custom-rocket-cursor');
-            if (el) el.classList.remove('is-visible');
-        });
-
-        if (mouseX >= 0 && mouseY >= 0) {
-            requestAnimationFrame(render);
-        }
-    })();
-    </script>
-
-    <!-- ===================================================
-         🎨 STYLES: CSS Variables & Custom Rocket Cursor
-         =================================================== -->
+    <!-- =========================================
+         Footer Custom CSS Styles
+         ========================================= -->
     <style>
-        html, body, *, *::before, *::after,
-        a, a:hover, a:active, a:focus,
-        button, button:hover, button:active,
-        input, select, textarea, [role="button"], 
-        .btn, .nav-link, .dropdown-item, [onclick] {
-            cursor: none !important;
-        }
-
-        #custom-rocket-cursor {
-            position: fixed;
-            top: 0;
-            left: 0;
-            font-size: 22px;
-            line-height: 1;
-            pointer-events: none;
-            z-index: 9999999;
-            user-select: none;
-            will-change: transform;
-            transition: transform 0.02s linear, opacity 0.1s ease-in-out;
-            opacity: 0;
-        }
-
-        #custom-rocket-cursor.is-visible {
-            opacity: 1;
-        }
-
-        :root, html[data-theme="dark"] {
-            --ft-bg: #0b0f19;
-            --ft-card-bg: #0f172a;
-            --ft-border: #1e293b;
-            --ft-text-main: #ffffff;
+        :root, html[data-theme="dark"], body[data-theme="dark"] {
+            --ft-bg-main: #0b0f19;
+            --ft-card-bg: rgba(15, 23, 42, 0.85);
+            --ft-card-border: #1e293b;
+            --ft-text-main: #f8fafc;
             --ft-text-muted: #94a3b8;
-            --ft-placeholder: rgba(255, 255, 255, 0.6);
+            --ft-hr-color: rgba(255, 255, 255, 0.08);
             --ft-modal-bg: #0f172a;
-            --ft-modal-input: #0b0f19;
-            --ft-close-filter: invert(1) grayscale(100%) brightness(200%);
+            --ft-modal-input-bg: rgba(15, 23, 42, 0.8);
+            --ft-modal-input-border: #334155;
+            --ft-btn-close-filter: invert(1);
         }
 
-        html[data-theme="light"] {
-            --ft-bg: #f8fafc;
+        html[data-theme="light"], body[data-theme="light"] {
+            --ft-bg-main: #f8fafc;
             --ft-card-bg: #ffffff;
-            --ft-border: #e2e8f0;
+            --ft-card-border: #e2e8f0;
             --ft-text-main: #0f172a;
             --ft-text-muted: #64748b;
-            --ft-placeholder: #94a3b8;
+            --ft-hr-color: rgba(0, 0, 0, 0.08);
             --ft-modal-bg: #ffffff;
-            --ft-modal-input: #f1f5f9;
-            --ft-close-filter: none;
+            --ft-modal-input-bg: #f1f5f9;
+            --ft-modal-input-border: #cbd5e1;
+            --ft-btn-close-filter: invert(0);
         }
 
-        .footer-wrapper {
-            background-color: var(--ft-bg) !important;
-            border-top: 1px solid var(--ft-border) !important;
+        footer.footer-wrapper {
+            background-color: var(--ft-bg-main);
+            border-top: 1px solid var(--ft-card-border);
+            color: var(--ft-text-main);
             transition: background-color 0.3s ease, border-color 0.3s ease;
         }
 
         .ft-card-theme {
             background-color: var(--ft-card-bg) !important;
-            border: 1px solid var(--ft-border) !important;
-            transition: background-color 0.3s ease, border-color 0.3s ease;
-        }
-
-        .ft-modal-theme {
-            background-color: var(--ft-modal-bg) !important;
-            border: 1px solid var(--ft-border) !important;
-            transition: background-color 0.3s ease, border-color 0.3s ease;
-        }
-
-        .ft-modal-input {
-            background-color: var(--ft-modal-input) !important;
-            border: 1px solid var(--ft-border) !important;
-            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+            border: 1px solid var(--ft-card-border) !important;
+            color: var(--ft-text-main) !important;
         }
 
         .ft-text-main {
             color: var(--ft-text-main) !important;
-            transition: color 0.3s ease;
         }
 
         .ft-text-muted {
             color: var(--ft-text-muted) !important;
-            transition: color 0.3s ease;
         }
 
         .ft-border-bottom {
-            border-bottom: 1px solid var(--ft-border) !important;
-            transition: border-color 0.3s ease;
+            border-bottom: 1px solid var(--ft-hr-color) !important;
         }
 
         .ft-hr {
-            border-color: var(--ft-border) !important;
-            opacity: 1 !important;
-            transition: border-color 0.3s ease;
-        }
-
-        .ft-btn-close {
-            filter: var(--ft-close-filter);
+            border-color: var(--ft-hr-color);
+            opacity: 1;
         }
 
         .hover-text-primary:hover {
             color: #6366F1 !important;
-            opacity: 1 !important;
-            transition: all 0.2s ease-in-out;
+            transition: color 0.2s ease;
         }
 
-        .placeholder-glow-custom::placeholder {
-            color: var(--ft-placeholder) !important;
-            opacity: 1 !important;
+        .btn-back-to-top {
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .btn-back-to-top:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3) !important;
+        }
+
+        .ft-modal-theme {
+            background-color: var(--ft-modal-bg) !important;
+            border: 1px solid var(--ft-card-border) !important;
+            color: var(--ft-text-main) !important;
+        }
+
+        .ft-modal-input {
+            background-color: var(--ft-modal-input-bg) !important;
+            border: 1px solid var(--ft-modal-input-border) !important;
+            color: var(--ft-text-main) !important;
+            border-radius: 10px;
+        }
+
+        .ft-btn-close {
+            filter: var(--ft-btn-close-filter);
+        }
+
+        .cursor-pointer {
+            cursor: pointer;
         }
     </style>
+
+    <!-- =========================================
+         Footer Core JavaScript
+         ========================================= -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. Back to Top Button Logic
+            const backToTopBtn = document.getElementById('backToTopBtn');
+            if (backToTopBtn) {
+                window.addEventListener('scroll', function() {
+                    if (window.scrollY > 300) {
+                        backToTopBtn.classList.remove('d-none');
+                        backToTopBtn.classList.add('d-flex');
+                    } else {
+                        backToTopBtn.classList.add('d-none');
+                        backToTopBtn.classList.remove('d-flex');
+                    }
+                });
+
+                backToTopBtn.addEventListener('click', function() {
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                });
+            }
+
+            // 2. Newsletter Form Submission Handler
+            const newsletterForm = document.getElementById('newsletterForm');
+            if (newsletterForm) {
+                newsletterForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const btn = document.getElementById('btnNewsletter');
+                    const originalText = btn.innerHTML;
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+
+                    setTimeout(function() {
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                        newsletterForm.reset();
+                        alert('ขอบคุณสำหรับการติดตามข่าวสาร LevelUp!');
+                    }, 800);
+                });
+            }
+
+            // 3. Feedback Form Submission Handler
+            const feedbackForm = document.getElementById('feedbackForm');
+            if (feedbackForm) {
+                feedbackForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const btn = document.getElementById('btnSubmitFeedback');
+                    const originalText = btn.innerHTML;
+                    btn.disabled = true;
+                    btn.innerHTML = 'Sending...';
+
+                    setTimeout(function() {
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                        feedbackForm.reset();
+                        
+                        // Close Bootstrap Modal safely
+                        const modalEl = document.getElementById('feedbackModal');
+                        if (modalEl && typeof bootstrap !== 'undefined') {
+                            const modal = bootstrap.Modal.getInstance(modalEl);
+                            if (modal) modal.hide();
+                        }
+                        alert('ขอบคุณสำหรับข้อเสนอแนะของคุณ! ทีมงานจะนำไปปรับปรุงระบบให้ดียิ่งขึ้น');
+                    }, 1000);
+                });
+            }
+
+            // 4. Daily AI Tip Cycler
+            const tips = [
+                "ระบบเรียนรู้ที่มี AI ช่วยโค้ช จะช่วยเพิ่มความเร็วในการทำเควสต์เขียนโค้ดได้ถึง 2 เท่า!",
+                "ลองใช้งาน AI Chat เพื่อสอบถามตัวอย่างโค้ด หรือแนวทางการแก้บั๊กได้ตลอด 24 ชั่วโมง",
+                "ทำภารกิจรายวันให้ครบเพื่อรักษาสถิติ Login Streak และรับ XP โบนัสเพิ่มขึ้น!",
+                "ฝึกเขียนโค้ดและทดสอบรันผลใน Virtual Cyber Lab โดยไม่ต้องตั้งค่า Environment บนเครื่องตนเอง"
+            ];
+            const tipEl = document.getElementById('dailyAiTip');
+            if (tipEl) {
+                let randomTip = tips[Math.floor(Math.random() * tips.length)];
+                tipEl.innerText = randomTip;
+            }
+        });
+    </script>
 </body>
 </html>
