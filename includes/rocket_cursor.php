@@ -1,456 +1,407 @@
 <?php
 /**
- * LevelUp - Centered Warp Rocket Cursor Engine
- * Architecture: Zero-Allocation Fixed Pool | Symmetrical Midpoint Starfield | Micro-Floating Animation
- * Developer: Senior UX / Performance Engineer
- * >>> DEPLOY-CHECK-MARKER-V11-MAX-ZINDEX-FIX <<<
+ * LevelUp Rocket Cursor Component v2.0
+ * Ultra-high z-index & forced cursor-hide for all interactive states.
+ * Usage in PHP: <?php include 'rocket-cursor.php'; ?>
  */
-
-if (defined('LEVELUP_ROCKET_CURSOR_LOADED')) { return; }
-define('LEVELUP_ROCKET_CURSOR_LOADED', true);
 ?>
+<div id="rocket-cursor-wrapper" aria-hidden="true">
+    <div id="rocket-cursor-main">
+        <!-- Thruster Flame / Particle trail origin -->
+        <div class="rocket-flame-container">
+            <div class="rocket-flame-core"></div>
+            <div class="rocket-flame-glow"></div>
+        </div>
+        
+        <!-- SVG Rocket Icon -->
+        <svg class="rocket-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g id="rocket-group">
+                <!-- Main Rocket Body -->
+                <path d="M32 4C32 4 48 16 48 38C48 44 44 48 44 48L32 42L20 48C20 48 16 44 16 38C16 16 32 4 32 4Z" fill="url(#rocket-body-grad)" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round"/>
+                <!-- Rocket Nose Cone -->
+                <path d="M32 4C37 10 42 20 43.5 26H20.5C22 20 27 10 32 4Z" fill="#EF4444"/>
+                <!-- Wings / Fins -->
+                <path d="M16 34L6 44C6 44 10 49 18 47L16 34Z" fill="#3B82F6" stroke="#ffffff" stroke-width="1"/>
+                <path d="M48 34L58 44C58 44 54 49 46 47L48 34Z" fill="#3B82F6" stroke="#ffffff" stroke-width="1"/>
+                <!-- Porthole Window -->
+                <circle cx="32" cy="24" r="6" fill="#06B6D4" stroke="#ffffff" stroke-width="1.5"/>
+                <circle cx="30" cy="22" r="2" fill="#ffffff" opacity="0.8"/>
+                <!-- Center Thruster Nozzle -->
+                <path d="M26 44H38L36 49H28L26 44Z" fill="#475569"/>
+            </g>
+            <defs>
+                <linearGradient id="rocket-body-grad" x1="16" y1="4" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#FFFFFF"/>
+                    <stop offset="0.6" stop-color="#E2E8F0"/>
+                    <stop offset="1" stop-color="#CBD5E1"/>
+                </linearGradient>
+            </defs>
+        </svg>
+
+        <!-- Hover Target Indicator Ring -->
+        <div class="rocket-target-ring"></div>
+    </div>
+</div>
+
+<!-- Canvas for Engine Smoke & Spark Particles -->
+<canvas id="rocket-particle-canvas"></canvas>
+
 <style>
-    /* 🛡️ บังคับซ่อนเมาส์ระบบทั้งหมด 100% ทุก Element รวมถึง Select/Option/Input */
-    html.levelup-active-cursor,
-    html.levelup-active-cursor *,
-    html.levelup-active-cursor select,
-    html.levelup-active-cursor option,
-    html.levelup-active-cursor optgroup,
-    html.levelup-active-cursor input,
-    html.levelup-active-cursor textarea,
-    html.levelup-active-cursor button {
+    /* ------------------------------------------------------------------
+       1. GLOBAL CURSOR RESET (Fixes default mouse returning on hover)
+       ------------------------------------------------------------------ */
+    *, *::before, *::after,
+    html, body, 
+    a, button, input, select, textarea, label, [role="button"],
+    .btn, .glass-card, .accordion-button, .card, iframe, svg, img {
         cursor: none !important;
     }
-    
-    html.levelup-active-cursor * {
-        -webkit-user-drag: none !important;
-        -khtml-user-drag: none !important;
-        -moz-user-drag: none !important;
-        -o-user-drag: none !important;
-        user-drag: none !important;
-    }
-    
-    #levelup-rocket-cursor {
-        transition: opacity 0.15s ease-out;
+
+    /* ------------------------------------------------------------------
+       2. CURSOR WRAPPER & HIGH Z-INDEX STACKING (Fixes rocket behind elements)
+       ------------------------------------------------------------------ */
+    #rocket-cursor-wrapper {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        pointer-events: none !important;
+        /* Maximum possible 32-bit signed integer z-index to stay above modal/headers */
+        z-index: 2147483647 !important;
+        isolation: isolate !important;
+        transform: translate3d(0, 0, 0);
+        will-change: transform;
+        display: block;
     }
 
-    /* 🚀 เรืองแสงเมื่อ Hover ปุ่ม หรือ Dropdown Select */
-    #levelup-rocket-cursor.is-hovering {
-        filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.95)) !important;
+    #rocket-particle-canvas {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        pointer-events: none !important;
+        z-index: 2147483646 !important; /* Just below main rocket */
     }
-    
-    #levelup-rocket-cursor.is-clicking {
-        transition: transform 0.08s cubic-bezier(0.2, 1, 0.3, 1) !important;
+
+    /* ------------------------------------------------------------------
+       3. ROCKET ANIMATION & VISUAL STYLING
+       ------------------------------------------------------------------ */
+    #rocket-cursor-main {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 42px;
+        height: 42px;
+        margin-top: -21px;
+        margin-left: -21px;
+        pointer-events: none !important;
+        transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease;
+        transform-origin: center center;
+    }
+
+    .rocket-svg {
+        width: 100%;
+        height: 100%;
+        filter: drop-shadow(0px 4px 10px rgba(0, 0, 0, 0.35));
+        transition: filter 0.2s ease;
+    }
+
+    /* Engine Flame Effect */
+    .rocket-flame-container {
+        position: absolute;
+        bottom: -6px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 14px;
+        height: 18px;
+        pointer-events: none;
+        display: flex;
+        justify-content: center;
+    }
+
+    .rocket-flame-core {
+        width: 8px;
+        height: 100%;
+        background: linear-gradient(180deg, #FBBF24 0%, #EF4444 60%, rgba(239, 68, 68, 0) 100%);
+        border-radius: 50% 50% 20% 20%;
+        animation: rocketFlameBurn 0.12s infinite alternate ease-in-out;
+    }
+
+    .rocket-flame-glow {
+        position: absolute;
+        top: -2px;
+        width: 16px;
+        height: 16px;
+        background: rgba(245, 158, 11, 0.6);
+        border-radius: 50%;
+        filter: blur(4px);
+    }
+
+    @keyframes rocketFlameBurn {
+        0% { transform: scaleY(0.8) scaleX(0.9); opacity: 0.85; }
+        100% { transform: scaleY(1.3) scaleX(1.1); opacity: 1; }
+    }
+
+    /* Interactive Hover Target Ring */
+    .rocket-target-ring {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 48px;
+        height: 48px;
+        margin-top: -24px;
+        margin-left: -24px;
+        border: 2px dashed rgba(99, 102, 241, 0.7);
+        border-radius: 50%;
+        opacity: 0;
+        transform: scale(0.5) rotate(0deg);
+        transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        pointer-events: none;
+    }
+
+    /* Hover State (When pointing to links/buttons) */
+    #rocket-cursor-main.is-hovering {
+        transform: scale(1.25);
+    }
+
+    #rocket-cursor-main.is-hovering .rocket-svg {
+        filter: drop-shadow(0px 0px 14px rgba(99, 102, 241, 0.8));
+    }
+
+    #rocket-cursor-main.is-hovering .rocket-target-ring {
+        opacity: 1;
+        transform: scale(1.1) rotate(90deg);
+    }
+
+    #rocket-cursor-main.is-hovering .rocket-flame-core {
+        background: linear-gradient(180deg, #38BDF8 0%, #6366F1 60%, rgba(99, 102, 241, 0) 100%);
+        animation-duration: 0.08s;
+    }
+
+    /* Click Active Down State */
+    #rocket-cursor-main.is-clicking {
+        transform: scale(0.9) rotate(-10deg);
+    }
+
+    /* Hide cursor on Touchscreens */
+    @media (hover: none) and (pointer: coarse) {
+        #rocket-cursor-wrapper, #rocket-particle-canvas {
+            display: none !important;
+        }
+        *, *::before, *::after, html, body, a, button, input {
+            cursor: auto !important;
+        }
     }
 </style>
-
-<!-- Canvas Overlay สำหรับเอฟเฟกต์ทั้งหมด (Z-Index สูงสุดระดับเกือบ MAX) -->
-<canvas id="levelup-particle-canvas" style="position: fixed !important; top: 0 !important; left: 0 !important; pointer-events: none !important; z-index: 2147483646 !important;"></canvas>
-
-<!-- ตัวไอคอนจรวด (Z-Index สูงสุดในโลก CSS: 2147483647) -->
-<div id="levelup-rocket-cursor" style="position: fixed; top: 0; left: 0; transform: translate3d(-100vw, -100vh, 0) scaleX(-1); opacity: 0; pointer-events: none; user-select: none; z-index: 2147483647 !important; width: 18px; height: 18px; font-size: 18px; line-height: 1; transform-origin: 21.2px 0.3px; will-change: transform, opacity; text-shadow: none;">🚀</div>
 
 <script>
 (function() {
     'use strict';
 
-    // 🛡️ ระบบกำจัดจรวดส่วนเกินจาก Footer
-    function setupRogueCursorAssassin() {
-        const killRogue = () => {
-            const rogue = document.getElementById('custom-rocket-cursor');
-            if (rogue) rogue.remove();
-        };
-        killRogue();
-        const observer = new MutationObserver(killRogue);
-        observer.observe(document.documentElement, { childList: true, subtree: true });
-    }
-    setupRogueCursorAssassin();
-
-    // เคลียร์ Canvas/Rocket ตัวเก่าถ้าระบบถูกโหลดซ้ำ
-    const existingRockets = document.querySelectorAll('#levelup-rocket-cursor');
-    for (let i = 1; i < existingRockets.length; i++) existingRockets[i].remove();
-    const existingCanvases = document.querySelectorAll('#levelup-particle-canvas');
-    for (let i = 1; i < existingCanvases.length; i++) existingCanvases[i].remove();
-
-    if (window.__LevelUpRocketEngine) return;
-    window.__LevelUpRocketEngine = true;
-
-    if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
-
-    const canvas = document.querySelector('#levelup-particle-canvas');
-    const ctx = canvas.getContext('2d', { alpha: true });
-    const rocket = document.querySelector('#levelup-rocket-cursor');
-    
-    // 🛡️ บังคับย้าย Canvas และ Rocket ไปไว้ใน <body> ชั้นนอกสุด เพื่อป้องกันปัญหา Z-Index (Stacking Context)
-    if (document.body) {
-        if (canvas.parentNode !== document.body) document.body.appendChild(canvas);
-        if (rocket.parentNode !== document.body) document.body.appendChild(rocket);
+    // Disable execution on touch devices
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+        return;
     }
 
-    // 🎨 โทนสีอนุภาค
-    const STAR_COLORS = ['#ffffff', '#8ab4f8', '#b388ff'];
-    const FLAME_COLORS = ['#ff9e00', '#ff5400', '#d00000'];
-    const PLASMA_COLORS = ['#ffb703', '#fb8500'];
-    const HOT_CORE_COLOR = '#ffd60a';
+    document.addEventListener('DOMContentLoaded', function() {
+        /* ------------------------------------------------------------------
+           1. DOM SETUP & DOM-TREE HOISTING (Ensures highest rendering z-index)
+           ------------------------------------------------------------------ */
+        var wrapper = document.getElementById('rocket-cursor-wrapper');
+        var rocket = document.getElementById('rocket-cursor-main');
+        var canvas = document.getElementById('rocket-particle-canvas');
 
-    // 🎯 พิกัดจุดหมุน และท่อไอพ่นจรวด
-    const HOTSPOT_X = 21.2;
-    const HOTSPOT_Y = 0.3;
-    const BASE_NOZZLE_OFFSET_X = 12.3;
-    const BASE_NOZZLE_OFFSET_Y = 16.5;
-    const NOZZLE_ANGLE = Math.atan2(BASE_NOZZLE_OFFSET_Y, BASE_NOZZLE_OFFSET_X);
-    
-    const POOL_SIZE = 90;
+        if (!wrapper || !rocket || !canvas) return;
 
-    let hasValidPosition = false;
-    let mouse = { x: -100, y: -100, lastX: -100, lastY: -100 };
-    let state = { isHovering: false, isClicking: false, idleTime: 0 };
-    
-    let lastTarget = null;
-    let lastTime = performance.now();
-    let rafId = null;
-    let dpr = window.devicePixelRatio || 1;
+        // Move cursor elements to absolute end of document body to break out of all parent stacking contexts
+        document.body.appendChild(canvas);
+        document.body.appendChild(wrapper);
 
-    function resizeCanvas() {
-        dpr = window.devicePixelRatio || 1;
-        canvas.width = window.innerWidth * dpr;
-        canvas.height = window.innerHeight * dpr;
-        canvas.style.width = window.innerWidth + 'px';
-        canvas.style.height = window.innerHeight + 'px';
-        ctx.scale(dpr, dpr);
-    }
+        var ctx = canvas.getContext('2d');
+        var width = canvas.width = window.innerWidth;
+        var height = canvas.height = window.innerHeight;
 
-    // ⚡ Engine Particle Pool แบบ Zero-Memory Allocation
-    class CosmicParticlePool {
-        constructor(size) {
-            this.pool = Array.from({ length: size }, () => ({
-                active: false,
-                isStar: false,
-                x: 0, y: 0,
-                vx: 0, vy: 0,
-                life: 0, maxLife: 0,
-                size: 0,
-                color: ''
-            }));
+        window.addEventListener('resize', function() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+        /* ------------------------------------------------------------------
+           2. STATE & POSITION VARIABLES
+           ------------------------------------------------------------------ */
+        var mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+        var pos = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+        var lastPos = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+        var angle = 0;
+        var targetAngle = 0;
+        var particles = [];
+        var isHovered = false;
+        var isClicking = false;
+
+        /* ------------------------------------------------------------------
+           3. MOUSE EVENT LISTENERS
+           ------------------------------------------------------------------ */
+        window.addEventListener('mousemove', function(e) {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+
+            // Make wrapper visible when mouse enters viewport
+            if (wrapper.style.opacity === '0') {
+                wrapper.style.opacity = '1';
+                canvas.style.opacity = '1';
+            }
+        });
+
+        document.addEventListener('mouseleave', function() {
+            wrapper.style.opacity = '0';
+            canvas.style.opacity = '0';
+        });
+
+        document.addEventListener('mouseenter', function() {
+            wrapper.style.opacity = '1';
+            canvas.style.opacity = '1';
+        });
+
+        window.addEventListener('mousedown', function() {
+            isClicking = true;
+            rocket.classList.add('is-clicking');
+            createBurstSparks(pos.x, pos.y, 16);
+        });
+
+        window.addEventListener('mouseup', function() {
+            isClicking = false;
+            rocket.classList.remove('is-clicking');
+        });
+
+        /* ------------------------------------------------------------------
+           4. HOVER DETECTION FOR INTERACTIVE ELEMENTS
+           ------------------------------------------------------------------ */
+        var interactiveSelector = 'a, button, input, select, textarea, [role="button"], .btn, .card, .glass-card, .category-card-compact, .accordion-button';
+        
+        document.addEventListener('mouseover', function(e) {
+            if (e.target && e.target.closest(interactiveSelector)) {
+                isHovered = true;
+                rocket.classList.add('is-hovering');
+            }
+        });
+
+        document.addEventListener('mouseout', function(e) {
+            if (e.target && e.target.closest(interactiveSelector)) {
+                isHovered = false;
+                rocket.classList.remove('is-hovering');
+            }
+        });
+
+        /* ------------------------------------------------------------------
+           5. PARTICLE ENGINE (Smoke & Fire Thrusters)
+           ------------------------------------------------------------------ */
+        function createThrusterParticle(x, y, vx, vy, isHoveredState) {
+            particles.push({
+                x: x,
+                y: y,
+                vx: vx + (Math.random() - 0.5) * 1.5,
+                vy: vy + (Math.random() - 0.5) * 1.5,
+                size: isHoveredState ? Math.random() * 5 + 3 : Math.random() * 4 + 2,
+                color: isHoveredState ? 
+                    (Math.random() > 0.4 ? '#38BDF8' : '#6366F1') : 
+                    (Math.random() > 0.5 ? '#F59E0B' : '#EF4444'),
+                alpha: 1,
+                decay: Math.random() * 0.04 + 0.02
+            });
         }
 
-        spawnThruster(x, y, vx, vy, isPlasma) {
-            const p = this.pool.find(p => !p.active);
-            if (!p) return;
-
-            p.active = true;
-            p.isStar = false;
-            p.x = x;
-            p.y = y;
-            p.vx = vx;
-            p.vy = vy;
-            p.maxLife = p.life = 0.15 + Math.random() * 0.15;
-            p.size = 2.5 + Math.random() * 3.0;
-
-            if (isPlasma) {
-                p.color = PLASMA_COLORS[Math.floor(Math.random() * PLASMA_COLORS.length)];
-            } else {
-                const rand = Math.random();
-                if (rand > 0.6) p.color = FLAME_COLORS[0];
-                else if (rand > 0.25) p.color = FLAME_COLORS[1];
-                else p.color = FLAME_COLORS[2];
+        function createBurstSparks(x, y, count) {
+            for (var i = 0; i < count; i++) {
+                var pAngle = Math.random() * Math.PI * 2;
+                var speed = Math.random() * 5 + 2;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(pAngle) * speed,
+                    vy: Math.sin(pAngle) * speed,
+                    size: Math.random() * 4 + 2,
+                    color: '#10B981',
+                    alpha: 1,
+                    decay: 0.03
+                });
             }
         }
 
-        spawnStar(centerX, centerY) {
-            const p = this.pool.find(p => !p.active);
-            if (!p) return;
+        /* ------------------------------------------------------------------
+           6. MAIN ANIMATION LOOP (LERP & Rotation)
+           ------------------------------------------------------------------ */
+        function render() {
+            // Linear Interpolation (Smooth Rocket Movement)
+            var lerpFactor = 0.22;
+            pos.x += (mouse.x - pos.x) * lerpFactor;
+            pos.y += (mouse.y - pos.y) * lerpFactor;
 
-            p.active = true;
-            p.isStar = true;
-            
-            const speed = 2.4 + Math.random() * 2.6;
-            const angle = Math.PI * 0.25;
+            // Movement delta calculation
+            var dx = pos.x - lastPos.x;
+            var dy = pos.y - lastPos.y;
+            var speed = Math.sqrt(dx * dx + dy * dy);
 
-            p.vx = Math.cos(angle) * speed;
-            p.vy = Math.sin(angle) * speed;
+            // Calculate rotation angle (Default Rocket pointing direction is 45 deg or up 90 deg)
+            if (speed > 0.5) {
+                // Rocket SVG base points UP (90 degrees offset)
+                targetAngle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
+            }
 
-            p.maxLife = p.life = 0.4 + Math.random() * 0.3;
+            // Smooth Angle Interpolation
+            var dAngle = targetAngle - angle;
+            // Normalize angle to prevent 360-degree spin flips
+            while (dAngle < -180) dAngle += 360;
+            while (dAngle > 180) dAngle -= 360;
+            angle += dAngle * 0.2;
 
-            const travelDist = speed * (p.maxLife / 0.020);
-            const travelProgress = (Math.random() - 0.5) * 1.2;
-            const sideOffset = (Math.random() - 0.5) * 65;
+            // Update Rocket Element Position & Transform
+            wrapper.style.transform = 'translate3d(' + pos.x + 'px, ' + pos.y + 'px, 0)';
+            rocket.style.transform = 'rotate(' + angle + 'deg)';
 
-            const dirX = Math.cos(angle);
-            const dirY = Math.sin(angle);
-            const perpX = -dirY;
-            const perpY = dirX;
+            // Spawn Thruster Flame Particles when moving or hovering
+            if (speed > 0.8 || isHovered) {
+                // Calculate position behind the rocket nozzle
+                var rad = (angle - 90) * (Math.PI / 180);
+                var tailX = pos.x - Math.cos(rad) * 22;
+                var tailY = pos.y - Math.sin(rad) * 22;
+                var backVx = -Math.cos(rad) * (speed * 0.3 + 1);
+                var backVy = -Math.sin(rad) * (speed * 0.3 + 1);
 
-            p.x = centerX + (dirX * travelProgress * travelDist) + (perpX * sideOffset);
-            p.y = centerY + (dirY * travelProgress * travelDist) + (perpY * sideOffset);
+                createThrusterParticle(tailX, tailY, backVx, backVy, isHovered);
+            }
 
-            p.size = 1.1 + Math.random() * 1.8;
-
-            const colors = STAR_COLORS;
-            p.color = colors[Math.floor(Math.random() * colors.length)];
-        }
-
-        updateAndDraw(ctx) {
-            ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-            ctx.save();
-            ctx.globalCompositeOperation = 'source-over';
-
-            let hasActive = false;
-
-            for (let i = 0; i < this.pool.length; i++) {
-                const p = this.pool[i];
-                if (!p.active) continue;
-
-                hasActive = true;
+            // Draw Particles on Canvas
+            ctx.clearRect(0, 0, width, height);
+            for (var i = particles.length - 1; i >= 0; i--) {
+                var p = particles[i];
                 p.x += p.vx;
                 p.y += p.vy;
-                p.life -= p.isStar ? 0.020 : 0.025;
+                p.alpha -= p.decay;
 
-                if (p.life <= 0) {
-                    p.active = false;
+                if (p.alpha <= 0) {
+                    particles.splice(i, 1);
                     continue;
                 }
 
-                const progress = p.life / p.maxLife;
-
-                if (p.isStar) {
-                    const glowR = p.size * 2.4;
-                    const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowR);
-                    glow.addColorStop(0, p.color);
-                    glow.addColorStop(1, 'rgba(0,0,0,0)');
-                    ctx.globalAlpha = Math.min(1.0, progress * 0.85);
-                    ctx.fillStyle = glow;
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    ctx.globalAlpha = Math.min(1.0, progress * 1.2);
-                    ctx.fillStyle = '#ffffff';
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size * 0.45, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.lineWidth = 0.5;
-                    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
-                    ctx.stroke();
-                } else {
-                    const speed = Math.hypot(p.vx, p.vy);
-                    const angle = Math.atan2(p.vy, p.vx);
-                    const stretch = 1 + Math.min(speed * 0.6, 2.2);
-                    const r = Math.max(0.4, p.size * progress);
-
-                    ctx.save();
-                    ctx.translate(p.x, p.y);
-                    ctx.rotate(angle);
-
-                    const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, r * stretch * 1.5);
-                    glow.addColorStop(0, p.color);
-                    glow.addColorStop(1, 'rgba(0,0,0,0)');
-                    ctx.globalAlpha = Math.min(1.0, progress * 0.9);
-                    ctx.fillStyle = glow;
-                    ctx.beginPath();
-                    ctx.ellipse(0, 0, r * stretch * 1.5, r * 1.5, 0, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    ctx.globalAlpha = Math.min(1.0, progress * 1.3);
-                    ctx.fillStyle = HOT_CORE_COLOR;
-                    ctx.beginPath();
-                    ctx.ellipse(0, 0, r * stretch * 0.55, r * 0.55, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.lineWidth = 0.5;
-                    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
-                    ctx.stroke();
-
-                    ctx.restore();
-                }
+                ctx.save();
+                ctx.globalAlpha = p.alpha;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
             }
 
-            ctx.restore();
-            return hasActive;
-        }
-    }
+            lastPos.x = pos.x;
+            lastPos.y = pos.y;
 
-    const particlePool = new CosmicParticlePool(POOL_SIZE);
-
-    // 🎯 ตรวจจับการ Hover ของเมาส์เหนือองค์ประกอบที่กดได้ (รวมถึง Select / Option / Input)
-    function scanTargetCursor(target) {
-        if (!target || target === lastTarget) return;
-        lastTarget = target;
-
-        const isInteractive = target.closest('a, button, [role="button"], input, select, option, textarea, .btn, [onclick], [data-bs-toggle]');
-        state.isHovering = !!isInteractive;
-    }
-
-    // 🎬 Animation Loop หลัก
-    function render(now) {
-        const dt = (now - lastTime) / 1000;
-        lastTime = now;
-
-        if (!hasValidPosition) {
-            document.documentElement.classList.remove('levelup-active-cursor');
-            rocket.style.opacity = '0';
-        } else {
-            document.documentElement.classList.add('levelup-active-cursor');
-
-            const dx = mouse.x - mouse.lastX;
-            const dy = mouse.y - mouse.lastY;
-            const moveSpeed = Math.sqrt(dx * dx + dy * dy);
-
-            if (moveSpeed > 0.2) {
-                state.idleTime = 0;
-            } else {
-                state.idleTime += dt;
-            }
-
-            // 🌌 เอฟเฟกต์ลอยนิ่งแบบไร้น้ำหนัก (Zero-G Floating)
-            let hoverX = 0;
-            let hoverY = 0;
-            if (state.idleTime > 1.0) {
-                hoverX = Math.sin(now * 0.002) * 2.0;
-                hoverY = Math.cos(now * 0.003) * 2.5;
-            }
-
-            let scale = state.isHovering ? 1.25 : 1.0;
-            if (state.isClicking) scale *= 0.85;
-
-            if (state.isHovering) rocket.classList.add('is-hovering');
-            else rocket.classList.remove('is-hovering');
-
-            if (state.isClicking) rocket.classList.add('is-clicking');
-            else rocket.classList.remove('is-clicking');
-
-            const currX = mouse.x + hoverX;
-            const currY = mouse.y + hoverY;
-
-            rocket.style.transform = `translate3d(${currX - HOTSPOT_X}px, ${currY - HOTSPOT_Y}px, 0) scaleX(-1) rotate(-8deg) scale(${scale})`;
-            rocket.style.opacity = '1';
-
-            const nozzleX = currX + (BASE_NOZZLE_OFFSET_X * scale);
-            const nozzleY = currY + (BASE_NOZZLE_OFFSET_Y * scale);
-
-            if (state.idleTime > 3.0) {
-                if (Math.random() > 0.5) {
-                    particlePool.spawnStar(currX, currY);
-                }
-
-                const flicker = 0.7 + Math.sin(now * 0.012) * 0.3;
-                const idleOriginX = nozzleX + Math.cos(NOZZLE_ANGLE) * 4;
-                const idleOriginY = nozzleY + Math.sin(NOZZLE_ANGLE) * 4;
-                const speedIdle = (0.6 + Math.random() * 1.0) * flicker;
-                const spreadIdle = (Math.random() - 0.5) * 0.5;
-                particlePool.spawnThruster(
-                    idleOriginX + (Math.random() - 0.5) * 1.5,
-                    idleOriginY + (Math.random() - 0.5) * 1.5,
-                    Math.cos(NOZZLE_ANGLE + spreadIdle) * speedIdle,
-                    Math.sin(NOZZLE_ANGLE + spreadIdle) * speedIdle,
-                    true
-                );
-            } else {
-                const isMoving = moveSpeed > 0.5;
-
-                if (isMoving) {
-                    for (let n = 0; n < 2; n++) {
-                        particlePool.spawnThruster(
-                            nozzleX + (Math.random() - 0.5) * 2,
-                            nozzleY + (Math.random() - 0.5) * 2,
-                            (Math.random() - 0.5) * 0.3,
-                            (Math.random() - 0.5) * 0.3,
-                            false
-                        );
-                    }
-
-                    const exhaustAngle = Math.atan2(dy, dx) + Math.PI;
-                    for (let n = 0; n < 3; n++) {
-                        const speed = 1.2 + Math.random() * 2.4;
-                        const spread = (Math.random() - 0.5) * 0.55;
-                        const vx = Math.cos(exhaustAngle + spread) * speed;
-                        const vy = Math.sin(exhaustAngle + spread) * speed;
-                        particlePool.spawnThruster(nozzleX, nozzleY, vx, vy, false);
-                    }
-                } else {
-                    const originX = nozzleX + Math.cos(NOZZLE_ANGLE) * 4;
-                    const originY = nozzleY + Math.sin(NOZZLE_ANGLE) * 4;
-                    for (let n = 0; n < 2; n++) {
-                        const speed = 0.9 + Math.random() * 1.5;
-                        const spread = (Math.random() - 0.5) * 0.5;
-                        const vx = Math.cos(NOZZLE_ANGLE + spread) * speed;
-                        const vy = Math.sin(NOZZLE_ANGLE + spread) * speed;
-                        particlePool.spawnThruster(originX, originY, vx, vy, false);
-                    }
-                }
-            }
-
-            mouse.lastX = mouse.x;
-            mouse.lastY = mouse.y;
+            requestAnimationFrame(render);
         }
 
-        particlePool.updateAndDraw(ctx);
-        rafId = requestAnimationFrame(render);
-    }
-
-    function wakeUp() {
-        if (!rafId) {
-            lastTime = performance.now();
-            rafId = requestAnimationFrame(render);
-        }
-    }
-
-    window.addEventListener('resize', resizeCanvas, { passive: true });
-
-    const engineStartTime = performance.now();
-
-    ['pointermove', 'mousemove'].forEach(eventType => {
-        window.addEventListener(eventType, (e) => {
-            if (e.clientX === undefined) return;
-
-            if (!hasValidPosition && e.clientX === 0 && e.clientY === 0 && (performance.now() - engineStartTime) < 500) {
-                return;
-            }
-
-            hasValidPosition = true;
-            mouse.x = Math.round(e.clientX);
-            mouse.y = Math.round(e.clientY);
-
-            scanTargetCursor(e.target);
-            wakeUp();
-        }, { passive: true, capture: true });
+        // Start Animation Engine
+        requestAnimationFrame(render);
     });
-
-    window.addEventListener('mousedown', (e) => {
-        if (e.button !== 2) {
-            state.isClicking = true;
-            if (hasValidPosition) {
-                const scale = state.isHovering ? 1.25 : 1.0;
-                const nX = mouse.x + (BASE_NOZZLE_OFFSET_X * scale);
-                const nY = mouse.y + (BASE_NOZZLE_OFFSET_Y * scale);
-                for (let i = 0; i < 6; i++) {
-                    const angle = Math.random() * Math.PI * 2;
-                    const spd = 1.5 + Math.random() * 2.5;
-                    particlePool.spawnThruster(nX, nY, Math.cos(angle) * spd, Math.sin(angle) * spd, false);
-                }
-            }
-            wakeUp();
-        }
-    }, { passive: true });
-
-    window.addEventListener('mouseup', () => { state.isClicking = false; wakeUp(); }, { passive: true });
-
-    document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-            if (rafId) {
-                cancelAnimationFrame(rafId);
-                rafId = null;
-            }
-        } else {
-            wakeUp();
-        }
-    });
-
-    document.addEventListener('mouseleave', () => {
-        hasValidPosition = false;
-        rocket.style.opacity = '0';
-    });
-
-    resizeCanvas();
-    wakeUp();
 })();
 </script>
