@@ -19,11 +19,6 @@ $appVersion = "1.0.0 (Build 2026.07)";
         <button class="btn ft-card-theme rounded-circle shadow-lg d-none align-items-center justify-content-center btn-back-to-top transition-all" id="backToTopBtn" style="width: 45px; height: 45px;">
             <i class="bi bi-arrow-up fs-5 ft-text-main"></i>
         </button>
-
-        <!-- Ask AI Shortcut (แก้ไขลิงก์ชี้เข้าโฟลเดอร์ ai/ เรียบร้อยแล้ว) -->
-        <a class="btn text-white rounded-pill shadow-lg px-4 py-2 d-flex align-items-center gap-2 fw-bold ajax-link text-decoration-none" style="background: linear-gradient(135deg, #4F46E5, #6366F1); border: none;" href="<?= $ROOT_PATH ?? '' ?>ai/ai-chat.php">
-            <i class="bi bi-robot fs-5"></i> Ask AI
-        </a>
     </div>
 
     <!-- =========================================
