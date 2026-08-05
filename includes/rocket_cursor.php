@@ -752,32 +752,27 @@
                             var vMag = Math.hypot(vx, vy) || 1;
                             if (Math.random() < 0.6) {
                                 var currentRendAngle = targetAngle;
-                                var currentNozzle = getEngineNozzlePos(pos.x + targetIdleX, pos.y + targetIdleY, currentRendAngle);
-                                createThrusterParticle(currentNozzle.x, currentNozzle.y, -vx * 0.03, -vy * 0.03, true);
-                            }
-                        }
-
-                        if (stardustRamp > 0 && Math.random() < 0.7 * stardustRamp) {
+                        if (stardustRamp > 0 && Math.random() < 0.2 * stardustRamp) {
                             var orbRad = Math.random() * Math.PI * 2;
-                            var orbDist = currentRadius + (Math.random() - 0.5) * 16;
+                            var orbDist = currentRadius + (Math.random() - 0.5) * 12;
                             var vibrantColors = ['#00F0FF', '#E0E7FF', '#FFD700', '#F472B6', '#A78BFA', '#34D399', '#38BDF8'];
                             
                             particles.push({
                                 x: pos.x + Math.cos(orbRad) * orbDist,
                                 y: pos.y + Math.sin(orbRad) * orbDist,
-                                vx: -Math.sin(orbRad) * (Math.random() * 0.6 + 0.1),
-                                vy: Math.cos(orbRad) * (Math.random() * 0.6 + 0.1),
-                                size: Math.random() * 2.5 + 2.5, // คงขนาดละอองฝุ่นดั้งเดิม (2.5 - 5.0px)
+                                vx: -Math.sin(orbRad) * (Math.random() * 0.4 + 0.1),
+                                vy: Math.cos(orbRad) * (Math.random() * 0.4 + 0.1),
+                                size: Math.random() * 2.0 + 1.2,
                                 color: vibrantColors[Math.floor(Math.random() * vibrantColors.length)],
                                 alpha: 0,
-                                targetAlpha: Math.random() * 0.5 + 0.2,
-                                fadeIn: Math.random() * 0.03 + 0.015,
-                                decay: Math.random() * 0.012 + 0.006
+                                targetAlpha: Math.random() * 0.4 + 0.2,
+                                fadeIn: Math.random() * 0.04 + 0.02,
+                                decay: Math.random() * 0.025 + 0.015
                             });
                         }
                     }
 
-                    if (Math.random() < 0.15) {
+                    if (Math.random() < 0.12) {
                         var renderAngleNow = angle + idleSway;
                         var idleNozzle = getEngineNozzlePos(pos.x + currentIdleOffsetX, pos.y + currentIdleOffsetY, renderAngleNow);
                         var idleRad = (renderAngleNow - 90) * (Math.PI / 180);
@@ -801,6 +796,11 @@
                     var backVy = -Math.sin(rad) * (speed * 0.3 + 1);
 
                     createThrusterParticle(mainNozzle.x, mainNozzle.y, backVx, backVy, isHovered);
+                }
+
+                // Enforce max active particle buffer cap
+                while (particles.length > 100) {
+                    particles.shift();
                 }
 
                 ctx.clearRect(0, 0, width, height);
