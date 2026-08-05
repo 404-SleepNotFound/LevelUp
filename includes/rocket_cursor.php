@@ -426,10 +426,6 @@
         var idleTimerStage2 = null;
         var idleTimerStage3 = null;
 
-        // Blend factors (0.0 to 1.0) for seamless transition between Stage 1 -> 2 -> 3
-        var stage2Blend = 0;
-        var stage3Blend = 0;
-
         // Smoothing state variables for seamless Stage 2 -> Stage 3 transitions
         var currentIdleOffsetX = 0;
         var currentIdleOffsetY = 0;
@@ -437,8 +433,6 @@
         function resetIdleTimer() {
             idleStage = 0;
             idleTime = 0;
-            stage2Blend = 0;
-            stage3Blend = 0;
 
             rocket.classList.remove('idle-stage-1', 'idle-stage-2', 'idle-stage-3');
             wrapper.classList.remove('idle-stage-1', 'idle-stage-2', 'idle-stage-3');
@@ -634,90 +628,73 @@
                 var idleSway = 0;
 
                 if (idleStage > 0) {
-                    idleTime += 0.04;
+                    idleTime += 0.035;
 
-                    // Stage 1 Motion (0.8s - 3s): Gentle zero-G float
-                    var stage1X = Math.cos(idleTime * 0.7) * 2;
-                    var stage1Y = Math.sin(idleTime) * 4;
-                    var stage1Sway = Math.sin(idleTime * 0.5) * 4;
+                    // Continuous orbital angular velocity
+                    var omega = 0.8;
+                    var orbTheta = idleTime * omega;
 
-                    // Stage 2 Motion (3s - 7s): Orbital Insertion Spiral
-                    var orbitalAngle = idleTime * 0.5;
-                    var stage2Progress = Math.min(Math.max((idleTime - 0.88) / 4.0, 0), 1);
-                    var radiusProgress = 1 - Math.pow(1 - stage2Progress, 2.5);
-                    var currentRadius = 22 + (80 - 22) * radiusProgress;
-
-                    var stage2X = Math.cos(orbitalAngle) * currentRadius;
-                    var stage2Y = Math.sin(orbitalAngle) * currentRadius;
-                    var vx2 = -Math.sin(orbitalAngle) * currentRadius;
-                    var vy2 = Math.cos(orbitalAngle) * currentRadius;
-                    var stage2Angle = Math.atan2(vy2, vx2) * (180 / Math.PI) + 90;
-
-                    // Stage 3 Motion (7s+): Perfect circular planetary orbit (Radius 80px)
-                    var orbitSpeed = idleTime * 0.5;
-                    var stage3X = Math.cos(orbitSpeed) * 80;
-                    var stage3Y = Math.sin(orbitSpeed) * 80;
-                    var vx3 = -Math.sin(orbitSpeed);
-                    var vy3 = Math.cos(orbitSpeed);
-                    var stage3Angle = Math.atan2(vy3, vx3) * (180 / Math.PI) + 90;
-
-                    // Smoothly ramp blending weights (1.2s smooth cross-fade duration)
                     if (idleStage === 1) {
-                        stage2Blend += (0 - stage2Blend) * 0.08;
-                        stage3Blend += (0 - stage3Blend) * 0.08;
-                    } else if (idleStage === 2) {
-                        stage2Blend += (1 - stage2Blend) * 0.05; // Smooth ramp up into Stage 2
-                        stage3Blend += (0 - stage3Blend) * 0.08;
-                    } else if (idleStage === 3) {
-                        stage2Blend = 1;
-                        stage3Blend += (1 - stage3Blend) * 0.05; // Smooth ramp up into Stage 3
-                    }
+                        // Stage 1 Motion: Gentle zero-G float
+                        targetIdleX = Math.cos(idleTime * 0.7) * 3;
+                        targetIdleY = Math.sin(idleTime) * 5;
+                        idleSway = Math.sin(idleTime * 0.5) * 4;
+                    } else {
+                        // Stage 2 & 3: Seamless Spiral into Stable Planetary Orbit
+                        var spiralDuration = 3.5;
+                        var spiralProgress = Math.min(Math.max((idleTime - 0.8) / spiralDuration, 0), 1);
+                        
+                        // Smoothstep curve for seamless expansion from R=15 to R=80
+                        var rEase = spiralProgress * spiralProgress * (3 - 2 * spiralProgress);
+                        var rEaseDerivative = (6 * spiralProgress * (1 - spiralProgress)) / spiralDuration;
 
-                    // Blend offsets smoothly across Stage 1 -> 2 -> 3
-                    var blendS1S2X = stage1X + (stage2X - stage1X) * stage2Blend;
-                    var blendS1S2Y = stage1Y + (stage2Y - stage1Y) * stage2Blend;
-                    targetIdleX = blendS1S2X + (stage3X - blendS1S2X) * stage3Blend;
-                    targetIdleY = blendS1S2Y + (stage3Y - blendS1S2Y) * stage3Blend;
+                        var startR = 15;
+                        var endR = 80;
+                        var currentRadius = startR + (endR - startR) * rEase;
+                        var dRdt = (endR - startR) * rEaseDerivative;
 
-                    // Smoothly blend rotation targets based on current active stage
-                    if (stage3Blend > 0.01) {
-                        var angleDiff3 = Math.atan2(Math.sin((stage3Angle - stage2Angle) * Math.PI / 180), Math.cos((stage3Angle - stage2Angle) * Math.PI / 180)) * 180 / Math.PI;
-                        var currentStage23Angle = stage2Angle + angleDiff3 * stage3Blend;
-                        var finalAngleDiff = Math.atan2(Math.sin((currentStage23Angle - targetAngle) * Math.PI / 180), Math.cos((currentStage23Angle - targetAngle) * Math.PI / 180)) * 180 / Math.PI;
-                        targetAngle += finalAngleDiff * 0.15;
-                    } else if (stage2Blend > 0.01) {
-                        var angleDiff2 = Math.atan2(Math.sin((stage2Angle - targetAngle) * Math.PI / 180), Math.cos((stage2Angle - targetAngle) * Math.PI / 180)) * 180 / Math.PI;
-                        targetAngle += angleDiff2 * stage2Blend * 0.15;
-                    }
+                        targetIdleX = Math.cos(orbTheta) * currentRadius;
+                        targetIdleY = Math.sin(orbTheta) * currentRadius;
 
-                    idleSway = stage1Sway * (1 - stage2Blend);
+                        // Exact tangent velocity vector (differential calculus)
+                        var vx = dRdt * Math.cos(orbTheta) - currentRadius * omega * Math.sin(orbTheta);
+                        var vy = dRdt * Math.sin(orbTheta) + currentRadius * omega * Math.cos(orbTheta);
+                        var orbitalAngle = Math.atan2(vy, vx) * (180 / Math.PI) + 90;
 
-                    // Stage 2 & 3 particle effects
-                    if (idleStage === 2 && Math.random() < 0.35 * stage2Blend) {
-                        createRadarScanPulse(pos.x + targetIdleX, pos.y + targetIdleY, targetAngle);
-                    }
+                        // Shortest-path angular interpolation to prevent sudden rotation snaps
+                        var angleRadDiff = (orbitalAngle - targetAngle) * (Math.PI / 180);
+                        var shortestAngleDiff = Math.atan2(Math.sin(angleRadDiff), Math.cos(angleRadDiff)) * (180 / Math.PI);
+                        targetAngle += shortestAngleDiff * 0.12;
 
-                    if (idleStage === 3 && stage3Blend > 0.5) {
-                        if (Math.random() < 0.6) {
-                            var orbTailX = (pos.x + targetIdleX) - vx3 * 24;
-                            var orbTailY = (pos.y + targetIdleY) - vy3 * 24;
-                            createThrusterParticle(orbTailX, orbTailY, -vx3 * 1.5, -vy3 * 1.5, true);
+                        // Stage 2: Sonar pulse emissions
+                        if (idleStage === 2 && Math.random() < 0.3) {
+                            createRadarScanPulse(pos.x + targetIdleX, pos.y + targetIdleY, targetAngle);
                         }
 
-                        if (Math.random() < 0.75) {
-                            var orbRad = Math.random() * Math.PI * 2;
-                            var orbDist = 80 + (Math.random() - 0.5) * 10;
-                            var vibrantColors = ['#00F0FF', '#FF007F', '#FFD700', '#FF5500', '#A020F0', '#00FF88', '#38BDF8', '#FF2A55'];
-                            particles.push({
-                                x: pos.x + Math.cos(orbRad) * orbDist,
-                                y: pos.y + Math.sin(orbRad) * orbDist,
-                                vx: -Math.sin(orbRad) * (Math.random() * 1.2 + 0.3),
-                                vy: Math.cos(orbRad) * (Math.random() * 1.2 + 0.3),
-                                size: Math.random() * 4.5 + 2.0,
-                                color: vibrantColors[Math.floor(Math.random() * vibrantColors.length)],
-                                alpha: 0.95,
-                                decay: Math.random() * 0.015 + 0.008
-                            });
+                        // Stage 3: Planetary stardust & thruster trail particles
+                        if (idleStage === 3) {
+                            var vMag = Math.hypot(vx, vy) || 1;
+                            if (Math.random() < 0.6) {
+                                var orbTailX = (pos.x + targetIdleX) - (vx / vMag) * 24;
+                                var orbTailY = (pos.y + targetIdleY) - (vy / vMag) * 24;
+                                createThrusterParticle(orbTailX, orbTailY, -vx * 0.03, -vy * 0.03, true);
+                            }
+
+                            if (Math.random() < 0.75) {
+                                var orbRad = Math.random() * Math.PI * 2;
+                                var orbDist = 80 + (Math.random() - 0.5) * 10;
+                                var vibrantColors = ['#00F0FF', '#FF007F', '#FFD700', '#FF5500', '#A020F0', '#00FF88', '#38BDF8', '#FF2A55'];
+                                particles.push({
+                                    x: pos.x + Math.cos(orbRad) * orbDist,
+                                    y: pos.y + Math.sin(orbRad) * orbDist,
+                                    vx: -Math.sin(orbRad) * (Math.random() * 1.2 + 0.3),
+                                    vy: Math.cos(orbRad) * (Math.random() * 1.2 + 0.3),
+                                    size: Math.random() * 4.5 + 2.0,
+                                    color: vibrantColors[Math.floor(Math.random() * vibrantColors.length)],
+                                    alpha: 0.95,
+                                    decay: Math.random() * 0.015 + 0.008
+                                });
+                            }
                         }
                     }
 
