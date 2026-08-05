@@ -91,7 +91,38 @@
 
 <style>
     /* ------------------------------------------------------------------
-       3. CENTER PLANET & ORBIT CORE (FIXED AT RADIUS 0,0 ORIGIN)
+       1. GLOBAL CURSOR OVERRIDE & FIXED CONTAINER STYLES
+       ------------------------------------------------------------------ */
+    html, body, a, button, input, select, textarea, [role="button"] {
+        cursor: none !important;
+    }
+
+    #rocket-cursor-wrapper {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 0;
+        height: 0;
+        pointer-events: none !important;
+        z-index: 2147483646;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    #rocket-particle-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: none !important;
+        z-index: 2147483645;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    /* ------------------------------------------------------------------
+       2. CENTER PLANET & ORBIT CORE (FIXED AT RADIUS 0,0 ORIGIN)
        ------------------------------------------------------------------ */
     #rocket-center-core {
         position: absolute;
@@ -202,7 +233,7 @@
     }
 
     /* ------------------------------------------------------------------
-       4. ROCKET MAIN BODY & HOTSPOT CALIBRATION
+       3. ROCKET MAIN BODY & HOTSPOT CALIBRATION
        ------------------------------------------------------------------ */
     #rocket-cursor-main {
         position: absolute;
@@ -410,8 +441,8 @@
 (function() {
     'use strict';
 
-    // Disable execution on touch devices
-    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+    // Disable execution only on pure touch mobile devices (allows touchscreen laptops)
+    if (window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches) {
         return;
     }
 
@@ -458,9 +489,6 @@
 
         window.addEventListener('resize', resizeCanvas);
 
-        // ------------------------------------------------------------------
-        // HOTSPOT COORDINATE ENGINE (DEFAULT: Tip at X: 21.0px, Y: 2.625px)
-        // ------------------------------------------------------------------
         var hotspot = { x: 21.0, y: 2.625 };
 
         function updateHotspotOffsets(hx, hy) {
@@ -515,7 +543,6 @@
         var isHovered = false;
         var isInitialized = false;
 
-        // IDLE MULTI-STAGE SYSTEM STATE
         var idleTime = 0;
         var idleStage = 0; // 0: Active, 1: Drift (0.8s+), 2: Radar Scan (3s+), 3: Orbit Acrobatics (7s+)
         var idleTimerStage1 = null;
@@ -626,9 +653,6 @@
             }
         }, { passive: true });
 
-        /* ------------------------------------------------------------------
-           PARTICLE ENGINE (Smoke, Fire Thrusters & Click Sparks)
-           ------------------------------------------------------------------ */
         function createThrusterParticle(x, y, vx, vy, isHoveredState) {
             particles.push({
                 x: x,
@@ -699,9 +723,6 @@
             }
         }
 
-        /* ------------------------------------------------------------------
-           MAIN ANIMATION LOOP (LERP & Rotation around Tip Hotspot)
-           ------------------------------------------------------------------ */
         function render() {
             if (isInitialized) {
                 var lerpFactor = 0.25;
@@ -716,12 +737,12 @@
                     targetAngle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
                 }
 
-                // SHORTEST PATH ANGULAR INTERPOLATION
+                // Shortest path angular interpolation
                 var radDiff = (targetAngle - angle) * (Math.PI / 180);
                 var shortestDiff = Math.atan2(Math.sin(radDiff), Math.cos(radDiff)) * (180 / Math.PI);
                 angle += shortestDiff * 0.2;
 
-                // IDLE BOBBING, SWAY & ACROBATIC ROTATIONS
+                // Idle bobbing, sway & acrobatic rotations
                 var idleOffsetX = 0;
                 var idleOffsetY = 0;
                 var idleSway = 0;
@@ -736,10 +757,10 @@
                         idleSway = Math.sin(idleTime * 0.5) * 4;
                     }
 
-                    // Stage 2 Motion (3s - 7s): NEW Pre-Orbit Radar Scan (Radius ~48px around planet)
+                    // Stage 2 Motion (3s - 7s): Pre-Orbit Radar Scan (Radius ~48px around planet)
                     if (idleStage === 2) {
-                        var scanRadius = 48; // Kept at a clean 48px distance so rocket never overlaps mini planet
-                        var scanArc = Math.sin(idleTime * 1.2) * 1.0; // Smooth 115-degree arc sweep back and forth
+                        var scanRadius = 48; // Radius 48px to prevent overlap with central mini planet
+                        var scanArc = Math.sin(idleTime * 1.2) * 1.0; // Smooth arc sweep back and forth
                         var arcAngle = scanArc - Math.PI / 2;
 
                         idleOffsetX = Math.cos(arcAngle) * scanRadius;
@@ -753,7 +774,7 @@
                             targetAngle = Math.atan2(scanVy, scanVx) * (180 / Math.PI) + 90;
                         }
 
-                        // Emit cyan radar scan pulses & thruster energy
+                        // Emit cyan radar scan pulses
                         if (Math.random() < 0.4) {
                             createRadarScanPulse(pos.x, pos.y, arcAngle);
                         }
@@ -781,7 +802,7 @@
                             createThrusterParticle(orbTailX, orbTailY, -vx * 1.5, -vy * 1.5, true);
                         }
 
-                        // Dense & Colorful vibrant stardust trailing particles along exact 80px orbit track
+                        // Dense & colorful vibrant stardust trailing particles along exact 80px orbit track
                         if (Math.random() < 0.75) {
                             var orbRad = Math.random() * Math.PI * 2;
                             var orbDist = 80 + (Math.random() - 0.5) * 10;
