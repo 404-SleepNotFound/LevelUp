@@ -50,10 +50,10 @@
         <!-- Deep Idle Stage 2: Plasma Core Aura & Rotating Shield Matrix -->
         <div class="rocket-core-aura"></div>
         <div class="rocket-shield-ring"></div>
-
-        <!-- Deep Idle Stage 3: Orbiting Mini Satellite Drone -->
-        <div class="rocket-mini-drone"></div>
     </div>
+
+    <!-- Deep Idle Stage 3: Orbiting Mini Satellite Drone (Placed in wrapper for independent 80px orbit calculation) -->
+    <div class="rocket-mini-drone"></div>
 </div>
 
 <!-- Canvas for Engine Smoke & Spark Particles -->
@@ -282,29 +282,28 @@
     }
 
     /* ------------------------------------------------------------------
-       DEEP IDLE STAGE 3: WIDE SPACE ORBIT & SATALITE DRONE
+       DEEP IDLE STAGE 3: WIDE SPACE ORBIT & SATELLITE DRONE
        ------------------------------------------------------------------ */
     .rocket-mini-drone {
         position: absolute;
-        top: 2.625px;
-        left: 21px;
-        width: 12px;
-        height: 12px;
-        margin-top: -6px;
-        margin-left: -6px;
-        background: #EF4444;
+        top: 0;
+        left: 0;
+        width: 14px;
+        height: 14px;
+        margin-top: -7px;
+        margin-left: -7px;
+        background: #FF0055;
         border: 2px solid #FFFFFF;
         border-radius: 50%;
-        box-shadow: 0 0 12px #EF4444, 0 0 24px #F59E0B;
+        box-shadow: 0 0 14px #FF0055, 0 0 28px #F59E0B, 0 0 40px #EF4444;
         opacity: 0;
         pointer-events: none;
-        transition: opacity 0.5s ease;
+        transition: opacity 0.4s ease;
+        z-index: 12;
     }
 
-    #rocket-cursor-main.idle-stage-3 .rocket-mini-drone {
+    #rocket-cursor-wrapper.idle-stage-3 .rocket-mini-drone {
         opacity: 1;
-        top: -58.7px;
-        left: -7.6px;
         animation: droneRedPulse 0.35s infinite alternate ease-in-out;
     }
 
@@ -312,12 +311,12 @@
     @keyframes droneRedPulse {
         0% {
             background: #EF4444;
-            box-shadow: 0 0 10px #EF4444, 0 0 20px #EF4444;
+            box-shadow: 0 0 12px #EF4444, 0 0 24px #EF4444;
             transform: scale(0.85) translate(0, 0);
         }
         100% {
             background: #FF0055;
-            box-shadow: 0 0 22px #FF0055, 0 0 35px #F59E0B, 0 0 45px #EF4444;
+            box-shadow: 0 0 26px #FF0055, 0 0 40px #F59E0B, 0 0 50px #EF4444;
             transform: scale(1.35) translate(2px, -2px);
         }
     }
@@ -440,6 +439,7 @@
             idleStage = 0;
             idleTime = 0;
             rocket.classList.remove('idle-stage-1', 'idle-stage-2', 'idle-stage-3');
+            wrapper.classList.remove('idle-stage-1', 'idle-stage-2', 'idle-stage-3');
 
             if (idleTimerStage1) clearTimeout(idleTimerStage1);
             if (idleTimerStage2) clearTimeout(idleTimerStage2);
@@ -449,12 +449,14 @@
             idleTimerStage1 = setTimeout(function() {
                 idleStage = 1;
                 rocket.classList.add('idle-stage-1');
+                wrapper.classList.add('idle-stage-1');
             }, 800);
 
             // Stage 2: Deep Radar Scan (after 3.0s)
             idleTimerStage2 = setTimeout(function() {
                 idleStage = 2;
                 rocket.classList.add('idle-stage-2');
+                wrapper.classList.add('idle-stage-2');
                 createBurstSparks(pos.x, pos.y, 8); // Minor scan energy pulse
             }, 3000);
 
@@ -462,6 +464,7 @@
             idleTimerStage3 = setTimeout(function() {
                 idleStage = 3;
                 rocket.classList.add('idle-stage-3');
+                wrapper.classList.add('idle-stage-3');
                 createOrbitStardustRing(pos.x, pos.y);
             }, 7000);
         }
@@ -568,18 +571,19 @@
         }
 
         function createOrbitStardustRing(cx, cy) {
-            for (var i = 0; i < 32; i++) {
-                var rad = (i / 32) * Math.PI * 2;
-                var dist = 75 + Math.random() * 20; // Expanded to match wide orbit
+            var colors = ['#00F0FF', '#FF007F', '#FFD700', '#FF5500', '#A020F0', '#00FF88', '#38BDF8', '#FF2A55'];
+            for (var i = 0; i < 60; i++) {
+                var rad = (i / 60) * Math.PI * 2;
+                var dist = 80 + (Math.random() - 0.5) * 12;
                 particles.push({
                     x: cx + Math.cos(rad) * dist,
                     y: cy + Math.sin(rad) * dist,
-                    vx: -Math.sin(rad) * 1.5,
-                    vy: Math.cos(rad) * 1.5,
-                    size: Math.random() * 3.5 + 1.5,
-                    color: Math.random() > 0.5 ? '#06B6D4' : '#A855F7',
-                    alpha: 0.95,
-                    decay: 0.012
+                    vx: -Math.sin(rad) * (Math.random() * 1.5 + 0.5),
+                    vy: Math.cos(rad) * (Math.random() * 1.5 + 0.5),
+                    size: Math.random() * 5.0 + 2.0,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    alpha: 1.0,
+                    decay: Math.random() * 0.01 + 0.006
                 });
             }
         }
@@ -633,8 +637,8 @@
 
                     // Stage 3 Motion (7s+ Continuous Loop): Dogfight Chase Orbit along 80px Radius
                     if (idleStage === 3) {
-                        var orbitSpeed = idleTime * 0.5; // Significantly slowed down orbital rotation speed
-                        var rocketRadius = 80; // Rocket flies at 80px radius matching drone chase path
+                        var orbitSpeed = idleTime * 0.5; // Controlled rotation speed
+                        var rocketRadius = 80; // Rocket & Drone shared 80px radius orbit
 
                         idleOffsetX = Math.cos(orbitSpeed) * rocketRadius;
                         idleOffsetY = Math.sin(orbitSpeed) * rocketRadius;
@@ -646,6 +650,15 @@
                         // Direct angle along orbital movement direction
                         targetAngle = Math.atan2(vy, vx) * (180 / Math.PI) + 90;
 
+                        // Position Mini Drone on exact same 80px circle ahead of rocket
+                        var drone = wrapper.querySelector('.rocket-mini-drone');
+                        if (drone) {
+                            var droneAngle = orbitSpeed + 0.85; // Bins ahead of rocket along 80px orbit track
+                            var droneX = Math.cos(droneAngle) * rocketRadius;
+                            var droneY = Math.sin(droneAngle) * rocketRadius;
+                            drone.style.transform = 'translate3d(' + droneX.toFixed(2) + 'px, ' + droneY.toFixed(2) + 'px, 0)';
+                        }
+
                         // Continuous thruster trail shooting backwards out of rocket engine along orbit arc
                         if (Math.random() < 0.6) {
                             var orbTailX = (pos.x + idleOffsetX) - vx * 24;
@@ -653,19 +666,20 @@
                             createThrusterParticle(orbTailX, orbTailY, -vx * 1.5, -vy * 1.5, true);
                         }
 
-                        // Spawn periodic stardust trailing particles along 80px orbit chase track
-                        if (Math.random() < 0.4) {
+                        // Dense & Colorful vibrant stardust trailing particles along exact 80px orbit track
+                        if (Math.random() < 0.75) {
                             var orbRad = Math.random() * Math.PI * 2;
-                            var orbDist = 80 + (Math.random() - 0.5) * 16;
+                            var orbDist = 80 + (Math.random() - 0.5) * 10;
+                            var vibrantColors = ['#00F0FF', '#FF007F', '#FFD700', '#FF5500', '#A020F0', '#00FF88', '#38BDF8', '#FF2A55'];
                             particles.push({
                                 x: pos.x + Math.cos(orbRad) * orbDist,
                                 y: pos.y + Math.sin(orbRad) * orbDist,
-                                vx: -Math.sin(orbRad) * 0.5,
-                                vy: Math.cos(orbRad) * 0.5,
-                                size: Math.random() * 3.5 + 1.5,
-                                color: Math.random() > 0.4 ? '#EF4444' : (Math.random() > 0.5 ? '#38BDF8' : '#F59E0B'),
-                                alpha: 0.9,
-                                decay: 0.015
+                                vx: -Math.sin(orbRad) * (Math.random() * 1.2 + 0.3),
+                                vy: Math.cos(orbRad) * (Math.random() * 1.2 + 0.3),
+                                size: Math.random() * 4.5 + 2.0,
+                                color: vibrantColors[Math.floor(Math.random() * vibrantColors.length)],
+                                alpha: 0.95,
+                                decay: Math.random() * 0.015 + 0.008
                             });
                         }
                     }
