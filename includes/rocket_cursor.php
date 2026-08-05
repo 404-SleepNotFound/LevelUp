@@ -762,7 +762,7 @@
                                 y: pos.y + Math.sin(orbRad) * orbDist,
                                 vx: -Math.sin(orbRad) * (Math.random() * 0.4 + 0.1),
                                 vy: Math.cos(orbRad) * (Math.random() * 0.4 + 0.1),
-                                size: Math.random() * 2.0 + 1.2,
+                                size: Math.random() * 2.5 + 2.5,
                                 color: vibrantColors[Math.floor(Math.random() * vibrantColors.length)],
                                 alpha: 0,
                                 targetAlpha: Math.random() * 0.4 + 0.2,
