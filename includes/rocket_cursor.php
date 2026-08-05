@@ -326,8 +326,8 @@
         top: 29.5px; /* Precision alignment directly at engine nozzle exit */
         left: 50%;
         transform: translateX(-50%);
-        width: 18px;
-        height: 28px;
+        width: 14px;
+        height: 15px; /* Compact & proportional length */
         pointer-events: none;
         display: flex;
         justify-content: center;
@@ -336,19 +336,19 @@
     }
 
     .rocket-flame-core {
-        width: 8px;
+        width: 7px;
         height: 100%;
         background: linear-gradient(180deg, #FFFFFF 0%, #FDE047 25%, #F97316 65%, rgba(239, 68, 68, 0) 100%);
         border-radius: 50% 50% 40% 40% / 80% 80% 20% 20%;
         animation: rocketPlasmaBurn 0.08s infinite alternate ease-in-out;
-        filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.95));
+        filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.9));
     }
 
     .rocket-flame-glow {
         position: absolute;
         top: 0px;
-        width: 14px;
-        height: 20px;
+        width: 11px;
+        height: 12px;
         background: linear-gradient(180deg, rgba(253, 224, 71, 0.95) 0%, rgba(249, 115, 22, 0.7) 65%, rgba(239, 68, 68, 0) 100%);
         border-radius: 50% 50% 45% 45%;
         filter: blur(2px);
@@ -358,21 +358,21 @@
     .rocket-flame-aura {
         position: absolute;
         top: -2px;
-        width: 22px;
-        height: 22px;
+        width: 16px;
+        height: 16px;
         background: radial-gradient(circle, rgba(249, 115, 22, 0.5) 0%, rgba(168, 85, 247, 0.2) 65%, transparent 100%);
         border-radius: 50%;
-        filter: blur(4px);
+        filter: blur(3px);
     }
 
     @keyframes rocketPlasmaBurn {
-        0% { transform: scaleY(0.85) scaleX(0.85); opacity: 0.9; }
-        100% { transform: scaleY(1.25) scaleX(1.1); opacity: 1; }
+        0% { transform: scaleY(0.8) scaleX(0.85); opacity: 0.9; }
+        100% { transform: scaleY(1.05) scaleX(1.05); opacity: 1; }
     }
 
     @keyframes rocketPlasmaGlow {
-        0% { transform: scale(0.85); opacity: 0.65; }
-        100% { transform: scale(1.2); opacity: 0.95; }
+        0% { transform: scale(0.8); opacity: 0.65; }
+        100% { transform: scale(1.05); opacity: 0.95; }
     }
 
     /* Target Hover Ring */
