@@ -10,6 +10,29 @@
 ?>
 
 <div id="rocket-cursor-wrapper" aria-hidden="true">
+    <!-- Mini Planet Core & Shield Matrix at Center Origin (0,0) -->
+    <div id="rocket-center-core">
+        <div class="rocket-mini-planet">
+            <svg viewBox="0 0 32 32" class="planet-svg" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <radialGradient id="mini-planet-grad" cx="30%" cy="30%" r="70%">
+                        <stop offset="0%" stop-color="#38BDF8"/>
+                        <stop offset="60%" stop-color="#6366F1"/>
+                        <stop offset="100%" stop-color="#1E1B4B"/>
+                    </radialGradient>
+                </defs>
+                <!-- Planet Back Ring Orbit -->
+                <path d="M 4 16 A 12 4 0 0 1 28 16" fill="none" stroke="rgba(56, 189, 248, 0.6)" stroke-width="1.8" transform="rotate(-20 16 16)" />
+                <!-- Planet Sphere Body -->
+                <circle cx="16" cy="16" r="6.5" fill="url(#mini-planet-grad)" />
+                <!-- Planet Front Ring Orbit -->
+                <path d="M 28 16 A 12 4 0 0 1 4 16" fill="none" stroke="rgba(168, 85, 247, 0.95)" stroke-width="1.8" transform="rotate(-20 16 16)" />
+            </svg>
+        </div>
+        <div class="rocket-shield-ring"></div>
+        <div class="rocket-core-aura"></div>
+    </div>
+
     <div id="rocket-cursor-main">
         <!-- Precision Hotspot Pin (Visible during calibration) -->
         <div class="rocket-tip-pin"></div>
@@ -47,26 +70,6 @@
 
         <!-- Hover Target Indicator Ring -->
         <div class="rocket-target-ring"></div>
-
-        <!-- Mini Planet Core (Replaces blurry core effect) & Shield Matrix -->
-        <div class="rocket-mini-planet">
-            <svg viewBox="0 0 32 32" class="planet-svg" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <radialGradient id="mini-planet-grad" cx="30%" cy="30%" r="70%">
-                        <stop offset="0%" stop-color="#38BDF8"/>
-                        <stop offset="60%" stop-color="#6366F1"/>
-                        <stop offset="100%" stop-color="#1E1B4B"/>
-                    </radialGradient>
-                </defs>
-                <!-- Planet Back Ring Orbit -->
-                <path d="M 4 16 A 12 4 0 0 1 28 16" fill="none" stroke="rgba(56, 189, 248, 0.6)" stroke-width="1.8" transform="rotate(-20 16 16)" />
-                <!-- Planet Sphere Body -->
-                <circle cx="16" cy="16" r="6.5" fill="url(#mini-planet-grad)" />
-                <!-- Planet Front Ring Orbit -->
-                <path d="M 28 16 A 12 4 0 0 1 4 16" fill="none" stroke="rgba(168, 85, 247, 0.95)" stroke-width="1.8" transform="rotate(-20 16 16)" />
-            </svg>
-        </div>
-        <div class="rocket-shield-ring"></div>
     </div>
 </div>
 
@@ -139,7 +142,109 @@
     }
 
     /* ------------------------------------------------------------------
-       3. ROCKET ANIMATION & VISUAL STYLING (CALIBRATED TIP HOTSPOT)
+       3. CENTER PLANET & ORBIT CORE (FIXED AT RADIUS 0,0 ORIGIN)
+       ------------------------------------------------------------------ */
+    #rocket-center-core {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 0;
+        height: 0;
+        pointer-events: none !important;
+    }
+
+    .rocket-mini-planet {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 44px;
+        height: 44px;
+        margin-top: -22px;
+        margin-left: -22px;
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(0.3);
+        transition: opacity 0.4s ease, transform 0.4s ease;
+        filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.8));
+    }
+
+    .planet-svg {
+        width: 100%;
+        height: 100%;
+        animation: planetFloat 4s infinite ease-in-out;
+    }
+
+    .rocket-shield-ring {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 64px;
+        height: 64px;
+        margin-top: -32px;
+        margin-left: -32px;
+        border: 1.5px solid rgba(56, 189, 248, 0.5);
+        border-top-color: rgba(168, 85, 247, 0.9);
+        border-bottom-color: rgba(168, 85, 247, 0.9);
+        border-radius: 50%;
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(0.5) rotate(0deg);
+        transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .rocket-core-aura {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        margin-top: -28px;
+        margin-left: -28px;
+        background: radial-gradient(circle, rgba(56, 189, 248, 0.5) 0%, rgba(99, 102, 241, 0.3) 50%, rgba(0,0,0,0) 75%);
+        border-radius: 50%;
+        filter: blur(5px);
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(0.5);
+        transition: all 0.4s ease;
+    }
+
+    /* Activate Center Mini Planet & Orbiting Shield in Idle Stages */
+    #rocket-cursor-wrapper.idle-stage-2 .rocket-mini-planet,
+    #rocket-cursor-wrapper.idle-stage-3 .rocket-mini-planet {
+        opacity: 1;
+        transform: scale(1.15);
+    }
+
+    #rocket-cursor-wrapper.idle-stage-2 .rocket-shield-ring,
+    #rocket-cursor-wrapper.idle-stage-3 .rocket-shield-ring {
+        opacity: 0.85;
+        animation: shieldRotate 3.5s infinite linear;
+    }
+
+    #rocket-cursor-wrapper.idle-stage-2 .rocket-core-aura,
+    #rocket-cursor-wrapper.idle-stage-3 .rocket-core-aura {
+        opacity: 1;
+        animation: auraPulse 2s infinite alternate ease-in-out;
+    }
+
+    @keyframes planetFloat {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-3px) rotate(6deg); }
+    }
+
+    @keyframes shieldRotate {
+        0% { transform: scale(1) rotate(0deg); }
+        100% { transform: scale(1) rotate(360deg); }
+    }
+
+    @keyframes auraPulse {
+        0% { transform: scale(0.8); opacity: 0.5; }
+        100% { transform: scale(1.35); opacity: 0.95; }
+    }
+
+    /* ------------------------------------------------------------------
+       4. ROCKET MAIN BODY & HOTSPOT CALIBRATION
        ------------------------------------------------------------------ */
     #rocket-cursor-main {
         position: absolute;
@@ -147,15 +252,13 @@
         left: 0;
         width: 42px;
         height: 42px;
-        /* HOTSPOT CALIBRATION: Tip of rocket (X: 21px, Y: 2.625px) offset */
         margin-left: -21px;
         margin-top: -2.625px;
         pointer-events: none !important;
         transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
-        transform-origin: 21px 2.625px !important; /* Pivot exactly on the tip! */
+        transform-origin: 21px 2.625px !important;
     }
 
-    /* Visual Pin at Nose Tip for Calibration HUD */
     .rocket-tip-pin {
         position: absolute;
         top: 2.625px;
@@ -227,7 +330,7 @@
         100% { transform: scale(1.3); opacity: 0.8; }
     }
 
-    /* Hover Target Indicator Ring - Centered around rocket body */
+    /* Hover Target Indicator Ring */
     .rocket-target-ring {
         position: absolute;
         top: 21px;
@@ -243,165 +346,6 @@
         transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
         pointer-events: none;
         box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
-    }
-
-    /* Hover State */
-    #rocket-cursor-main.is-hovering {
-        transform: scale(1.2);
-    }
-
-    /* ------------------------------------------------------------------
-       MINI PLANET & ROTATING SHIELD MATRIX (PREVENTS OVERLAPPING RINGS)
-       ------------------------------------------------------------------ */
-    .rocket-mini-planet {
-        position: absolute;
-        top: 21px;
-        left: 21px;
-        width: 36px;
-        height: 36px;
-        margin-top: -18px;
-        margin-left: -18px;
-        opacity: 0;
-        pointer-events: none;
-        transform: scale(0.4);
-        transition: opacity 0.4s ease, transform 0.4s ease;
-        filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.6));
-    }
-
-    .planet-svg {
-        width: 100%;
-        height: 100%;
-        animation: planetFloat 4s infinite ease-in-out;
-    }
-
-    .rocket-shield-ring {
-        position: absolute;
-        top: 21px;
-        left: 21px;
-        width: 58px;
-        height: 58px;
-        margin-top: -29px;
-        margin-left: -29px;
-        border: 1.5px solid rgba(56, 189, 248, 0.4);
-        border-top-color: rgba(168, 85, 247, 0.85);
-        border-bottom-color: rgba(168, 85, 247, 0.85);
-        border-radius: 50%;
-        opacity: 0;
-        pointer-events: none;
-        transform: scale(0.6) rotate(0deg);
-        transition: opacity 0.3s ease, transform 0.3s ease;
-    }
-
-    /* Activate Mini Planet & Orbiting Shield in Idle Stage 2 */
-    #rocket-cursor-main.idle-stage-2 .rocket-mini-planet {
-        opacity: 0.95;
-        transform: scale(1);
-    }
-
-    #rocket-cursor-main.idle-stage-2 .rocket-shield-ring {
-        opacity: 0.7;
-        animation: shieldRotate 4s infinite linear;
-    }
-
-    #rocket-cursor-main.idle-stage-2 .rocket-flame-core {
-        background: linear-gradient(180deg, #38BDF8 0%, #A855F7 60%, rgba(168, 85, 247, 0) 100%);
-    }
-
-    /* Prevent Ring Overlapping on Hover (Hide secondary idle shield when hovering) */
-    #rocket-cursor-main.is-hovering .rocket-shield-ring {
-        opacity: 0 !important;
-        transform: scale(0.5);
-    }
-
-    #rocket-cursor-main.is-hovering .rocket-mini-planet {
-        opacity: 1;
-        transform: scale(1.1);
-    }
-
-    @keyframes planetFloat {
-        0%, 100% { transform: translateY(0px) rotate(0deg); }
-        50% { transform: translateY(-3px) rotate(6deg); }
-    }
-
-    @keyframes shieldRotate {
-        0% { transform: scale(1) rotate(0deg); }
-        100% { transform: scale(1) rotate(360deg); }
-    }
-
-    #rocket-cursor-main.is-hovering .rocket-svg {
-        filter: drop-shadow(0px 0px 14px rgba(99, 102, 241, 0.85));
-    }
-
-    #rocket-cursor-main.is-hovering .rocket-target-ring {
-        opacity: 1;
-        transform: scale(1) rotate(90deg);
-    }
-
-    /* Hover State */
-    #rocket-cursor-main.is-hovering {
-        transform: scale(1.25);
-    }
-
-    /* ------------------------------------------------------------------
-       DEEP IDLE STAGE 2: PLASMA CORE AURA & ROTATING SHIELD MATRIX
-       ------------------------------------------------------------------ */
-    .rocket-core-aura {
-        position: absolute;
-        top: 21px;
-        left: 21px;
-        width: 50px;
-        height: 50px;
-        margin-top: -25px;
-        margin-left: -25px;
-        background: radial-gradient(circle, rgba(56, 189, 248, 0.45) 0%, rgba(99, 102, 241, 0.25) 50%, rgba(0,0,0,0) 75%);
-        border-radius: 50%;
-        filter: blur(4px);
-        opacity: 0;
-        pointer-events: none;
-        transform: scale(0.5);
-        transition: all 0.4s ease;
-    }
-
-    .rocket-shield-ring {
-        position: absolute;
-        top: 21px;
-        left: 21px;
-        width: 64px;
-        height: 64px;
-        margin-top: -32px;
-        margin-left: -32px;
-        border: 1.5px solid rgba(56, 189, 248, 0.6);
-        border-top-color: rgba(168, 85, 247, 0.9);
-        border-bottom-color: rgba(168, 85, 247, 0.9);
-        border-radius: 50%;
-        opacity: 0;
-        pointer-events: none;
-        transform: scale(0.6) rotate(0deg);
-        transition: opacity 0.4s ease, transform 0.4s ease;
-    }
-
-    #rocket-cursor-main.idle-stage-2 .rocket-core-aura {
-        opacity: 1;
-        animation: auraPulse 2s infinite alternate ease-in-out;
-    }
-
-    #rocket-cursor-main.idle-stage-2 .rocket-shield-ring {
-        opacity: 1;
-        animation: shieldRotate 3s infinite linear;
-    }
-
-    #rocket-cursor-main.idle-stage-2 .rocket-flame-core {
-        background: linear-gradient(180deg, #38BDF8 0%, #A855F7 60%, rgba(168, 85, 247, 0) 100%);
-    }
-
-    @keyframes auraPulse {
-        0% { transform: scale(0.8); opacity: 0.5; }
-        100% { transform: scale(1.35); opacity: 0.95; }
-    }
-
-    @keyframes shieldRotate {
-        0% { transform: scale(1) rotate(0deg); }
-        100% { transform: scale(1) rotate(360deg); }
     }
 
     #rocket-cursor-main.is-hovering .rocket-svg {
@@ -824,10 +768,10 @@
                         }
                     }
 
-                    // Stage 3 Motion (7s+ Continuous Loop): Dogfight Chase Orbit along 80px Radius
+                    // Stage 3 Motion (7s+ Continuous Loop): Orbiting around central planet (radius 80px)
                     if (idleStage === 3) {
                         var orbitSpeed = idleTime * 0.5; // Controlled rotation speed
-                        var rocketRadius = 80; // Rocket 80px radius orbit
+                        var rocketRadius = 80; // Rocket 80px radius orbit around (0,0) center planet
 
                         idleOffsetX = Math.cos(orbitSpeed) * rocketRadius;
                         idleOffsetY = Math.sin(orbitSpeed) * rocketRadius;
@@ -873,18 +817,19 @@
                     }
                 }
 
-                var renderX = pos.x + idleOffsetX;
-                var renderY = pos.y + idleOffsetY;
                 var renderAngle = angle + idleSway;
 
-                wrapper.style.transform = 'translate3d(' + renderX.toFixed(2) + 'px, ' + renderY.toFixed(2) + 'px, 0)';
-                rocket.style.transform = 'rotate(' + renderAngle.toFixed(2) + 'deg)';
+                // Wrapper stays positioned at origin (pos.x, pos.y) where the central planet sits at (0,0)
+                wrapper.style.transform = 'translate3d(' + pos.x.toFixed(2) + 'px, ' + pos.y.toFixed(2) + 'px, 0)';
+                
+                // Rocket offsets by idleOffsetX/idleOffsetY and rotates around its calibrated nose tip
+                rocket.style.transform = 'translate3d(' + idleOffsetX.toFixed(2) + 'px, ' + idleOffsetY.toFixed(2) + 'px, 0) rotate(' + renderAngle.toFixed(2) + 'deg)';
 
                 // Spawn Thruster Flame Particles from tail (offset behind tip)
                 if (speed > 0.8 || isHovered) {
                     var rad = (angle - 90) * (Math.PI / 180);
-                    var tailX = pos.x - Math.cos(rad) * 30;
-                    var tailY = pos.y - Math.sin(rad) * 30;
+                    var tailX = (pos.x + idleOffsetX) - Math.cos(rad) * 30;
+                    var tailY = (pos.y + idleOffsetY) - Math.sin(rad) * 30;
                     var backVx = -Math.cos(rad) * (speed * 0.3 + 1);
                     var backVy = -Math.sin(rad) * (speed * 0.3 + 1);
 
