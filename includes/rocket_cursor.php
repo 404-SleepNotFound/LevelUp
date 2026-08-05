@@ -3,16 +3,22 @@
  * LevelUp - Centered Warp Rocket Cursor Engine
  * Architecture: Zero-Allocation Fixed Pool | Symmetrical Midpoint Starfield | Micro-Floating Animation
  * Developer: Senior UX / Performance Engineer
- * >>> DEPLOY-CHECK-MARKER-V10-CENTERED-WARP <<<
+ * >>> DEPLOY-CHECK-MARKER-V11-MAX-ZINDEX-FIX <<<
  */
 
 if (defined('LEVELUP_ROCKET_CURSOR_LOADED')) { return; }
 define('LEVELUP_ROCKET_CURSOR_LOADED', true);
 ?>
 <style>
-    /* 🛡️ ซ่อนเมาส์ระบบทั้งหมดเมื่อจรวดทำงาน */
+    /* 🛡️ บังคับซ่อนเมาส์ระบบทั้งหมด 100% ทุก Element รวมถึง Select/Option/Input */
     html.levelup-active-cursor,
-    html.levelup-active-cursor * {
+    html.levelup-active-cursor *,
+    html.levelup-active-cursor select,
+    html.levelup-active-cursor option,
+    html.levelup-active-cursor optgroup,
+    html.levelup-active-cursor input,
+    html.levelup-active-cursor textarea,
+    html.levelup-active-cursor button {
         cursor: none !important;
     }
     
@@ -28,18 +34,9 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
         transition: opacity 0.15s ease-out;
     }
 
-    /* 🖱️ บังคับให้ช่องกรอกข้อมูลมีเคอร์เซอร์ I-beam ที่มองเห็นได้เสมอ
-       เพราะเว็บนี้มักตั้ง cursor: none ไว้ที่ระดับ global อยู่แล้ว (ต้นเหตุที่ต้องมีจรวดคัสตอมนี้)
-       ถ้าปล่อยให้กลับไปใช้ "native" เฉยๆ มันจะไปเจอ cursor:none ของเว็บเดิมซ้ำ เลยหายไปทั้งคู่ */
-    html body input:not([type="button"]):not([type="submit"]):not([type="checkbox"]):not([type="radio"]):not([type="reset"]),
-    html body textarea,
-    html body [contenteditable="true"] {
-        cursor: text !important;
-    }
-
-    /* เรืองแสงเมื่อ Hover ปุ่ม */
+    /* 🚀 เรืองแสงเมื่อ Hover ปุ่ม หรือ Dropdown Select */
     #levelup-rocket-cursor.is-hovering {
-        filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.9)) !important;
+        filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.95)) !important;
     }
     
     #levelup-rocket-cursor.is-clicking {
@@ -47,11 +44,11 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
     }
 </style>
 
-<!-- Canvas Overlay สำหรับเอฟเฟกต์ทั้งหมด -->
-<canvas id="levelup-particle-canvas" style="position: fixed !important; top: 0 !important; left: 0 !important; pointer-events: none !important; z-index: 999999997 !important;"></canvas>
+<!-- Canvas Overlay สำหรับเอฟเฟกต์ทั้งหมด (Z-Index สูงสุดระดับเกือบ MAX) -->
+<canvas id="levelup-particle-canvas" style="position: fixed !important; top: 0 !important; left: 0 !important; pointer-events: none !important; z-index: 2147483646 !important;"></canvas>
 
-<!-- ตัวไอคอนจรวด -->
-<div id="levelup-rocket-cursor" style="position: fixed; top: 0; left: 0; transform: translate3d(-100vw, -100vh, 0) scaleX(-1); opacity: 0; pointer-events: none; user-select: none; z-index: 999999998; width: 18px; height: 18px; font-size: 18px; line-height: 1; transform-origin: 21.2px 0.3px; will-change: transform, opacity; text-shadow: none;">🚀</div>
+<!-- ตัวไอคอนจรวด (Z-Index สูงสุดในโลก CSS: 2147483647) -->
+<div id="levelup-rocket-cursor" style="position: fixed; top: 0; left: 0; transform: translate3d(-100vw, -100vh, 0) scaleX(-1); opacity: 0; pointer-events: none; user-select: none; z-index: 2147483647 !important; width: 18px; height: 18px; font-size: 18px; line-height: 1; transform-origin: 21.2px 0.3px; will-change: transform, opacity; text-shadow: none;">🚀</div>
 
 <script>
 (function() {
@@ -84,8 +81,7 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
     const ctx = canvas.getContext('2d', { alpha: true });
     const rocket = document.querySelector('#levelup-rocket-cursor');
 
-    // 🎨 จำกัดจำนวนเฉดให้เข้าธีมกันเอง แทนสีสุ่มหลายเฉดแบบ confetti
-    // ดาว = โทนเย็น (ขาว/ฟ้า/ม่วงอ่อน) สื่อถึงฝุ่นจักรวาล | ไฟ = โทนร้อนเสมอ (ส้ม/เหลือง/แดง) ให้แยกออกจากดาวชัดเจน
+    // 🎨 โทนสีอนุภาค
     const STAR_COLORS = ['#ffffff', '#8ab4f8', '#b388ff'];
     const FLAME_COLORS = ['#ff9e00', '#ff5400', '#d00000'];
     const PLASMA_COLORS = ['#ffb703', '#fb8500'];
@@ -96,13 +92,13 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
     const HOTSPOT_Y = 0.3;
     const BASE_NOZZLE_OFFSET_X = 12.3;
     const BASE_NOZZLE_OFFSET_Y = 16.5;
-    const NOZZLE_ANGLE = Math.atan2(BASE_NOZZLE_OFFSET_Y, BASE_NOZZLE_OFFSET_X); // ทิศทางไอพ่นตามแนวท่อจริง
+    const NOZZLE_ANGLE = Math.atan2(BASE_NOZZLE_OFFSET_Y, BASE_NOZZLE_OFFSET_X);
     
-    const POOL_SIZE = 90; // โควต้าอนุภาครวมคงที่
+    const POOL_SIZE = 90;
 
     let hasValidPosition = false;
     let mouse = { x: -100, y: -100, lastX: -100, lastY: -100 };
-    let state = { isHovering: false, isClicking: false, isNativeRequired: false, idleTime: 0 };
+    let state = { isHovering: false, isClicking: false, idleTime: 0 };
     
     let lastTarget = null;
     let lastTime = performance.now();
@@ -163,24 +159,22 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
             p.isStar = true;
             
             const speed = 2.4 + Math.random() * 2.6;
-            const angle = Math.PI * 0.25; // มุมพุ่งเฉียงลงขวา 45 องศา
+            const angle = Math.PI * 0.25;
 
             p.vx = Math.cos(angle) * speed;
             p.vy = Math.sin(angle) * speed;
 
             p.maxLife = p.life = 0.4 + Math.random() * 0.3;
 
-            // 🎯 คำนวณให้ตำแหน่งจรวดอยู่ "จุดศูนย์กลาง" ของเอฟเฟกต์พอดี (Symmetrical Centered Field)
             const travelDist = speed * (p.maxLife / 0.020);
-            const travelProgress = (Math.random() - 0.5) * 1.2; // สุ่มให้เกิดทั้งฝั่งหน้าและฝั่งหลังจรวดอย่างสมมาตร
-            const sideOffset = (Math.random() - 0.5) * 65; // รัศมีความกว้างโอบล้อมรอบตัวจรวด
+            const travelProgress = (Math.random() - 0.5) * 1.2;
+            const sideOffset = (Math.random() - 0.5) * 65;
 
             const dirX = Math.cos(angle);
             const dirY = Math.sin(angle);
             const perpX = -dirY;
             const perpY = dirX;
 
-            // พิกัดดาวเริ่มต้นจะถูกกระจายตัวสมมาตรรอบศูนย์กลางจรวด
             p.x = centerX + (dirX * travelProgress * travelDist) + (perpX * sideOffset);
             p.y = centerY + (dirY * travelProgress * travelDist) + (perpY * sideOffset);
 
@@ -233,7 +227,6 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
                     ctx.strokeStyle = 'rgba(0,0,0,0.2)';
                     ctx.stroke();
                 } else {
-                    // 🔥 เปลวไฟแบบมีแกนสว่าง + แสงฟุ้งรอบตัว ยืดตามทิศทางการเคลื่อนที่
                     const speed = Math.hypot(p.vx, p.vy);
                     const angle = Math.atan2(p.vy, p.vx);
                     const stretch = 1 + Math.min(speed * 0.6, 2.2);
@@ -243,7 +236,6 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
                     ctx.translate(p.x, p.y);
                     ctx.rotate(angle);
 
-                    // ชั้นแสงฟุ้งด้านนอก
                     const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, r * stretch * 1.5);
                     glow.addColorStop(0, p.color);
                     glow.addColorStop(1, 'rgba(0,0,0,0)');
@@ -253,7 +245,6 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
                     ctx.ellipse(0, 0, r * stretch * 1.5, r * 1.5, 0, 0, Math.PI * 2);
                     ctx.fill();
 
-                    // แกนร้อนสว่างตรงกลาง
                     ctx.globalAlpha = Math.min(1.0, progress * 1.3);
                     ctx.fillStyle = HOT_CORE_COLOR;
                     ctx.beginPath();
@@ -274,20 +265,13 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
 
     const particlePool = new CosmicParticlePool(POOL_SIZE);
 
+    // 🎯 ตรวจจับการ Hover ของเมาส์เหนือองค์ประกอบที่กดได้ (รวมถึง Select / Option / Input)
     function scanTargetCursor(target) {
         if (!target || target === lastTarget) return;
         lastTarget = target;
 
-        const isTextInput = target.closest('input:not([type="button"]):not([type="submit"]):not([type="checkbox"]):not([type="radio"]):not([type="reset"]), textarea, [contenteditable="true"]');
-        const isInteractive = target.closest('a, button, [role="button"], input[type="button"], input[type="submit"], input[type="checkbox"], input[type="radio"], .btn, [onclick]');
-
-        if (isTextInput) {
-            state.isNativeRequired = true;
-            state.isHovering = false;
-        } else {
-            state.isNativeRequired = false;
-            state.isHovering = !!isInteractive;
-        }
+        const isInteractive = target.closest('a, button, [role="button"], input, select, option, textarea, .btn, [onclick], [data-bs-toggle]');
+        state.isHovering = !!isInteractive;
     }
 
     // 🎬 Animation Loop หลัก
@@ -295,7 +279,7 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
         const dt = (now - lastTime) / 1000;
         lastTime = now;
 
-        if (state.isNativeRequired || !hasValidPosition) {
+        if (!hasValidPosition) {
             document.documentElement.classList.remove('levelup-active-cursor');
             rocket.style.opacity = '0';
         } else {
@@ -337,14 +321,11 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
             const nozzleX = currX + (BASE_NOZZLE_OFFSET_X * scale);
             const nozzleY = currY + (BASE_NOZZLE_OFFSET_Y * scale);
 
-            // 🚀 โหมดการทำงานสภาวะ Idle Warp กับ Active
             if (state.idleTime > 3.0) {
-                // 🌟 [Idle Warp] เมาส์นิ่งเกิน 3 วินาที -> จรวดอยู่ตรงกลางหมู่ดาวที่พุ่งผ่าน
                 if (Math.random() > 0.5) {
                     particlePool.spawnStar(currX, currY);
                 }
 
-                // 🔥 เปลวไฟยังคงลุกต่อเนื่องแบบกะพริบเบาๆ ขณะล่องลอย
                 const flicker = 0.7 + Math.sin(now * 0.012) * 0.3;
                 const idleOriginX = nozzleX + Math.cos(NOZZLE_ANGLE) * 4;
                 const idleOriginY = nozzleY + Math.sin(NOZZLE_ANGLE) * 4;
@@ -358,7 +339,6 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
                     true
                 );
             } else {
-                // 🔥 [Active Thrust]
                 const isMoving = moveSpeed > 0.5;
 
                 if (isMoving) {
@@ -381,7 +361,6 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
                         particlePool.spawnThruster(nozzleX, nozzleY, vx, vy, false);
                     }
                 } else {
-                    // นิ่งอยู่กับที่แต่ยังไม่เข้าโหมด Idle Warp -> เปลวไฟลุกไหลตามแนวท่อ ห่างออกจากตัวจรวดเล็กน้อย
                     const originX = nozzleX + Math.cos(NOZZLE_ANGLE) * 4;
                     const originY = nozzleY + Math.sin(NOZZLE_ANGLE) * 4;
                     for (let n = 0; n < 2; n++) {
@@ -433,7 +412,7 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
     window.addEventListener('mousedown', (e) => {
         if (e.button !== 2) {
             state.isClicking = true;
-            if (!state.isNativeRequired && hasValidPosition) {
+            if (hasValidPosition) {
                 const scale = state.isHovering ? 1.25 : 1.0;
                 const nX = mouse.x + (BASE_NOZZLE_OFFSET_X * scale);
                 const nY = mouse.y + (BASE_NOZZLE_OFFSET_Y * scale);
@@ -449,7 +428,6 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
 
     window.addEventListener('mouseup', () => { state.isClicking = false; wakeUp(); }, { passive: true });
 
-    // 😴 หยุด Loop ทันทีเมื่อสลับ Tab
     document.addEventListener('visibilitychange', () => {
         if (document.hidden) {
             if (rafId) {
