@@ -1,10 +1,14 @@
 <?php
 /**
- * LevelUp Rocket Cursor Component v3.5 (Ultimate Version)
- * Fixes F5 Refresh Warp Issue & Includes Particle Thrusters + Click Spark Burst.
+ * LevelUp Rocket Cursor Component v3.5 (Ultimate Hotspot Calibrated Edition)
+ * - Calibrated Hotspot: Mouse focus point perfectly aligned to the rocket nose tip.
+ * - Integrated Calibration Studio: Click to align tip & preview live interaction.
+ * - Full Particle Thrusters & Spark Burst on click.
+ * - Smooth LERP movement + F5 refresh warp fix.
  * Usage in PHP: <?php include 'rocket-cursor.php'; ?>
  */
 ?>
+
 <div id="rocket-cursor-wrapper" aria-hidden="true">
     <div id="rocket-cursor-main">
         <!-- Pure CSS Engine Flame Effect Base -->
@@ -18,7 +22,7 @@
             <g id="rocket-group">
                 <!-- Main Rocket Body -->
                 <path d="M32 4C32 4 48 16 48 38C48 44 44 48 44 48L32 42L20 48C20 48 16 44 16 38C16 16 32 4 32 4Z" fill="url(#rocket-body-grad)" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round"/>
-                <!-- Rocket Nose Cone -->
+                <!-- Rocket Nose Cone (Tip is at X: 32, Y: 4) -->
                 <path d="M32 4C37 10 42 20 43.5 26H20.5C22 20 27 10 32 4Z" fill="#EF4444"/>
                 <!-- Wings / Fins -->
                 <path d="M16 34L6 44C6 44 10 49 18 47L16 34Z" fill="#3B82F6" stroke="#ffffff" stroke-width="1"/>
@@ -40,6 +44,8 @@
 
         <!-- Hover Target Indicator Ring -->
         <div class="rocket-target-ring"></div>
+        <!-- Visual Hotspot Marker Pin -->
+        <div class="rocket-tip-pin" title="Nose Tip Hotspot"></div>
     </div>
 </div>
 
@@ -76,12 +82,12 @@
         width: 0 !important;
         height: 0 !important;
         pointer-events: none !important;
-        z-index: 2147483647 !important; /* Maximum 32-bit signed integer z-index */
+        z-index: 2147483647 !important;
         isolation: isolate !important;
         transform: translate3d(-100px, -100px, 0);
         will-change: transform;
         display: block;
-        opacity: 0; /* Hidden initially until first mouse move snaps position */
+        opacity: 0;
         transition: opacity 0.25s ease;
     }
 
@@ -92,13 +98,13 @@
         width: 100vw !important;
         height: 100vh !important;
         pointer-events: none !important;
-        z-index: 2147483646 !important; /* Just below main rocket */
+        z-index: 2147483646 !important;
         opacity: 0;
         transition: opacity 0.25s ease;
     }
 
     /* ------------------------------------------------------------------
-       3. ROCKET ANIMATION & VISUAL STYLING
+       3. ROCKET ANIMATION & VISUAL STYLING (CALIBRATED TIP HOTSPOT)
        ------------------------------------------------------------------ */
     #rocket-cursor-main {
         position: absolute;
@@ -106,11 +112,12 @@
         left: 0;
         width: 42px;
         height: 42px;
-        margin-top: -21px;
+        /* HOTSPOT CALIBRATION: Tip of rocket (X: 21px, Y: 2.6px) offset */
         margin-left: -21px;
+        margin-top: -2.625px;
         pointer-events: none !important;
         transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
-        transform-origin: center center;
+        transform-origin: 21px 2.625px; /* Pivot exactly on the tip! */
     }
 
     .rocket-svg {
@@ -120,7 +127,28 @@
         transition: filter 0.2s ease;
     }
 
-    /* Engine Flame Effect (Pure CSS Animations Base) */
+    .rocket-tip-pin {
+        position: absolute;
+        top: 2.625px;
+        left: 21px;
+        width: 4px;
+        height: 4px;
+        margin-top: -2px;
+        margin-left: -2px;
+        background: #EF4444;
+        border: 1px solid #FFFFFF;
+        border-radius: 50%;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+        z-index: 10;
+    }
+
+    body.show-hotspot-pin .rocket-tip-pin {
+        opacity: 1;
+    }
+
+    /* Engine Flame Effect */
     .rocket-flame-container {
         position: absolute;
         bottom: -8px;
@@ -162,15 +190,15 @@
         100% { transform: scale(1.3); opacity: 0.8; }
     }
 
-    /* Interactive Hover Target Ring */
+    /* Hover Target Indicator Ring */
     .rocket-target-ring {
         position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 48px;
-        height: 48px;
-        margin-top: -24px;
-        margin-left: -24px;
+        top: 2.625px;
+        left: 21px;
+        width: 40px;
+        height: 40px;
+        margin-top: -20px;
+        margin-left: -20px;
         border: 2px dashed rgba(99, 102, 241, 0.8);
         border-radius: 50%;
         opacity: 0;
@@ -179,7 +207,7 @@
         pointer-events: none;
     }
 
-    /* Hover State (When pointing to links/buttons) */
+    /* Hover State */
     #rocket-cursor-main.is-hovering {
         transform: scale(1.25);
     }
@@ -213,6 +241,154 @@
         }
     }
 </style>
+
+<!-- STANDALONE INTERACTIVE CALIBRATION & TEST BENCH STUDIO UI -->
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<div class="min-h-screen bg-slate-950 text-slate-100 font-['Inter'] p-4 md:p-8 selection:bg-indigo-500 selection:text-white">
+    <div class="max-w-5xl mx-auto space-y-6">
+        
+        <!-- Header Section -->
+        <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+            <div>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-semibold uppercase tracking-wider mb-2">
+                    🚀 Cursor Calibration Workbench
+                </div>
+                <h1 class="text-2xl md:text-3xl font-bold text-white tracking-tight">
+                    เครื่องมือปรับจุดโฟกัสของเคอร์เซอร์รูปจรวด
+                </h1>
+                <p class="text-sm text-slate-400 mt-1">
+                    ปรับจุด Hotspot ให้ตรงกับปลายแหลมของหัวจรวด เพื่อให้คลิกเมนูและปุ่มบนเว็บได้อย่างแม่นยำ 100%
+                </p>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <button id="toggle-pin-btn" class="px-4 py-2 text-xs font-semibold rounded-lg border border-slate-700 bg-slate-900 hover:bg-slate-800 transition text-slate-300">
+                    📍 แสดงจุด Pin บนจรวด
+                </button>
+                <button id="reset-default-btn" class="px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition shadow-lg shadow-indigo-600/30">
+                    🔄 รีเซ็ตค่าเริ่มต้น (Tip 21.0, 2.6)
+                </button>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Left Panel: Interactive Stage Calibration Widget -->
+            <div class="lg:col-span-7 bg-slate-900/80 backdrop-blur border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="text-base font-semibold text-white flex items-center gap-2">
+                            🎯 คลิกเลือกจุดปลายหัวจรวด
+                        </h2>
+                        <span class="text-xs text-slate-400">คลิกตรงตำแหน่งปลายจรวดเพื่อให้ตรงกับจุดสีแดง</span>
+                    </div>
+
+                    <!-- Interactive Calibration Stage -->
+                    <div id="stage" class="relative w-full h-[320px] bg-slate-950 border border-slate-800 rounded-xl overflow-hidden cursor-crosshair select-none shadow-inner flex items-center justify-center">
+                        <!-- Crosshair grid lines -->
+                        <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:20px_20px] opacity-40"></div>
+                        
+                        <!-- Fixed Red Target Hotspot Center -->
+                        <div id="target" class="absolute w-3 h-3 rounded-full bg-red-500 border-2 border-white shadow-[0_0_12px_rgba(239,68,68,0.8)] -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none"></div>
+
+                        <!-- Rocket Scaled Preview Box -->
+                        <div id="box" class="absolute w-[210px] h-[210px] pointer-events-none transition-transform duration-75">
+                            <svg class="w-full h-full drop-shadow-2xl" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M32 4C32 4 48 16 48 38C48 44 44 48 44 48L32 42L20 48C20 48 16 44 16 38C16 16 32 4 32 4Z" fill="url(#studio-rocket-body)" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round"/>
+                                <path d="M32 4C37 10 42 20 43.5 26H20.5C22 20 27 10 32 4Z" fill="#EF4444"/>
+                                <path d="M16 34L6 44C6 44 10 49 18 47L16 34Z" fill="#3B82F6" stroke="#ffffff" stroke-width="1"/>
+                                <path d="M48 34L58 44C58 44 54 49 46 47L48 34Z" fill="#3B82F6" stroke="#ffffff" stroke-width="1"/>
+                                <circle cx="32" cy="24" r="6" fill="#06B6D4" stroke="#ffffff" stroke-width="1.5"/>
+                                <circle cx="30" cy="22" r="2" fill="#ffffff" opacity="0.8"/>
+                                <path d="M26 44H38L36 49H28L26 44Z" fill="#475569"/>
+                                <defs>
+                                    <linearGradient id="studio-rocket-body" x1="16" y1="4" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#FFFFFF"/>
+                                        <stop offset="0.6" stop-color="#E2E8F0"/>
+                                        <stop offset="1" stop-color="#CBD5E1"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                            <!-- Hotspot marker point -->
+                            <div id="marker" class="absolute w-2.5 h-2.5 rounded-full bg-cyan-400 border border-white shadow-[0_0_8px_rgba(6,182,212,0.9)] -translate-x-1/2 -translate-y-1/2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Readout & Action Controls -->
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-5 pt-4 border-t border-slate-800">
+                    <div class="text-sm text-slate-300 font-mono">
+                        HOTSPOT_X, HOTSPOT_Y = <span id="readout" class="font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">21.0, 2.6</span>
+                    </div>
+                    <button id="use-btn" class="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold text-xs rounded-xl shadow-lg shadow-indigo-500/25 transition active:scale-95 flex items-center justify-center gap-2">
+                        <span>ใช้พิกัดนี้กับเคอร์เซอร์จริง</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Panel: Fine-Tuning & Live Interaction Playground -->
+            <div class="lg:col-span-5 space-y-6">
+                
+                <!-- Manual Adjustment Controls -->
+                <div class="bg-slate-900/80 backdrop-blur border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+                    <h3 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+                        ⚙️ ปรับความละเอียดพิกัด (Fine-Tune)
+                    </h3>
+                    
+                    <div class="space-y-3">
+                        <div>
+                            <div class="flex justify-between text-xs text-slate-400 mb-1">
+                                <span>HOTSPOT X (แนวนอน):</span>
+                                <span id="slider-x-val" class="font-mono text-indigo-400 font-semibold">21.0px</span>
+                            </div>
+                            <input id="slider-x" type="range" min="0" max="42" step="0.1" value="21.0" class="w-full accent-indigo-500 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs text-slate-400 mb-1">
+                                <span>HOTSPOT Y (แนวตั้ง):</span>
+                                <span id="slider-y-val" class="font-mono text-indigo-400 font-semibold">2.6px</span>
+                            </div>
+                            <input id="slider-y" type="range" min="0" max="42" step="0.1" value="2.6" class="w-full accent-indigo-500 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Test Sandbox -->
+                <div class="bg-slate-900/80 backdrop-blur border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+                    <h3 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+                        🧪 ทดสอบการคลิกบนองค์ประกอบต่างๆ (Live Playground)
+                    </h3>
+                    <p class="text-xs text-slate-400">
+                        ลองเลื่อนเมาส์ไปชี้และกดคลิกปุ่มด้านล่าง เพื่อสอบเช็คว่าปลายจรวดคลิกโดนเป้าหมายอย่างแม่นยำหรือไม่
+                    </p>
+
+                    <div class="grid grid-cols-2 gap-3 pt-2">
+                        <button class="px-3 py-2.5 bg-slate-800 hover:bg-slate-700 text-xs font-semibold rounded-xl border border-slate-700 transition text-slate-200 hover:text-white text-center active:scale-95">
+                            🔘 ปุ่มทดสอบ A
+                        </button>
+                        <button class="px-3 py-2.5 bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/30 text-xs font-semibold rounded-xl transition text-center active:scale-95">
+                            ⚡ ปุ่มทดสอบ B
+                        </button>
+                    </div>
+
+                    <div class="pt-1">
+                        <input type="text" placeholder="พิมพ์ทดสอบในช่องนี้..." class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-indigo-500 transition">
+                    </div>
+
+                    <div class="p-3 bg-indigo-950/40 border border-indigo-800/40 rounded-xl flex items-center justify-between">
+                        <span class="text-xs text-indigo-200">จำนวนการคลิกทดสอบ:</span>
+                        <span id="click-counter" class="text-sm font-bold text-indigo-400 font-mono">0 ครั้ง</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
 (function() {
@@ -257,6 +433,36 @@
             height = canvas.height = window.innerHeight;
         });
 
+        // ------------------------------------------------------------------
+        // HOTSPOT COORDINATE ENGINE (DEFAULT: Tip at X: 21.0px, Y: 2.6px)
+        // ------------------------------------------------------------------
+        var hotspot = { x: 21.0, y: 2.625 };
+
+        function updateHotspotOffsets(hx, hy) {
+            hotspot.x = hx;
+            hotspot.y = hy;
+
+            // Apply offsets to cursor element
+            rocket.style.marginLeft = (-hotspot.x) + 'px';
+            rocket.style.marginTop = (-hotspot.y) + 'px';
+            rocket.style.transformOrigin = hotspot.x + 'px ' + hotspot.y + 'px';
+
+            // Update internal pin & ring position
+            var pin = rocket.querySelector('.rocket-tip-pin');
+            var ring = rocket.querySelector('.rocket-target-ring');
+            if (pin) {
+                pin.style.left = hotspot.x + 'px';
+                pin.style.top = hotspot.y + 'px';
+            }
+            if (ring) {
+                ring.style.left = hotspot.x + 'px';
+                ring.style.top = hotspot.y + 'px';
+            }
+        }
+
+        // Initialize default offset
+        updateHotspotOffsets(21.0, 2.625);
+
         var mouse = { x: 0, y: 0 };
         var pos = { x: 0, y: 0 };
         var lastPos = { x: 0, y: 0 };
@@ -264,7 +470,7 @@
         var targetAngle = 0;
         var particles = [];
         var isHovered = false;
-        var isInitialized = false; // Flag to fix F5 refresh warp jump
+        var isInitialized = false;
 
         function onMouseMove(e) {
             mouse.x = e.clientX;
@@ -277,7 +483,6 @@
                 lastPos.x = mouse.x;
                 lastPos.y = mouse.y;
                 
-                // Set CSS transform instantly before revealing elements
                 wrapper.style.transform = 'translate3d(' + pos.x + 'px, ' + pos.y + 'px, 0)';
                 wrapper.style.opacity = '1';
                 canvas.style.opacity = '1';
@@ -304,10 +509,17 @@
             }
         });
 
+        var clickCounter = 0;
+        var clickCounterEl = document.getElementById('click-counter');
+
         window.addEventListener('mousedown', function() {
             rocket.classList.add('is-clicking');
             if (isInitialized) {
                 createBurstSparks(pos.x, pos.y, 16);
+            }
+            clickCounter++;
+            if (clickCounterEl) {
+                clickCounterEl.textContent = clickCounter + ' ครั้ง';
             }
         });
 
@@ -315,7 +527,7 @@
             rocket.classList.remove('is-clicking');
         });
 
-        var interactiveSelector = 'a, button, input, select, textarea, [role="button"], .btn, .card, .glass-card, .category-card-compact, .accordion-button';
+        var interactiveSelector = 'a, button, input, select, textarea, [role="button"], .btn, .card, .glass-card, .accordion-button';
 
         document.addEventListener('mouseover', function(e) {
             if (e.target && e.target.closest(interactiveSelector)) {
@@ -367,16 +579,14 @@
         }
 
         /* ------------------------------------------------------------------
-           MAIN ANIMATION LOOP (LERP & Rotation)
+           MAIN ANIMATION LOOP (LERP & Rotation around Tip Hotspot)
            ------------------------------------------------------------------ */
         function render() {
             if (isInitialized) {
-                // Linear Interpolation (Smooth Rocket Follow)
                 var lerpFactor = 0.25;
                 pos.x += (mouse.x - pos.x) * lerpFactor;
                 pos.y += (mouse.y - pos.y) * lerpFactor;
 
-                // Calculate movement speed and directional angle
                 var dx = pos.x - lastPos.x;
                 var dy = pos.y - lastPos.y;
                 var speed = Math.sqrt(dx * dx + dy * dy);
@@ -385,28 +595,26 @@
                     targetAngle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
                 }
 
-                // Smooth rotation angle interpolation & 360-degree flip prevention
                 var dAngle = targetAngle - angle;
                 while (dAngle < -180) dAngle += 360;
                 while (dAngle > 180) dAngle -= 360;
                 angle += dAngle * 0.2;
 
-                // Update transforms
                 wrapper.style.transform = 'translate3d(' + pos.x.toFixed(2) + 'px, ' + pos.y.toFixed(2) + 'px, 0)';
                 rocket.style.transform = 'rotate(' + angle.toFixed(2) + 'deg)';
 
-                // Spawn Thruster Flame Particles when moving or hovering
+                // Spawn Thruster Flame Particles from tail (offset behind tip)
                 if (speed > 0.8 || isHovered) {
                     var rad = (angle - 90) * (Math.PI / 180);
-                    var tailX = pos.x - Math.cos(rad) * 22;
-                    var tailY = pos.y - Math.sin(rad) * 22;
+                    var tailX = pos.x - Math.cos(rad) * 30;
+                    var tailY = pos.y - Math.sin(rad) * 30;
                     var backVx = -Math.cos(rad) * (speed * 0.3 + 1);
                     var backVy = -Math.sin(rad) * (speed * 0.3 + 1);
 
                     createThrusterParticle(tailX, tailY, backVx, backVy, isHovered);
                 }
 
-                // Draw Particles on Canvas
+                // Render Canvas Particles
                 ctx.clearRect(0, 0, width, height);
                 for (var i = particles.length - 1; i >= 0; i--) {
                     var p = particles[i];
@@ -436,6 +644,108 @@
         }
 
         requestAnimationFrame(render);
+
+        // ------------------------------------------------------------------
+        // CALIBRATION STUDIO WIDGET LOGIC
+        // ------------------------------------------------------------------
+        const SCALE = 5; // Studio preview scale factor
+        const stage = document.getElementById('stage');
+        const box = document.getElementById('box');
+        const marker = document.getElementById('marker');
+        const target = document.getElementById('target');
+        const readout = document.getElementById('readout');
+        const useBtn = document.getElementById('use-btn');
+        const sliderX = document.getElementById('slider-x');
+        const sliderY = document.getElementById('slider-y');
+        const sliderXVal = document.getElementById('slider-x-val');
+        const sliderYVal = document.getElementById('slider-y-val');
+        const togglePinBtn = document.getElementById('toggle-pin-btn');
+        const resetDefaultBtn = document.getElementById('reset-default-btn');
+
+        let hx = 21.0, hy = 2.6;
+        let tx = 0, ty = 0;
+
+        function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
+
+        function placeStage(){
+            if (!stage || !target) return;
+            const rect = stage.getBoundingClientRect();
+            tx = rect.width / 2;
+            ty = rect.height / 2;
+            target.style.left = tx + 'px';
+            target.style.top = ty + 'px';
+            renderStage();
+        }
+
+        function renderStage(){
+            if (!box || !marker || !readout) return;
+            box.style.left = (tx - hx * SCALE) + 'px';
+            box.style.top = (ty - hy * SCALE) + 'px';
+            box.style.transformOrigin = (hx * SCALE) + 'px ' + (hy * SCALE) + 'px';
+            
+            marker.style.left = (hx * SCALE) + 'px';
+            marker.style.top = (hy * SCALE) + 'px';
+            
+            const xStr = hx.toFixed(1);
+            const yStr = hy.toFixed(1);
+            readout.textContent = xStr + ', ' + yStr;
+
+            if (sliderX) { sliderX.value = hx; sliderXVal.textContent = xStr + 'px'; }
+            if (sliderY) { sliderY.value = hy; sliderYVal.textContent = yStr + 'px'; }
+        }
+
+        if (stage) {
+            stage.addEventListener('click', function(e){
+                const rect = box.getBoundingClientRect();
+                const localX = (e.clientX - rect.left) / SCALE;
+                const localY = (e.clientY - rect.top) / SCALE;
+                hx = clamp(Math.round(localX * 10) / 10, -10, 52);
+                hy = clamp(Math.round(localY * 10) / 10, -10, 52);
+                renderStage();
+                updateHotspotOffsets(hx, hy);
+            });
+        }
+
+        if (sliderX) {
+            sliderX.addEventListener('input', function(e){
+                hx = parseFloat(e.target.value);
+                renderStage();
+                updateHotspotOffsets(hx, hy);
+            });
+        }
+
+        if (sliderY) {
+            sliderY.addEventListener('input', function(e){
+                hy = parseFloat(e.target.value);
+                renderStage();
+                updateHotspotOffsets(hx, hy);
+            });
+        }
+
+        if (useBtn) {
+            useBtn.addEventListener('click', function(){
+                updateHotspotOffsets(hx, hy);
+                alert('อัปเดตจุด Hotspot เป็น (X: ' + hx.toFixed(1) + ', Y: ' + hy.toFixed(1) + ') เรียบร้อยแล้ว!');
+            });
+        }
+
+        if (resetDefaultBtn) {
+            resetDefaultBtn.addEventListener('click', function(){
+                hx = 21.0;
+                hy = 2.625;
+                renderStage();
+                updateHotspotOffsets(hx, hy);
+            });
+        }
+
+        if (togglePinBtn) {
+            togglePinBtn.addEventListener('click', function(){
+                document.body.classList.toggle('show-hotspot-pin');
+            });
+        }
+
+        window.addEventListener('resize', placeStage, { passive: true });
+        placeStage();
     });
 })();
 </script>
