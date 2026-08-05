@@ -1,13 +1,13 @@
 <?php
 /**
- * LevelUp Rocket Cursor Component v2.0
- * Ultra-high z-index & forced cursor-hide for all interactive states.
+ * LevelUp Rocket Cursor Component v3.0 (No-Canvas Lightweight Version)
+ * Fixes F5 Refresh Warp Issue & Removes Canvas overhead.
  * Usage in PHP: <?php include 'rocket-cursor.php'; ?>
  */
 ?>
 <div id="rocket-cursor-wrapper" aria-hidden="true">
     <div id="rocket-cursor-main">
-        <!-- Thruster Flame / Particle trail origin -->
+        <!-- Pure CSS Engine Flame Effect -->
         <div class="rocket-flame-container">
             <div class="rocket-flame-core"></div>
             <div class="rocket-flame-glow"></div>
@@ -43,12 +43,9 @@
     </div>
 </div>
 
-<!-- Canvas for Engine Smoke & Spark Particles -->
-<canvas id="rocket-particle-canvas"></canvas>
-
 <style>
     /* ------------------------------------------------------------------
-       1. GLOBAL CURSOR RESET (Fixes default mouse returning on hover)
+       1. GLOBAL CURSOR RESET (Ensures default cursor stays hidden)
        ------------------------------------------------------------------ */
     *, *::before, *::after,
     html, body, html *, body *,
@@ -67,7 +64,7 @@
     }
 
     /* ------------------------------------------------------------------
-       2. CURSOR WRAPPER & HIGH Z-INDEX STACKING (Fixes rocket behind elements)
+       2. CURSOR WRAPPER & HIGH Z-INDEX STACKING
        ------------------------------------------------------------------ */
     #rocket-cursor-wrapper {
         position: fixed !important;
@@ -76,23 +73,13 @@
         width: 0 !important;
         height: 0 !important;
         pointer-events: none !important;
-        /* Maximum possible 32-bit signed integer z-index to stay above modal/headers */
-        z-index: 2147483647 !important;
+        z-index: 2147483647 !important; /* Maximum 32-bit signed integer z-index */
         isolation: isolate !important;
-        transform: translate3d(0, 0, 0);
+        transform: translate3d(-100px, -100px, 0);
         will-change: transform;
         display: block;
-        opacity: 0; /* Hidden until JS initializes to prevent static ghosting */
-    }
-
-    #rocket-particle-canvas {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100vw !important;
-        height: 100vh !important;
-        pointer-events: none !important;
-        z-index: 2147483646 !important; /* Just below main rocket */
+        opacity: 0; /* Hidden initially until first mouse move snaps position */
+        transition: opacity 0.25s ease;
     }
 
     /* ------------------------------------------------------------------
@@ -107,7 +94,7 @@
         margin-top: -21px;
         margin-left: -21px;
         pointer-events: none !important;
-        transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease;
+        transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
         transform-origin: center center;
     }
 
@@ -118,14 +105,14 @@
         transition: filter 0.2s ease;
     }
 
-    /* Engine Flame Effect */
+    /* Engine Flame Effect (Pure CSS Animations) */
     .rocket-flame-container {
         position: absolute;
-        bottom: -6px;
+        bottom: -8px;
         left: 50%;
         transform: translateX(-50%);
-        width: 14px;
-        height: 18px;
+        width: 16px;
+        height: 22px;
         pointer-events: none;
         display: flex;
         justify-content: center;
@@ -142,16 +129,22 @@
     .rocket-flame-glow {
         position: absolute;
         top: -2px;
-        width: 16px;
-        height: 16px;
+        width: 18px;
+        height: 18px;
         background: rgba(245, 158, 11, 0.6);
         border-radius: 50%;
-        filter: blur(4px);
+        filter: blur(5px);
+        animation: rocketFlameGlow 0.2s infinite alternate ease-in-out;
     }
 
     @keyframes rocketFlameBurn {
         0% { transform: scaleY(0.8) scaleX(0.9); opacity: 0.85; }
-        100% { transform: scaleY(1.3) scaleX(1.1); opacity: 1; }
+        100% { transform: scaleY(1.4) scaleX(1.1); opacity: 1; }
+    }
+
+    @keyframes rocketFlameGlow {
+        0% { transform: scale(0.9); opacity: 0.5; }
+        100% { transform: scale(1.3); opacity: 0.8; }
     }
 
     /* Interactive Hover Target Ring */
@@ -163,7 +156,7 @@
         height: 48px;
         margin-top: -24px;
         margin-left: -24px;
-        border: 2px dashed rgba(99, 102, 241, 0.7);
+        border: 2px dashed rgba(99, 102, 241, 0.8);
         border-radius: 50%;
         opacity: 0;
         transform: scale(0.5) rotate(0deg);
@@ -177,7 +170,7 @@
     }
 
     #rocket-cursor-main.is-hovering .rocket-svg {
-        filter: drop-shadow(0px 0px 14px rgba(99, 102, 241, 0.8));
+        filter: drop-shadow(0px 0px 14px rgba(99, 102, 241, 0.85));
     }
 
     #rocket-cursor-main.is-hovering .rocket-target-ring {
@@ -195,9 +188,9 @@
         transform: scale(0.9) rotate(-10deg);
     }
 
-    /* Hide cursor on Touchscreens */
+    /* Hide custom cursor on touchscreens */
     @media (hover: none) and (pointer: coarse) {
-        #rocket-cursor-wrapper, #rocket-particle-canvas {
+        #rocket-cursor-wrapper {
             display: none !important;
         }
         *, *::before, *::after, html, body, a, button, input {
@@ -216,218 +209,117 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        /* ------------------------------------------------------------------
-           1. DOM SETUP & DUPLICATE CLEANUP (Prevents overlapping rockets)
-           ------------------------------------------------------------------ */
-        // Auto-cleanup duplicate cursor elements if php included this file multiple times
+        // Auto-cleanup duplicate elements if PHP includes this file multiple times
         var wrappers = document.querySelectorAll('#rocket-cursor-wrapper');
         if (wrappers.length > 1) {
             for (var i = 1; i < wrappers.length; i++) {
                 wrappers[i].parentNode.removeChild(wrappers[i]);
             }
         }
-        var canvases = document.querySelectorAll('#rocket-particle-canvas');
-        if (canvases.length > 1) {
-            for (var j = 1; j < canvases.length; j++) {
-                canvases[j].parentNode.removeChild(canvases[j]);
-            }
-        }
 
         var wrapper = document.getElementById('rocket-cursor-wrapper');
         var rocket = document.getElementById('rocket-cursor-main');
-        var canvas = document.getElementById('rocket-particle-canvas');
 
-        if (!wrapper || !rocket || !canvas) return;
+        if (!wrapper || !rocket) return;
 
-        // Move cursor elements to absolute end of document body to break out of all parent stacking contexts
-        document.body.appendChild(canvas);
+        // Move cursor elements to end of document body to guarantee stacking context
         document.body.appendChild(wrapper);
 
-        // Show wrapper now that JS is ready and position is controlled
-        wrapper.style.opacity = '1';
-
-        var ctx = canvas.getContext('2d');
-        var width = canvas.width = window.innerWidth;
-        var height = canvas.height = window.innerHeight;
-
-        window.addEventListener('resize', function() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-        });
-
-        /* ------------------------------------------------------------------
-           2. STATE & POSITION VARIABLES
-           ------------------------------------------------------------------ */
-        var mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-        var pos = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-        var lastPos = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+        var mouse = { x: 0, y: 0 };
+        var pos = { x: 0, y: 0 };
+        var lastPos = { x: 0, y: 0 };
         var angle = 0;
         var targetAngle = 0;
-        var particles = [];
         var isHovered = false;
-        var isClicking = false;
+        var isInitialized = false; // Flag to fix F5 refresh warp jump
 
-        /* ------------------------------------------------------------------
-           3. MOUSE EVENT LISTENERS
-           ------------------------------------------------------------------ */
-        window.addEventListener('mousemove', function(e) {
+        function onMouseMove(e) {
             mouse.x = e.clientX;
             mouse.y = e.clientY;
 
-            // Make wrapper visible when mouse enters viewport
-            if (wrapper.style.opacity === '0') {
+            // FIRST MOUSE MOVE FIX: Snap directly to mouse coordinates without LERP delay on refresh
+            if (!isInitialized) {
+                pos.x = mouse.x;
+                pos.y = mouse.y;
+                lastPos.x = mouse.x;
+                lastPos.y = mouse.y;
+                
+                // Set CSS transform instantly before revealing wrapper
+                wrapper.style.transform = 'translate3d(' + pos.x + 'px, ' + pos.y + 'px, 0)';
                 wrapper.style.opacity = '1';
-                canvas.style.opacity = '1';
+                isInitialized = true;
             }
-        });
+        }
+
+        window.addEventListener('mousemove', onMouseMove, { passive: true });
 
         document.addEventListener('mouseleave', function() {
             wrapper.style.opacity = '0';
-            canvas.style.opacity = '0';
         });
 
         document.addEventListener('mouseenter', function() {
-            wrapper.style.opacity = '1';
-            canvas.style.opacity = '1';
+            if (isInitialized) {
+                wrapper.style.opacity = '1';
+            }
         });
 
         window.addEventListener('mousedown', function() {
-            isClicking = true;
             rocket.classList.add('is-clicking');
-            createBurstSparks(pos.x, pos.y, 16);
         });
 
         window.addEventListener('mouseup', function() {
-            isClicking = false;
             rocket.classList.remove('is-clicking');
         });
 
-        /* ------------------------------------------------------------------
-           4. HOVER DETECTION FOR INTERACTIVE ELEMENTS
-           ------------------------------------------------------------------ */
         var interactiveSelector = 'a, button, input, select, textarea, [role="button"], .btn, .card, .glass-card, .category-card-compact, .accordion-button';
-        
+
         document.addEventListener('mouseover', function(e) {
             if (e.target && e.target.closest(interactiveSelector)) {
                 isHovered = true;
                 rocket.classList.add('is-hovering');
             }
-        });
+        }, { passive: true });
 
         document.addEventListener('mouseout', function(e) {
             if (e.target && e.target.closest(interactiveSelector)) {
                 isHovered = false;
                 rocket.classList.remove('is-hovering');
             }
-        });
+        }, { passive: true });
 
-        /* ------------------------------------------------------------------
-           5. PARTICLE ENGINE (Smoke & Fire Thrusters)
-           ------------------------------------------------------------------ */
-        function createThrusterParticle(x, y, vx, vy, isHoveredState) {
-            particles.push({
-                x: x,
-                y: y,
-                vx: vx + (Math.random() - 0.5) * 1.5,
-                vy: vy + (Math.random() - 0.5) * 1.5,
-                size: isHoveredState ? Math.random() * 5 + 3 : Math.random() * 4 + 2,
-                color: isHoveredState ? 
-                    (Math.random() > 0.4 ? '#38BDF8' : '#6366F1') : 
-                    (Math.random() > 0.5 ? '#F59E0B' : '#EF4444'),
-                alpha: 1,
-                decay: Math.random() * 0.04 + 0.02
-            });
-        }
-
-        function createBurstSparks(x, y, count) {
-            for (var i = 0; i < count; i++) {
-                var pAngle = Math.random() * Math.PI * 2;
-                var speed = Math.random() * 5 + 2;
-                particles.push({
-                    x: x,
-                    y: y,
-                    vx: Math.cos(pAngle) * speed,
-                    vy: Math.sin(pAngle) * speed,
-                    size: Math.random() * 4 + 2,
-                    color: '#10B981',
-                    alpha: 1,
-                    decay: 0.03
-                });
-            }
-        }
-
-        /* ------------------------------------------------------------------
-           6. MAIN ANIMATION LOOP (LERP & Rotation)
-           ------------------------------------------------------------------ */
         function render() {
-            // Linear Interpolation (Smooth Rocket Movement)
-            var lerpFactor = 0.22;
-            pos.x += (mouse.x - pos.x) * lerpFactor;
-            pos.y += (mouse.y - pos.y) * lerpFactor;
+            if (isInitialized) {
+                // Linear Interpolation (Smooth Rocket Follow)
+                var lerpFactor = 0.25;
+                pos.x += (mouse.x - pos.x) * lerpFactor;
+                pos.y += (mouse.y - pos.y) * lerpFactor;
 
-            // Movement delta calculation
-            var dx = pos.x - lastPos.x;
-            var dy = pos.y - lastPos.y;
-            var speed = Math.sqrt(dx * dx + dy * dy);
+                // Calculate movement speed and directional angle
+                var dx = pos.x - lastPos.x;
+                var dy = pos.y - lastPos.y;
+                var speed = Math.sqrt(dx * dx + dy * dy);
 
-            // Calculate rotation angle (Default Rocket pointing direction is 45 deg or up 90 deg)
-            if (speed > 0.5) {
-                // Rocket SVG base points UP (90 degrees offset)
-                targetAngle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
-            }
-
-            // Smooth Angle Interpolation
-            var dAngle = targetAngle - angle;
-            // Normalize angle to prevent 360-degree spin flips
-            while (dAngle < -180) dAngle += 360;
-            while (dAngle > 180) dAngle -= 360;
-            angle += dAngle * 0.2;
-
-            // Update Rocket Element Position & Transform
-            wrapper.style.transform = 'translate3d(' + pos.x + 'px, ' + pos.y + 'px, 0)';
-            rocket.style.transform = 'rotate(' + angle + 'deg)';
-
-            // Spawn Thruster Flame Particles when moving or hovering
-            if (speed > 0.8 || isHovered) {
-                // Calculate position behind the rocket nozzle
-                var rad = (angle - 90) * (Math.PI / 180);
-                var tailX = pos.x - Math.cos(rad) * 22;
-                var tailY = pos.y - Math.sin(rad) * 22;
-                var backVx = -Math.cos(rad) * (speed * 0.3 + 1);
-                var backVy = -Math.sin(rad) * (speed * 0.3 + 1);
-
-                createThrusterParticle(tailX, tailY, backVx, backVy, isHovered);
-            }
-
-            // Draw Particles on Canvas
-            ctx.clearRect(0, 0, width, height);
-            for (var i = particles.length - 1; i >= 0; i--) {
-                var p = particles[i];
-                p.x += p.vx;
-                p.y += p.vy;
-                p.alpha -= p.decay;
-
-                if (p.alpha <= 0) {
-                    particles.splice(i, 1);
-                    continue;
+                if (speed > 0.4) {
+                    targetAngle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
                 }
 
-                ctx.save();
-                ctx.globalAlpha = p.alpha;
-                ctx.fillStyle = p.color;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-            }
+                // Smooth rotation angle interpolation & 360-degree flip prevention
+                var dAngle = targetAngle - angle;
+                while (dAngle < -180) dAngle += 360;
+                while (dAngle > 180) dAngle -= 360;
+                angle += dAngle * 0.2;
 
-            lastPos.x = pos.x;
-            lastPos.y = pos.y;
+                // Update transforms
+                wrapper.style.transform = 'translate3d(' + pos.x.toFixed(2) + 'px, ' + pos.y.toFixed(2) + 'px, 0)';
+                rocket.style.transform = 'rotate(' + angle.toFixed(2) + 'deg)';
+
+                lastPos.x = pos.x;
+                lastPos.y = pos.y;
+            }
 
             requestAnimationFrame(render);
         }
 
-        // Start Animation Engine
         requestAnimationFrame(render);
     });
 })();
