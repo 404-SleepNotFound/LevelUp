@@ -41,26 +41,26 @@
             <div class="rocket-flame-glow"></div>
         </div>
         
-        <!-- SVG Rocket Icon (Nose tip calibrated at X: 32, Y: 4 in 64x64 space) -->
+        <!-- SVG Rocket Icon (Nose tip calibrated at X: 32, Y: 4 in 64x64 space with High-Contrast Slate Stroke) -->
         <svg class="rocket-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
             <g id="rocket-group">
                 <!-- Main Rocket Body -->
-                <path d="M32 4C32 4 48 16 48 38C48 44 44 48 44 48L32 42L20 48C20 48 16 44 16 38C16 16 32 4 32 4Z" fill="url(#rocket-body-grad)" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round"/>
+                <path d="M32 4C32 4 48 16 48 38C48 44 44 48 44 48L32 42L20 48C20 48 16 44 16 38C16 16 32 4 32 4Z" fill="url(#rocket-body-grad)" stroke="#1E293B" stroke-width="1.8" stroke-linejoin="round"/>
                 <!-- Rocket Nose Cone (Tip is at X: 32, Y: 4) -->
-                <path d="M32 4C37 10 42 20 43.5 26H20.5C22 20 27 10 32 4Z" fill="#EF4444"/>
+                <path d="M32 4C37 10 42 20 43.5 26H20.5C22 20 27 10 32 4Z" fill="#EF4444" stroke="#1E293B" stroke-width="1.2"/>
                 <!-- Wings / Fins -->
-                <path d="M16 34L6 44C6 44 10 49 18 47L16 34Z" fill="#3B82F6" stroke="#ffffff" stroke-width="1"/>
-                <path d="M48 34L58 44C58 44 54 49 46 47L48 34Z" fill="#3B82F6" stroke="#ffffff" stroke-width="1"/>
+                <path d="M16 34L6 44C6 44 10 49 18 47L16 34Z" fill="#2563EB" stroke="#1E293B" stroke-width="1.5"/>
+                <path d="M48 34L58 44C58 44 54 49 46 47L48 34Z" fill="#2563EB" stroke="#1E293B" stroke-width="1.5"/>
                 <!-- Porthole Window -->
-                <circle cx="32" cy="24" r="6" fill="#06B6D4" stroke="#ffffff" stroke-width="1.5"/>
-                <circle cx="30" cy="22" r="2" fill="#ffffff" opacity="0.8"/>
+                <circle cx="32" cy="24" r="6" fill="#06B6D4" stroke="#1E293B" stroke-width="1.5"/>
+                <circle cx="30" cy="22" r="2" fill="#ffffff" opacity="0.9"/>
                 <!-- Center Thruster Nozzle -->
-                <path d="M26 44H38L36 49H28L26 44Z" fill="#475569"/>
+                <path d="M26 44H38L36 49H28L26 44Z" fill="#334155" stroke="#1E293B" stroke-width="1"/>
             </g>
             <defs>
                 <linearGradient id="rocket-body-grad" x1="16" y1="4" x2="48" y2="48" gradientUnits="userSpaceOnUse">
                     <stop stop-color="#FFFFFF"/>
-                    <stop offset="0.6" stop-color="#E2E8F0"/>
+                    <stop offset="0.6" stop-color="#F1F5F9"/>
                     <stop offset="1" stop-color="#CBD5E1"/>
                 </linearGradient>
             </defs>
@@ -130,7 +130,7 @@
         pointer-events: none;
         transform: scale(0.3);
         transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1), transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-        filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.8));
+        filter: drop-shadow(0 2px 10px rgba(15, 23, 42, 0.4)) drop-shadow(0 0 8px rgba(56, 189, 248, 0.8));
     }
 
     .planet-svg {
@@ -147,14 +147,15 @@
         height: 64px;
         margin-top: -32px;
         margin-left: -32px;
-        border: 1.5px solid rgba(56, 189, 248, 0.5);
-        border-top-color: rgba(168, 85, 247, 0.9);
-        border-bottom-color: rgba(168, 85, 247, 0.9);
+        border: 2px solid rgba(79, 70, 229, 0.75);
+        border-top-color: rgba(147, 51, 234, 0.95);
+        border-bottom-color: rgba(147, 51, 234, 0.95);
         border-radius: 50%;
         opacity: 0;
         pointer-events: none;
         transform: scale(0.5) rotate(0deg);
         transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+        box-shadow: 0 0 12px rgba(99, 102, 241, 0.35);
     }
 
     .rocket-core-aura {
@@ -165,7 +166,7 @@
         height: 56px;
         margin-top: -28px;
         margin-left: -28px;
-        background: radial-gradient(circle, rgba(56, 189, 248, 0.5) 0%, rgba(99, 102, 241, 0.3) 50%, rgba(0,0,0,0) 75%);
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.45) 0%, rgba(139, 92, 246, 0.25) 50%, rgba(0,0,0,0) 75%);
         border-radius: 50%;
         filter: blur(5px);
         opacity: 0;
@@ -280,8 +281,22 @@
     .rocket-svg {
         width: 100%;
         height: 100%;
-        filter: drop-shadow(0px 4px 10px rgba(0, 0, 0, 0.35));
+        filter: drop-shadow(0px 0px 1px rgba(15, 23, 42, 0.9)) drop-shadow(0px 5px 12px rgba(15, 23, 42, 0.45));
         transition: filter 0.2s ease;
+    }
+
+    /* Engine Flame Effect Base */
+    .rocket-flame-container {
+        position: absolute;
+        bottom: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 16px;
+        height: 22px;
+        pointer-events: none;
+        display: flex;
+        justify-content: center;
+        filter: drop-shadow(0px 2px 4px rgba(15, 23, 42, 0.3));
     }
 
     /* Engine Flame Effect Base */
@@ -778,9 +793,7 @@
                     var backVy = -Math.sin(rad) * (speed * 0.3 + 1);
 
                     createThrusterParticle(tailX, tailY, backVx, backVy, isHovered);
-                }
-
-                // Render Canvas Particles
+                // Render Canvas Particles with High-Contrast Shadows for Light Mode
                 ctx.clearRect(0, 0, width, height);
                 for (var i = particles.length - 1; i >= 0; i--) {
                     var p = particles[i];
@@ -805,6 +818,8 @@
 
                     ctx.save();
                     ctx.globalAlpha = Math.max(0, p.alpha);
+                    ctx.shadowColor = 'rgba(15, 23, 42, 0.4)';
+                    ctx.shadowBlur = 4;
                     ctx.fillStyle = p.color;
                     ctx.beginPath();
                     ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
