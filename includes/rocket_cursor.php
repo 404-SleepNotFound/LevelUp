@@ -211,7 +211,7 @@
         height: 64px;
         margin-top: -32px;
         margin-left: -32px;
-        border: 1.5px stroke rgba(79, 70, 229, 0.75);
+        border: 1.5px solid rgba(79, 70, 229, 0.75);
         border-top: 2px solid rgba(56, 189, 248, 0.95);
         border-bottom: 2px solid rgba(168, 85, 247, 0.95);
         border-radius: 50%;
@@ -784,10 +784,13 @@
                 currentIdleOffsetX += (targetIdleX - currentIdleOffsetX) * idleLerp;
                 currentIdleOffsetY += (targetIdleY - currentIdleOffsetY) * idleLerp;
 
-                var renderAngle = angle + idleSway;
+                var isClicking = rocket.classList.contains('is-clicking');
+                var clickScale = isClicking ? 0.88 : 1.0;
+                var clickAngleOffset = isClicking ? -10 : 0;
+                var renderAngle = angle + idleSway + clickAngleOffset;
 
                 wrapper.style.transform = 'translate3d(' + pos.x.toFixed(2) + 'px, ' + pos.y.toFixed(2) + 'px, 0)';
-                rocket.style.transform = 'translate3d(' + currentIdleOffsetX.toFixed(2) + 'px, ' + currentIdleOffsetY.toFixed(2) + 'px, 0) rotate(' + renderAngle.toFixed(2) + 'deg)';
+                rocket.style.transform = 'translate3d(' + currentIdleOffsetX.toFixed(2) + 'px, ' + currentIdleOffsetY.toFixed(2) + 'px, 0) rotate(' + renderAngle.toFixed(2) + 'deg) scale(' + clickScale + ')';
 
                 if (speed > 0.8 || isHovered) {
                     var mainNozzle = getEngineNozzlePos(pos.x + currentIdleOffsetX, pos.y + currentIdleOffsetY, renderAngle);
