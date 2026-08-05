@@ -46,6 +46,11 @@
         <div class="rocket-target-ring"></div>
         <!-- Visual Hotspot Marker Pin -->
         <div class="rocket-tip-pin" title="Nose Tip Hotspot"></div>
+
+        <!-- Deep Idle Radar Scan Pulse -->
+        <div class="rocket-radar-pulse"></div>
+        <!-- Deep Idle Orbiting Mini Satellite Drone -->
+        <div class="rocket-mini-drone"></div>
     </div>
 </div>
 
@@ -212,6 +217,61 @@
         transform: scale(1.25);
     }
 
+    /* Deep Idle Stage 2: Radar Scanner Pulse */
+    .rocket-radar-pulse {
+        position: absolute;
+        top: 24px;
+        left: 21px;
+        width: 60px;
+        height: 60px;
+        margin-top: -30px;
+        margin-left: -30px;
+        border: 1.5px solid rgba(6, 182, 212, 0.7);
+        border-radius: 50%;
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(0.2);
+        transition: opacity 0.3s ease;
+    }
+
+    #rocket-cursor-main.idle-stage-2 .rocket-radar-pulse {
+        opacity: 1;
+        animation: radarPing 1.8s infinite ease-out;
+    }
+
+    @keyframes radarPing {
+        0% { transform: scale(0.3); opacity: 0.9; border-color: rgba(6, 182, 212, 0.9); }
+        100% { transform: scale(2.2); opacity: 0; border-color: rgba(99, 102, 241, 0); }
+    }
+
+    /* Deep Idle Stage 3: Orbiting Mini Drone Satellite */
+    .rocket-mini-drone {
+        position: absolute;
+        top: 2.625px;
+        left: 21px;
+        width: 8px;
+        height: 8px;
+        margin-top: -4px;
+        margin-left: -4px;
+        background: #38BDF8;
+        border: 1px solid #FFFFFF;
+        border-radius: 50%;
+        box-shadow: 0 0 8px #38BDF8;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.4s ease;
+    }
+
+    #rocket-cursor-main.idle-stage-3 .rocket-mini-drone {
+        opacity: 1;
+        animation: droneOrbit 2.5s infinite linear;
+    }
+
+    @keyframes droneOrbit {
+        0% { transform: rotate(0deg) translate(34px) rotate(0deg); }
+        100% { transform: rotate(360deg) translate(34px) rotate(-360deg); }
+    }
+
     #rocket-cursor-main.is-hovering .rocket-svg {
         filter: drop-shadow(0px 0px 14px rgba(99, 102, 241, 0.85));
     }
@@ -319,17 +379,41 @@
         var isHovered = false;
         var isInitialized = false;
 
-        // IDLE ANIMATION STATE VARIABLES
-        var isIdle = false;
-        var idleTimer = null;
+        // IDLE MULTI-STAGE SYSTEM STATE
         var idleTime = 0;
+        var idleStage = 0; // 0: Active, 1: Drift (0.8s+), 2: Radar Scan (3s+), 3: Orbit Acrobatics (7s+)
+        var idleTimerStage1 = null;
+        var idleTimerStage2 = null;
+        var idleTimerStage3 = null;
 
         function resetIdleTimer() {
-            isIdle = false;
-            if (idleTimer) clearTimeout(idleTimer);
-            idleTimer = setTimeout(function() {
-                isIdle = true;
-            }, 800); // Trigger zero-G float after 0.8s of inactivity
+            idleStage = 0;
+            idleTime = 0;
+            rocket.classList.remove('idle-stage-1', 'idle-stage-2', 'idle-stage-3');
+
+            if (idleTimerStage1) clearTimeout(idleTimerStage1);
+            if (idleTimerStage2) clearTimeout(idleTimerStage2);
+            if (idleTimerStage3) clearTimeout(idleTimerStage3);
+
+            // Stage 1: Zero-G Float (after 0.8s)
+            idleTimerStage1 = setTimeout(function() {
+                idleStage = 1;
+                rocket.classList.add('idle-stage-1');
+            }, 800);
+
+            // Stage 2: Deep Radar Scan (after 3.0s)
+            idleTimerStage2 = setTimeout(function() {
+                idleStage = 2;
+                rocket.classList.add('idle-stage-2');
+                createBurstSparks(pos.x, pos.y, 8); // Minor scan energy pulse
+            }, 3000);
+
+            // Stage 3: Orbit Satellite & Stardust Field (after 7.0s)
+            idleTimerStage3 = setTimeout(function() {
+                idleStage = 3;
+                rocket.classList.add('idle-stage-3');
+                createOrbitStardustRing(pos.x, pos.y);
+            }, 7000);
         }
 
         function onMouseMove(e) {
@@ -433,6 +517,23 @@
             }
         }
 
+        function createOrbitStardustRing(cx, cy) {
+            for (var i = 0; i < 24; i++) {
+                var rad = (i / 24) * Math.PI * 2;
+                var dist = 32 + Math.random() * 10;
+                particles.push({
+                    x: cx + Math.cos(rad) * dist,
+                    y: cy + Math.sin(rad) * dist,
+                    vx: -Math.sin(rad) * 1.2,
+                    vy: Math.cos(rad) * 1.2,
+                    size: Math.random() * 3 + 1.5,
+                    color: Math.random() > 0.5 ? '#06B6D4' : '#A855F7',
+                    alpha: 0.9,
+                    decay: 0.015
+                });
+            }
+        }
+
         /* ------------------------------------------------------------------
            MAIN ANIMATION LOOP (LERP & Rotation around Tip Hotspot)
            ------------------------------------------------------------------ */
@@ -455,16 +556,49 @@
                 while (dAngle > 180) dAngle -= 360;
                 angle += dAngle * 0.2;
 
-                // IDLE BOBBING & SWAY CALCULATIONS
+                // IDLE BOBBING, SWAY & ACROBATIC ROTATIONS
                 var idleOffsetX = 0;
                 var idleOffsetY = 0;
                 var idleSway = 0;
 
-                if (isIdle) {
+                if (idleStage > 0) {
                     idleTime += 0.04;
+
+                    // Stage 1 Motion (0.8s - 3s): Gentle zero-G float
                     idleOffsetY = Math.sin(idleTime) * 4;
                     idleOffsetX = Math.cos(idleTime * 0.7) * 2;
                     idleSway = Math.sin(idleTime * 0.5) * 4;
+
+                    // Stage 2 Motion (3s - 7s): Scan rotation wobble
+                    if (idleStage >= 2) {
+                        idleSway += Math.sin(idleTime * 2.5) * 12;
+                        
+                        // Radar particle emissions
+                        if (Math.random() < 0.2) {
+                            createThrusterParticle(pos.x + (Math.random() - 0.5) * 20, pos.y + (Math.random() - 0.5) * 20, 0, -0.5, true);
+                        }
+                    }
+
+                    // Stage 3 Motion (7s+): 360-degree slow spin & cosmic orbit
+                    if (idleStage === 3) {
+                        idleSway += idleTime * 45; // Slow continuous 360 roll
+                        idleOffsetY += Math.sin(idleTime * 1.5) * 8;
+
+                        // Spawn periodic orbital stardust trailing particles
+                        if (Math.random() < 0.3) {
+                            var orbRad = Math.random() * Math.PI * 2;
+                            particles.push({
+                                x: pos.x + Math.cos(orbRad) * 35,
+                                y: pos.y + Math.sin(orbRad) * 35,
+                                vx: (Math.random() - 0.5) * 0.6,
+                                vy: (Math.random() - 0.5) * 0.6,
+                                size: Math.random() * 3 + 1,
+                                color: Math.random() > 0.5 ? '#38BDF8' : '#EC4899',
+                                alpha: 0.8,
+                                decay: 0.02
+                            });
+                        }
+                    }
 
                     // Periodic idle thruster pulse particles
                     if (Math.random() < 0.15) {
