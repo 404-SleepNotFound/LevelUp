@@ -44,16 +44,11 @@
 
         <!-- Hover Target Indicator Ring -->
         <div class="rocket-target-ring"></div>
-        <!-- Visual Hotspot Marker Pin -->
-        <div class="rocket-tip-pin" title="Nose Tip Hotspot"></div>
 
         <!-- Deep Idle Stage 2: Plasma Core Aura & Rotating Shield Matrix -->
         <div class="rocket-core-aura"></div>
         <div class="rocket-shield-ring"></div>
     </div>
-
-    <!-- Deep Idle Stage 3: Orbiting Mini Satellite Drone (Placed in wrapper for independent 80px orbit calculation) -->
-    <div class="rocket-mini-drone"></div>
 </div>
 
 <!-- Canvas for Engine Smoke & Spark Particles -->
@@ -133,27 +128,6 @@
         height: 100%;
         filter: drop-shadow(0px 4px 10px rgba(0, 0, 0, 0.35));
         transition: filter 0.2s ease;
-    }
-
-    .rocket-tip-pin {
-        position: absolute;
-        top: 2.625px;
-        left: 21px;
-        width: 4px;
-        height: 4px;
-        margin-top: -2px;
-        margin-left: -2px;
-        background: #EF4444;
-        border: 1px solid #FFFFFF;
-        border-radius: 50%;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.2s ease;
-        z-index: 10;
-    }
-
-    body.show-hotspot-pin .rocket-tip-pin {
-        opacity: 1;
     }
 
     /* Engine Flame Effect */
@@ -280,46 +254,6 @@
     @keyframes shieldRotate {
         0% { transform: scale(1) rotate(0deg); }
         100% { transform: scale(1) rotate(360deg); }
-    }
-
-    /* ------------------------------------------------------------------
-       DEEP IDLE STAGE 3: WIDE SPACE ORBIT & SATELLITE DRONE
-       ------------------------------------------------------------------ */
-    .rocket-mini-drone {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 14px;
-        height: 14px;
-        margin-top: -7px;
-        margin-left: -7px;
-        background: #FF0055;
-        border: 2px solid #FFFFFF;
-        border-radius: 50%;
-        box-shadow: 0 0 14px #FF0055, 0 0 28px #F59E0B, 0 0 40px #EF4444;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.4s ease;
-        z-index: 12;
-    }
-
-    #rocket-cursor-wrapper.idle-stage-3 .rocket-mini-drone {
-        opacity: 1;
-        animation: droneRedPulse 0.35s infinite alternate ease-in-out;
-    }
-
-    /* RED ALERT BEACON: High-contrast flashing red beacon with evasive micro-jiggle */
-    @keyframes droneRedPulse {
-        0% {
-            background: #EF4444;
-            box-shadow: 0 0 12px #EF4444, 0 0 24px #EF4444;
-            transform: scale(0.85) translate(0, 0);
-        }
-        100% {
-            background: #FF0055;
-            box-shadow: 0 0 26px #FF0055, 0 0 40px #F59E0B, 0 0 50px #EF4444;
-            transform: scale(1.35) translate(2px, -2px);
-        }
     }
 
     #rocket-cursor-main.is-hovering .rocket-svg {
@@ -654,29 +588,6 @@
 
                         // Direct angle along orbital movement direction
                         targetAngle = Math.atan2(vy, vx) * (180 / Math.PI) + 90;
-
-                        // Position Mini Drone to fly dynamically IN FRONT of the rocket nose cone (Dogfight Chase Mode)
-                        var drone = wrapper.querySelector('.rocket-mini-drone');
-                        if (drone) {
-                            var currentRad = (angle + idleSway - 90) * (Math.PI / 180);
-                            
-                            // Forward direction unit vector
-                            var fwdX = Math.cos(currentRad);
-                            var fwdY = Math.sin(currentRad);
-                            // Perpendicular unit vector for side-to-side evasive weaving
-                            var perpX = -fwdY;
-                            var perpY = fwdX;
-
-                            // Set generous lead distance (120px) ahead of nose tip so it never touches the rocket
-                            var leadDist = 120;
-                            var sideWeave = Math.sin(idleTime * 3.2) * 32; // Side-to-side evasion
-                            var fwdWeave = Math.cos(idleTime * 2.1) * 15;  // Speed up & slow down distance modulation
-
-                            var droneX = idleOffsetX + fwdX * (leadDist + fwdWeave) + perpX * sideWeave;
-                            var droneY = idleOffsetY + fwdY * (leadDist + fwdWeave) + perpY * sideWeave;
-
-                            drone.style.transform = 'translate3d(' + droneX.toFixed(2) + 'px, ' + droneY.toFixed(2) + 'px, 0)';
-                        }
 
                         // Continuous thruster trail shooting backwards out of rocket engine along orbit arc
                         if (Math.random() < 0.6) {
