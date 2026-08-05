@@ -585,7 +585,7 @@
         window.addEventListener('mousedown', function() {
             rocket.classList.add('is-clicking');
             if (isInitialized) {
-                createBurstSparks(pos.x, pos.y, 16);
+                createBurstSparks(pos.x + currentIdleOffsetX, pos.y + currentIdleOffsetY, targetAngle, 16);
             }
         });
 
@@ -609,34 +609,63 @@
             }
         }, { passive: true });
 
+        // Helper to calculate exact engine nozzle exit position based on current rocket angle
+        function getEngineNozzlePos(centerX, centerY, currentAngleDeg) {
+            var rad = (currentAngleDeg - 90) * (Math.PI / 180);
+            // Distance from rocket origin tip to engine nozzle base (~28px)
+            var nozzleDist = 28;
+            return {
+                x: centerX - Math.cos(rad) * nozzleDist,
+                y: centerY - Math.sin(rad) * nozzleDist
+            };
+        }
+
         function createThrusterParticle(x, y, vx, vy, isHoveredState) {
             particles.push({
                 x: x,
                 y: y,
-                vx: vx + (Math.random() - 0.5) * 1.5,
-                vy: vy + (Math.random() - 0.5) * 1.5,
-                size: isHoveredState ? Math.random() * 4 + 2 : Math.random() * 3 + 1.5,
+                vx: vx + (Math.random() - 0.5) * 1.2,
+                vy: vy + (Math.random() - 0.5) * 1.2,
+                size: isHoveredState ? Math.random() * 2.5 + 1.2 : Math.random() * 2.0 + 1.0,
                 color: isHoveredState ? 
                     (Math.random() > 0.4 ? '#38BDF8' : '#6366F1') : 
                     (Math.random() > 0.5 ? '#F59E0B' : '#EF4444'),
-                alpha: 1,
-                decay: Math.random() * 0.04 + 0.02
+                alpha: 0.9,
+                decay: Math.random() * 0.04 + 0.025
             });
         }
 
+        function createBurstSparks(centerX, centerY, currentAngleDeg, count) {
+            var nozzle = getEngineNozzlePos(centerX, centerY, currentAngleDeg);
+            for (var i = 0; i < count; i++) {
+                var pAngle = Math.random() * Math.PI * 2;
+                var speed = Math.random() * 3.5 + 1.0;
+                particles.push({
+                    x: nozzle.x,
+                    y: nozzle.y,
+                    vx: Math.cos(pAngle) * speed,
+                    vy: Math.sin(pAngle) * speed,
+                    size: Math.random() * 2.5 + 1.0,
+                    color: i % 2 === 0 ? '#38BDF8' : '#FDE047',
+                    alpha: 1.0,
+                    decay: Math.random() * 0.05 + 0.03
+                });
+            }
+        }
+
         function createRadarScanPulse(px, py, angleDeg) {
-            // ปรับทิศทางให้ออกด้านหลัง/รอบๆ ท้ายเครื่อง และลดขนาดลง ไม่ให้ลอยออกมาจากหัวจรวด
+            var nozzle = getEngineNozzlePos(px, py, angleDeg);
             var rad = (angleDeg + 90 + (Math.random() - 0.5) * 60) * (Math.PI / 180);
             var speed = Math.random() * 1.2 + 0.4;
             
             particles.push({
-                x: px + Math.cos(rad) * 8,
-                y: py + Math.sin(rad) * 8,
+                x: nozzle.x + Math.cos(rad) * 4,
+                y: nozzle.y + Math.sin(rad) * 4,
                 vx: Math.cos(rad) * speed,
                 vy: Math.sin(rad) * speed,
-                size: Math.random() * 2 + 1,
+                size: Math.random() * 1.8 + 0.8,
                 color: Math.random() > 0.4 ? '#38BDF8' : '#818CF8',
-                alpha: 0.6,
+                alpha: 0.7,
                 decay: 0.035
             });
         }
@@ -644,13 +673,13 @@
         function createGravitationalPulse(x, y) {
             for (var i = 0; i < 18; i++) {
                 var pAngle = (i / 18) * Math.PI * 2;
-                var speed = Math.random() * 2.5 + 1.5;
+                var speed = Math.random() * 2.2 + 1.0;
                 particles.push({
                     x: x,
                     y: y,
                     vx: Math.cos(pAngle) * speed,
                     vy: Math.sin(pAngle) * speed,
-                    size: Math.random() * 2.5 + 1,
+                    size: Math.random() * 2.0 + 0.8,
                     color: i % 2 === 0 ? '#38BDF8' : '#A855F7',
                     alpha: 0.8,
                     decay: 0.03
@@ -730,9 +759,9 @@
                         if (idleStage === 3) {
                             var vMag = Math.hypot(vx, vy) || 1;
                             if (Math.random() < 0.6) {
-                                var orbTailX = (pos.x + targetIdleX) - (vx / vMag) * 24;
-                                var orbTailY = (pos.y + targetIdleY) - (vy / vMag) * 24;
-                                createThrusterParticle(orbTailX, orbTailY, -vx * 0.03, -vy * 0.03, true);
+                                var currentRendAngle = targetAngle;
+                                var currentNozzle = getEngineNozzlePos(pos.x + targetIdleX, pos.y + targetIdleY, currentRendAngle);
+                                createThrusterParticle(currentNozzle.x, currentNozzle.y, -vx * 0.03, -vy * 0.03, true);
                             }
                         }
 
@@ -746,7 +775,7 @@
                                 y: pos.y + Math.sin(orbRad) * orbDist,
                                 vx: -Math.sin(orbRad) * (Math.random() * 0.6 + 0.1),
                                 vy: Math.cos(orbRad) * (Math.random() * 0.6 + 0.1),
-                                size: Math.random() * 2.2 + 0.8,
+                                size: Math.random() * 2.5 + 2.5, // คงขนาดละอองฝุ่นดั้งเดิม (2.5 - 5.0px) ตามคำสั่งไม่ให้ลดขนาด
                                 color: vibrantColors[Math.floor(Math.random() * vibrantColors.length)],
                                 alpha: 0,
                                 targetAlpha: Math.random() * 0.5 + 0.2,
@@ -757,10 +786,10 @@
                     }
 
                     if (Math.random() < 0.15) {
-                        var idleRad = (angle + idleSway - 90) * (Math.PI / 180);
-                        var idleTailX = (pos.x + currentIdleOffsetX) - Math.cos(idleRad) * 30;
-                        var idleTailY = (pos.y + currentIdleOffsetY) - Math.sin(idleRad) * 30;
-                        createThrusterParticle(idleTailX, idleTailY, -Math.cos(idleRad) * 0.8, -Math.sin(idleRad) * 0.8, false);
+                        var renderAngleNow = angle + idleSway;
+                        var idleNozzle = getEngineNozzlePos(pos.x + currentIdleOffsetX, pos.y + currentIdleOffsetY, renderAngleNow);
+                        var idleRad = (renderAngleNow - 90) * (Math.PI / 180);
+                        createThrusterParticle(idleNozzle.x, idleNozzle.y, -Math.cos(idleRad) * 0.8, -Math.sin(idleRad) * 0.8, false);
                     }
                 }
 
@@ -774,61 +803,13 @@
                 rocket.style.transform = 'translate3d(' + currentIdleOffsetX.toFixed(2) + 'px, ' + currentIdleOffsetY.toFixed(2) + 'px, 0) rotate(' + renderAngle.toFixed(2) + 'deg)';
 
                 if (speed > 0.8 || isHovered) {
-                    var rad = (angle - 90) * (Math.PI / 180);
-                    var tailX = (pos.x + currentIdleOffsetX) - Math.cos(rad) * 27;
-                    var tailY = (pos.y + currentIdleOffsetY) - Math.sin(rad) * 27;
+                    var mainNozzle = getEngineNozzlePos(pos.x + currentIdleOffsetX, pos.y + currentIdleOffsetY, renderAngle);
+                    var rad = (renderAngle - 90) * (Math.PI / 180);
                     var backVx = -Math.cos(rad) * (speed * 0.3 + 1);
                     var backVy = -Math.sin(rad) * (speed * 0.3 + 1);
 
-                    createThrusterParticle(tailX, tailY, backVx, backVy, isHovered);
+                    createThrusterParticle(mainNozzle.x, mainNozzle.y, backVx, backVy, isHovered);
                 }
 
                 ctx.clearRect(0, 0, width, height);
-                for (var i = particles.length - 1; i >= 0; i--) {
-                    var p = particles[i];
-                    p.x += p.vx;
-                    p.y += p.vy;
-
-                    if (p.fadeIn && p.fadeIn > 0) {
-                        p.alpha += p.fadeIn;
-                        if (p.alpha >= p.targetAlpha) {
-                            p.alpha = p.targetAlpha;
-                            p.fadeIn = 0;
-                        }
-                    } else {
-                        p.alpha -= p.decay;
-                    }
-
-                    if (p.alpha <= 0) {
-                        particles.splice(i, 1);
-                        continue;
-                    }
-
-                    ctx.save();
-                    ctx.globalAlpha = Math.max(0, p.alpha);
-                    ctx.shadowColor = 'rgba(15, 23, 42, 0.4)';
-                    ctx.shadowBlur = 4;
-                    ctx.fillStyle = p.color;
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.restore();
-                }
-
-                lastPos.x = pos.x;
-                lastPos.y = pos.y;
-            }
-
-            requestAnimationFrame(render);
-        }
-
-        requestAnimationFrame(render);
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initCursor);
-    } else {
-        initCursor();
-    }
-})();
-</script>
+<!-- ... existing code -->
