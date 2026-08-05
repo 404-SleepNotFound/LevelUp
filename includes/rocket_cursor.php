@@ -47,9 +47,11 @@
         <!-- Visual Hotspot Marker Pin -->
         <div class="rocket-tip-pin" title="Nose Tip Hotspot"></div>
 
-        <!-- Deep Idle Radar Scan Pulse -->
-        <div class="rocket-radar-pulse"></div>
-        <!-- Deep Idle Orbiting Mini Satellite Drone -->
+        <!-- Deep Idle Stage 2: Plasma Core Aura & Rotating Shield Matrix -->
+        <div class="rocket-core-aura"></div>
+        <div class="rocket-shield-ring"></div>
+
+        <!-- Deep Idle Stage 3: Orbiting Mini Satellite Drone -->
         <div class="rocket-mini-drone"></div>
     </div>
 </div>
@@ -217,59 +219,97 @@
         transform: scale(1.25);
     }
 
-    /* Deep Idle Stage 2: Radar Scanner Pulse */
-    .rocket-radar-pulse {
+    /* ------------------------------------------------------------------
+       DEEP IDLE STAGE 2: PLASMA CORE AURA & ROTATING SHIELD MATRIX
+       ------------------------------------------------------------------ */
+    .rocket-core-aura {
         position: absolute;
-        top: 24px;
+        top: 21px;
         left: 21px;
-        width: 60px;
-        height: 60px;
-        margin-top: -30px;
-        margin-left: -30px;
-        border: 1.5px solid rgba(6, 182, 212, 0.7);
+        width: 50px;
+        height: 50px;
+        margin-top: -25px;
+        margin-left: -25px;
+        background: radial-gradient(circle, rgba(56, 189, 248, 0.45) 0%, rgba(99, 102, 241, 0.25) 50%, rgba(0,0,0,0) 75%);
+        border-radius: 50%;
+        filter: blur(4px);
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(0.5);
+        transition: all 0.4s ease;
+    }
+
+    .rocket-shield-ring {
+        position: absolute;
+        top: 21px;
+        left: 21px;
+        width: 64px;
+        height: 64px;
+        margin-top: -32px;
+        margin-left: -32px;
+        border: 1.5px solid rgba(56, 189, 248, 0.6);
+        border-top-color: rgba(168, 85, 247, 0.9);
+        border-bottom-color: rgba(168, 85, 247, 0.9);
         border-radius: 50%;
         opacity: 0;
         pointer-events: none;
-        transform: scale(0.2);
-        transition: opacity 0.3s ease;
+        transform: scale(0.6) rotate(0deg);
+        transition: opacity 0.4s ease, transform 0.4s ease;
     }
 
-    #rocket-cursor-main.idle-stage-2 .rocket-radar-pulse {
+    #rocket-cursor-main.idle-stage-2 .rocket-core-aura {
         opacity: 1;
-        animation: radarPing 1.8s infinite ease-out;
+        animation: auraPulse 2s infinite alternate ease-in-out;
     }
 
-    @keyframes radarPing {
-        0% { transform: scale(0.3); opacity: 0.9; border-color: rgba(6, 182, 212, 0.9); }
-        100% { transform: scale(2.2); opacity: 0; border-color: rgba(99, 102, 241, 0); }
+    #rocket-cursor-main.idle-stage-2 .rocket-shield-ring {
+        opacity: 1;
+        animation: shieldRotate 3s infinite linear;
     }
 
-    /* Deep Idle Stage 3: Orbiting Mini Drone Satellite */
+    #rocket-cursor-main.idle-stage-2 .rocket-flame-core {
+        background: linear-gradient(180deg, #38BDF8 0%, #A855F7 60%, rgba(168, 85, 247, 0) 100%);
+    }
+
+    @keyframes auraPulse {
+        0% { transform: scale(0.8); opacity: 0.5; }
+        100% { transform: scale(1.35); opacity: 0.95; }
+    }
+
+    @keyframes shieldRotate {
+        0% { transform: scale(1) rotate(0deg); }
+        100% { transform: scale(1) rotate(360deg); }
+    }
+
+    /* ------------------------------------------------------------------
+       DEEP IDLE STAGE 3: WIDE SPACE ORBIT & SATALITE DRONE
+       ------------------------------------------------------------------ */
     .rocket-mini-drone {
         position: absolute;
         top: 2.625px;
         left: 21px;
-        width: 8px;
-        height: 8px;
-        margin-top: -4px;
-        margin-left: -4px;
+        width: 9px;
+        height: 9px;
+        margin-top: -4.5px;
+        margin-left: -4.5px;
         background: #38BDF8;
-        border: 1px solid #FFFFFF;
+        border: 1.5px solid #FFFFFF;
         border-radius: 50%;
-        box-shadow: 0 0 8px #38BDF8;
+        box-shadow: 0 0 12px #38BDF8, 0 0 20px rgba(56, 189, 248, 0.8);
         opacity: 0;
         pointer-events: none;
-        transition: opacity 0.4s ease;
+        transition: opacity 0.5s ease;
     }
 
     #rocket-cursor-main.idle-stage-3 .rocket-mini-drone {
         opacity: 1;
-        animation: droneOrbit 2.5s infinite linear;
+        animation: droneWideOrbit 3.2s infinite linear;
     }
 
-    @keyframes droneOrbit {
-        0% { transform: rotate(0deg) translate(34px) rotate(0deg); }
-        100% { transform: rotate(360deg) translate(34px) rotate(-360deg); }
+    /* WIDER ORBIT RADIUS: Expanded to 80px orbit path around rocket tip hotspot */
+    @keyframes droneWideOrbit {
+        0% { transform: rotate(0deg) translate(80px) rotate(0deg); }
+        100% { transform: rotate(360deg) translate(80px) rotate(-360deg); }
     }
 
     #rocket-cursor-main.is-hovering .rocket-svg {
@@ -518,18 +558,18 @@
         }
 
         function createOrbitStardustRing(cx, cy) {
-            for (var i = 0; i < 24; i++) {
-                var rad = (i / 24) * Math.PI * 2;
-                var dist = 32 + Math.random() * 10;
+            for (var i = 0; i < 32; i++) {
+                var rad = (i / 32) * Math.PI * 2;
+                var dist = 75 + Math.random() * 20; // Expanded to match wide orbit
                 particles.push({
                     x: cx + Math.cos(rad) * dist,
                     y: cy + Math.sin(rad) * dist,
-                    vx: -Math.sin(rad) * 1.2,
-                    vy: Math.cos(rad) * 1.2,
-                    size: Math.random() * 3 + 1.5,
+                    vx: -Math.sin(rad) * 1.5,
+                    vy: Math.cos(rad) * 1.5,
+                    size: Math.random() * 3.5 + 1.5,
                     color: Math.random() > 0.5 ? '#06B6D4' : '#A855F7',
-                    alpha: 0.9,
-                    decay: 0.015
+                    alpha: 0.95,
+                    decay: 0.012
                 });
             }
         }
@@ -569,33 +609,37 @@
                     idleOffsetX = Math.cos(idleTime * 0.7) * 2;
                     idleSway = Math.sin(idleTime * 0.5) * 4;
 
-                    // Stage 2 Motion (3s - 7s): Scan rotation wobble
+                    // Stage 2 Motion (3s - 7s): Plasma Charge & Infinity Figure-8 Float
                     if (idleStage >= 2) {
-                        idleSway += Math.sin(idleTime * 2.5) * 12;
+                        idleOffsetY += Math.sin(idleTime * 2) * 5;
+                        idleOffsetX += Math.cos(idleTime * 1) * 6;
+                        idleSway += Math.sin(idleTime * 1.5) * 8;
                         
-                        // Radar particle emissions
-                        if (Math.random() < 0.2) {
-                            createThrusterParticle(pos.x + (Math.random() - 0.5) * 20, pos.y + (Math.random() - 0.5) * 20, 0, -0.5, true);
+                        // Plasma energy particles emission
+                        if (Math.random() < 0.25) {
+                            createThrusterParticle(pos.x + (Math.random() - 0.5) * 16, pos.y + (Math.random() - 0.5) * 16, (Math.random() - 0.5) * 0.8, (Math.random() - 0.5) * 0.8, true);
                         }
                     }
 
-                    // Stage 3 Motion (7s+): 360-degree slow spin & cosmic orbit
+                    // Stage 3 Motion (7s+ Continuous Loop): Wide Space Orbit & Roll Spin
                     if (idleStage === 3) {
-                        idleSway += idleTime * 45; // Slow continuous 360 roll
-                        idleOffsetY += Math.sin(idleTime * 1.5) * 8;
+                        idleSway += idleTime * 40; // Continuous smooth roll loop indefinitely
+                        idleOffsetY += Math.sin(idleTime * 1.5) * 10;
+                        idleOffsetX += Math.cos(idleTime * 1.2) * 8;
 
-                        // Spawn periodic orbital stardust trailing particles
-                        if (Math.random() < 0.3) {
+                        // Spawn periodic wider orbital stardust trailing particles continuously
+                        if (Math.random() < 0.35) {
                             var orbRad = Math.random() * Math.PI * 2;
+                            var orbDist = 75 + Math.random() * 20; // Expanded wide orbit path
                             particles.push({
-                                x: pos.x + Math.cos(orbRad) * 35,
-                                y: pos.y + Math.sin(orbRad) * 35,
-                                vx: (Math.random() - 0.5) * 0.6,
-                                vy: (Math.random() - 0.5) * 0.6,
-                                size: Math.random() * 3 + 1,
+                                x: pos.x + Math.cos(orbRad) * orbDist,
+                                y: pos.x ? pos.y + Math.sin(orbRad) * orbDist : pos.y,
+                                vx: -Math.sin(orbRad) * 0.8,
+                                vy: Math.cos(orbRad) * 0.8,
+                                size: Math.random() * 3 + 1.5,
                                 color: Math.random() > 0.5 ? '#38BDF8' : '#EC4899',
-                                alpha: 0.8,
-                                decay: 0.02
+                                alpha: 0.85,
+                                decay: 0.018
                             });
                         }
                     }
