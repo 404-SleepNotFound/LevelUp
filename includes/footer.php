@@ -99,7 +99,7 @@ $appVersion = "1.0.0 (Build 2026.07)";
                         <li><a href="learning-path.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Roadmaps</a></li>
                         <li><a href="coding-lab.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Coding Lab</a></li>
                         <li><a href="virtual-lab.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">Virtual Lab</a></li>
-                        <li><a href="ai-chat.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">AI Tutor</a></li>
+                        <li><a href="../ai/ai-chat.php" class="ft-text-muted text-decoration-none hover-text-primary ajax-link">AI Tutor</a></li>
                     </ul>
                 </div>
 
