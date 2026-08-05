@@ -319,9 +319,24 @@
         var isHovered = false;
         var isInitialized = false;
 
+        // IDLE ANIMATION STATE VARIABLES
+        var isIdle = false;
+        var idleTimer = null;
+        var idleTime = 0;
+
+        function resetIdleTimer() {
+            isIdle = false;
+            if (idleTimer) clearTimeout(idleTimer);
+            idleTimer = setTimeout(function() {
+                isIdle = true;
+            }, 800); // Trigger zero-G float after 0.8s of inactivity
+        }
+
         function onMouseMove(e) {
             mouse.x = e.clientX;
             mouse.y = e.clientY;
+
+            resetIdleTimer();
 
             // FIRST MOUSE MOVE FIX: Snap directly to mouse coordinates without LERP delay on refresh
             if (!isInitialized) {
@@ -440,8 +455,32 @@
                 while (dAngle > 180) dAngle -= 360;
                 angle += dAngle * 0.2;
 
-                wrapper.style.transform = 'translate3d(' + pos.x.toFixed(2) + 'px, ' + pos.y.toFixed(2) + 'px, 0)';
-                rocket.style.transform = 'rotate(' + angle.toFixed(2) + 'deg)';
+                // IDLE BOBBING & SWAY CALCULATIONS
+                var idleOffsetX = 0;
+                var idleOffsetY = 0;
+                var idleSway = 0;
+
+                if (isIdle) {
+                    idleTime += 0.04;
+                    idleOffsetY = Math.sin(idleTime) * 4;
+                    idleOffsetX = Math.cos(idleTime * 0.7) * 2;
+                    idleSway = Math.sin(idleTime * 0.5) * 4;
+
+                    // Periodic idle thruster pulse particles
+                    if (Math.random() < 0.15) {
+                        var idleRad = (angle + idleSway - 90) * (Math.PI / 180);
+                        var idleTailX = (pos.x + idleOffsetX) - Math.cos(idleRad) * 30;
+                        var idleTailY = (pos.y + idleOffsetY) - Math.sin(idleRad) * 30;
+                        createThrusterParticle(idleTailX, idleTailY, -Math.cos(idleRad) * 0.8, -Math.sin(idleRad) * 0.8, false);
+                    }
+                }
+
+                var renderX = pos.x + idleOffsetX;
+                var renderY = pos.y + idleOffsetY;
+                var renderAngle = angle + idleSway;
+
+                wrapper.style.transform = 'translate3d(' + renderX.toFixed(2) + 'px, ' + renderY.toFixed(2) + 'px, 0)';
+                rocket.style.transform = 'rotate(' + renderAngle.toFixed(2) + 'deg)';
 
                 // Spawn Thruster Flame Particles from tail (offset behind tip)
                 if (speed > 0.8 || isHovered) {
