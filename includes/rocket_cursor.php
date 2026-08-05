@@ -109,9 +109,10 @@
                 <path d="M43 28 L51 34 L49 41 L43 38 Z" fill="url(#fin-right-grad)"/>
                 <path d="M48 38.5 L51 34 L49 41 L46 40 Z" fill="#0F172A" opacity="0.35"/>
 
-                <!-- Engine Exhaust Nozzle Bell -->
-                <path d="M27 38 H37 L35 44 H29 Z" fill="url(#nozzle-grad)"/>
-                <ellipse cx="32" cy="44" rx="3" ry="0.9" fill="#020617"/>
+                <!-- Prominent Heavy Sci-Fi Engine Nozzle Bell (Widened & Scaled Up) -->
+                <path d="M24 37 H40 L38 45 H26 Z" fill="url(#nozzle-grad)"/>
+                <ellipse cx="32" cy="45" rx="6" ry="1.8" fill="#020617"/>
+                <ellipse cx="32" cy="45" rx="4.5" ry="1.2" fill="#38BDF8" opacity="0.85"/>
 
                 <!-- Fuselage Main Body Capsule (Starts below red nose cone to eliminate white border) -->
                 <path d="M23 16.5 C21 24 21 38 21 38 C21 40.5 26 42 32 42 C38 42 43 40.5 43 38 C43 38 43 24 41 16.5 C36.5 17.8 27.5 17.8 23 16.5 Z" fill="url(#fuselage-grad)"/>
@@ -319,14 +320,14 @@
         transition: filter 0.2s ease;
     }
 
-    /* Plasma Engine Flame Cone Base (Directly under Nozzle Bell at Y:44) */
+    /* Plasma Engine Flame Cone Base (Directly under Nozzle Bell) */
     .rocket-flame-container {
         position: absolute;
-        top: 28.5px; /* Precision alignment directly at engine nozzle exit */
+        top: 29.5px; /* Precision alignment directly at engine nozzle exit */
         left: 50%;
         transform: translateX(-50%);
-        width: 10px;
-        height: 22px;
+        width: 18px;
+        height: 28px;
         pointer-events: none;
         display: flex;
         justify-content: center;
@@ -335,33 +336,33 @@
     }
 
     .rocket-flame-core {
-        width: 4px;
+        width: 8px;
         height: 100%;
         background: linear-gradient(180deg, #FFFFFF 0%, #FDE047 25%, #F97316 65%, rgba(239, 68, 68, 0) 100%);
         border-radius: 50% 50% 40% 40% / 80% 80% 20% 20%;
         animation: rocketPlasmaBurn 0.08s infinite alternate ease-in-out;
-        filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.95));
+        filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.95));
     }
 
     .rocket-flame-glow {
         position: absolute;
         top: 0px;
-        width: 8px;
-        height: 16px;
+        width: 14px;
+        height: 20px;
         background: linear-gradient(180deg, rgba(253, 224, 71, 0.95) 0%, rgba(249, 115, 22, 0.7) 65%, rgba(239, 68, 68, 0) 100%);
         border-radius: 50% 50% 45% 45%;
-        filter: blur(1.5px);
+        filter: blur(2px);
         animation: rocketPlasmaGlow 0.12s infinite alternate ease-in-out;
     }
 
     .rocket-flame-aura {
         position: absolute;
         top: -2px;
-        width: 14px;
-        height: 14px;
+        width: 22px;
+        height: 22px;
         background: radial-gradient(circle, rgba(249, 115, 22, 0.5) 0%, rgba(168, 85, 247, 0.2) 65%, transparent 100%);
         border-radius: 50%;
-        filter: blur(3px);
+        filter: blur(4px);
     }
 
     @keyframes rocketPlasmaBurn {
