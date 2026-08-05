@@ -31,6 +31,7 @@
         </div>
         <div class="rocket-shield-ring"></div>
         <div class="rocket-core-aura"></div>
+        <div class="rocket-shockwave-ring"></div>
     </div>
 
     <div id="rocket-cursor-main">
@@ -128,7 +129,7 @@
         opacity: 0;
         pointer-events: none;
         transform: scale(0.3);
-        transition: opacity 1.2s cubic-bezier(0.25, 1, 0.5, 1), transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1), transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
         filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.8));
     }
 
@@ -153,7 +154,7 @@
         opacity: 0;
         pointer-events: none;
         transform: scale(0.5) rotate(0deg);
-        transition: opacity 1.2s ease-in-out, transform 1.2s ease-in-out;
+        transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
     }
 
     .rocket-core-aura {
@@ -170,7 +171,34 @@
         opacity: 0;
         pointer-events: none;
         transform: scale(0.5);
-        transition: opacity 1.2s ease-in-out, transform 1.2s ease-in-out;
+        transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+    }
+
+    /* Shockwave Energy Pulse for Stage Transition */
+    .rocket-shockwave-ring {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 20px;
+        height: 20px;
+        margin-top: -10px;
+        margin-left: -10px;
+        border: 2px solid rgba(56, 189, 248, 0.9);
+        border-radius: 50%;
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(0.2);
+        box-shadow: 0 0 15px rgba(168, 85, 247, 0.8);
+    }
+
+    #rocket-cursor-wrapper.trigger-shockwave .rocket-shockwave-ring {
+        animation: shockwaveExpand 0.85s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+    }
+
+    @keyframes shockwaveExpand {
+        0% { transform: scale(0.2); opacity: 1; border-width: 3px; }
+        50% { opacity: 0.8; }
+        100% { transform: scale(7.5); opacity: 0; border-width: 1px; }
     }
 
     /* Stage 1: Soft Charging Warm-up */
@@ -421,6 +449,7 @@
         var isInitialized = false;
 
         var idleTime = 0;
+        var stage2Time = 0; // Track Stage 2 elapsed time separately for smooth spiral expansion
         var idleStage = 0; // 0: Active, 1: Drift (0.8s+), 2: Orbital Insertion (3s+), 3: Orbit Acrobatics (7s+)
         var idleTimerStage1 = null;
         var idleTimerStage2 = null;
@@ -433,9 +462,10 @@
         function resetIdleTimer() {
             idleStage = 0;
             idleTime = 0;
+            stage2Time = 0;
 
-            rocket.classList.remove('idle-stage-1', 'idle-stage-2', 'idle-stage-3');
-            wrapper.classList.remove('idle-stage-1', 'idle-stage-2', 'idle-stage-3');
+            rocket.classList.remove('idle-stage-1', 'idle-stage-2', 'idle-stage-3', 'trigger-shockwave');
+            wrapper.classList.remove('idle-stage-1', 'idle-stage-2', 'idle-stage-3', 'trigger-shockwave');
 
             if (idleTimerStage1) clearTimeout(idleTimerStage1);
             if (idleTimerStage2) clearTimeout(idleTimerStage2);
@@ -451,9 +481,16 @@
             // Stage 2: Gravitational Orbital Insertion (after 3.0s)
             idleTimerStage2 = setTimeout(function() {
                 idleStage = 2;
+                stage2Time = 0; // Reset stage 2 spiral progression clock
                 rocket.classList.add('idle-stage-2');
                 wrapper.classList.add('idle-stage-2');
-                createBurstSparks(pos.x, pos.y, 8); // Minor gravitational pulse
+                
+                // Trigger visual shockwave pulse effect
+                wrapper.classList.remove('trigger-shockwave');
+                void wrapper.offsetWidth; // Force CSS reflow
+                wrapper.classList.add('trigger-shockwave');
+
+                createGravitationalPulse(pos.x, pos.y);
             }, 3000);
 
             // Stage 3: Full Satellite Orbit & Stardust Field (after 7.0s)
@@ -567,6 +604,24 @@
             });
         }
 
+        // Energy burst pulse emitted when Stage 2 initiates
+        function createGravitationalPulse(x, y) {
+            for (var i = 0; i < 18; i++) {
+                var pAngle = (i / 18) * Math.PI * 2;
+                var speed = Math.random() * 2.5 + 1.5;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(pAngle) * speed,
+                    vy: Math.sin(pAngle) * speed,
+                    size: Math.random() * 3.5 + 2,
+                    color: i % 2 === 0 ? '#38BDF8' : '#A855F7',
+                    alpha: 1,
+                    decay: 0.025
+                });
+            }
+        }
+
         function createBurstSparks(x, y, count) {
             for (var i = 0; i < count; i++) {
                 var pAngle = Math.random() * Math.PI * 2;
@@ -611,10 +666,6 @@
                 if (idleStage > 0) {
                     idleTime += 0.035;
 
-                    // Continuous orbital angular velocity
-                    var omega = 0.8;
-                    var orbTheta = idleTime * omega;
-
                     if (idleStage === 1) {
                         // Stage 1 Motion: Gentle zero-G float
                         targetIdleX = Math.cos(idleTime * 0.7) * 3;
@@ -622,14 +673,19 @@
                         idleSway = Math.sin(idleTime * 0.5) * 4;
                     } else {
                         // Stage 2 & 3: Seamless Spiral into Stable Planetary Orbit
-                        var spiralDuration = 3.5;
-                        var spiralProgress = Math.min(Math.max((idleTime - 0.8) / spiralDuration, 0), 1);
+                        stage2Time += 0.035;
                         
-                        // Smoothstep curve for seamless expansion from R=15 to R=80
+                        var spiralDuration = 2.5; // Smooth 2.5s transition into full orbit
+                        var spiralProgress = Math.min(stage2Time / spiralDuration, 1);
+                        
+                        // Smoothstep curve for seamless expansion from R=5 to R=80
                         var rEase = spiralProgress * spiralProgress * (3 - 2 * spiralProgress);
                         var rEaseDerivative = (6 * spiralProgress * (1 - spiralProgress)) / spiralDuration;
 
-                        var startR = 15;
+                        var omega = 0.8;
+                        var orbTheta = stage2Time * omega;
+
+                        var startR = 5;
                         var endR = 80;
                         var currentRadius = startR + (endR - startR) * rEase;
                         var dRdt = (endR - startR) * rEaseDerivative;
