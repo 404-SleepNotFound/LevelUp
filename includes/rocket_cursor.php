@@ -668,22 +668,20 @@
             });
         }
 
-        // Radar Scan Energy Wave Pulse for Stage 2
-        function createRadarScanPulse(cx, cy, arcAngle) {
-            var pRad = arcAngle;
-            var scanDist = 48;
-            var pulseX = cx + Math.cos(pRad) * scanDist;
-            var pulseY = cy + Math.sin(pRad) * scanDist;
-
+        // Radar Scan Energy Wave Pulse for Stage 2 (Emitted smoothly from nose tip)
+        function createRadarScanPulse(px, py, angleDeg) {
+            var rad = (angleDeg - 90) * (Math.PI / 180);
+            var speed = Math.random() * 1.8 + 0.8;
+            
             // Cyan Sonar Beam Spark
             particles.push({
-                x: pulseX,
-                y: pulseY,
-                vx: (Math.random() - 0.5) * 1.2,
-                vy: (Math.random() - 0.5) * 1.2,
+                x: px + Math.cos(rad) * 12,
+                y: py + Math.sin(rad) * 12,
+                vx: Math.cos(rad) * speed + (Math.random() - 0.5) * 0.6,
+                vy: Math.sin(rad) * speed + (Math.random() - 0.5) * 0.6,
                 size: Math.random() * 3.5 + 1.5,
                 color: Math.random() > 0.3 ? '#00F0FF' : '#38BDF8',
-                alpha: 0.9,
+                alpha: 0.95,
                 decay: 0.025
             });
         }
@@ -757,26 +755,25 @@
                         idleSway = Math.sin(idleTime * 0.5) * 4;
                     }
 
-                    // Stage 2 Motion (3s - 7s): Pre-Orbit Radar Scan (Radius ~48px around planet)
+                    // Stage 2 Motion (3s - 7s): Tactical Recon Patrol (Ultra-smooth Infinity Figure-8)
                     if (idleStage === 2) {
-                        var scanRadius = 48; // Radius 48px to prevent overlap with central mini planet
-                        var scanArc = Math.sin(idleTime * 1.2) * 1.0; // Smooth arc sweep back and forth
-                        var arcAngle = scanArc - Math.PI / 2;
+                        var t2 = idleTime * 0.9;
+                        var radiusX = 46; // Broad horizontal sweep
+                        var radiusY = 22; // Smooth vertical dip
 
-                        idleOffsetX = Math.cos(arcAngle) * scanRadius;
-                        idleOffsetY = Math.sin(arcAngle) * scanRadius;
+                        // Lemniscate Figure-8 curve formula
+                        idleOffsetX = Math.sin(t2) * radiusX;
+                        idleOffsetY = Math.sin(2 * t2) * radiusY;
 
-                        // Tangent flight direction facing forward along the scanning arc
-                        var scanVx = -Math.sin(arcAngle) * Math.cos(idleTime * 1.2);
-                        var scanVy = Math.cos(arcAngle) * Math.cos(idleTime * 1.2);
+                        // Continuous derivatives (velocity vectors) for seamless smooth angular turns
+                        var vx2 = Math.cos(t2) * radiusX;
+                        var vy2 = 2 * Math.cos(2 * t2) * radiusY;
 
-                        if (Math.abs(scanVx) > 0.05 || Math.abs(scanVy) > 0.05) {
-                            targetAngle = Math.atan2(scanVy, scanVx) * (180 / Math.PI) + 90;
-                        }
+                        targetAngle = Math.atan2(vy2, vx2) * (180 / Math.PI) + 90;
 
-                        // Emit cyan radar scan pulses
+                        // Emit cyan radar scan pulses ahead of flight path
                         if (Math.random() < 0.4) {
-                            createRadarScanPulse(pos.x, pos.y, arcAngle);
+                            createRadarScanPulse(pos.x + idleOffsetX, pos.y + idleOffsetY, targetAngle);
                         }
                     }
 
