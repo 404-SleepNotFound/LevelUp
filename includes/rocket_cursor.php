@@ -35,33 +35,121 @@
     </div>
 
     <div id="rocket-cursor-main">
-        <!-- Pure CSS Engine Flame Effect Base -->
+        <!-- Pure CSS Engine Flame Effect Base (Redesigned Tapered Plasma Cone) -->
         <div class="rocket-flame-container">
             <div class="rocket-flame-core"></div>
             <div class="rocket-flame-glow"></div>
+            <div class="rocket-flame-aura"></div>
         </div>
         
-        <!-- SVG Rocket Icon (Nose tip calibrated at X: 32, Y: 4 in 64x64 space with High-Contrast Slate Stroke) -->
+        <!-- Modern Sleek Sci-Fi Rocket SVG (No Heavy Sticker Outlines, Sleek 3D Shading) -->
         <svg class="rocket-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
             <g id="rocket-group">
-                <!-- Main Rocket Body -->
-                <path d="M32 4C32 4 48 16 48 38C48 44 44 48 44 48L32 42L20 48C20 48 16 44 16 38C16 16 32 4 32 4Z" fill="url(#rocket-body-grad)" stroke="#1E293B" stroke-width="1.8" stroke-linejoin="round"/>
-                <!-- Rocket Nose Cone (Tip is at X: 32, Y: 4) -->
-                <path d="M32 4C37 10 42 20 43.5 26H20.5C22 20 27 10 32 4Z" fill="#EF4444" stroke="#1E293B" stroke-width="1.2"/>
-                <!-- Wings / Fins -->
-                <path d="M16 34L6 44C6 44 10 49 18 47L16 34Z" fill="#2563EB" stroke="#1E293B" stroke-width="1.5"/>
-                <path d="M48 34L58 44C58 44 54 49 46 47L48 34Z" fill="#2563EB" stroke="#1E293B" stroke-width="1.5"/>
-                <!-- Porthole Window -->
-                <circle cx="32" cy="24" r="6" fill="#06B6D4" stroke="#1E293B" stroke-width="1.5"/>
-                <circle cx="30" cy="22" r="2" fill="#ffffff" opacity="0.9"/>
-                <!-- Center Thruster Nozzle -->
-                <path d="M26 44H38L36 49H28L26 44Z" fill="#334155" stroke="#1E293B" stroke-width="1"/>
+                <!-- Left Wing / Fin (Under layer) -->
+                <path d="M19 32L7 43C6 44.5 9.5 48.5 15 46.5L20 40L19 32Z" fill="url(#fin-left-grad)"/>
+                <path d="M19 32L11 41.5C12.5 44 15.5 45.5 18 43.5L20 40L19 32Z" fill="#1D4ED8" opacity="0.6"/>
+
+                <!-- Right Wing / Fin (Under layer) -->
+                <path d="M45 32L57 43C58 44.5 54.5 48.5 49 46.5L44 40L45 32Z" fill="url(#fin-right-grad)"/>
+                <path d="M45 32L53 41.5C51.5 44 48.5 45.5 46 43.5L44 40L45 32Z" fill="#1E40AF" opacity="0.6"/>
+
+                <!-- Exhaust Engine Nozzle Bell -->
+                <path d="M25 42H39L37 48C37 49 27 49 27 48L25 42Z" fill="url(#nozzle-grad)"/>
+                <ellipse cx="32" cy="42" rx="7" ry="1.5" fill="#1E293B"/>
+
+                <!-- Main Fuselage Body (Aerodynamic Curves) -->
+                <path d="M32 4C32 4 47 16 46 37C45.3 42 41 45 32 45C23 45 18.7 42 18 37C17 16 32 4 32 4Z" fill="url(#fuselage-grad)"/>
+
+                <!-- Fuselage Right Side Shadow (3D Volumetric Contour) -->
+                <path d="M32 4C32 4 47 16 46 37C45.3 42 41 45 32 45C32 45 42 39 42 26C42 14 32 4 32 4Z" fill="url(#fuselage-shadow-grad)" opacity="0.45"/>
+
+                <!-- Fuselage Center Highlight Reflection Line -->
+                <path d="M31 6C31 6 25 18 25 32C25 38 27.5 42 30 43.5" stroke="url(#highlight-line-grad)" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/>
+
+                <!-- Sleek Integrated Nose Cap (Tip calibrated at X: 32, Y: 4) -->
+                <path d="M32 4C34.5 8.5 39.5 17 40 21.5C36 23 28 23 24 21.5C24.5 17 29.5 8.5 32 4Z" fill="url(#nose-grad)"/>
+                <!-- Nose Cap Highlight Edge -->
+                <path d="M32 4C30.5 9 26.5 16.5 25 21" stroke="#FFFFFF" stroke-width="1" opacity="0.6" stroke-linecap="round"/>
+
+                <!-- Futuristic Glass Porthole Window System -->
+                <!-- Outer Chrome/Metallic Bezel -->
+                <circle cx="32" cy="27" r="6.5" fill="url(#bezel-grad)"/>
+                <!-- Inner Glass Glow Base -->
+                <circle cx="32" cy="27" r="5" fill="url(#glass-grad)"/>
+                <!-- Glass Specular Reflection Highlight Curve -->
+                <path d="M29 25C29.5 23.8 31 23 32.5 23" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round" opacity="0.9"/>
+                <circle cx="30" cy="28.5" r="0.8" fill="#FFFFFF" opacity="0.7"/>
+
+                <!-- Lower Hull Accent Stripe -->
+                <path d="M21.5 37.5C25 39 39 39 42.5 37.5C43 39.5 41 42 32 42C23 42 21 39.5 21.5 37.5Z" fill="url(#stripe-grad)"/>
             </g>
+
             <defs>
-                <linearGradient id="rocket-body-grad" x1="16" y1="4" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+                <!-- Fuselage Metallic Gradient -->
+                <linearGradient id="fuselage-grad" x1="18" y1="4" x2="46" y2="45" gradientUnits="userSpaceOnUse">
                     <stop stop-color="#FFFFFF"/>
-                    <stop offset="0.6" stop-color="#F1F5F9"/>
+                    <stop offset="0.4" stop-color="#F8FAFC"/>
+                    <stop offset="0.8" stop-color="#E2E8F0"/>
                     <stop offset="1" stop-color="#CBD5E1"/>
+                </linearGradient>
+
+                <!-- Fuselage Shadow Gradient -->
+                <linearGradient id="fuselage-shadow-grad" x1="32" y1="4" x2="46" y2="45" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#0F172A" stop-opacity="0"/>
+                    <stop offset="0.5" stop-color="#334155" stop-opacity="0.3"/>
+                    <stop offset="1" stop-color="#0F172A" stop-opacity="0.6"/>
+                </linearGradient>
+
+                <!-- Highlight Line Gradient -->
+                <linearGradient id="highlight-line-grad" x1="31" y1="6" x2="30" y2="43.5" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#FFFFFF" stop-opacity="0.9"/>
+                    <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.1"/>
+                </linearGradient>
+
+                <!-- Nose Cone Gradient -->
+                <linearGradient id="nose-grad" x1="32" y1="4" x2="32" y2="23" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#FF4D4D"/>
+                    <stop offset="0.7" stop-color="#EF4444"/>
+                    <stop offset="1" stop-color="#B91C1C"/>
+                </linearGradient>
+
+                <!-- Left Fin Gradient -->
+                <linearGradient id="fin-left-grad" x1="7" y1="32" x2="20" y2="46.5" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#3B82F6"/>
+                    <stop offset="1" stop-color="#1D4ED8"/>
+                </linearGradient>
+
+                <!-- Right Fin Gradient -->
+                <linearGradient id="fin-right-grad" x1="57" y1="32" x2="44" y2="46.5" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#2563EB"/>
+                    <stop offset="1" stop-color="#1E3A8A"/>
+                </linearGradient>
+
+                <!-- Nozzle Metallic Gradient -->
+                <linearGradient id="nozzle-grad" x1="25" y1="42" x2="39" y2="48" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#64748B"/>
+                    <stop offset="0.5" stop-color="#334155"/>
+                    <stop offset="1" stop-color="#1E293B"/>
+                </linearGradient>
+
+                <!-- Window Bezel Gradient -->
+                <linearGradient id="bezel-grad" x1="26" y1="21" x2="38" y2="33" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#94A3B8"/>
+                    <stop offset="0.5" stop-color="#475569"/>
+                    <stop offset="1" stop-color="#1E293B"/>
+                </linearGradient>
+
+                <!-- Glass Window Gradient -->
+                <radialGradient id="glass-grad" cx="30" cy="25" r="6" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#67E8F9"/>
+                    <stop offset="0.6" stop-color="#06B6D4"/>
+                    <stop offset="1" stop-color="#0891B2"/>
+                </radialGradient>
+
+                <!-- Stripe Accent Gradient -->
+                <linearGradient id="stripe-grad" x1="21" y1="37" x2="43" y2="42" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#38BDF8"/>
+                    <stop offset="1" stop-color="#2563EB"/>
                 </linearGradient>
             </defs>
         </svg>
@@ -281,64 +369,62 @@
     .rocket-svg {
         width: 100%;
         height: 100%;
-        filter: drop-shadow(0px 0px 1px rgba(15, 23, 42, 0.9)) drop-shadow(0px 5px 12px rgba(15, 23, 42, 0.45));
+        filter: drop-shadow(0px 4px 10px rgba(15, 23, 42, 0.35)) drop-shadow(0px 1px 3px rgba(15, 23, 42, 0.25));
         transition: filter 0.2s ease;
     }
 
-    /* Engine Flame Effect Base */
+    /* Redesigned Streamlined Engine Flame (Tapered Plasma Thrust) */
     .rocket-flame-container {
         position: absolute;
-        bottom: -8px;
+        bottom: -12px;
         left: 50%;
         transform: translateX(-50%);
-        width: 16px;
-        height: 22px;
+        width: 14px;
+        height: 26px;
         pointer-events: none;
         display: flex;
         justify-content: center;
-        filter: drop-shadow(0px 2px 4px rgba(15, 23, 42, 0.3));
-    }
-
-    /* Engine Flame Effect Base */
-    .rocket-flame-container {
-        position: absolute;
-        bottom: -8px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 16px;
-        height: 22px;
-        pointer-events: none;
-        display: flex;
-        justify-content: center;
+        align-items: filter;
     }
 
     .rocket-flame-core {
-        width: 8px;
+        width: 6px;
         height: 100%;
-        background: linear-gradient(180deg, #FBBF24 0%, #EF4444 60%, rgba(239, 68, 68, 0) 100%);
-        border-radius: 50% 50% 20% 20%;
-        animation: rocketFlameBurn 0.12s infinite alternate ease-in-out;
+        background: linear-gradient(180deg, #FFFFFF 0%, #FDE047 25%, #F97316 65%, rgba(239, 68, 68, 0) 100%);
+        border-radius: 50% 50% 35% 35% / 80% 80% 20% 20%;
+        animation: rocketPlasmaBurn 0.1s infinite alternate ease-in-out;
+        filter: drop-shadow(0 0 4px rgba(250, 204, 21, 0.8));
     }
 
     .rocket-flame-glow {
         position: absolute;
-        top: -2px;
+        top: 2px;
+        width: 12px;
+        height: 18px;
+        background: linear-gradient(180deg, rgba(253, 224, 71, 0.9) 0%, rgba(249, 115, 22, 0.6) 60%, rgba(239, 68, 68, 0) 100%);
+        border-radius: 50% 50% 40% 40%;
+        filter: blur(2px);
+        animation: rocketPlasmaGlow 0.15s infinite alternate ease-in-out;
+    }
+
+    .rocket-flame-aura {
+        position: absolute;
+        top: -1px;
         width: 18px;
         height: 18px;
-        background: rgba(245, 158, 11, 0.6);
+        background: radial-gradient(circle, rgba(249, 115, 22, 0.45) 0%, rgba(168, 85, 247, 0.2) 60%, transparent 100%);
         border-radius: 50%;
-        filter: blur(5px);
-        animation: rocketFlameGlow 0.2s infinite alternate ease-in-out;
+        filter: blur(4px);
     }
 
-    @keyframes rocketFlameBurn {
-        0% { transform: scaleY(0.8) scaleX(0.9); opacity: 0.85; }
-        100% { transform: scaleY(1.4) scaleX(1.1); opacity: 1; }
+    @keyframes rocketPlasmaBurn {
+        0% { transform: scaleY(0.85) scaleX(0.9); opacity: 0.9; }
+        100% { transform: scaleY(1.3) scaleX(1.1); opacity: 1; }
     }
 
-    @keyframes rocketFlameGlow {
-        0% { transform: scale(0.9); opacity: 0.5; }
-        100% { transform: scale(1.3); opacity: 0.8; }
+    @keyframes rocketPlasmaGlow {
+        0% { transform: scale(0.85); opacity: 0.6; }
+        100% { transform: scale(1.25); opacity: 0.95; }
     }
 
     /* Hover Target Indicator Ring */
