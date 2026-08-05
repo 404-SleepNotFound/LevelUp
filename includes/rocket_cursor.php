@@ -650,16 +650,25 @@
                         // Direct angle along orbital movement direction
                         targetAngle = Math.atan2(vy, vx) * (180 / Math.PI) + 90;
 
-                        // Position Mini Drone to fly dynamically IN FRONT of the rocket nose cone
+                        // Position Mini Drone to fly dynamically IN FRONT of the rocket nose cone (Dogfight Chase Mode)
                         var drone = wrapper.querySelector('.rocket-mini-drone');
                         if (drone) {
                             var currentRad = (angle + idleSway - 90) * (Math.PI / 180);
-                            var leadDist = 55; // Pushes drone 55px ahead of rocket nose tip
-                            var scoutWeaveX = Math.cos(idleTime * 2.8) * 22; // Scout weaving motion in front
-                            var scoutWeaveY = Math.sin(idleTime * 2.8) * 22;
+                            
+                            // Forward direction unit vector
+                            var fwdX = Math.cos(currentRad);
+                            var fwdY = Math.sin(currentRad);
+                            // Perpendicular unit vector for side-to-side evasive weaving
+                            var perpX = -fwdY;
+                            var perpY = fwdX;
 
-                            var droneX = idleOffsetX + Math.cos(currentRad) * leadDist + scoutWeaveX;
-                            var droneY = idleOffsetY + Math.sin(currentRad) * leadDist + scoutWeaveY;
+                            // Set generous lead distance (120px) ahead of nose tip so it never touches the rocket
+                            var leadDist = 120;
+                            var sideWeave = Math.sin(idleTime * 3.2) * 32; // Side-to-side evasion
+                            var fwdWeave = Math.cos(idleTime * 2.1) * 15;  // Speed up & slow down distance modulation
+
+                            var droneX = idleOffsetX + fwdX * (leadDist + fwdWeave) + perpX * sideWeave;
+                            var droneY = idleOffsetY + fwdY * (leadDist + fwdWeave) + perpY * sideWeave;
 
                             drone.style.transform = 'translate3d(' + droneX.toFixed(2) + 'px, ' + droneY.toFixed(2) + 'px, 0)';
                         }
