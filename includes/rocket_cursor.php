@@ -47,7 +47,7 @@
             <div class="rocket-flame-glow"></div>
             <div class="rocket-flame-aura"></div>
         </div>
-        
+
         <!-- Modern Proportional Vector Rocket SVG Model (Calibrated Hotspot Nose Tip at X:32, Y:2) -->
         <svg class="rocket-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
             <defs>
@@ -145,13 +145,13 @@
 <style>
     /* 1. GLOBAL CURSOR OVERRIDE & FIXED CONTAINERS */
     /* Only hide system cursor when rocket script is active */
-    html.has-rocket-cursor, 
-    html.has-rocket-cursor body, 
-    html.has-rocket-cursor a, 
-    html.has-rocket-cursor button, 
-    html.has-rocket-cursor input, 
-    html.has-rocket-cursor select, 
-    html.has-rocket-cursor textarea, 
+    html.has-rocket-cursor,
+    html.has-rocket-cursor body,
+    html.has-rocket-cursor a,
+    html.has-rocket-cursor button,
+    html.has-rocket-cursor input,
+    html.has-rocket-cursor select,
+    html.has-rocket-cursor textarea,
     html.has-rocket-cursor [role="button"] {
         cursor: none !important;
     }
@@ -522,7 +522,7 @@
 
         var idleTime = 0;
         var stage2Time = 0;
-        var idleStage = 0; 
+        var idleStage = 0;
         var idleTimerStage1 = null;
         var idleTimerStage2 = null;
         var idleTimerStage3 = null;
@@ -553,7 +553,7 @@
                 stage2Time = 0;
                 rocket.classList.add('idle-stage-2');
                 wrapper.classList.add('idle-stage-2');
-                
+
                 wrapper.classList.remove('trigger-shockwave');
                 void wrapper.offsetWidth;
                 wrapper.classList.add('trigger-shockwave');
@@ -579,7 +579,7 @@
                 pos.y = mouse.y;
                 lastPos.x = mouse.x;
                 lastPos.y = mouse.y;
-                
+
                 wrapper.style.transform = 'translate3d(' + pos.x + 'px, ' + pos.y + 'px, 0)';
                 wrapper.style.opacity = '1';
                 canvas.style.opacity = '1';
@@ -662,8 +662,8 @@
                 vx: vx + (Math.random() - 0.5) * 1.5,
                 vy: vy + (Math.random() - 0.5) * 1.5,
                 size: isHoveredState ? Math.random() * 3.2 + 1.6 : Math.random() * 2.5 + 1.2,
-                color: isHoveredState ? 
-                    (Math.random() > 0.4 ? '#00F0FF' : '#A855F7') : 
+                color: isHoveredState ?
+                    (Math.random() > 0.4 ? '#00F0FF' : '#A855F7') :
                     (Math.random() > 0.5 ? '#FFE600' : '#FF0055'),
                 alpha: 1.0,
                 decay: Math.random() * 0.03 + 0.018
@@ -692,7 +692,7 @@
             var nozzle = getEngineNozzlePos(px, py, angleDeg);
             var rad = (angleDeg + 90 + (Math.random() - 0.5) * 60) * (Math.PI / 180);
             var speed = Math.random() * 1.5 + 0.5;
-            
+
             particles.push({
                 x: nozzle.x + Math.cos(rad) * 4,
                 y: nozzle.y + Math.sin(rad) * 4,
@@ -753,10 +753,10 @@
                         idleSway = Math.sin(idleTime * 0.5) * 4;
                     } else {
                         stage2Time += 0.035;
-                        
+
                         var spiralDuration = 2.5;
                         var spiralProgress = Math.min(stage2Time / spiralDuration, 1);
-                        
+
                         var rEase = spiralProgress * spiralProgress * (3 - 2 * spiralProgress);
                         var rEaseDerivative = (6 * spiralProgress * (1 - spiralProgress)) / spiralDuration;
 
@@ -806,7 +806,7 @@
                                 '#00FFCC',
                                 '#FF3366'
                             ];
-                            
+
                             particles.push({
                                 x: pos.x + Math.cos(orbRad) * orbDist,
                                 y: pos.y + Math.sin(orbRad) * orbDist,
@@ -862,7 +862,7 @@
                     ctx.save();
                     ctx.globalCompositeOperation = 'lighter';
                     ctx.globalAlpha = Math.max(0, p.alpha);
-                    
+
                     var radGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
                     radGrad.addColorStop(0, p.color);
                     radGrad.addColorStop(0.5, p.color);
