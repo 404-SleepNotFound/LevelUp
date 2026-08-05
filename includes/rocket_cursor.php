@@ -398,7 +398,7 @@
         return;
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
+    function initCursor() {
         // Auto-cleanup duplicate elements if PHP includes this file multiple times
         var wrappers = document.querySelectorAll('#rocket-cursor-wrapper');
         if (wrappers.length > 1) {
@@ -793,6 +793,8 @@
                     var backVy = -Math.sin(rad) * (speed * 0.3 + 1);
 
                     createThrusterParticle(tailX, tailY, backVx, backVy, isHovered);
+                }
+
                 // Render Canvas Particles with High-Contrast Shadows for Light Mode
                 ctx.clearRect(0, 0, width, height);
                 for (var i = particles.length - 1; i >= 0; i--) {
@@ -835,6 +837,13 @@
         }
 
         requestAnimationFrame(render);
-    });
+    }
+
+    // Immediate or DOMReady activation fallback
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initCursor);
+    } else {
+        initCursor();
+    }
 })();
 </script>
