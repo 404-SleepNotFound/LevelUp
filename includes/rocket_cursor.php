@@ -11,13 +11,16 @@
 
 <div id="rocket-cursor-wrapper" aria-hidden="true">
     <div id="rocket-cursor-main">
+        <!-- Precision Hotspot Pin (Visible during calibration) -->
+        <div class="rocket-tip-pin"></div>
+
         <!-- Pure CSS Engine Flame Effect Base -->
         <div class="rocket-flame-container">
             <div class="rocket-flame-core"></div>
             <div class="rocket-flame-glow"></div>
         </div>
         
-        <!-- SVG Rocket Icon -->
+        <!-- SVG Rocket Icon (Nose tip calibrated at X: 32, Y: 4 in 64x64 space) -->
         <svg class="rocket-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
             <g id="rocket-group">
                 <!-- Main Rocket Body -->
@@ -53,6 +56,19 @@
 
 <!-- Canvas for Engine Smoke & Spark Particles -->
 <canvas id="rocket-particle-canvas"></canvas>
+
+<!-- Optional Floating Calibration HUD Toggle Button -->
+<button id="rocket-calib-toggle" title="Toggle Hotspot Calibration Studio (Shift+C)">🎯 HUD</button>
+
+<!-- Calibration HUD Studio Panel -->
+<div id="rocket-calib-hud" class="hud-hidden">
+    <div class="hud-title">🚀 Hotspot Calibration Studio</div>
+    <div class="hud-row"><span>Mouse Pos:</span><span id="hud-mouse-pos">0, 0</span></div>
+    <div class="hud-row"><span>Rocket Angle:</span><span id="hud-angle">0°</span></div>
+    <div class="hud-row"><span>Hotspot Tip (X, Y):</span><span id="hud-hotspot">21.0px, 2.625px</span></div>
+    <div class="hud-row"><span>Idle Stage:</span><span id="hud-idle-stage">0 (Active)</span></div>
+    <div class="hud-help">Press <b>Shift + C</b> to toggle HUD</div>
+</div>
 
 <style>
     /* ------------------------------------------------------------------
@@ -115,12 +131,35 @@
         left: 0;
         width: 42px;
         height: 42px;
-        /* HOTSPOT CALIBRATION: Tip of rocket (X: 21px, Y: 2.6px) offset */
+        /* HOTSPOT CALIBRATION: Tip of rocket (X: 21px, Y: 2.625px) offset */
         margin-left: -21px;
         margin-top: -2.625px;
         pointer-events: none !important;
         transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
-        transform-origin: 21px 2.625px; /* Pivot exactly on the tip! */
+        transform-origin: 21px 2.625px !important; /* Pivot exactly on the tip! */
+    }
+
+    /* Visual Pin at Nose Tip for Calibration HUD */
+    .rocket-tip-pin {
+        position: absolute;
+        top: 2.625px;
+        left: 21px;
+        width: 6px;
+        height: 6px;
+        margin-top: -3px;
+        margin-left: -3px;
+        border: 1.5px solid #EF4444;
+        background: #00F0FF;
+        border-radius: 50%;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 10;
+        transition: opacity 0.2s ease;
+    }
+
+    .show-hud .rocket-tip-pin {
+        opacity: 1;
+        box-shadow: 0 0 8px #00F0FF;
     }
 
     .rocket-svg {
@@ -130,7 +169,7 @@
         transition: filter 0.2s ease;
     }
 
-    /* Engine Flame Effect */
+    /* Engine Flame Effect Base */
     .rocket-flame-container {
         position: absolute;
         bottom: -8px;
@@ -275,9 +314,79 @@
         transform: scale(0.9) rotate(-10deg);
     }
 
+    /* Calibration Studio HUD Panel Styling */
+    #rocket-calib-toggle {
+        position: fixed;
+        bottom: 16px;
+        right: 16px;
+        z-index: 2147483647;
+        background: rgba(15, 23, 42, 0.85);
+        color: #38BDF8;
+        border: 1px solid rgba(56, 189, 248, 0.4);
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-family: monospace;
+        font-size: 12px;
+        backdrop-filter: blur(8px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        transition: all 0.2s ease;
+    }
+
+    #rocket-calib-toggle:hover {
+        background: rgba(56, 189, 248, 0.2);
+        color: #FFFFFF;
+        border-color: #38BDF8;
+    }
+
+    #rocket-calib-hud {
+        position: fixed;
+        bottom: 56px;
+        right: 16px;
+        z-index: 2147483647;
+        width: 260px;
+        background: rgba(15, 23, 42, 0.92);
+        border: 1px solid rgba(99, 102, 241, 0.5);
+        border-radius: 10px;
+        padding: 12px;
+        color: #E2E8F0;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 12px;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    #rocket-calib-hud.hud-hidden {
+        opacity: 0;
+        transform: translateY(10px);
+        pointer-events: none;
+    }
+
+    .hud-title {
+        font-weight: 700;
+        color: #38BDF8;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding-bottom: 6px;
+        margin-bottom: 8px;
+    }
+
+    .hud-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 4px;
+        font-family: monospace;
+    }
+
+    .hud-help {
+        margin-top: 8px;
+        font-size: 10px;
+        color: #94A3B8;
+        text-align: center;
+    }
+
     /* Hide custom cursor on touchscreens */
     @media (hover: none) and (pointer: coarse) {
-        #rocket-cursor-wrapper, #rocket-particle-canvas {
+        #rocket-cursor-wrapper, #rocket-particle-canvas, #rocket-calib-toggle, #rocket-calib-hud {
             display: none !important;
         }
         *, *::before, *::after, html, body, a, button, input {
@@ -313,6 +422,8 @@
         var wrapper = document.getElementById('rocket-cursor-wrapper');
         var rocket = document.getElementById('rocket-cursor-main');
         var canvas = document.getElementById('rocket-particle-canvas');
+        var calibToggle = document.getElementById('rocket-calib-toggle');
+        var calibHud = document.getElementById('rocket-calib-hud');
 
         if (!wrapper || !rocket || !canvas) return;
 
@@ -321,13 +432,20 @@
         document.body.appendChild(wrapper);
 
         var ctx = canvas.getContext('2d');
-        var width = canvas.width = window.innerWidth;
-        var height = canvas.height = window.innerHeight;
+        var dpr = window.devicePixelRatio || 1;
+        var width = window.innerWidth;
+        var height = window.innerHeight;
 
-        window.addEventListener('resize', function() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-        });
+        function resizeCanvas() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            ctx.scale(dpr, dpr);
+        }
+        resizeCanvas();
+
+        window.addEventListener('resize', resizeCanvas);
 
         // ------------------------------------------------------------------
         // HOTSPOT COORDINATE ENGINE (DEFAULT: Tip at X: 21.0px, Y: 2.625px)
@@ -353,6 +471,29 @@
 
         // Initialize calibrated tip offset
         updateHotspotOffsets(21.0, 2.625);
+
+        // HUD Studio Toggle Logic
+        var hudVisible = false;
+        function toggleHud() {
+            hudVisible = !hudVisible;
+            if (hudVisible) {
+                calibHud.classList.remove('hud-hidden');
+                document.body.classList.add('show-hud');
+            } else {
+                calibHud.classList.add('hud-hidden');
+                document.body.classList.remove('show-hud');
+            }
+        }
+
+        if (calibToggle) {
+            calibToggle.addEventListener('click', toggleHud);
+        }
+
+        window.addEventListener('keydown', function(e) {
+            if (e.shiftKey && (e.key === 'C' || e.key === 'c')) {
+                toggleHud();
+            }
+        });
 
         var mouse = { x: -100, y: -100 };
         var pos = { x: -100, y: -100 };
@@ -458,7 +599,7 @@
             rocket.classList.remove('is-clicking');
         });
 
-        var interactiveSelector = 'a, button, input, select, textarea, [role="button"], .btn, .card, .glass-card, .accordion-button';
+        var interactiveSelector = 'a, button, input, select, textarea, [role="button"], .btn, .card, .glass-card, .accordion-button, #rocket-calib-toggle';
 
         document.addEventListener('mouseover', function(e) {
             if (e.target && e.target.closest(interactiveSelector)) {
@@ -663,6 +804,16 @@
                     ctx.restore();
                 }
 
+                // Update Calibration HUD Data if visible
+                if (hudVisible) {
+                    var mousePosElem = document.getElementById('hud-mouse-pos');
+                    var angleElem = document.getElementById('hud-angle');
+                    var idleElem = document.getElementById('hud-idle-stage');
+                    if (mousePosElem) mousePosElem.textContent = Math.round(mouse.x) + ', ' + Math.round(mouse.y);
+                    if (angleElem) angleElem.textContent = Math.round(renderAngle) + '°';
+                    if (idleElem) idleElem.textContent = idleStage + ' (' + (['Active', 'Drift', 'Radar', 'Orbit'][idleStage]) + ')';
+                }
+
                 lastPos.x = pos.x;
                 lastPos.y = pos.y;
             }
@@ -673,4 +824,4 @@
         requestAnimationFrame(render);
     });
 })();
-</script>
+</script>ห
