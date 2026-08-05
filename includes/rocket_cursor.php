@@ -42,112 +42,98 @@
             <div class="rocket-flame-aura"></div>
         </div>
         
-        <!-- Modern Sleek Sci-Fi Rocket SVG (No Heavy Sticker Outlines, Sleek 3D Shading) -->
+        <!-- Modern Sleek Sci-Fi Rocket SVG (Redesigned Aerodynamic & Proportional Proportions) -->
         <svg class="rocket-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
             <g id="rocket-group">
-                <!-- Left Wing / Fin (Under layer) -->
-                <path d="M19 32L7 43C6 44.5 9.5 48.5 15 46.5L20 40L19 32Z" fill="url(#fin-left-grad)"/>
-                <path d="M19 32L11 41.5C12.5 44 15.5 45.5 18 43.5L20 40L19 32Z" fill="#1D4ED8" opacity="0.6"/>
+                <!-- Swept-Back Left Wing Fin -->
+                <path d="M22 28L10 42C9 43.5 12 46.5 16 45L22 39V28Z" fill="url(#fin-left-grad)"/>
+                <path d="M22 28L13 41.5C14.5 43.5 16.5 44.5 18.5 43L22 39V28Z" fill="#1D4ED8" opacity="0.5"/>
 
-                <!-- Right Wing / Fin (Under layer) -->
-                <path d="M45 32L57 43C58 44.5 54.5 48.5 49 46.5L44 40L45 32Z" fill="url(#fin-right-grad)"/>
-                <path d="M45 32L53 41.5C51.5 44 48.5 45.5 46 43.5L44 40L45 32Z" fill="#1E40AF" opacity="0.6"/>
+                <!-- Swept-Back Right Wing Fin -->
+                <path d="M42 28L54 42C55 43.5 52 46.5 48 45L42 39V28Z" fill="url(#fin-right-grad)"/>
+                <path d="M42 28L51 41.5C49.5 43.5 47.5 44.5 45.5 43L42 39V28Z" fill="#1E3A8A" opacity="0.5"/>
 
-                <!-- Exhaust Engine Nozzle Bell -->
-                <path d="M25 42H39L37 48C37 49 27 49 27 48L25 42Z" fill="url(#nozzle-grad)"/>
-                <ellipse cx="32" cy="42" rx="7" ry="1.5" fill="#1E293B"/>
+                <!-- Sleek Exhaust Nozzle Bell -->
+                <path d="M26 38H38L36 44C36 45 28 45 28 44L26 38Z" fill="url(#nozzle-grad)"/>
+                <ellipse cx="32" cy="44" rx="4" ry="1" fill="#0F172A"/>
 
-                <!-- Main Fuselage Body (Aerodynamic Curves) -->
-                <path d="M32 4C32 4 47 16 46 37C45.3 42 41 45 32 45C23 45 18.7 42 18 37C17 16 32 4 32 4Z" fill="url(#fuselage-grad)"/>
+                <!-- Aerodynamic Fuselage Main Body -->
+                <path d="M32 2C32 2 44 14 43 38C42 41 38 42.5 32 42.5C26 42.5 22 41 21 38C20 14 32 2 32 2Z" fill="url(#fuselage-grad)"/>
 
-                <!-- Fuselage Right Side Shadow (3D Volumetric Contour) -->
-                <path d="M32 4C32 4 47 16 46 37C45.3 42 41 45 32 45C32 45 42 39 42 26C42 14 32 4 32 4Z" fill="url(#fuselage-shadow-grad)" opacity="0.45"/>
+                <!-- Fuselage Volumetric 3D Shadow -->
+                <path d="M32 2C32 2 44 14 43 38C42 41 38 42.5 32 42.5C32 42.5 40 37 40 24C40 12 32 2 32 2Z" fill="url(#fuselage-shadow-grad)" opacity="0.4"/>
 
-                <!-- Fuselage Center Highlight Reflection Line -->
-                <path d="M31 6C31 6 25 18 25 32C25 38 27.5 42 30 43.5" stroke="url(#highlight-line-grad)" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/>
+                <!-- Specular Highlight Curve -->
+                <path d="M31 4C31 4 25.5 16 25.5 28C25.5 34 27.5 38 29.5 40" stroke="url(#highlight-line-grad)" stroke-width="1.2" stroke-linecap="round" opacity="0.85"/>
 
-                <!-- Sleek Integrated Nose Cap (Tip calibrated at X: 32, Y: 4) -->
-                <path d="M32 4C34.5 8.5 39.5 17 40 21.5C36 23 28 23 24 21.5C24.5 17 29.5 8.5 32 4Z" fill="url(#nose-grad)"/>
-                <!-- Nose Cap Highlight Edge -->
-                <path d="M32 4C30.5 9 26.5 16.5 25 21" stroke="#FFFFFF" stroke-width="1" opacity="0.6" stroke-linecap="round"/>
+                <!-- Sleek Red Nose Cap Tip (Calibrated Origin Hotspot at X:32, Y:2) -->
+                <path d="M32 2C34 6 38.5 14 39 17.5C35.5 19 28.5 19 25 17.5C25.5 14 30 6 32 2Z" fill="url(#nose-grad)"/>
+                <path d="M32 2C30.8 6.5 27 13.5 25.5 17" stroke="#FFFFFF" stroke-width="0.9" opacity="0.7" stroke-linecap="round"/>
 
-                <!-- Futuristic Glass Porthole Window System -->
-                <!-- Outer Chrome/Metallic Bezel -->
-                <circle cx="32" cy="27" r="6.5" fill="url(#bezel-grad)"/>
-                <!-- Inner Glass Glow Base -->
-                <circle cx="32" cy="27" r="5" fill="url(#glass-grad)"/>
-                <!-- Glass Specular Reflection Highlight Curve -->
-                <path d="M29 25C29.5 23.8 31 23 32.5 23" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round" opacity="0.9"/>
-                <circle cx="30" cy="28.5" r="0.8" fill="#FFFFFF" opacity="0.7"/>
+                <!-- Metallic Porthole Window -->
+                <circle cx="32" cy="24" r="5.5" fill="url(#bezel-grad)"/>
+                <circle cx="32" cy="24" r="4.2" fill="url(#glass-grad)"/>
+                <path d="M29.5 22.2C30 21.2 31.2 20.6 32.5 20.6" stroke="#FFFFFF" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
+                <circle cx="30.5" cy="25" r="0.7" fill="#FFFFFF" opacity="0.8"/>
 
-                <!-- Lower Hull Accent Stripe -->
-                <path d="M21.5 37.5C25 39 39 39 42.5 37.5C43 39.5 41 42 32 42C23 42 21 39.5 21.5 37.5Z" fill="url(#stripe-grad)"/>
+                <!-- Hull Lower Accent Band -->
+                <path d="M23 35.5C26.5 37 35.5 37 39 35.5C39.5 37.5 37.5 40 32 40C26.5 40 24.5 37.5 23 35.5Z" fill="url(#stripe-grad)"/>
             </g>
 
             <defs>
-                <!-- Fuselage Metallic Gradient -->
-                <linearGradient id="fuselage-grad" x1="18" y1="4" x2="46" y2="45" gradientUnits="userSpaceOnUse">
+                <linearGradient id="fuselage-grad" x1="21" y1="2" x2="43" y2="42.5" gradientUnits="userSpaceOnUse">
                     <stop stop-color="#FFFFFF"/>
-                    <stop offset="0.4" stop-color="#F8FAFC"/>
-                    <stop offset="0.8" stop-color="#E2E8F0"/>
+                    <stop offset="0.45" stop-color="#F1F5F9"/>
+                    <stop offset="0.85" stop-color="#E2E8F0"/>
                     <stop offset="1" stop-color="#CBD5E1"/>
                 </linearGradient>
 
-                <!-- Fuselage Shadow Gradient -->
-                <linearGradient id="fuselage-shadow-grad" x1="32" y1="4" x2="46" y2="45" gradientUnits="userSpaceOnUse">
+                <linearGradient id="fuselage-shadow-grad" x1="32" y1="2" x2="43" y2="42.5" gradientUnits="userSpaceOnUse">
                     <stop stop-color="#0F172A" stop-opacity="0"/>
-                    <stop offset="0.5" stop-color="#334155" stop-opacity="0.3"/>
-                    <stop offset="1" stop-color="#0F172A" stop-opacity="0.6"/>
+                    <stop offset="0.6" stop-color="#334155" stop-opacity="0.25"/>
+                    <stop offset="1" stop-color="#0F172A" stop-opacity="0.55"/>
                 </linearGradient>
 
-                <!-- Highlight Line Gradient -->
-                <linearGradient id="highlight-line-grad" x1="31" y1="6" x2="30" y2="43.5" gradientUnits="userSpaceOnUse">
-                    <stop stop-color="#FFFFFF" stop-opacity="0.9"/>
+                <linearGradient id="highlight-line-grad" x1="31" y1="4" x2="29.5" y2="40" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#FFFFFF" stop-opacity="0.95"/>
                     <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.1"/>
                 </linearGradient>
 
-                <!-- Nose Cone Gradient -->
-                <linearGradient id="nose-grad" x1="32" y1="4" x2="32" y2="23" gradientUnits="userSpaceOnUse">
-                    <stop stop-color="#FF4D4D"/>
+                <linearGradient id="nose-grad" x1="32" y1="2" x2="32" y2="19" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#FF334B"/>
                     <stop offset="0.7" stop-color="#EF4444"/>
-                    <stop offset="1" stop-color="#B91C1C"/>
+                    <stop offset="1" stop-color="#991B1B"/>
                 </linearGradient>
 
-                <!-- Left Fin Gradient -->
-                <linearGradient id="fin-left-grad" x1="7" y1="32" x2="20" y2="46.5" gradientUnits="userSpaceOnUse">
+                <linearGradient id="fin-left-grad" x1="10" y1="28" x2="22" y2="45" gradientUnits="userSpaceOnUse">
                     <stop stop-color="#3B82F6"/>
                     <stop offset="1" stop-color="#1D4ED8"/>
                 </linearGradient>
 
-                <!-- Right Fin Gradient -->
-                <linearGradient id="fin-right-grad" x1="57" y1="32" x2="44" y2="46.5" gradientUnits="userSpaceOnUse">
+                <linearGradient id="fin-right-grad" x1="54" y1="28" x2="42" y2="45" gradientUnits="userSpaceOnUse">
                     <stop stop-color="#2563EB"/>
                     <stop offset="1" stop-color="#1E3A8A"/>
                 </linearGradient>
 
-                <!-- Nozzle Metallic Gradient -->
-                <linearGradient id="nozzle-grad" x1="25" y1="42" x2="39" y2="48" gradientUnits="userSpaceOnUse">
+                <linearGradient id="nozzle-grad" x1="26" y1="38" x2="38" y2="45" gradientUnits="userSpaceOnUse">
                     <stop stop-color="#64748B"/>
                     <stop offset="0.5" stop-color="#334155"/>
-                    <stop offset="1" stop-color="#1E293B"/>
+                    <stop offset="1" stop-color="#0F172A"/>
                 </linearGradient>
 
-                <!-- Window Bezel Gradient -->
-                <linearGradient id="bezel-grad" x1="26" y1="21" x2="38" y2="33" gradientUnits="userSpaceOnUse">
+                <linearGradient id="bezel-grad" x1="27" y1="19" x2="37" y2="29" gradientUnits="userSpaceOnUse">
                     <stop stop-color="#94A3B8"/>
                     <stop offset="0.5" stop-color="#475569"/>
-                    <stop offset="1" stop-color="#1E293B"/>
+                    <stop offset="1" stop-color="#0F172A"/>
                 </linearGradient>
 
-                <!-- Glass Window Gradient -->
-                <radialGradient id="glass-grad" cx="30" cy="25" r="6" gradientUnits="userSpaceOnUse">
-                    <stop stop-color="#67E8F9"/>
-                    <stop offset="0.6" stop-color="#06B6D4"/>
-                    <stop offset="1" stop-color="#0891B2"/>
+                <radialGradient id="glass-grad" cx="30" cy="22" r="5" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#38BDF8"/>
+                    <stop offset="0.65" stop-color="#0284C7"/>
+                    <stop offset="1" stop-color="#0369A1"/>
                 </radialGradient>
 
-                <!-- Stripe Accent Gradient -->
-                <linearGradient id="stripe-grad" x1="21" y1="37" x2="43" y2="42" gradientUnits="userSpaceOnUse">
+                <linearGradient id="stripe-grad" x1="23" y1="35" x2="39" y2="40" gradientUnits="userSpaceOnUse">
                     <stop stop-color="#38BDF8"/>
                     <stop offset="1" stop-color="#2563EB"/>
                 </linearGradient>
@@ -360,10 +346,10 @@
         width: 42px;
         height: 42px;
         margin-left: -21px;
-        margin-top: -2.625px;
+        margin-top: -1.31px; /* Precision alignment for tip Y:2 in 64x64 grid */
         pointer-events: none !important;
         transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
-        transform-origin: 21px 2.625px !important;
+        transform-origin: 21px 1.31px !important;
     }
 
     .rocket-svg {
@@ -373,58 +359,59 @@
         transition: filter 0.2s ease;
     }
 
-    /* Redesigned Streamlined Engine Flame (Tapered Plasma Thrust) */
+    /* Precision Engine Flame Positioning (Origins directly from inside Nozzle Bell at Y:44) */
     .rocket-flame-container {
         position: absolute;
-        bottom: -12px;
+        top: 28.5px; /* Perfectly aligned to the nozzle exit */
         left: 50%;
         transform: translateX(-50%);
-        width: 14px;
-        height: 26px;
+        width: 10px;
+        height: 22px;
         pointer-events: none;
         display: flex;
         justify-content: center;
-        align-items: filter;
+        align-items: flex-start;
+        z-index: -1; /* Placed behind rocket nozzle */
     }
 
     .rocket-flame-core {
-        width: 6px;
+        width: 4px;
         height: 100%;
-        background: linear-gradient(180deg, #FFFFFF 0%, #FDE047 25%, #F97316 65%, rgba(239, 68, 68, 0) 100%);
-        border-radius: 50% 50% 35% 35% / 80% 80% 20% 20%;
-        animation: rocketPlasmaBurn 0.1s infinite alternate ease-in-out;
-        filter: drop-shadow(0 0 4px rgba(250, 204, 21, 0.8));
+        background: linear-gradient(180deg, #FFFFFF 0%, #FDE047 20%, #F97316 60%, rgba(239, 68, 68, 0) 100%);
+        border-radius: 50% 50% 40% 40% / 80% 80% 20% 20%;
+        animation: rocketPlasmaBurn 0.08s infinite alternate ease-in-out;
+        filter: drop-shadow(0 0 5px rgba(250, 204, 21, 0.9));
     }
 
     .rocket-flame-glow {
         position: absolute;
-        top: 2px;
-        width: 12px;
-        height: 18px;
-        background: linear-gradient(180deg, rgba(253, 224, 71, 0.9) 0%, rgba(249, 115, 22, 0.6) 60%, rgba(239, 68, 68, 0) 100%);
-        border-radius: 50% 50% 40% 40%;
-        filter: blur(2px);
-        animation: rocketPlasmaGlow 0.15s infinite alternate ease-in-out;
+        top: 0px;
+        width: 8px;
+        height: 16px;
+        background: linear-gradient(180deg, rgba(253, 224, 71, 0.95) 0%, rgba(249, 115, 22, 0.7) 65%, rgba(239, 68, 68, 0) 100%);
+        border-radius: 50% 50% 45% 45%;
+        filter: blur(1.5px);
+        animation: rocketPlasmaGlow 0.12s infinite alternate ease-in-out;
     }
 
     .rocket-flame-aura {
         position: absolute;
-        top: -1px;
-        width: 18px;
-        height: 18px;
-        background: radial-gradient(circle, rgba(249, 115, 22, 0.45) 0%, rgba(168, 85, 247, 0.2) 60%, transparent 100%);
+        top: -2px;
+        width: 14px;
+        height: 14px;
+        background: radial-gradient(circle, rgba(249, 115, 22, 0.5) 0%, rgba(168, 85, 247, 0.2) 65%, transparent 100%);
         border-radius: 50%;
-        filter: blur(4px);
+        filter: blur(3px);
     }
 
     @keyframes rocketPlasmaBurn {
-        0% { transform: scaleY(0.85) scaleX(0.9); opacity: 0.9; }
-        100% { transform: scaleY(1.3) scaleX(1.1); opacity: 1; }
+        0% { transform: scaleY(0.85) scaleX(0.85); opacity: 0.9; }
+        100% { transform: scaleY(1.25) scaleX(1.1); opacity: 1; }
     }
 
     @keyframes rocketPlasmaGlow {
-        0% { transform: scale(0.85); opacity: 0.6; }
-        100% { transform: scale(1.25); opacity: 0.95; }
+        0% { transform: scale(0.85); opacity: 0.65; }
+        100% { transform: scale(1.2); opacity: 0.95; }
     }
 
     /* Hover Target Indicator Ring */
@@ -525,7 +512,8 @@
 
         window.addEventListener('resize', resizeCanvas);
 
-        var hotspot = { x: 21.0, y: 2.625 };
+        // Calibrated tip origin (X: 32, Y: 2 in SVG grid -> X: 21px, Y: 1.31px)
+        var hotspot = { x: 21.0, y: 1.31 };
 
         function updateHotspotOffsets(hx, hy) {
             hotspot.x = hx;
@@ -538,7 +526,7 @@
         }
 
         // Initialize calibrated tip offset
-        updateHotspotOffsets(21.0, 2.625);
+        updateHotspotOffsets(21.0, 1.31);
 
         var mouse = { x: -100, y: -100 };
         var pos = { x: -100, y: -100 };
@@ -869,12 +857,12 @@
                 
                 // Rocket offsets by currentIdleOffsetX/currentIdleOffsetY and rotates around its calibrated nose tip
                 rocket.style.transform = 'translate3d(' + currentIdleOffsetX.toFixed(2) + 'px, ' + currentIdleOffsetY.toFixed(2) + 'px, 0) rotate(' + renderAngle.toFixed(2) + 'deg)';
-
-                // Spawn Thruster Flame Particles from tail (offset behind tip)
+                // Spawn Thruster Flame Particles directly from nozzle base
                 if (speed > 0.8 || isHovered) {
                     var rad = (angle - 90) * (Math.PI / 180);
-                    var tailX = (pos.x + currentIdleOffsetX) - Math.cos(rad) * 30;
-                    var tailY = (pos.y + currentIdleOffsetY) - Math.sin(rad) * 30;
+                    // Precision offset from tip to nozzle outlet (approx 27px behind tip)
+                    var tailX = (pos.x + currentIdleOffsetX) - Math.cos(rad) * 27;
+                    var tailY = (pos.y + currentIdleOffsetY) - Math.sin(rad) * 27;
                     var backVx = -Math.cos(rad) * (speed * 0.3 + 1);
                     var backVy = -Math.sin(rad) * (speed * 0.3 + 1);
 
