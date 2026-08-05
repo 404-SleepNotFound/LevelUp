@@ -15,14 +15,14 @@
             <svg viewBox="0 0 40 40" class="planet-svg" xmlns="http://www.w3.org/2000/svg">
                 <defs>
                     <radialGradient id="mini-planet-grad" cx="35%" cy="30%" r="65%">
-                        <stop offset="0%" stop-color="#38BDF8"/>
-                        <stop offset="50%" stop-color="#6366F1"/>
+                        <stop offset="0%" style="stop-color: rgb(var(--rocket-cyan-rgb))"/>
+                        <stop offset="50%" style="stop-color: rgb(var(--rocket-indigo-rgb))"/>
                         <stop offset="100%" stop-color="#0F172A"/>
                     </radialGradient>
                     <linearGradient id="ring-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.9"/>
-                        <stop offset="50%" stop-color="#A855F7" stop-opacity="0.8"/>
-                        <stop offset="100%" stop-color="#EC4899" stop-opacity="0.3"/>
+                        <stop offset="0%" style="stop-color: rgb(var(--rocket-cyan-rgb)); stop-opacity: 0.9"/>
+                        <stop offset="50%" style="stop-color: rgb(var(--rocket-purple-rgb)); stop-opacity: 0.8"/>
+                        <stop offset="100%" style="stop-color: rgb(var(--rocket-pink-rgb)); stop-opacity: 0.3"/>
                     </linearGradient>
                 </defs>
                 <!-- Planet Back Orbit Ring -->
@@ -36,6 +36,7 @@
             </svg>
         </div>
         <div class="rocket-shield-ring"></div>
+        <div class="rocket-radar-sweep"></div>
         <div class="rocket-core-aura"></div>
         <div class="rocket-shockwave-ring"></div>
     </div>
@@ -143,6 +144,47 @@
 <canvas id="rocket-particle-canvas"></canvas>
 
 <style>
+    /* 0. THEME VARIABLES — auto (prefers-color-scheme) + manual override support */
+    /* Manual override: add class "dark"/"light" or attribute data-theme="dark|light" to <html> */
+    :root {
+        --rocket-cyan-rgb: 56, 189, 248;
+        --rocket-indigo-rgb: 99, 102, 241;
+        --rocket-purple-rgb: 168, 85, 247;
+        --rocket-pink-rgb: 236, 72, 153;
+        --rocket-gold-rgb: 253, 224, 71;
+        --rocket-halo-rgb: 15, 23, 42;
+        --rocket-halo-alpha: 0;
+    }
+
+    @media (prefers-color-scheme: light) {
+        :root {
+            --rocket-cyan-rgb: 2, 132, 199;
+            --rocket-indigo-rgb: 67, 56, 202;
+            --rocket-purple-rgb: 147, 51, 234;
+            --rocket-pink-rgb: 190, 24, 93;
+            --rocket-gold-rgb: 180, 83, 9;
+            --rocket-halo-alpha: 0.22;
+        }
+    }
+
+    html.dark, html[data-theme="dark"] {
+        --rocket-cyan-rgb: 56, 189, 248;
+        --rocket-indigo-rgb: 99, 102, 241;
+        --rocket-purple-rgb: 168, 85, 247;
+        --rocket-pink-rgb: 236, 72, 153;
+        --rocket-gold-rgb: 253, 224, 71;
+        --rocket-halo-alpha: 0;
+    }
+
+    html.light, html[data-theme="light"] {
+        --rocket-cyan-rgb: 2, 132, 199;
+        --rocket-indigo-rgb: 67, 56, 202;
+        --rocket-purple-rgb: 147, 51, 234;
+        --rocket-pink-rgb: 190, 24, 93;
+        --rocket-gold-rgb: 180, 83, 9;
+        --rocket-halo-alpha: 0.22;
+    }
+
     /* 1. GLOBAL CURSOR OVERRIDE & FIXED CONTAINERS */
     html, body, a, button, input, select, textarea, [role="button"] {
         cursor: none !important;
@@ -194,7 +236,7 @@
         pointer-events: none;
         transform: scale(0.3);
         transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1), transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-        filter: drop-shadow(0 2px 10px rgba(15, 23, 42, 0.4)) drop-shadow(0 0 10px rgba(56, 189, 248, 0.8));
+        filter: drop-shadow(0 2px 10px rgba(15, 23, 42, 0.4)) drop-shadow(0 0 10px rgba(var(--rocket-cyan-rgb), 0.8));
     }
 
     .planet-svg {
@@ -211,15 +253,32 @@
         height: 64px;
         margin-top: -32px;
         margin-left: -32px;
-        border: 1.5px stroke rgba(79, 70, 229, 0.75);
-        border-top: 2px solid rgba(56, 189, 248, 0.95);
-        border-bottom: 2px solid rgba(168, 85, 247, 0.95);
+        border: 1.5px solid rgba(var(--rocket-indigo-rgb), 0.75);
+        border-top: 2px solid rgba(var(--rocket-cyan-rgb), 0.95);
+        border-bottom: 2px solid rgba(var(--rocket-purple-rgb), 0.95);
         border-radius: 50%;
         opacity: 0;
         pointer-events: none;
         transform: scale(0.5) rotate(0deg);
         transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
-        box-shadow: 0 0 12px rgba(99, 102, 241, 0.35);
+        box-shadow: 0 0 12px rgba(var(--rocket-indigo-rgb), 0.35), 0 0 9px rgba(var(--rocket-halo-rgb), var(--rocket-halo-alpha));
+    }
+
+    .rocket-radar-sweep {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 70px;
+        height: 70px;
+        margin-top: -35px;
+        margin-left: -35px;
+        border-radius: 50%;
+        opacity: 0;
+        pointer-events: none;
+        background: conic-gradient(from 0deg, rgba(var(--rocket-cyan-rgb), 0.55) 0deg, rgba(var(--rocket-cyan-rgb), 0) 55deg, transparent 360deg);
+        -webkit-mask-image: radial-gradient(circle, transparent 54%, black 56%, black 100%);
+        mask-image: radial-gradient(circle, transparent 54%, black 56%, black 100%);
+        transition: opacity 0.5s ease;
     }
 
     .rocket-core-aura {
@@ -230,7 +289,7 @@
         height: 56px;
         margin-top: -28px;
         margin-left: -28px;
-        background: radial-gradient(circle, rgba(99, 102, 241, 0.45) 0%, rgba(139, 92, 246, 0.2) 50%, rgba(0,0,0,0) 75%);
+        background: radial-gradient(circle, rgba(var(--rocket-indigo-rgb), 0.45) 0%, rgba(var(--rocket-purple-rgb), 0.2) 50%, rgba(0, 0, 0, 0) 75%);
         border-radius: 50%;
         filter: blur(5px);
         opacity: 0;
@@ -247,12 +306,12 @@
         height: 20px;
         margin-top: -10px;
         margin-left: -10px;
-        border: 2px solid rgba(56, 189, 248, 0.9);
+        border: 2px solid rgba(var(--rocket-cyan-rgb), 0.9);
         border-radius: 50%;
         opacity: 0;
         pointer-events: none;
         transform: scale(0.2);
-        box-shadow: 0 0 15px rgba(168, 85, 247, 0.8);
+        box-shadow: 0 0 15px rgba(var(--rocket-purple-rgb), 0.8), 0 0 10px rgba(var(--rocket-halo-rgb), var(--rocket-halo-alpha));
     }
 
     #rocket-cursor-wrapper.trigger-shockwave .rocket-shockwave-ring {
@@ -260,23 +319,25 @@
     }
 
     @keyframes shockwaveExpand {
-        0% { transform: scale(0.2); opacity: 1; border-width: 3px; }
-        50% { opacity: 0.8; }
-        100% { transform: scale(7.5); opacity: 0; border-width: 1px; }
+        0% { transform: scale(0.2); opacity: 1; border-width: 4px; }
+        50% { opacity: 0.85; }
+        100% { transform: scale(9); opacity: 0; border-width: 1px; }
     }
 
-    /* Idle Animation States */
-    #rocket-cursor-wrapper.idle-stage-1 .rocket-mini-planet { opacity: 0.35; transform: scale(0.6); }
-    #rocket-cursor-wrapper.idle-stage-1 .rocket-shield-ring { opacity: 0.3; transform: scale(0.6) rotate(0deg); animation: shieldRotate 8s infinite linear; }
-    #rocket-cursor-wrapper.idle-stage-1 .rocket-core-aura { opacity: 0.35; transform: scale(0.6); }
+    /* Idle Animation States — Stage 1: Standby (0.8s), Stage 2: Scanning (3s), Stage 3: Deep Orbit (7s) */
+    #rocket-cursor-wrapper.idle-stage-1 .rocket-mini-planet { opacity: 0.4; transform: scale(0.62); }
+    #rocket-cursor-wrapper.idle-stage-1 .rocket-shield-ring { opacity: 0.35; transform: scale(0.62) rotate(0deg); animation: shieldRotate 9s infinite linear; }
+    #rocket-cursor-wrapper.idle-stage-1 .rocket-core-aura { opacity: 0.4; transform: scale(0.6); animation: auraPulse 3.6s infinite alternate ease-in-out; }
 
     #rocket-cursor-wrapper.idle-stage-2 .rocket-mini-planet { opacity: 0.85; transform: scale(0.95); }
-    #rocket-cursor-wrapper.idle-stage-2 .rocket-shield-ring { opacity: 0.7; transform: scale(0.85); animation: shieldRotate 5s infinite linear; }
-    #rocket-cursor-wrapper.idle-stage-2 .rocket-core-aura { opacity: 0.7; animation: auraPulse 2.5s infinite alternate ease-in-out; }
+    #rocket-cursor-wrapper.idle-stage-2 .rocket-shield-ring { opacity: 0.75; transform: scale(0.85); animation: shieldRotate 4.5s infinite linear; }
+    #rocket-cursor-wrapper.idle-stage-2 .rocket-radar-sweep { opacity: 0.85; animation: radarSpin 2.2s linear infinite; }
+    #rocket-cursor-wrapper.idle-stage-2 .rocket-core-aura { opacity: 0.75; animation: auraPulse 2.5s infinite alternate ease-in-out; }
 
-    #rocket-cursor-wrapper.idle-stage-3 .rocket-mini-planet { opacity: 1; transform: scale(1.15); }
-    #rocket-cursor-wrapper.idle-stage-3 .rocket-shield-ring { opacity: 0.9; transform: scale(1); animation: shieldRotate 3.5s infinite linear; }
-    #rocket-cursor-wrapper.idle-stage-3 .rocket-core-aura { opacity: 1; animation: auraPulse 2s infinite alternate ease-in-out; }
+    #rocket-cursor-wrapper.idle-stage-3 .rocket-mini-planet { opacity: 1; transform: scale(1.15); animation: idleShimmer 3s infinite ease-in-out; }
+    #rocket-cursor-wrapper.idle-stage-3 .rocket-shield-ring { opacity: 0.95; transform: scale(1); animation: shieldRotate 3s infinite linear; }
+    #rocket-cursor-wrapper.idle-stage-3 .rocket-radar-sweep { opacity: 1; animation: radarSpin 1.2s linear infinite; }
+    #rocket-cursor-wrapper.idle-stage-3 .rocket-core-aura { opacity: 1; animation: auraPulse 1.8s infinite alternate ease-in-out; }
 
     @keyframes planetFloat {
         0%, 100% { transform: translateY(0px) rotate(0deg); }
@@ -288,9 +349,19 @@
         100% { transform: scale(1) rotate(360deg); }
     }
 
+    @keyframes radarSpin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
     @keyframes auraPulse {
         0% { transform: scale(0.8); opacity: 0.5; }
         100% { transform: scale(1.35); opacity: 0.95; }
+    }
+
+    @keyframes idleShimmer {
+        0%, 100% { filter: drop-shadow(0 2px 10px rgba(15, 23, 42, 0.4)) drop-shadow(0 0 10px rgba(var(--rocket-cyan-rgb), 0.8)); }
+        50% { filter: drop-shadow(0 2px 10px rgba(15, 23, 42, 0.4)) drop-shadow(0 0 15px rgba(var(--rocket-purple-rgb), 0.95)); }
     }
 
     /* 3. ROCKET MAIN BODY & HOTSPOT CALIBRATION */
@@ -359,6 +430,7 @@
         background: radial-gradient(circle, rgba(249, 115, 22, 0.5) 0%, rgba(168, 85, 247, 0.2) 65%, transparent 100%);
         border-radius: 50%;
         filter: blur(3px);
+        transition: transform 0.15s ease;
     }
 
     @keyframes rocketPlasmaBurn {
@@ -403,6 +475,20 @@
         animation-duration: 0.08s;
     }
 
+    /* Movement Thrust State (bigger, brighter flame while dragging) */
+    #rocket-cursor-main.is-moving .rocket-flame-core {
+        transform: scaleY(1.7) scaleX(1.3) !important;
+        filter: drop-shadow(0 0 12px rgba(250, 204, 21, 1)) drop-shadow(0 0 20px rgba(249, 115, 22, 0.95)) !important;
+    }
+
+    #rocket-cursor-main.is-moving .rocket-flame-glow {
+        transform: scale(1.6) !important;
+    }
+
+    #rocket-cursor-main.is-moving .rocket-flame-aura {
+        transform: scale(1.4);
+    }
+
     /* Click Active State (body recoil + plasma flare combo) */
     #rocket-cursor-main.is-clicking {
         transform: scale(0.9) rotate(-10deg);
@@ -410,12 +496,12 @@
 
     #rocket-cursor-main.is-clicking .rocket-flame-core {
         background: linear-gradient(180deg, #FFFFFF 0%, #38BDF8 30%, #A855F7 70%, rgba(168, 85, 247, 0) 100%) !important;
-        transform: scaleY(2) scaleX(1.35) !important;
-        filter: drop-shadow(0 0 16px rgba(56, 189, 248, 1)) drop-shadow(0 0 26px rgba(168, 85, 247, 0.9)) !important;
+        transform: scaleY(2.4) scaleX(1.6) !important;
+        filter: drop-shadow(0 0 20px rgba(56, 189, 248, 1)) drop-shadow(0 0 32px rgba(168, 85, 247, 1)) !important;
     }
 
     #rocket-cursor-main.is-clicking .rocket-flame-glow {
-        transform: scale(1.7) !important;
+        transform: scale(2) !important;
     }
 
     /* Touch Device Fallback */
@@ -508,6 +594,41 @@
         var currentIdleOffsetX = 0;
         var currentIdleOffsetY = 0;
 
+        // Theme-aware idle particle palette: auto-detects light/dark via prefers-color-scheme,
+        // and respects a manual override (html.dark / html.light / html[data-theme]) if the host page sets one.
+        function getThemeMode() {
+            var root = document.documentElement;
+            if (root.classList.contains('dark') || root.getAttribute('data-theme') === 'dark') return 'dark';
+            if (root.classList.contains('light') || root.getAttribute('data-theme') === 'light') return 'light';
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) return 'light';
+            return 'dark';
+        }
+
+        var themeMode = getThemeMode();
+
+        if (window.matchMedia) {
+            var schemeQuery = window.matchMedia('(prefers-color-scheme: light)');
+            var onSchemeChange = function() { themeMode = getThemeMode(); };
+            if (schemeQuery.addEventListener) {
+                schemeQuery.addEventListener('change', onSchemeChange);
+            } else if (schemeQuery.addListener) {
+                schemeQuery.addListener(onSchemeChange);
+            }
+        }
+
+        var idlePalette = {
+            dark: {
+                radar: ['#38BDF8', '#818CF8'],
+                pulse: ['#38BDF8', '#A855F7'],
+                stardust: ['#00F0FF', '#E0E7FF', '#FFD700', '#F472B6', '#A78BFA', '#34D399', '#38BDF8']
+            },
+            light: {
+                radar: ['#0369A1', '#4338CA'],
+                pulse: ['#0369A1', '#7E22CE'],
+                stardust: ['#0891B2', '#4338CA', '#B45309', '#BE185D', '#6D28D9', '#047857', '#0369A1']
+            }
+        };
+
         function resetIdleTimer() {
             idleStage = 0;
             idleTime = 0;
@@ -596,7 +717,7 @@
             wrapper.classList.add('trigger-shockwave');
 
             if (isInitialized) {
-                createBurstSparks(pos.x + currentIdleOffsetX, pos.y + currentIdleOffsetY, targetAngle, 24);
+                createBurstSparks(pos.x + currentIdleOffsetX, pos.y + currentIdleOffsetY, targetAngle, 40);
                 createGravitationalPulse(pos.x + currentIdleOffsetX, pos.y + currentIdleOffsetY);
             }
         });
@@ -636,12 +757,12 @@
                 y: y,
                 vx: vx + (Math.random() - 0.5) * 1.2,
                 vy: vy + (Math.random() - 0.5) * 1.2,
-                size: isHoveredState ? Math.random() * 2.5 + 1.2 : Math.random() * 2.0 + 1.0,
+                size: isHoveredState ? Math.random() * 3.6 + 2.0 : Math.random() * 3.0 + 1.6,
                 color: isHoveredState ?
                     (Math.random() > 0.4 ? '#38BDF8' : '#6366F1') :
                     (Math.random() > 0.5 ? '#F59E0B' : '#EF4444'),
-                alpha: 0.9,
-                decay: Math.random() * 0.04 + 0.025
+                alpha: 1.0,
+                decay: Math.random() * 0.025 + 0.015
             });
         }
 
@@ -649,16 +770,16 @@
             var nozzle = getEngineNozzlePos(centerX, centerY, currentAngleDeg);
             for (var i = 0; i < count; i++) {
                 var pAngle = Math.random() * Math.PI * 2;
-                var speed = Math.random() * 3.5 + 1.0;
+                var speed = Math.random() * 6 + 2.5;
                 particles.push({
                     x: nozzle.x,
                     y: nozzle.y,
                     vx: Math.cos(pAngle) * speed,
                     vy: Math.sin(pAngle) * speed,
-                    size: Math.random() * 2.5 + 1.0,
+                    size: Math.random() * 4 + 1.8,
                     color: i % 2 === 0 ? '#38BDF8' : '#FDE047',
                     alpha: 1.0,
-                    decay: Math.random() * 0.05 + 0.03
+                    decay: Math.random() * 0.035 + 0.02
                 });
             }
         }
@@ -674,25 +795,25 @@
                 vx: Math.cos(rad) * speed,
                 vy: Math.sin(rad) * speed,
                 size: Math.random() * 1.8 + 0.8,
-                color: Math.random() > 0.4 ? '#38BDF8' : '#818CF8',
+                color: Math.random() > 0.4 ? idlePalette[themeMode].radar[0] : idlePalette[themeMode].radar[1],
                 alpha: 0.7,
                 decay: 0.035
             });
         }
 
         function createGravitationalPulse(x, y) {
-            for (var i = 0; i < 18; i++) {
-                var pAngle = (i / 18) * Math.PI * 2;
-                var speed = Math.random() * 2.2 + 1.0;
+            for (var i = 0; i < 28; i++) {
+                var pAngle = (i / 28) * Math.PI * 2;
+                var speed = Math.random() * 3.6 + 1.6;
                 particles.push({
                     x: x,
                     y: y,
                     vx: Math.cos(pAngle) * speed,
                     vy: Math.sin(pAngle) * speed,
-                    size: Math.random() * 2.0 + 0.8,
-                    color: i % 2 === 0 ? '#38BDF8' : '#A855F7',
-                    alpha: 0.8,
-                    decay: 0.03
+                    size: Math.random() * 3.2 + 1.4,
+                    color: i % 2 === 0 ? idlePalette[themeMode].pulse[0] : idlePalette[themeMode].pulse[1],
+                    alpha: 1.0,
+                    decay: 0.022
                 });
             }
         }
@@ -773,7 +894,7 @@
                         if (stardustRamp > 0 && Math.random() < 0.2 * stardustRamp) {
                             var orbRad = Math.random() * Math.PI * 2;
                             var orbDist = currentRadius + (Math.random() - 0.5) * 12;
-                            var vibrantColors = ['#00F0FF', '#E0E7FF', '#FFD700', '#F472B6', '#A78BFA', '#34D399', '#38BDF8'];
+                            var vibrantColors = idlePalette[themeMode].stardust;
 
                             particles.push({
                                 x: pos.x + Math.cos(orbRad) * orbDist,
@@ -808,16 +929,20 @@
                 rocket.style.transform = 'translate3d(' + currentIdleOffsetX.toFixed(2) + 'px, ' + currentIdleOffsetY.toFixed(2) + 'px, 0) rotate(' + renderAngle.toFixed(2) + 'deg)';
 
                 if (speed > 0.8 || isHovered) {
+                    rocket.classList.add('is-moving');
                     var mainNozzle = getEngineNozzlePos(pos.x + currentIdleOffsetX, pos.y + currentIdleOffsetY, renderAngle);
                     var rad = (renderAngle - 90) * (Math.PI / 180);
-                    var backVx = -Math.cos(rad) * (speed * 0.3 + 1);
-                    var backVy = -Math.sin(rad) * (speed * 0.3 + 1);
+                    var backVx = -Math.cos(rad) * (speed * 0.5 + 1.8);
+                    var backVy = -Math.sin(rad) * (speed * 0.5 + 1.8);
 
                     createThrusterParticle(mainNozzle.x, mainNozzle.y, backVx, backVy, isHovered);
+                    createThrusterParticle(mainNozzle.x, mainNozzle.y, backVx, backVy, isHovered);
+                } else {
+                    rocket.classList.remove('is-moving');
                 }
 
                 // Enforce max active particle buffer cap
-                while (particles.length > 100) {
+                while (particles.length > 180) {
                     particles.shift();
                 }
 
@@ -840,10 +965,17 @@
                     }
 
                     ctx.save();
+                    ctx.globalCompositeOperation = 'lighter';
                     ctx.globalAlpha = Math.max(0, p.alpha);
-                    ctx.fillStyle = p.color;
+
+                    var radGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 1.5);
+                    radGrad.addColorStop(0, p.color);
+                    radGrad.addColorStop(0.5, p.color);
+                    radGrad.addColorStop(1, 'transparent');
+
+                    ctx.fillStyle = radGrad;
                     ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.arc(p.x, p.y, p.size * 1.5, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.restore();
                 }
