@@ -615,7 +615,7 @@
                 y: y,
                 vx: vx + (Math.random() - 0.5) * 1.5,
                 vy: vy + (Math.random() - 0.5) * 1.5,
-                size: isHoveredState ? Math.random() * 5 + 3 : Math.random() * 4 + 2,
+                size: isHoveredState ? Math.random() * 4 + 2 : Math.random() * 3 + 1.5,
                 color: isHoveredState ? 
                     (Math.random() > 0.4 ? '#38BDF8' : '#6366F1') : 
                     (Math.random() > 0.5 ? '#F59E0B' : '#EF4444'),
@@ -625,18 +625,19 @@
         }
 
         function createRadarScanPulse(px, py, angleDeg) {
-            var rad = (angleDeg - 90) * (Math.PI / 180);
-            var speed = Math.random() * 1.8 + 0.8;
+            // ปรับทิศทางให้ออกด้านหลัง/รอบๆ ท้ายเครื่อง และลดขนาดลง ไม่ให้ลอยออกมาจากหัวจรวด
+            var rad = (angleDeg + 90 + (Math.random() - 0.5) * 60) * (Math.PI / 180);
+            var speed = Math.random() * 1.2 + 0.4;
             
             particles.push({
-                x: px + Math.cos(rad) * 12,
-                y: py + Math.sin(rad) * 12,
-                vx: Math.cos(rad) * speed + (Math.random() - 0.5) * 0.6,
-                vy: Math.sin(rad) * speed + (Math.random() - 0.5) * 0.6,
-                size: Math.random() * 3.5 + 1.5,
-                color: Math.random() > 0.3 ? '#00F0FF' : '#38BDF8',
-                alpha: 0.95,
-                decay: 0.025
+                x: px + Math.cos(rad) * 8,
+                y: py + Math.sin(rad) * 8,
+                vx: Math.cos(rad) * speed,
+                vy: Math.sin(rad) * speed,
+                size: Math.random() * 2 + 1,
+                color: Math.random() > 0.4 ? '#38BDF8' : '#818CF8',
+                alpha: 0.6,
+                decay: 0.035
             });
         }
 
@@ -649,26 +650,9 @@
                     y: y,
                     vx: Math.cos(pAngle) * speed,
                     vy: Math.sin(pAngle) * speed,
-                    size: Math.random() * 3.5 + 2,
+                    size: Math.random() * 2.5 + 1,
                     color: i % 2 === 0 ? '#38BDF8' : '#A855F7',
-                    alpha: 1,
-                    decay: 0.025
-                });
-            }
-        }
-
-        function createBurstSparks(x, y, count) {
-            for (var i = 0; i < count; i++) {
-                var pAngle = Math.random() * Math.PI * 2;
-                var speed = Math.random() * 5 + 2;
-                particles.push({
-                    x: x,
-                    y: y,
-                    vx: Math.cos(pAngle) * speed,
-                    vy: Math.sin(pAngle) * speed,
-                    size: Math.random() * 4 + 2,
-                    color: '#10B981',
-                    alpha: 1,
+                    alpha: 0.8,
                     decay: 0.03
                 });
             }
@@ -755,19 +739,19 @@
                         if (stardustRamp > 0 && Math.random() < 0.7 * stardustRamp) {
                             var orbRad = Math.random() * Math.PI * 2;
                             var orbDist = currentRadius + (Math.random() - 0.5) * 16;
-                            var vibrantColors = ['#00F0FF', '#FF007F', '#FFD700', '#FF5500', '#A020F0', '#00FF88', '#38BDF8', '#FF2A55'];
+                            var vibrantColors = ['#00F0FF', '#E0E7FF', '#FFD700', '#F472B6', '#A78BFA', '#34D399', '#38BDF8'];
                             
                             particles.push({
                                 x: pos.x + Math.cos(orbRad) * orbDist,
                                 y: pos.y + Math.sin(orbRad) * orbDist,
-                                vx: -Math.sin(orbRad) * (Math.random() * 1.0 + 0.2),
-                                vy: Math.cos(orbRad) * (Math.random() * 1.0 + 0.2),
-                                size: Math.random() * 4.0 + 1.8,
+                                vx: -Math.sin(orbRad) * (Math.random() * 0.6 + 0.1),
+                                vy: Math.cos(orbRad) * (Math.random() * 0.6 + 0.1),
+                                size: Math.random() * 2.2 + 0.8,
                                 color: vibrantColors[Math.floor(Math.random() * vibrantColors.length)],
                                 alpha: 0,
-                                targetAlpha: Math.random() * 0.65 + 0.25,
-                                fadeIn: Math.random() * 0.025 + 0.015,
-                                decay: Math.random() * 0.008 + 0.004
+                                targetAlpha: Math.random() * 0.5 + 0.2,
+                                fadeIn: Math.random() * 0.03 + 0.015,
+                                decay: Math.random() * 0.012 + 0.006
                             });
                         }
                     }
