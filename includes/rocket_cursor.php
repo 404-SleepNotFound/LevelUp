@@ -748,10 +748,10 @@
                             createRadarScanPulse(pos.x + targetIdleX, pos.y + targetIdleY, targetAngle);
                         }
 
-                        if (idleStage === 3) {
-                            var vMag = Math.hypot(vx, vy) || 1;
-                            if (Math.random() < 0.6) {
-                                var currentRendAngle = targetAngle;
+                        if (idleStage === 3 && Math.random() < 0.6) {
+                            createRadarScanPulse(pos.x + targetIdleX, pos.y + targetIdleY, targetAngle);
+                        }
+
                         if (stardustRamp > 0 && Math.random() < 0.2 * stardustRamp) {
                             var orbRad = Math.random() * Math.PI * 2;
                             var orbDist = currentRadius + (Math.random() - 0.5) * 12;
