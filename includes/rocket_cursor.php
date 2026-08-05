@@ -16,13 +16,13 @@
                 <defs>
                     <radialGradient id="mini-planet-grad" cx="35%" cy="30%" r="65%">
                         <stop offset="0%" stop-color="#38BDF8"/>
-                        <stop offset="50%" stop-color="#6366F1"/>
-                        <stop offset="100%" stop-color="#0F172A"/>
+                        <stop offset="55%" stop-color="#6366F1"/>
+                        <stop offset="100%" stop-color="#1E1B4B"/>
                     </radialGradient>
                     <linearGradient id="ring-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.9"/>
-                        <stop offset="50%" stop-color="#A855F7" stop-opacity="0.8"/>
-                        <stop offset="100%" stop-color="#EC4899" stop-opacity="0.3"/>
+                        <stop offset="0%" stop-color="#0284C7" stop-opacity="1"/>
+                        <stop offset="50%" stop-color="#8B5CF6" stop-opacity="0.95"/>
+                        <stop offset="100%" stop-color="#EC4899" stop-opacity="0.9"/>
                     </linearGradient>
                 </defs>
                 <!-- Planet Back Orbit Ring -->
@@ -202,7 +202,7 @@
         pointer-events: none;
         transform: scale(0.3);
         transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1), transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-        filter: drop-shadow(0 2px 10px rgba(15, 23, 42, 0.4)) drop-shadow(0 0 10px rgba(56, 189, 248, 0.8));
+        filter: drop-shadow(0 4px 12px rgba(56, 189, 248, 0.5)) drop-shadow(0 2px 6px rgba(99, 102, 241, 0.4));
     }
 
     .planet-svg {
@@ -219,28 +219,28 @@
         height: 64px;
         margin-top: -32px;
         margin-left: -32px;
-        border: 1.5px solid rgba(79, 70, 229, 0.75);
-        border-top: 2px solid rgba(56, 189, 248, 0.95);
-        border-bottom: 2px solid rgba(168, 85, 247, 0.95);
+        border: 1.5px solid rgba(99, 102, 241, 0.85);
+        border-top: 2px solid rgba(2, 132, 199, 1);
+        border-bottom: 2px solid rgba(168, 85, 247, 1);
         border-radius: 50%;
         opacity: 0;
         pointer-events: none;
         transform: scale(0.5) rotate(0deg);
         transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
-        box-shadow: 0 0 12px rgba(99, 102, 241, 0.35);
+        box-shadow: 0 0 14px rgba(99, 102, 241, 0.45);
     }
 
     .rocket-core-aura {
         position: absolute;
         top: 0;
         left: 0;
-        width: 56px;
-        height: 56px;
-        margin-top: -28px;
-        margin-left: -28px;
-        background: radial-gradient(circle, rgba(99, 102, 241, 0.45) 0%, rgba(139, 92, 246, 0.2) 50%, rgba(0,0,0,0) 75%);
+        width: 60px;
+        height: 60px;
+        margin-top: -30px;
+        margin-left: -30px;
+        background: radial-gradient(circle, rgba(56, 189, 248, 0.35) 0%, rgba(139, 92, 246, 0.25) 45%, rgba(236, 72, 153, 0) 70%);
         border-radius: 50%;
-        filter: blur(5px);
+        filter: blur(4px);
         opacity: 0;
         pointer-events: none;
         transform: scale(0.5);
@@ -793,19 +793,28 @@
                         if (stardustRamp > 0 && Math.random() < 0.2 * stardustRamp) {
                             var orbRad = Math.random() * Math.PI * 2;
                             var orbDist = currentRadius + (Math.random() - 0.5) * 12;
-                            var vibrantColors = ['#00F0FF', '#E0E7FF', '#FFD700', '#F472B6', '#A78BFA', '#34D399', '#38BDF8'];
+                            var vibrantColors = [
+                                '#0284C7', // Vivid Cyan / Sky
+                                '#2563EB', // Royal Blue
+                                '#7C3AED', // Vivid Electric Violet
+                                '#D946EF', // Bright Neon Pink
+                                '#059669', // Emerald Green
+                                '#D97706', // Gold Amber
+                                '#E11D48', // Coral Crimson
+                                '#06B6D4'  // Deep Neon Turquoise
+                            ];
                             
                             particles.push({
                                 x: pos.x + Math.cos(orbRad) * orbDist,
                                 y: pos.y + Math.sin(orbRad) * orbDist,
                                 vx: -Math.sin(orbRad) * (Math.random() * 0.4 + 0.1),
                                 vy: Math.cos(orbRad) * (Math.random() * 0.4 + 0.1),
-                                size: Math.random() * 2.5 + 2.5,
+                                size: Math.random() * 2.8 + 2.2,
                                 color: vibrantColors[Math.floor(Math.random() * vibrantColors.length)],
                                 alpha: 0,
-                                targetAlpha: Math.random() * 0.4 + 0.2,
-                                fadeIn: Math.random() * 0.04 + 0.02,
-                                decay: Math.random() * 0.025 + 0.015
+                                targetAlpha: Math.random() * 0.35 + 0.65, // Boosted opacity (0.65 to 1.0) for clear visibility on white backgrounds
+                                fadeIn: Math.random() * 0.05 + 0.03,
+                                decay: Math.random() * 0.02 + 0.01
                             });
                         }
                     }
@@ -876,6 +885,13 @@
                     ctx.beginPath();
                     ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
                     ctx.fill();
+
+                    // Subtle white highlight edge for contrast on dark/light backgrounds
+                    if (p.size > 2.0) {
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+                        ctx.lineWidth = 0.6;
+                        ctx.stroke();
+                    }
                     ctx.restore();
                 }
 
