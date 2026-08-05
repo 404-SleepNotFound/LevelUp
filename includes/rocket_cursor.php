@@ -75,11 +75,11 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
     const ctx = canvas.getContext('2d', { alpha: true });
     const rocket = document.querySelector('#levelup-rocket-cursor');
 
-    // 🎨 ชุดสีเดียวที่อิ่มตัวพอจะมองเห็นชัดทั้งพื้นหลังสว่างและมืด (ไม่พึ่งการตรวจจับพื้นหลังที่ผิดพลาดได้ง่าย)
-    // ใช้คู่กับเส้นขอบเข้มบางๆ รอบอนุภาคเพื่อให้ตัดกับพื้นหลังเสมอ ไม่ว่าพื้นหลังจะเป็นสีอะไร
-    const STAR_COLORS = ['#4cc9f0', '#f72585', '#ffd60a', '#7209b7', '#2ec4b6'];
+    // 🎨 จำกัดจำนวนเฉดให้เข้าธีมกันเอง แทนสีสุ่มหลายเฉดแบบ confetti
+    // ดาว = โทนเย็น (ขาว/ฟ้า/ม่วงอ่อน) สื่อถึงฝุ่นจักรวาล | ไฟ = โทนร้อนเสมอ (ส้ม/เหลือง/แดง) ให้แยกออกจากดาวชัดเจน
+    const STAR_COLORS = ['#ffffff', '#8ab4f8', '#b388ff'];
     const FLAME_COLORS = ['#ff9e00', '#ff5400', '#d00000'];
-    const PLASMA_COLORS = ['#00b4d8', '#0077b6'];
+    const PLASMA_COLORS = ['#ffb703', '#fb8500'];
     const HOT_CORE_COLOR = '#ffd60a';
 
     // 🎯 พิกัดจุดหมุน และท่อไอพ่นจรวด
@@ -205,13 +205,23 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
                 const progress = p.life / p.maxLife;
 
                 if (p.isStar) {
-                    ctx.globalAlpha = Math.min(1.0, progress * 1.2);
-                    ctx.fillStyle = p.color;
+                    const glowR = p.size * 2.4;
+                    const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowR);
+                    glow.addColorStop(0, p.color);
+                    glow.addColorStop(1, 'rgba(0,0,0,0)');
+                    ctx.globalAlpha = Math.min(1.0, progress * 0.85);
+                    ctx.fillStyle = glow;
                     ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2);
                     ctx.fill();
-                    ctx.lineWidth = 0.6;
-                    ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+
+                    ctx.globalAlpha = Math.min(1.0, progress * 1.2);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size * 0.45, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.lineWidth = 0.5;
+                    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
                     ctx.stroke();
                 } else {
                     // 🔥 เปลวไฟแบบมีแกนสว่าง + แสงฟุ้งรอบตัว ยืดตามทิศทางการเคลื่อนที่
@@ -225,13 +235,13 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
                     ctx.rotate(angle);
 
                     // ชั้นแสงฟุ้งด้านนอก
-                    const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, r * stretch * 1.3);
+                    const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, r * stretch * 1.5);
                     glow.addColorStop(0, p.color);
                     glow.addColorStop(1, 'rgba(0,0,0,0)');
                     ctx.globalAlpha = Math.min(1.0, progress * 0.9);
                     ctx.fillStyle = glow;
                     ctx.beginPath();
-                    ctx.ellipse(0, 0, r * stretch * 1.3, r * 1.3, 0, 0, Math.PI * 2);
+                    ctx.ellipse(0, 0, r * stretch * 1.5, r * 1.5, 0, 0, Math.PI * 2);
                     ctx.fill();
 
                     // แกนร้อนสว่างตรงกลาง
@@ -321,7 +331,7 @@ define('LEVELUP_ROCKET_CURSOR_LOADED', true);
             // 🚀 โหมดการทำงานสภาวะ Idle Warp กับ Active
             if (state.idleTime > 3.0) {
                 // 🌟 [Idle Warp] เมาส์นิ่งเกิน 3 วินาที -> จรวดอยู่ตรงกลางหมู่ดาวที่พุ่งผ่าน
-                if (Math.random() > 0.35) {
+                if (Math.random() > 0.5) {
                     particlePool.spawnStar(currX, currY);
                 }
 
