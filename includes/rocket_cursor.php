@@ -638,7 +638,7 @@
                     // Stage 3 Motion (7s+ Continuous Loop): Dogfight Chase Orbit along 80px Radius
                     if (idleStage === 3) {
                         var orbitSpeed = idleTime * 0.5; // Controlled rotation speed
-                        var rocketRadius = 80; // Rocket & Drone shared 80px radius orbit
+                        var rocketRadius = 80; // Rocket 80px radius orbit
 
                         idleOffsetX = Math.cos(orbitSpeed) * rocketRadius;
                         idleOffsetY = Math.sin(orbitSpeed) * rocketRadius;
@@ -650,12 +650,17 @@
                         // Direct angle along orbital movement direction
                         targetAngle = Math.atan2(vy, vx) * (180 / Math.PI) + 90;
 
-                        // Position Mini Drone on exact same 80px circle ahead of rocket
+                        // Position Mini Drone to fly dynamically IN FRONT of the rocket nose cone
                         var drone = wrapper.querySelector('.rocket-mini-drone');
                         if (drone) {
-                            var droneAngle = orbitSpeed + 0.85; // Bins ahead of rocket along 80px orbit track
-                            var droneX = Math.cos(droneAngle) * rocketRadius;
-                            var droneY = Math.sin(droneAngle) * rocketRadius;
+                            var currentRad = (angle + idleSway - 90) * (Math.PI / 180);
+                            var leadDist = 55; // Pushes drone 55px ahead of rocket nose tip
+                            var scoutWeaveX = Math.cos(idleTime * 2.8) * 22; // Scout weaving motion in front
+                            var scoutWeaveY = Math.sin(idleTime * 2.8) * 22;
+
+                            var droneX = idleOffsetX + Math.cos(currentRad) * leadDist + scoutWeaveX;
+                            var droneY = idleOffsetY + Math.sin(currentRad) * leadDist + scoutWeaveY;
+
                             drone.style.transform = 'translate3d(' + droneX.toFixed(2) + 'px, ' + droneY.toFixed(2) + 'px, 0)';
                         }
 
