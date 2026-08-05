@@ -16,8 +16,8 @@
                 <defs>
                     <radialGradient id="mini-planet-grad" cx="35%" cy="30%" r="65%">
                         <stop offset="0%" stop-color="#38BDF8"/>
-                        <stop offset="55%" stop-color="#6366F1"/>
-                        <stop offset="100%" stop-color="#1E1B4B"/>
+                        <stop offset="50%" stop-color="#6366F1"/>
+                        <stop offset="100%" stop-color="#312E81"/>
                     </radialGradient>
                     <linearGradient id="ring-grad" x1="0%" y1="0%" x2="100%" y2="100%">
                         <stop offset="0%" stop-color="#0284C7" stop-opacity="1"/>
@@ -794,14 +794,12 @@
                             var orbRad = Math.random() * Math.PI * 2;
                             var orbDist = currentRadius + (Math.random() - 0.5) * 12;
                             var vibrantColors = [
-                                '#0284C7', // Vivid Cyan / Sky
-                                '#2563EB', // Royal Blue
-                                '#7C3AED', // Vivid Electric Violet
-                                '#D946EF', // Bright Neon Pink
-                                '#059669', // Emerald Green
-                                '#D97706', // Gold Amber
-                                '#E11D48', // Coral Crimson
-                                '#06B6D4'  // Deep Neon Turquoise
+                                '#38BDF8', // Cyan / Electric Sky
+                                '#6366F1', // Indigo Glow
+                                '#8B5CF6', // Vivid Violet
+                                '#C084FC', // Soft Purple Glow
+                                '#0284C7', // Deep Cyan Accent
+                                '#F472B6'  // Soft Cosmic Pink
                             ];
                             
                             particles.push({
@@ -809,12 +807,12 @@
                                 y: pos.y + Math.sin(orbRad) * orbDist,
                                 vx: -Math.sin(orbRad) * (Math.random() * 0.4 + 0.1),
                                 vy: Math.cos(orbRad) * (Math.random() * 0.4 + 0.1),
-                                size: Math.random() * 2.8 + 2.2,
+                                size: Math.random() * 3.2 + 2.0,
                                 color: vibrantColors[Math.floor(Math.random() * vibrantColors.length)],
                                 alpha: 0,
-                                targetAlpha: Math.random() * 0.35 + 0.65, // Boosted opacity (0.65 to 1.0) for clear visibility on white backgrounds
+                                targetAlpha: Math.random() * 0.3 + 0.25, // Natural ambient glow opacity (0.25 - 0.55)
                                 fadeIn: Math.random() * 0.05 + 0.03,
-                                decay: Math.random() * 0.02 + 0.01
+                                decay: Math.random() * 0.018 + 0.008
                             });
                         }
                     }
@@ -881,17 +879,18 @@
 
                     ctx.save();
                     ctx.globalAlpha = Math.max(0, p.alpha);
-                    ctx.fillStyle = p.color;
+                    
+                    // Soft Radial Glow Particle Rendering (Eliminates solid sticker dots in Light Mode)
+                    var radGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
+                    radGrad.addColorStop(0, p.color);
+                    radGrad.addColorStop(0.5, p.color);
+                    radGrad.addColorStop(1, 'transparent');
+
+                    ctx.fillStyle = radGrad;
                     ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.arc(p.x, p.y, p.size * 1.4, 0, Math.PI * 2);
                     ctx.fill();
 
-                    // Subtle white highlight edge for contrast on dark/light backgrounds
-                    if (p.size > 2.0) {
-                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
-                        ctx.lineWidth = 0.6;
-                        ctx.stroke();
-                    }
                     ctx.restore();
                 }
 
