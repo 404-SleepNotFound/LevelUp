@@ -461,7 +461,6 @@
                 idleStage = 3;
                 rocket.classList.add('idle-stage-3');
                 wrapper.classList.add('idle-stage-3');
-                createOrbitStardustRing(pos.x, pos.y);
             }, 7000);
         }
 
@@ -585,24 +584,6 @@
             }
         }
 
-        function createOrbitStardustRing(cx, cy) {
-            var colors = ['#00F0FF', '#FF007F', '#FFD700', '#FF5500', '#A020F0', '#00FF88', '#38BDF8', '#FF2A55'];
-            for (var i = 0; i < 60; i++) {
-                var rad = (i / 60) * Math.PI * 2;
-                var dist = 80 + (Math.random() - 0.5) * 12;
-                particles.push({
-                    x: cx + Math.cos(rad) * dist,
-                    y: cy + Math.sin(rad) * dist,
-                    vx: -Math.sin(rad) * (Math.random() * 1.5 + 0.5),
-                    vy: Math.cos(rad) * (Math.random() * 1.5 + 0.5),
-                    size: Math.random() * 5.0 + 2.0,
-                    color: colors[Math.floor(Math.random() * colors.length)],
-                    alpha: 1.0,
-                    decay: Math.random() * 0.01 + 0.006
-                });
-            }
-        }
-
         function render() {
             if (isInitialized) {
                 var lerpFactor = 0.25;
@@ -666,12 +647,20 @@
                         var shortestAngleDiff = Math.atan2(Math.sin(angleRadDiff), Math.cos(angleRadDiff)) * (180 / Math.PI);
                         targetAngle += shortestAngleDiff * 0.12;
 
+                        var stardustRamp = 0;
+                        if (idleStage === 2) {
+                            stardustRamp = spiralProgress * 0.35; // Faint subtle dust during spiral expansion
+                        } else if (idleStage === 3) {
+                            var stage3Time = Math.max(0, idleTime - 4.3);
+                            stardustRamp = 0.35 + 0.65 * Math.min(stage3Time / 2.5, 1.0); // Smooth ramp to full density over 2.5s
+                        }
+
                         // Stage 2: Sonar pulse emissions
                         if (idleStage === 2 && Math.random() < 0.3) {
                             createRadarScanPulse(pos.x + targetIdleX, pos.y + targetIdleY, targetAngle);
                         }
 
-                        // Stage 3: Planetary stardust & thruster trail particles
+                        // Stage 3: Thruster trail particles
                         if (idleStage === 3) {
                             var vMag = Math.hypot(vx, vy) || 1;
                             if (Math.random() < 0.6) {
@@ -679,22 +668,26 @@
                                 var orbTailY = (pos.y + targetIdleY) - (vy / vMag) * 24;
                                 createThrusterParticle(orbTailX, orbTailY, -vx * 0.03, -vy * 0.03, true);
                             }
+                        }
 
-                            if (Math.random() < 0.75) {
-                                var orbRad = Math.random() * Math.PI * 2;
-                                var orbDist = 80 + (Math.random() - 0.5) * 10;
-                                var vibrantColors = ['#00F0FF', '#FF007F', '#FFD700', '#FF5500', '#A020F0', '#00FF88', '#38BDF8', '#FF2A55'];
-                                particles.push({
-                                    x: pos.x + Math.cos(orbRad) * orbDist,
-                                    y: pos.y + Math.sin(orbRad) * orbDist,
-                                    vx: -Math.sin(orbRad) * (Math.random() * 1.2 + 0.3),
-                                    vy: Math.cos(orbRad) * (Math.random() * 1.2 + 0.3),
-                                    size: Math.random() * 4.5 + 2.0,
-                                    color: vibrantColors[Math.floor(Math.random() * vibrantColors.length)],
-                                    alpha: 0.95,
-                                    decay: Math.random() * 0.015 + 0.008
-                                });
-                            }
+                        // Emit Stardust with Smooth Fade-In Lifecycle
+                        if (stardustRamp > 0 && Math.random() < 0.7 * stardustRamp) {
+                            var orbRad = Math.random() * Math.PI * 2;
+                            var orbDist = currentRadius + (Math.random() - 0.5) * 16;
+                            var vibrantColors = ['#00F0FF', '#FF007F', '#FFD700', '#FF5500', '#A020F0', '#00FF88', '#38BDF8', '#FF2A55'];
+                            
+                            particles.push({
+                                x: pos.x + Math.cos(orbRad) * orbDist,
+                                y: pos.y + Math.sin(orbRad) * orbDist,
+                                vx: -Math.sin(orbRad) * (Math.random() * 1.0 + 0.2),
+                                vy: Math.cos(orbRad) * (Math.random() * 1.0 + 0.2),
+                                size: Math.random() * 4.0 + 1.8,
+                                color: vibrantColors[Math.floor(Math.random() * vibrantColors.length)],
+                                alpha: 0, // Starts fully transparent!
+                                targetAlpha: Math.random() * 0.65 + 0.25,
+                                fadeIn: Math.random() * 0.025 + 0.015, // Smooth gradual fade-in
+                                decay: Math.random() * 0.008 + 0.004 // Smooth fade-out decay
+                            });
                         }
                     }
 
@@ -737,7 +730,17 @@
                     var p = particles[i];
                     p.x += p.vx;
                     p.y += p.vy;
-                    p.alpha -= p.decay;
+
+                    // Smooth Particle Lifecycle: Fade-In then Fade-Out Decay
+                    if (p.fadeIn && p.fadeIn > 0) {
+                        p.alpha += p.fadeIn;
+                        if (p.alpha >= p.targetAlpha) {
+                            p.alpha = p.targetAlpha;
+                            p.fadeIn = 0; // Fade-in phase complete, proceed to decay
+                        }
+                    } else {
+                        p.alpha -= p.decay;
+                    }
 
                     if (p.alpha <= 0) {
                         particles.splice(i, 1);
@@ -745,7 +748,7 @@
                     }
 
                     ctx.save();
-                    ctx.globalAlpha = p.alpha;
+                    ctx.globalAlpha = Math.max(0, p.alpha);
                     ctx.fillStyle = p.color;
                     ctx.beginPath();
                     ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
