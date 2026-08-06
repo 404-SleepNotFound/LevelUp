@@ -17,7 +17,7 @@ if (file_exists(__DIR__ . '/../config/google.php')) {
 
 // ตรวจสอบสถานะการเข้าสู่ระบบ หาก Login แล้วให้ Redirect ไปยังหน้าหลัก
 if (isset($_SESSION['user_login']) || isset($_SESSION['user_id'])) {
-    header("Location: ../index.php");
+    header("Location: " . $ROOT_PATH . "index.php");
     exit;
 }
 
@@ -29,20 +29,23 @@ $site_settings = [
     'hero_desc' => 'เข้าสู่ระบบเพื่อเริ่มสะสม XP และดำเนินภารกิจเรียนรู้ของคุณต่อ',
     'security_note' => 'ปลอดภัยด้วยระบบรับรองตัวตน Google & GitHub OAuth 2.0',
     'footer_links' => [
-        ['url' => '../index.php', 'icon' => 'bi bi-arrow-left', 'text' => 'กลับหน้าแรก'],
+        ['url' => $ROOT_PATH . 'index.php', 'icon' => 'bi bi-arrow-left', 'text' => 'กลับหน้าแรก'],
         ['url' => '#', 'icon' => '', 'text' => 'นโยบายความเป็นส่วนตัว'],
         ['url' => '#', 'icon' => '', 'text' => 'ติดต่อเรา']
     ]
 ];
 
 // สร้าง URL Login ผ่าน Google Client (ถ้ามีออบเจกต์ $client)
-$login_url = (isset($client) && method_exists($client, 'createAuthUrl')) ? $client->createAuthUrl() : '../api/google_auth.php';
+$login_url = (isset($client) && method_exists($client, 'createAuthUrl')) ? $client->createAuthUrl() : $ROOT_PATH . 'api/google_auth.php';
 
 // นำเข้า Header
 if (file_exists(__DIR__ . '/../includes/header.php')) {
     include __DIR__ . '/../includes/header.php';
 }
 ?>
+
+<!-- Custom Scrollbar Style -->
+<link rel="stylesheet" href="<?= $ROOT_PATH; ?>assets/css/custom-scrollbar.css">
 
 <!-- 
 ========================================================================
@@ -219,7 +222,7 @@ if (file_exists(__DIR__ . '/../includes/header.php')) {
                         </a>
 
                         <!-- GitHub Login -->
-                        <a href="../api/github_auth.php" class="btn btn-github-premium w-100 d-flex align-items-center justify-content-center gap-3 py-3 text-decoration-none">
+                        <a href="<?= $ROOT_PATH; ?>api/github_auth.php" class="btn btn-github-premium w-100 d-flex align-items-center justify-content-center gap-3 py-3 text-decoration-none">
                             <i class="bi bi-github fs-4"></i>
                             <span class="fs-5">Sign In with GitHub</span>
                         </a>
