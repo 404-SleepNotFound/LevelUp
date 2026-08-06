@@ -447,7 +447,8 @@
 (function() {
     'use strict';
 
-    if (window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches) {
+    /* ... existing JS setup ... */
+
         document.documentElement.classList.remove('has-rocket-cursor');
         return;
     }
@@ -705,18 +706,18 @@
         }
 
         function createGravitationalPulse(x, y) {
-            for (var i = 0; i < 24; i++) {
-                var pAngle = (i / 24) * Math.PI * 2;
-                var speed = Math.random() * 3.0 + 1.5;
+            for (var i = 0; i < 20; i++) {
+                var pAngle = (i / 20) * Math.PI * 2;
+                var speed = Math.random() * 1.6 + 0.8; // ลดความเร็วพุ่งออกไม่ให้กระจายกว้างเกินไป
                 particles.push({
                     x: x,
                     y: y,
                     vx: Math.cos(pAngle) * speed,
                     vy: Math.sin(pAngle) * speed,
-                    size: Math.random() * 5.0 + 2.8,
+                    size: Math.random() * 4.0 + 5.0, // เพิ่มขนาด Particle เป็น 5.0 - 9.0px
                     color: i % 2 === 0 ? '#00F0FF' : '#FF007F',
                     alpha: 1.0,
-                    decay: 0.025
+                    decay: 0.035
                 });
             }
         }
@@ -746,7 +747,7 @@
                     } else {
                         stage2Time += 0.035;
                         
-                        var radius = Math.min(stage2Time * 40, 80); // วนที่รัศมี 80px อย่างสมบูรณ์
+                        var radius = Math.min(stage2Time * 30, 48); // กระชับรัศมีโคจรจาก 80px เหลือ 48px เพื่อไม่ให้กระจายกว้างจนดูรก
                         var omega = 1.2; // ความเร็วในการโคจร
                         var orbTheta = stage2Time * omega;
 
@@ -757,29 +758,29 @@
                         var vx = -Math.sin(orbTheta) * radius * omega;
                         var vy = Math.cos(orbTheta) * radius * omega;
                         
-                        if (radius < 80) {
-                            vx += Math.cos(orbTheta) * 40;
-                            vy += Math.sin(orbTheta) * 40;
+                        if (radius < 48) {
+                            vx += Math.cos(orbTheta) * 30;
+                            vy += Math.sin(orbTheta) * 30;
                         }
                         
                         overrideTargetAngle = Math.atan2(vy, vx) * (180 / Math.PI) + 90;
                         
-                        if (Math.random() < 0.15) {
+                        if (Math.random() < 0.2) {
                             var orbRad = Math.random() * Math.PI * 2;
-                            var orbDist = radius + (Math.random() - 0.5) * 8;
-                            var vibrantColors = ['#FBBF24', '#EF4444', '#38BDF8', '#6366F1'];
+                            var orbDist = radius + (Math.random() - 0.5) * 4; // บีบระยะฟุ้งของพาร์ติเคิลให้อยู่ใกล้เส้นทางโคจร
+                            var vibrantColors = ['#FBBF24', '#EF4444', '#38BDF8', '#6366F1', '#00F0FF'];
 
                             particles.push({
                                 x: pos.x + Math.cos(orbRad) * orbDist,
                                 y: pos.y + Math.sin(orbRad) * orbDist,
-                                vx: -Math.sin(orbRad) * (Math.random() * 0.3 + 0.1),
-                                vy: Math.cos(orbRad) * (Math.random() * 0.3 + 0.1),
-                                size: Math.random() * 2.0 + 2.0,
+                                vx: -Math.sin(orbRad) * (Math.random() * 0.15 + 0.05), // ลดความเร็วการลอยลอยไม่ให้ลอยไปไกล
+                                vy: Math.cos(orbRad) * (Math.random() * 0.15 + 0.05),
+                                size: Math.random() * 4.5 + 5.0, // เพิ่มขนาด Particle ใน Stage 2/3 ให้ใหญ่เด่นชัด (5.0 - 9.5px)
                                 color: vibrantColors[Math.floor(Math.random() * vibrantColors.length)],
                                 alpha: 0,
-                                targetAlpha: Math.random() * 0.4 + 0.25,
-                                fadeIn: Math.random() * 0.04 + 0.02,
-                                decay: Math.random() * 0.02 + 0.012
+                                targetAlpha: Math.random() * 0.5 + 0.35,
+                                fadeIn: Math.random() * 0.05 + 0.025,
+                                decay: Math.random() * 0.03 + 0.02
                             });
                         }
                     }
