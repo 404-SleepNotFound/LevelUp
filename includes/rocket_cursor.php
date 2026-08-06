@@ -618,13 +618,13 @@
 
         var idlePalette = {
             dark: {
-                radar: ['#38BDF8', '#818CF8'],
-                pulse: ['#38BDF8', '#A855F7'],
+                radar: ['#00F0FF', '#A855F7'],
+                pulse: ['#00F0FF', '#FF007F'],
                 stardust: ['#00F0FF', '#E0E7FF', '#FFD700', '#F472B6', '#A78BFA', '#34D399', '#38BDF8']
             },
             light: {
                 radar: ['#0369A1', '#4338CA'],
-                pulse: ['#0369A1', '#7E22CE'],
+                pulse: ['#0369A1', '#BE185D'],
                 stardust: ['#0891B2', '#4338CA', '#B45309', '#BE185D', '#6D28D9', '#047857', '#0369A1']
             }
         };
@@ -717,7 +717,7 @@
             wrapper.classList.add('trigger-shockwave');
 
             if (isInitialized) {
-                createBurstSparks(pos.x + currentIdleOffsetX, pos.y + currentIdleOffsetY, targetAngle, 40);
+                createBurstSparks(pos.x + currentIdleOffsetX, pos.y + currentIdleOffsetY, targetAngle, 32);
                 createGravitationalPulse(pos.x + currentIdleOffsetX, pos.y + currentIdleOffsetY);
             }
         });
@@ -755,14 +755,14 @@
             particles.push({
                 x: x,
                 y: y,
-                vx: vx + (Math.random() - 0.5) * 1.2,
-                vy: vy + (Math.random() - 0.5) * 1.2,
-                size: Math.random() * 1.5 + 3.5,
+                vx: vx + (Math.random() - 0.5) * 1.5,
+                vy: vy + (Math.random() - 0.5) * 1.5,
+                size: isHoveredState ? Math.random() * 3.2 + 1.6 : Math.random() * 2.5 + 1.2,
                 color: isHoveredState ?
-                    (Math.random() > 0.4 ? '#38BDF8' : '#6366F1') :
-                    (Math.random() > 0.5 ? '#F59E0B' : '#EF4444'),
+                    (Math.random() > 0.4 ? '#00F0FF' : '#A855F7') :
+                    (Math.random() > 0.5 ? '#FFE600' : '#FF0055'),
                 alpha: 1.0,
-                decay: Math.random() * 0.025 + 0.015
+                decay: Math.random() * 0.03 + 0.018
             });
         }
 
@@ -770,16 +770,16 @@
             var nozzle = getEngineNozzlePos(centerX, centerY, currentAngleDeg);
             for (var i = 0; i < count; i++) {
                 var pAngle = Math.random() * Math.PI * 2;
-                var speed = Math.random() * 6 + 2.5;
+                var speed = Math.random() * 7.5 + 2.5;
                 particles.push({
                     x: nozzle.x,
                     y: nozzle.y,
                     vx: Math.cos(pAngle) * speed,
                     vy: Math.sin(pAngle) * speed,
-                    size: Math.random() * 1.5 + 3.5,
-                    color: i % 2 === 0 ? '#38BDF8' : '#FDE047',
+                    size: Math.random() * 4.0 + 1.5,
+                    color: i % 3 === 0 ? '#00F0FF' : (i % 3 === 1 ? '#FFE600' : '#FF0055'),
                     alpha: 1.0,
-                    decay: Math.random() * 0.035 + 0.02
+                    decay: Math.random() * 0.03 + 0.015
                 });
             }
         }
@@ -787,30 +787,30 @@
         function createRadarScanPulse(px, py, angleDeg) {
             var nozzle = getEngineNozzlePos(px, py, angleDeg);
             var rad = (angleDeg + 90 + (Math.random() - 0.5) * 60) * (Math.PI / 180);
-            var speed = Math.random() * 1.2 + 0.4;
+            var speed = Math.random() * 1.5 + 0.5;
 
             particles.push({
                 x: nozzle.x + Math.cos(rad) * 4,
                 y: nozzle.y + Math.sin(rad) * 4,
                 vx: Math.cos(rad) * speed,
                 vy: Math.sin(rad) * speed,
-                size: Math.random() * 1.1 + 0.6,
+                size: Math.random() * 2.2 + 1.0,
                 color: Math.random() > 0.4 ? idlePalette[themeMode].radar[0] : idlePalette[themeMode].radar[1],
-                alpha: 0.7,
-                decay: 0.035
+                alpha: 0.85,
+                decay: 0.03
             });
         }
 
         function createGravitationalPulse(x, y) {
-            for (var i = 0; i < 28; i++) {
-                var pAngle = (i / 28) * Math.PI * 2;
-                var speed = Math.random() * 3.6 + 1.6;
+            for (var i = 0; i < 24; i++) {
+                var pAngle = (i / 24) * Math.PI * 2;
+                var speed = Math.random() * 3.0 + 1.5;
                 particles.push({
                     x: x,
                     y: y,
                     vx: Math.cos(pAngle) * speed,
                     vy: Math.sin(pAngle) * speed,
-                    size: Math.random() * 1.5 + 3.5,
+                    size: Math.random() * 2.8 + 1.0,
                     color: i % 2 === 0 ? idlePalette[themeMode].pulse[0] : idlePalette[themeMode].pulse[1],
                     alpha: 1.0,
                     decay: 0.024
@@ -970,12 +970,12 @@
 
                     var radGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
                     radGrad.addColorStop(0, p.color);
-                    radGrad.addColorStop(0.7, p.color);
+                    radGrad.addColorStop(0.5, p.color);
                     radGrad.addColorStop(1, 'transparent');
 
                     ctx.fillStyle = radGrad;
                     ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.arc(p.x, p.y, p.size * 1.5, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.restore();
                 }
