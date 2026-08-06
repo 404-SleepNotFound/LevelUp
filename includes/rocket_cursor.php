@@ -660,7 +660,7 @@
                 y: y,
                 vx: vx + (Math.random() - 0.5) * 1.5,
                 vy: vy + (Math.random() - 0.5) * 1.5,
-                size: isHoveredState ? Math.random() * 5 + 3 : Math.random() * 4 + 2,
+                size: isHoveredState ? Math.random() * 6.0 + 4.0 : Math.random() * 5.0 + 3.5,
                 color: isHoveredState ?
                     (Math.random() > 0.4 ? '#38BDF8' : '#6366F1') :
                     (Math.random() > 0.5 ? '#FBBF24' : '#EF4444'),
@@ -679,7 +679,7 @@
                     y: nozzle.y,
                     vx: Math.cos(pAngle) * speed,
                     vy: Math.sin(pAngle) * speed,
-                    size: Math.random() * 4 + 2,
+                    size: Math.random() * 7.0 + 4.5,
                     color: i % 2 === 0 ? '#FBBF24' : '#EF4444',
                     alpha: 1.0,
                     decay: Math.random() * 0.03 + 0.02
@@ -697,7 +697,7 @@
                 y: nozzle.y + Math.sin(rad) * 4,
                 vx: Math.cos(rad) * speed,
                 vy: Math.sin(rad) * speed,
-                size: Math.random() * 2.2 + 1.0,
+                size: Math.random() * 4.0 + 2.5,
                 color: Math.random() > 0.4 ? '#00F0FF' : '#A855F7',
                 alpha: 0.85,
                 decay: 0.03
@@ -713,7 +713,7 @@
                     y: y,
                     vx: Math.cos(pAngle) * speed,
                     vy: Math.sin(pAngle) * speed,
-                    size: Math.random() * 2.8 + 1.0,
+                    size: Math.random() * 5.0 + 2.8,
                     color: i % 2 === 0 ? '#00F0FF' : '#FF007F',
                     alpha: 1.0,
                     decay: 0.025
@@ -774,7 +774,7 @@
                                 y: pos.y + Math.sin(orbRad) * orbDist,
                                 vx: -Math.sin(orbRad) * (Math.random() * 0.3 + 0.1),
                                 vy: Math.cos(orbRad) * (Math.random() * 0.3 + 0.1),
-                                size: Math.random() * 2.2 + 1.8,
+                                size: Math.random() * 2.0 + 2.0,
                                 color: vibrantColors[Math.floor(Math.random() * vibrantColors.length)],
                                 alpha: 0,
                                 targetAlpha: Math.random() * 0.4 + 0.25,
