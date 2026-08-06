@@ -598,20 +598,20 @@ if (isset($conn)) {
                     <div class="col-12 col-md-6">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <h5 class="fw-bold text-white mb-0"><i class="bi bi-bookmark-check text-success me-2"></i> 5. สิ่งที่จะได้เรียนรู้ (Outcomes)</h5>
-                            <button type="button" class="btn btn-sm btn-outline-info text-white py-1 px-2" onclick="addDynamicRow('outcomes_list', 'เช่น เขียน REST API ได้อย่างเชี่ยวชาญ','outcomes')">+ เพิ่มข้อใหม่</button>
+                            <button type="button" class="btn btn-sm btn-outline-info text-white py-1 px-2" onclick="addDynamicRow('outcomes_list', 'เช่น เขียน REST API ได้อย่างเชี่ยวชาญ','outcomes[]')">+ เพิ่มข้อใหม่</button>
                         </div>
                         <div id="outcomes_list" class="d-flex flex-column gap-2 mt-2">
-                            <input type="text" class="form-control form-dark-input" value="เข้าใจแนวคิดและหลักการทำงานเบื้องต้นอย่างรายละเอียด" name="outcomes">
+                            <input type="text" class="form-control form-dark-input" value="เข้าใจแนวคิดและหลักการทำงานเบื้องต้นอย่างรายละเอียด" name="outcomes[]">
                         </div>
                     </div>
 
                     <div class="col-12 col-md-6">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <h5 class="fw-bold text-white mb-0"><i class="bi bi-card-list text-warning me-2"></i> 6. ความรู้พื้นฐานที่ต้องมีก่อน (Prerequisites)</h5>
-                            <button type="button" class="btn btn-sm btn-outline-warning text-white py-1 px-2" onclick="addDynamicRow('prereq_list', 'เช่น HTML / CSS และ JavaScript พื้นฐาน','prereq')">+ เพิ่มข้อใหม่</button>
+                            <button type="button" class="btn btn-sm btn-outline-warning text-white py-1 px-2" onclick="addDynamicRow('prereq_list', 'เช่น HTML / CSS และ JavaScript พื้นฐาน','prereq[]')">+ เพิ่มข้อใหม่</button>
                         </div>
                         <div id="prereq_list" class="d-flex flex-column gap-2 mt-2">
-                            <input type="text" class="form-control form-dark-input" value="ไม่มีความรู้พื้นฐานคอมพิวเตอร์ระดับสูงก็สามารถเรียนได้" name="prereq">
+                            <input type="text" class="form-control form-dark-input" value="ไม่มีความรู้พื้นฐานคอมพิวเตอร์ระดับสูงก็สามารถเรียนได้" name="prereq[]">
                         </div>
                     </div>
 
@@ -946,14 +946,27 @@ if (isset($conn)) {
             formData.append('action', 'save');
             formData.append('user_id', '<?= $user_id ?>');
 
-            formData.delete('outcomes');
-            formData.delete('prereq');
+            // 🛠️ ส่งค่าราคาครอบคลุมทุกตัวแปร (รองรับทั้ง pice, price, course_price, sale_price) ป้องกัน DB รับค่า NULL
+            var priceVal = $('#course_price').val() || '0';
+            var salePriceVal = $('#course_sale_price').val() || '0';
 
-            $('input[name="outcomes"]').each(function() {
-                if ($(this).val().trim() !== "") formData.append('outcomes[]', $(this).val());
+            formData.append('pice', priceVal);            // เผื่อ DB ใช้ชื่อคอลัมน์ pice
+            formData.append('price', priceVal);           // ชื่อมาตรฐาน price
+            formData.append('course_price', priceVal);    // ชื่อ input ในฟอร์ม
+            formData.append('sale_price', salePriceVal);   // ชื่อมาตรฐาน sale_price
+            formData.append('course_sale_price', salePriceVal);
+
+            // จัดการข้อมูล Outcomes และ Prereq
+            formData.delete('outcomes');
+            formData.delete('outcomes[]');
+            formData.delete('prereq');
+            formData.delete('prereq[]');
+
+            $('input[name="outcomes"], input[name="outcomes[]"]').each(function() {
+                if ($(this).val().trim() !== "") formData.append('outcomes[]', $(this).val().trim());
             });
-            $('input[name="prereq"]').each(function() {
-                if ($(this).val().trim() !== "") formData.append('prereq[]', $(this).val());
+            $('input[name="prereq"], input[name="prereq[]"]').each(function() {
+                if ($(this).val().trim() !== "") formData.append('prereq[]', $(this).val().trim());
             });
 
             $.ajax({
