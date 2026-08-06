@@ -54,12 +54,12 @@ $dbUser = null;
 // แก้ไข: เอา $userId > 0 ออก เพราะ $userId อาจจะเป็น Email หรือ String Google ID ได้
 if (!empty($userId) && isset($conn)) {
     try {
-        // ดึงข้อมูลจากฐานข้อมูลตาม ID อย่างปลอดภัย (เพิ่ม OR u.email เผื่อไว้กรณี Login ด้วย Email)
+        // ดึงข้อมูลจากฐานข้อมูลตาม ID อย่างปลอดภัย (เพิ่ม OR u.email และ OR u.google_id เผื่อไว้)
         $stmtUser = $conn->prepare("
             SELECT u.*, su.level, su.exp 
             FROM `users` u 
             LEFT JOIN `status_users` su ON u.id = su.user_id 
-            WHERE u.id = :uid OR u.email = :uid
+            WHERE u.id = :uid OR u.email = :uid OR u.google_id = :uid
         ");
         // แก้ไข: Bind Parameter เป็น String (PDO::PARAM_STR) เพื่อให้รองรับค่าที่ยาวเกิน Integer ลิมิตได้
         $stmtUser->bindParam(':uid', $userId, PDO::PARAM_STR);
