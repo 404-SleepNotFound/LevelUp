@@ -335,9 +335,9 @@
     #rocket-cursor-wrapper.idle-stage-2 .rocket-core-aura { opacity: 0.75; animation: auraPulse 2.5s infinite alternate ease-in-out; }
 
     #rocket-cursor-wrapper.idle-stage-3 .rocket-mini-planet { opacity: 1; transform: scale(1.15); animation: idleShimmer 3s infinite ease-in-out; }
-    #rocket-cursor-wrapper.idle-stage-3 .rocket-shield-ring { opacity: 0.95; transform: scale(1); animation: shieldRotate 3s infinite linear; }
-    #rocket-cursor-wrapper.idle-stage-3 .rocket-radar-sweep { opacity: 1; animation: radarSpin 1.2s linear infinite; }
-    #rocket-cursor-wrapper.idle-stage-3 .rocket-core-aura { opacity: 1; animation: auraPulse 1.8s infinite alternate ease-in-out; }
+    #rocket-cursor-wrapper.idle-stage-3 .rocket-shield-ring { opacity: 0.95; transform: scale(1); animation: shieldRotate 3.6s infinite linear; }
+    #rocket-cursor-wrapper.idle-stage-3 .rocket-radar-sweep { opacity: 1; animation: radarSpin 1.6s linear infinite; }
+    #rocket-cursor-wrapper.idle-stage-3 .rocket-core-aura { opacity: 1; animation: auraPulse 2.1s infinite alternate ease-in-out; }
 
     @keyframes planetFloat {
         0%, 100% { transform: translateY(0px) rotate(0deg); }
@@ -848,21 +848,25 @@
                         targetIdleY = Math.sin(idleTime) * 5;
                         idleSway = Math.sin(idleTime * 0.5) * 4;
                     } else {
+                        // Single continuous timer spanning both Stage 2 (charging) and Stage 3 (cruise) —
+                        // nothing resets or jumps when the stage flips, so the whole orbit reads as one motion.
                         stage2Time += 0.035;
+                        var T = stage2Time;
 
-                        var spiralDuration = 2.5;
-                        var spiralProgress = Math.min(stage2Time / spiralDuration, 1);
+                        var growDuration = 3.0;
+                        var growProgress = Math.min(T / growDuration, 1);
+                        var growEase = growProgress * growProgress * (3 - 2 * growProgress);
 
-                        var rEase = spiralProgress * spiralProgress * (3 - 2 * spiralProgress);
-                        var rEaseDerivative = (6 * spiralProgress * (1 - spiralProgress)) / spiralDuration;
+                        var minR = 8;
+                        var maxR = 34;
+                        var baseR = minR + (maxR - minR) * growEase;
+                        var breathe = growProgress >= 1 ? Math.sin(T * 0.6) * 4 : 0;
+                        var currentRadius = baseR + breathe;
 
-                        var omega = 0.8;
-                        var orbTheta = stage2Time * omega;
+                        var dRdt = growProgress < 1 ? (maxR - minR) * ((6 * growProgress * (1 - growProgress)) / growDuration) : 0;
 
-                        var startR = 5;
-                        var endR = 80;
-                        var currentRadius = startR + (endR - startR) * rEase;
-                        var dRdt = (endR - startR) * rEaseDerivative;
+                        var omega = 0.75;
+                        var orbTheta = T * omega;
 
                         targetIdleX = Math.cos(orbTheta) * currentRadius;
                         targetIdleY = Math.sin(orbTheta) * currentRadius;
@@ -875,25 +879,17 @@
                         var shortestAngleDiff = Math.atan2(Math.sin(angleRadDiff), Math.cos(angleRadDiff)) * (180 / Math.PI);
                         targetAngle += shortestAngleDiff * 0.12;
 
-                        var stardustRamp = 0;
-                        if (idleStage === 2) {
-                            stardustRamp = spiralProgress * 0.35;
-                        } else if (idleStage === 3) {
-                            var stage3Time = Math.max(0, idleTime - 4.3);
-                            stardustRamp = 0.35 + 0.65 * Math.min(stage3Time / 2.5, 1.0);
-                        }
+                        // Continuous ramps — no stage-based step, so density rises smoothly across both stages
+                        var stardustRamp = Math.min(T / 6, 1);
+                        var radarChance = 0.15 + 0.35 * Math.min(T / 6, 1);
 
-                        if (idleStage === 2 && Math.random() < 0.3) {
+                        if (Math.random() < radarChance) {
                             createRadarScanPulse(pos.x + targetIdleX, pos.y + targetIdleY, targetAngle);
                         }
 
-                        if (idleStage === 3 && Math.random() < 0.6) {
-                            createRadarScanPulse(pos.x + targetIdleX, pos.y + targetIdleY, targetAngle);
-                        }
-
-                        if (stardustRamp > 0 && Math.random() < 0.2 * stardustRamp) {
+                        if (stardustRamp > 0 && Math.random() < 0.18 * stardustRamp) {
                             var orbRad = Math.random() * Math.PI * 2;
-                            var orbDist = currentRadius + (Math.random() - 0.5) * 12;
+                            var orbDist = currentRadius + (Math.random() - 0.5) * 8;
                             var vibrantColors = idlePalette[themeMode].stardust;
 
                             particles.push({
@@ -901,7 +897,7 @@
                                 y: pos.y + Math.sin(orbRad) * orbDist,
                                 vx: -Math.sin(orbRad) * (Math.random() * 0.4 + 0.1),
                                 vy: Math.cos(orbRad) * (Math.random() * 0.4 + 0.1),
-                                size: Math.random() * 4.0 + 2.5,
+                                size: Math.random() * 2.0 + 2.0,
                                 color: vibrantColors[Math.floor(Math.random() * vibrantColors.length)],
                                 alpha: 0,
                                 targetAlpha: Math.random() * 0.4 + 0.2,
