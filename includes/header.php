@@ -4,8 +4,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// เช็คว่าล็อคอินอยู่หรือไม่ (รองรับทั้งแบบเก็บ user_login และ user_id)
 if (!isset($isLoggedIn)) {
-    $isLoggedIn = isset($_SESSION['user_login']) ? true : false;
+    $isLoggedIn = (isset($_SESSION['user_login']) || isset($_SESSION['user_id']) || isset($_SESSION['id'])) ? true : false;
 }
 
 require_once __DIR__ . '/../config/db.php';
@@ -19,15 +20,78 @@ if (!$isLoggedIn && !in_array($currentPage, $allowedPages)) {
     exit();
 }
 
-// แตกข้อมูลโปรไฟล์ให้ตรงกับโครงสร้างหลัก
-$sessionData = $_SESSION['user_login'] ?? null;
+// 🔄 ระบบดึง ID ผู้ใช้อย่างรัดกุม ป้องกัน Type Error
+$userId = null;
+$sessionData = [];
+
+// 1. ตรวจสอบว่ามีข้อมูลถูกเก็บไว้ใน user_login หรือไม่
+if (isset($_SESSION['user_login'])) {
+    if (is_array($_SESSION['user_login'])) {
+        $sessionData = $_SESSION['user_login'];
+        // ค้นหา ID จาก Array อย่างปลอดภัย
+        $userId = $sessionData['id'] ?? $sessionData['user_id'] ?? null;
+    } elseif (is_object($_SESSION['user_login'])) {
+        $sessionData = (array) $_SESSION['user_login'];
+        $userId = $sessionData['id'] ?? $sessionData['user_id'] ?? null;
+    } elseif (is_scalar($_SESSION['user_login'])) {
+        // ถ้าระบบของคุณเซ็ตค่า id เข้าไปใน user_login ตรงๆ (เช่น = 18)
+        $userId = $_SESSION['user_login'];
+    }
+}
+
+// 2. ถ้ายังไม่ได้ ID ให้ค้นหาจาก Session Root ตัวยอดฮิตเผื่อไว้
+if (empty($userId)) {
+    $userId = $_SESSION['user_id'] ?? $_SESSION['id'] ?? null;
+}
+
+// 3. กรองข้อมูล ID (แก้ไข: ยกเลิกการใช้ intval() เพราะทำให้ Google ID ที่ยาว 21 หลักพัง และทำให้ Email กลายเป็น 0)
+if (!empty($userId)) {
+    // รองรับทั้งตัวเลข Google ID แบบยาวๆ และ Email
+    $userId = trim((string)$userId);
+}
+
+$dbUser = null;
+// แก้ไข: เอา $userId > 0 ออก เพราะ $userId อาจจะเป็น Email หรือ String Google ID ได้
+if (!empty($userId) && isset($conn)) {
+    try {
+        // ดึงข้อมูลจากฐานข้อมูลตาม ID อย่างปลอดภัย (เพิ่ม OR u.email เผื่อไว้กรณี Login ด้วย Email)
+        $stmtUser = $conn->prepare("
+            SELECT u.*, su.level, su.exp 
+            FROM `users` u 
+            LEFT JOIN `status_users` su ON u.id = su.user_id 
+            WHERE u.id = :uid OR u.email = :uid
+        ");
+        // แก้ไข: Bind Parameter เป็น String (PDO::PARAM_STR) เพื่อให้รองรับค่าที่ยาวเกิน Integer ลิมิตได้
+        $stmtUser->bindParam(':uid', $userId, PDO::PARAM_STR);
+        $stmtUser->execute();
+        
+        $result = $stmtUser->fetch(PDO::FETCH_ASSOC);
+        if ($result) {
+            $dbUser = $result;
+        }
+    } catch (PDOException $e) {
+        // หากต้องการ Debug ให้เปิด Comment บรรทัดด้านล่าง
+        // error_log("PDO Error in header.php: " . $e->getMessage());
+    }
+}
+
+// แมปข้อมูลให้ตรงกับคอลัมน์จริงในตาราง users และ status_users (มี Fallback ครบถ้วน)
+// ให้ความสำคัญกับ $dbUser เป็นอันดับแรก เพราะคือข้อมูลจริงล่าสุดจากฐานข้อมูล
 $navUser = [
-    'user_id'  => $sessionData['user_id'] ?? ($_SESSION['user_id'] ?? 'N'),
-    'username' => $sessionData['name'] ?? ($_SESSION['name'] ?? 'Player One'),
-    'avatar'   => $sessionData['img'] ?? ($_SESSION['img'] ?? 'https://ui-avatars.com/api/?name=Player+One'),
-    'level'    => $sessionData['level'] ?? ($_SESSION['level'] ?? ($_SESSION['level'] ?? 'N')),
-    'streak'   => $sessionData['streak'] ?? ($_SESSION['login_streak'] ?? ($_SESSION['streak'] ?? 'N')),
-    'exp'      => $sessionData['user_exp'] ?? ($_SESSION['user_exp'] ?? ($_SESSION['user_exp'] ?? '0'))
+    'user_id'   => $dbUser['id'] ?? ($userId ?? 'N'),
+    'username'  => $dbUser['name'] ?? ($sessionData['name'] ?? ($_SESSION['name'] ?? 'Player One')),
+    'email'     => $dbUser['email'] ?? ($sessionData['email'] ?? ($_SESSION['email'] ?? '')),
+    'user_role' => $dbUser['user_role'] ?? ($sessionData['user_role'] ?? ($_SESSION['user_role'] ?? 'student')),
+    'avatar'    => !empty($dbUser['img']) 
+                    ? $dbUser['img'] 
+                    : (!empty($sessionData['img']) 
+                        ? $sessionData['img'] 
+                        : (!empty($_SESSION['img']) 
+                            ? $_SESSION['img'] 
+                            : 'https://ui-avatars.com/api/?name=' . urlencode($dbUser['name'] ?? ($sessionData['name'] ?? ($_SESSION['name'] ?? 'Player One'))))),
+    'level'     => $dbUser['level'] ?? ($sessionData['level'] ?? ($_SESSION['level'] ?? '1')),
+    'streak'    => $sessionData['streak'] ?? ($_SESSION['login_streak'] ?? ($_SESSION['streak'] ?? '0')),
+    'exp'       => $dbUser['exp'] ?? ($sessionData['exp'] ?? ($_SESSION['user_exp'] ?? '0'))
 ];
 
 $category_data = [];

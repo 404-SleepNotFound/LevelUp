@@ -1,9 +1,10 @@
 <?php
 /**
- * LevelUp Rocket Cursor Component v3.6 (Redesigned Proportional Sci-Fi Edition)
+ * LevelUp Rocket Cursor Component v3.6 (Pro Sci-Fi Orbital Edition)
  * - Complete Redesign: Aerodynamic vector model with balanced proportions & sleek lighting.
  * - Calibrated Hotspot: Mouse click origin aligned perfectly to rocket nose tip.
- * - Dynamic Plasma Flame, Radar Scan, Gravitational Orbit & Particle Trail effect.
+ * - Instant Idle-Particle Purge: Instant wipe of all orbital particles when mouse moves.
+ * - Max Orbit Radius: 80px radius in Idle Stage 2 & 3.
  * Usage in PHP: <?php include 'rocket-cursor.php'; ?>
  */
 ?>
@@ -145,7 +146,6 @@
 
 <style>
     /* 0. THEME VARIABLES — auto (prefers-color-scheme) + manual override support */
-    /* Manual override: add class "dark"/"light" or attribute data-theme="dark|light" to <html> */
     :root {
         --rocket-cyan-rgb: 56, 189, 248;
         --rocket-indigo-rgb: 99, 102, 241;
@@ -235,7 +235,7 @@
         opacity: 0;
         pointer-events: none;
         transform: scale(0.3);
-        transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1), transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        transition: opacity 0.25s ease-out, transform 0.25s ease-out;
         filter: drop-shadow(0 2px 10px rgba(15, 23, 42, 0.4)) drop-shadow(0 0 10px rgba(var(--rocket-cyan-rgb), 0.8));
     }
 
@@ -260,7 +260,7 @@
         opacity: 0;
         pointer-events: none;
         transform: scale(0.5) rotate(0deg);
-        transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+        transition: opacity 0.25s ease-out, transform 0.25s ease-out;
         box-shadow: 0 0 12px rgba(var(--rocket-indigo-rgb), 0.35), 0 0 9px rgba(var(--rocket-halo-rgb), var(--rocket-halo-alpha));
     }
 
@@ -278,7 +278,7 @@
         background: conic-gradient(from 0deg, rgba(var(--rocket-cyan-rgb), 0.55) 0deg, rgba(var(--rocket-cyan-rgb), 0) 55deg, transparent 360deg);
         -webkit-mask-image: radial-gradient(circle, transparent 54%, black 56%, black 100%);
         mask-image: radial-gradient(circle, transparent 54%, black 56%, black 100%);
-        transition: opacity 0.5s ease;
+        transition: opacity 0.2s ease-out;
     }
 
     .rocket-core-aura {
@@ -295,7 +295,7 @@
         opacity: 0;
         pointer-events: none;
         transform: scale(0.5);
-        transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+        transition: opacity 0.25s ease-out, transform 0.25s ease-out;
     }
 
     .rocket-shockwave-ring {
@@ -335,9 +335,9 @@
     #rocket-cursor-wrapper.idle-stage-2 .rocket-core-aura { opacity: 0.75; animation: auraPulse 2.5s infinite alternate ease-in-out; }
 
     #rocket-cursor-wrapper.idle-stage-3 .rocket-mini-planet { opacity: 1; transform: scale(1.15); animation: idleShimmer 3s infinite ease-in-out; }
-    #rocket-cursor-wrapper.idle-stage-3 .rocket-shield-ring { opacity: 0.95; transform: scale(1); animation: shieldRotate 3s infinite linear; }
-    #rocket-cursor-wrapper.idle-stage-3 .rocket-radar-sweep { opacity: 1; animation: radarSpin 1.2s linear infinite; }
-    #rocket-cursor-wrapper.idle-stage-3 .rocket-core-aura { opacity: 1; animation: auraPulse 1.8s infinite alternate ease-in-out; }
+    #rocket-cursor-wrapper.idle-stage-3 .rocket-shield-ring { opacity: 0.95; transform: scale(1); animation: shieldRotate 3.6s infinite linear; }
+    #rocket-cursor-wrapper.idle-stage-3 .rocket-radar-sweep { opacity: 1; animation: radarSpin 1.6s linear infinite; }
+    #rocket-cursor-wrapper.idle-stage-3 .rocket-core-aura { opacity: 1; animation: auraPulse 2.1s infinite alternate ease-in-out; }
 
     @keyframes planetFloat {
         0%, 100% { transform: translateY(0px) rotate(0deg); }
@@ -475,7 +475,7 @@
         animation-duration: 0.08s;
     }
 
-    /* Movement Thrust State (bigger, brighter flame while dragging) */
+    /* Movement Thrust State */
     #rocket-cursor-main.is-moving .rocket-flame-core {
         transform: scaleY(1.7) scaleX(1.3) !important;
         filter: drop-shadow(0 0 12px rgba(250, 204, 21, 1)) drop-shadow(0 0 20px rgba(249, 115, 22, 0.95)) !important;
@@ -489,7 +489,7 @@
         transform: scale(1.4);
     }
 
-    /* Click Active State (body recoil + plasma flare combo) */
+    /* Click Active State */
     #rocket-cursor-main.is-clicking {
         transform: scale(0.9) rotate(-10deg);
     }
@@ -519,6 +519,7 @@
 (function() {
     'use strict';
 
+    // Disable execution on touch/coarse pointer devices
     if (window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches) {
         return;
     }
@@ -594,8 +595,6 @@
         var currentIdleOffsetX = 0;
         var currentIdleOffsetY = 0;
 
-        // Theme-aware idle particle palette: auto-detects light/dark via prefers-color-scheme,
-        // and respects a manual override (html.dark / html.light / html[data-theme]) if the host page sets one.
         function getThemeMode() {
             var root = document.documentElement;
             if (root.classList.contains('dark') || root.getAttribute('data-theme') === 'dark') return 'dark';
@@ -618,18 +617,29 @@
 
         var idlePalette = {
             dark: {
-                radar: ['#38BDF8', '#818CF8'],
-                pulse: ['#38BDF8', '#A855F7'],
+                radar: ['#00F0FF', '#A855F7'],
+                pulse: ['#00F0FF', '#FF007F'],
                 stardust: ['#00F0FF', '#E0E7FF', '#FFD700', '#F472B6', '#A78BFA', '#34D399', '#38BDF8']
             },
             light: {
                 radar: ['#0369A1', '#4338CA'],
-                pulse: ['#0369A1', '#7E22CE'],
+                pulse: ['#0369A1', '#BE185D'],
                 stardust: ['#0891B2', '#4338CA', '#B45309', '#BE185D', '#6D28D9', '#047857', '#0369A1']
             }
         };
 
+        // ลบ Particle ทั้งหมดที่เกิดขึ้นในสถานะอยู่นิ่ง (Idle Particles) ทันทีที่ขยับเมาส์
+        function purgeIdleParticles() {
+            if (particles.length > 0) {
+                particles = particles.filter(function(p) {
+                    return !p.isIdle;
+                });
+            }
+        }
+
         function resetIdleTimer() {
+            purgeIdleParticles();
+
             idleStage = 0;
             idleTime = 0;
             stage2Time = 0;
@@ -657,7 +667,7 @@
                 void wrapper.offsetWidth;
                 wrapper.classList.add('trigger-shockwave');
 
-                createGravitationalPulse(pos.x, pos.y);
+                createGravitationalPulse(pos.x, pos.y, true);
             }, 3000);
 
             idleTimerStage3 = setTimeout(function() {
@@ -701,6 +711,7 @@
         document.addEventListener('mouseleave', function() {
             wrapper.style.opacity = '0';
             canvas.style.opacity = '0';
+            purgeIdleParticles();
         });
 
         document.addEventListener('mouseenter', function(e) {
@@ -716,53 +727,36 @@
             void wrapper.offsetWidth;
             wrapper.classList.add('trigger-shockwave');
 
-            if (isInitialized) {
-                createBurstSparks(pos.x + currentIdleOffsetX, pos.y + currentIdleOffsetY, targetAngle, 40);
-                createGravitationalPulse(pos.x + currentIdleOffsetX, pos.y + currentIdleOffsetY);
-            }
+            createBurstSparks(pos.x, pos.y, angle, 16);
         });
 
         window.addEventListener('mouseup', function() {
             rocket.classList.remove('is-clicking');
         });
 
-        var interactiveSelector = 'a, button, input, select, textarea, [role="button"], .btn, .card, .glass-card, .accordion-button';
-
-        document.addEventListener('mouseover', function(e) {
-            if (e.target && e.target.closest(interactiveSelector)) {
-                isHovered = true;
-                rocket.classList.add('is-hovering');
-            }
-        }, { passive: true });
-
-        document.addEventListener('mouseout', function(e) {
-            if (e.target && e.target.closest(interactiveSelector)) {
-                isHovered = false;
-                rocket.classList.remove('is-hovering');
-            }
-        }, { passive: true });
-
-        function getEngineNozzlePos(centerX, centerY, currentAngleDeg) {
-            var rad = (currentAngleDeg - 90) * (Math.PI / 180);
-            var nozzleDist = 28;
+        // Compute real-time engine nozzle output coordinates based on rocket angle and tip origin
+        function getEngineNozzlePos(px, py, angleDeg) {
+            var rad = (angleDeg - 90) * (Math.PI / 180);
+            var dist = 28; // Distance from nose tip to engine thruster nozzle
             return {
-                x: centerX - Math.cos(rad) * nozzleDist,
-                y: centerY - Math.sin(rad) * nozzleDist
+                x: px - Math.cos(rad) * dist,
+                y: py - Math.sin(rad) * dist
             };
         }
 
-        function createThrusterParticle(x, y, vx, vy, isHoveredState) {
+        function createThrusterParticle(x, y, vx, vy, isHoveredState, isIdle) {
             particles.push({
                 x: x,
                 y: y,
-                vx: vx + (Math.random() - 0.5) * 1.2,
-                vy: vy + (Math.random() - 0.5) * 1.2,
-                size: isHoveredState ? Math.random() * 3.6 + 2.0 : Math.random() * 3.0 + 1.6,
+                vx: vx + (Math.random() - 0.5) * 1.5,
+                vy: vy + (Math.random() - 0.5) * 1.5,
+                size: isHoveredState ? Math.random() * 6.0 + 4.0 : Math.random() * 5.0 + 3.5,
                 color: isHoveredState ?
-                    (Math.random() > 0.4 ? '#38BDF8' : '#6366F1') :
-                    (Math.random() > 0.5 ? '#F59E0B' : '#EF4444'),
+                    (Math.random() > 0.4 ? '#00F0FF' : '#A855F7') :
+                    (Math.random() > 0.5 ? '#FFE600' : '#FF0055'),
                 alpha: 1.0,
-                decay: Math.random() * 0.025 + 0.015
+                decay: Math.random() * 0.03 + 0.018,
+                isIdle: !!isIdle
             });
         }
 
@@ -770,21 +764,22 @@
             var nozzle = getEngineNozzlePos(centerX, centerY, currentAngleDeg);
             for (var i = 0; i < count; i++) {
                 var pAngle = Math.random() * Math.PI * 2;
-                var speed = Math.random() * 6 + 2.5;
+                var speed = Math.random() * 7.5 + 2.5;
                 particles.push({
                     x: nozzle.x,
                     y: nozzle.y,
                     vx: Math.cos(pAngle) * speed,
                     vy: Math.sin(pAngle) * speed,
-                    size: Math.random() * 4 + 1.8,
-                    color: i % 2 === 0 ? '#38BDF8' : '#FDE047',
+                    size: Math.random() * 7.0 + 4.5,
+                    color: i % 3 === 0 ? '#00F0FF' : (i % 3 === 1 ? '#FFE600' : '#FF0055'),
                     alpha: 1.0,
-                    decay: Math.random() * 0.035 + 0.02
+                    decay: Math.random() * 0.03 + 0.015,
+                    isIdle: false
                 });
             }
         }
 
-        function createRadarScanPulse(px, py, angleDeg) {
+        function createRadarScanPulse(px, py, angleDeg, isIdle) {
             var nozzle = getEngineNozzlePos(px, py, angleDeg);
             var rad = (angleDeg + 90 + (Math.random() - 0.5) * 60) * (Math.PI / 180);
             var speed = Math.random() * 1.2 + 0.4;
@@ -794,29 +789,47 @@
                 y: nozzle.y + Math.sin(rad) * 4,
                 vx: Math.cos(rad) * speed,
                 vy: Math.sin(rad) * speed,
-                size: Math.random() * 1.8 + 0.8,
+                size: Math.random() * 4.0 + 2.5,
                 color: Math.random() > 0.4 ? idlePalette[themeMode].radar[0] : idlePalette[themeMode].radar[1],
-                alpha: 0.7,
-                decay: 0.035
+                alpha: 0.85,
+                decay: 0.03,
+                isIdle: !!isIdle
             });
         }
 
-        function createGravitationalPulse(x, y) {
-            for (var i = 0; i < 28; i++) {
-                var pAngle = (i / 28) * Math.PI * 2;
-                var speed = Math.random() * 3.6 + 1.6;
+        function createGravitationalPulse(x, y, isIdle) {
+            for (var i = 0; i < 24; i++) {
+                var pAngle = (i / 24) * Math.PI * 2;
+                var speed = Math.random() * 2.5 + 1.2;
                 particles.push({
                     x: x,
                     y: y,
                     vx: Math.cos(pAngle) * speed,
                     vy: Math.sin(pAngle) * speed,
-                    size: Math.random() * 3.2 + 1.4,
+                    size: Math.random() * 5.0 + 2.8,
                     color: i % 2 === 0 ? idlePalette[themeMode].pulse[0] : idlePalette[themeMode].pulse[1],
                     alpha: 1.0,
-                    decay: 0.022
+                    decay: 0.024,
+                    isIdle: !!isIdle
                 });
             }
         }
+
+        // Bind interactive elements hover state
+        function bindHoverTargets() {
+            var targets = document.querySelectorAll('a, button, input, select, textarea, [role="button"], .hoverable');
+            targets.forEach(function(el) {
+                el.addEventListener('mouseenter', function() {
+                    isHovered = true;
+                    rocket.classList.add('is-hovering');
+                });
+                el.addEventListener('mouseleave', function() {
+                    isHovered = false;
+                    rocket.classList.remove('is-hovering');
+                });
+            });
+        }
+        bindHoverTargets();
 
         function render() {
             if (isInitialized) {
@@ -827,6 +840,11 @@
                 var dx = pos.x - lastPos.x;
                 var dy = pos.y - lastPos.y;
                 var speed = Math.sqrt(dx * dx + dy * dy);
+
+                // หากเมาส์เคลื่อนที่เร็วเกินกว่า閾ֵ (Speed > 0.4) ให้ลบ Idle particles ทันที
+                if (speed > 0.4) {
+                    purgeIdleParticles();
+                }
 
                 if (speed > 0.4) {
                     targetAngle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
@@ -849,20 +867,23 @@
                         idleSway = Math.sin(idleTime * 0.5) * 4;
                     } else {
                         stage2Time += 0.035;
+                        var T = stage2Time;
 
-                        var spiralDuration = 2.5;
-                        var spiralProgress = Math.min(stage2Time / spiralDuration, 1);
+                        var growDuration = 3.0;
+                        var growProgress = Math.min(T / growDuration, 1);
+                        var growEase = growProgress * growProgress * (3 - 2 * growProgress);
 
-                        var rEase = spiralProgress * spiralProgress * (3 - 2 * spiralProgress);
-                        var rEaseDerivative = (6 * spiralProgress * (1 - spiralProgress)) / spiralDuration;
+                        // Max orbit radius 80px
+                        var minR = 15;
+                        var maxR = 80;
+                        var baseR = minR + (maxR - minR) * growEase;
+                        var breathe = growProgress >= 1 ? Math.sin(T * 0.6) * 4 : 0;
+                        var currentRadius = baseR + breathe;
 
-                        var omega = 0.8;
-                        var orbTheta = stage2Time * omega;
+                        var dRdt = growProgress < 1 ? (maxR - minR) * ((6 * growProgress * (1 - growProgress)) / growDuration) : 0;
 
-                        var startR = 5;
-                        var endR = 80;
-                        var currentRadius = startR + (endR - startR) * rEase;
-                        var dRdt = (endR - startR) * rEaseDerivative;
+                        var omega = 0.75;
+                        var orbTheta = T * omega;
 
                         targetIdleX = Math.cos(orbTheta) * currentRadius;
                         targetIdleY = Math.sin(orbTheta) * currentRadius;
@@ -875,38 +896,33 @@
                         var shortestAngleDiff = Math.atan2(Math.sin(angleRadDiff), Math.cos(angleRadDiff)) * (180 / Math.PI);
                         targetAngle += shortestAngleDiff * 0.12;
 
-                        var stardustRamp = 0;
-                        if (idleStage === 2) {
-                            stardustRamp = spiralProgress * 0.35;
-                        } else if (idleStage === 3) {
-                            var stage3Time = Math.max(0, idleTime - 4.3);
-                            stardustRamp = 0.35 + 0.65 * Math.min(stage3Time / 2.5, 1.0);
+                        var stardustRamp = Math.min(T / 6, 1);
+                        var radarChance = 0.15 + 0.35 * Math.min(T / 6, 1);
+
+                        if (Math.random() < radarChance) {
+                            createRadarScanPulse(pos.x + targetIdleX, pos.y + targetIdleY, targetAngle, true);
                         }
 
-                        if (idleStage === 2 && Math.random() < 0.3) {
-                            createRadarScanPulse(pos.x + targetIdleX, pos.y + targetIdleY, targetAngle);
-                        }
-
-                        if (idleStage === 3 && Math.random() < 0.6) {
-                            createRadarScanPulse(pos.x + targetIdleX, pos.y + targetIdleY, targetAngle);
-                        }
-
-                        if (stardustRamp > 0 && Math.random() < 0.2 * stardustRamp) {
+                        // Stardust creation during deep orbit
+                        if (stardustRamp > 0 && Math.random() < 0.22 * stardustRamp) {
                             var orbRad = Math.random() * Math.PI * 2;
-                            var orbDist = currentRadius + (Math.random() - 0.5) * 12;
+                            var orbDist = currentRadius + (Math.random() - 0.5) * 6;
                             var vibrantColors = idlePalette[themeMode].stardust;
+                            var floatSpeed = Math.random() * 0.5 + 0.2;
 
                             particles.push({
                                 x: pos.x + Math.cos(orbRad) * orbDist,
                                 y: pos.y + Math.sin(orbRad) * orbDist,
-                                vx: -Math.sin(orbRad) * (Math.random() * 0.4 + 0.1),
-                                vy: Math.cos(orbRad) * (Math.random() * 0.4 + 0.1),
-                                size: Math.random() * 2.0 + 1.2,
+                                vx: -Math.sin(orbRad) * floatSpeed,
+                                vy: Math.cos(orbRad) * floatSpeed,
+                                damping: 0.985,
+                                size: Math.random() * 4.5 + 5.0, // 5.0 - 9.5px size
                                 color: vibrantColors[Math.floor(Math.random() * vibrantColors.length)],
                                 alpha: 0,
-                                targetAlpha: Math.random() * 0.4 + 0.2,
+                                targetAlpha: Math.random() * 0.45 + 0.3,
                                 fadeIn: Math.random() * 0.04 + 0.02,
-                                decay: Math.random() * 0.025 + 0.015
+                                decay: Math.random() * 0.016 + 0.01,
+                                isIdle: true
                             });
                         }
                     }
@@ -915,11 +931,11 @@
                         var renderAngleNow = angle + idleSway;
                         var idleNozzle = getEngineNozzlePos(pos.x + currentIdleOffsetX, pos.y + currentIdleOffsetY, renderAngleNow);
                         var idleRad = (renderAngleNow - 90) * (Math.PI / 180);
-                        createThrusterParticle(idleNozzle.x, idleNozzle.y, -Math.cos(idleRad) * 0.8, -Math.sin(idleRad) * 0.8, false);
+                        createThrusterParticle(idleNozzle.x, idleNozzle.y, -Math.cos(idleRad) * 0.8, -Math.sin(idleRad) * 0.8, false, true);
                     }
                 }
 
-                var idleLerp = 0.15;
+                var idleLerp = idleStage > 0 ? 0.15 : 0.12;
                 currentIdleOffsetX += (targetIdleX - currentIdleOffsetX) * idleLerp;
                 currentIdleOffsetY += (targetIdleY - currentIdleOffsetY) * idleLerp;
 
@@ -935,14 +951,13 @@
                     var backVx = -Math.cos(rad) * (speed * 0.5 + 1.8);
                     var backVy = -Math.sin(rad) * (speed * 0.5 + 1.8);
 
-                    createThrusterParticle(mainNozzle.x, mainNozzle.y, backVx, backVy, isHovered);
-                    createThrusterParticle(mainNozzle.x, mainNozzle.y, backVx, backVy, isHovered);
+                    createThrusterParticle(mainNozzle.x, mainNozzle.y, backVx, backVy, isHovered, false);
                 } else {
                     rocket.classList.remove('is-moving');
                 }
 
-                // Enforce max active particle buffer cap
-                while (particles.length > 180) {
+                // Enforce active particle limit
+                while (particles.length > 120) {
                     particles.shift();
                 }
 
@@ -950,8 +965,24 @@
 
                 for (var i = particles.length - 1; i >= 0; i--) {
                     var p = particles[i];
+
+                    // Double safeguard: omit drawing idle particles if mouse speed active
+                    if (p.isIdle && speed > 0.4) {
+                        particles.splice(i, 1);
+                        continue;
+                    }
+
                     p.x += p.vx;
                     p.y += p.vy;
+
+                    var dampFactor = p.damping || 0.93;
+                    p.vx *= dampFactor;
+                    p.vy *= dampFactor;
+
+                    if (p.damping) {
+                        p.vx += (Math.random() - 0.5) * 0.04;
+                        p.vy += (Math.random() - 0.5) * 0.04;
+                    }
 
                     if (p.fadeIn && p.alpha < p.targetAlpha) {
                         p.alpha += p.fadeIn;
@@ -966,9 +997,10 @@
 
                     ctx.save();
                     ctx.globalCompositeOperation = 'lighter';
-                    ctx.globalAlpha = Math.max(0, p.alpha);
+                    var smoothAlpha = Math.pow(Math.max(0, p.alpha), 1.4);
+                    ctx.globalAlpha = smoothAlpha;
 
-                    var radGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 1.5);
+                    var radGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
                     radGrad.addColorStop(0, p.color);
                     radGrad.addColorStop(0.5, p.color);
                     radGrad.addColorStop(1, 'transparent');

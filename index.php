@@ -522,7 +522,8 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                 <?php endif; ?>
 
                 <div class="search-box-wrapper glass-card p-2 mx-auto mx-lg-0" style="max-width: 550px;">
-                    <form action="<?= $ROOT_PATH; ?>student/courses.php" method="GET" id="ajax-search-form" class="d-flex">
+                    <!-- แก้ไข URL ของ form ป้องกันคนค้นหาแล้วไปหน้า student/courses.php ตอนยังไม่ login -->
+                    <form action="<?= $isLoggedIn ? $ROOT_PATH . 'student/courses.php' : $ROOT_PATH . 'auth/login.php' ?>" method="GET" id="ajax-search-form" class="d-flex">
                         <div class="input-group align-items-center">
                             <span class="input-group-text bg-transparent border-0 ps-3 text-adaptive-muted"><i class="bi bi-search"></i></span>
                             <input type="text" class="form-control border-0 shadow-none py-3 bg-transparent fs-sm custom-search-input" name="q" placeholder="ค้นหาบทเรียน, คอร์ส หรือสกิลเทคโนโลยี..." autocomplete="off">
@@ -559,7 +560,8 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                 <h6 class="ai-text-gradient text-uppercase fw-bold mb-1 fs-xs" style="letter-spacing: 1px;">Skill Trees</h6>
                 <h2 class="fw-bold text-adaptive-main mb-0 fs-3" style="font-family: 'Outfit', sans-serif;">เลือกคอร์สตามเป้าหมายสกิล</h2>
             </div>
-            <a href="<?= $ROOT_PATH; ?>student/courses.php" class="btn btn-outline-light ajax-link btn-sm rounded-pill px-3 fs-xs fw-bold">
+            <!-- แก้ไขลิงก์ "ดูหมวดหมู่ทั้งหมด" -->
+            <a href="<?= $isLoggedIn ? $ROOT_PATH . 'student/courses.php' : $ROOT_PATH . 'auth/login.php' ?>" class="btn btn-outline-light ajax-link btn-sm rounded-pill px-3 fs-xs fw-bold">
                 ดูหมวดหมู่ทั้งหมด <i class="bi bi-arrow-right ms-1"></i>
             </a>
         </div>
@@ -581,7 +583,8 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 
             <?php foreach ($rendered_categories as $cat): ?>
                 <div class="col category-col-item">
-                    <a href="<?= $ROOT_PATH; ?>student/courses.php?category=<?= urlencode($cat['name']) ?>" class="card glass-card category-card-compact ajax-link text-decoration-none p-3 h-100 d-flex flex-row align-items-center gap-3">
+                    <!-- แก้ไขลิงก์ "หมวดหมู่ย่อย" -->
+                    <a href="<?= $isLoggedIn ? $ROOT_PATH . 'student/courses.php?category=' . urlencode($cat['name']) : $ROOT_PATH . 'auth/login.php' ?>" class="card glass-card category-card-compact ajax-link text-decoration-none p-3 h-100 d-flex flex-row align-items-center gap-3">
                         <div class="icon-box-sm rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(99, 102, 241, 0.1); color: <?= htmlspecialchars($cat['color'] ?? '#6366F1') ?>; border: 1px solid var(--border-color);">
                             <i class="bi <?= htmlspecialchars($cat['icon'] ?? 'bi-journal') ?> fs-5"></i>
                         </div>
@@ -604,7 +607,8 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
                 <h6 class="ai-text-gradient text-uppercase fw-bold mb-2 fs-xs" style="letter-spacing: 1px;">Trending Quests</h6>
                 <h2 class="fw-bold text-adaptive-main mb-0" style="font-family: 'Outfit', sans-serif;">คอร์สเรียนยอดนิยมสัปดาห์นี้</h2>
             </div>
-            <a href="<?= $ROOT_PATH; ?>student/courses.php" class="btn btn-outline-secondary ajax-link btn-sm rounded-pill px-3 fs-xs">ดูทั้งหมด</a>
+            <!-- แก้ไขลิงก์ "ดูทั้งหมด" -->
+            <a href="<?= $isLoggedIn ? $ROOT_PATH . 'student/courses.php' : $ROOT_PATH . 'auth/login.php' ?>" class="btn btn-outline-secondary ajax-link btn-sm rounded-pill px-3 fs-xs">ดูทั้งหมด</a>
         </div>
 
         <div class="row g-4">
