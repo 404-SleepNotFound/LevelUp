@@ -126,7 +126,8 @@ if ($result) {
 
 // ตรวจสอบว่าเป็นการเรียกผ่าน AJAX (jQuery) หรือไม่
 $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
-
+echo $userId;
+exit;
 if (!$isAjax):
 ?>
     <!DOCTYPE html>
