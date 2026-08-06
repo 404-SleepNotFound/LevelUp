@@ -853,9 +853,9 @@
                         var growProgress = Math.min(T / growDuration, 1);
                         var growEase = growProgress * growProgress * (3 - 2 * growProgress);
 
-                        // Balanced orbit radius: min 10px, max 52px (controlled and compact)
-                        var minR = 10;
-                        var maxR = 52;
+                        // Balanced orbit radius: min 12px, max 80px (expanded orbit)
+                        var minR = 12;
+                        var maxR = 80;
                         var baseR = minR + (maxR - minR) * growEase;
                         var breathe = growProgress >= 1 ? Math.sin(T * 0.6) * 4 : 0;
                         var currentRadius = baseR + breathe;
@@ -881,25 +881,25 @@
 
                         if (Math.random() < radarChance) {
                             createRadarScanPulse(pos.x + targetIdleX, pos.y + targetIdleY, targetAngle);
-                        }
-
-                        // Prominent particle size (5.0 - 9.5px) with tight velocity dispersion
+                        // Prominent particle size with smooth organic drift velocity
                         if (stardustRamp > 0 && Math.random() < 0.22 * stardustRamp) {
                             var orbRad = Math.random() * Math.PI * 2;
                             var orbDist = currentRadius + (Math.random() - 0.5) * 6;
                             var vibrantColors = idlePalette[themeMode].stardust;
+                            var floatSpeed = Math.random() * 0.5 + 0.2;
 
                             particles.push({
                                 x: pos.x + Math.cos(orbRad) * orbDist,
                                 y: pos.y + Math.sin(orbRad) * orbDist,
-                                vx: -Math.sin(orbRad) * (Math.random() * 0.25 + 0.08),
-                                vy: Math.cos(orbRad) * (Math.random() * 0.25 + 0.08),
-                                size: Math.random() * 4.5 + 5.0, // Prominent size: 5.0 - 9.5px
+                                vx: -Math.sin(orbRad) * floatSpeed,
+                                vy: Math.cos(orbRad) * floatSpeed,
+                                damping: 0.985, // Gentle momentum glide without abrupt freezing
+                                size: Math.random() * 4.0 + 4.5, // Refined particle size for 80px radius
                                 color: vibrantColors[Math.floor(Math.random() * vibrantColors.length)],
                                 alpha: 0,
                                 targetAlpha: Math.random() * 0.45 + 0.3,
-                                fadeIn: Math.random() * 0.05 + 0.02,
-                                decay: Math.random() * 0.02 + 0.012
+                                fadeIn: Math.random() * 0.04 + 0.02,
+                                decay: Math.random() * 0.016 + 0.01
                             });
                         }
                     }
@@ -944,8 +944,17 @@
                     var p = particles[i];
                     p.x += p.vx;
                     p.y += p.vy;
-                    p.vx *= 0.93;
-                    p.vy *= 0.93;
+
+                    // Apply smooth dynamic momentum reduction
+                    var dampFactor = p.damping || 0.93;
+                    p.vx *= dampFactor;
+                    p.vy *= dampFactor;
+
+                    // Controlled micro-drift so particles keep moving softly instead of freezing completely
+                    if (p.damping) {
+                        p.vx += (Math.random() - 0.5) * 0.04;
+                        p.vy += (Math.random() - 0.5) * 0.04;
+                    }
 
                     if (p.fadeIn && p.alpha < p.targetAlpha) {
                         p.alpha += p.fadeIn;
