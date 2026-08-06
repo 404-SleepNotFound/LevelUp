@@ -297,65 +297,6 @@
         transition: opacity 0.4s ease-out, transform 0.4s ease-out;
     }
 
-    .planet-svg {
-        width: 100%;
-        height: 100%;
-        animation: planetFloat 4s infinite ease-in-out;
-    }
-
-    .rocket-shield-ring {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 64px;
-        height: 64px;
-        margin-top: -32px;
-        margin-left: -32px;
-        border: 1.5px solid rgba(var(--rocket-indigo-rgb), 0.75);
-        border-top: 2px solid rgba(var(--rocket-cyan-rgb), 0.95);
-        border-bottom: 2px solid rgba(var(--rocket-purple-rgb), 0.95);
-        border-radius: 50%;
-        opacity: 0;
-        pointer-events: none;
-        transform: scale(0.5) rotate(0deg);
-        transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
-        box-shadow: 0 0 12px rgba(var(--rocket-indigo-rgb), 0.35), 0 0 9px rgba(var(--rocket-halo-rgb), var(--rocket-halo-alpha));
-    }
-
-    .rocket-radar-sweep {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 70px;
-        height: 70px;
-        margin-top: -35px;
-        margin-left: -35px;
-        border-radius: 50%;
-        opacity: 0;
-        pointer-events: none;
-        background: conic-gradient(from 0deg, rgba(var(--rocket-cyan-rgb), 0.55) 0deg, rgba(var(--rocket-cyan-rgb), 0) 55deg, transparent 360deg);
-        -webkit-mask-image: radial-gradient(circle, transparent 54%, black 56%, black 100%);
-        mask-image: radial-gradient(circle, transparent 54%, black 56%, black 100%);
-        transition: opacity 0.5s ease;
-    }
-
-    .rocket-core-aura {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 56px;
-        height: 56px;
-        margin-top: -28px;
-        margin-left: -28px;
-        background: radial-gradient(circle, rgba(var(--rocket-indigo-rgb), 0.45) 0%, rgba(var(--rocket-purple-rgb), 0.2) 50%, rgba(0, 0, 0, 0) 75%);
-        border-radius: 50%;
-        filter: blur(5px);
-        opacity: 0;
-        pointer-events: none;
-        transform: scale(0.5);
-        transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
-    }
-
     .rocket-shockwave-ring {
         position: absolute;
         top: 0;
@@ -978,6 +919,8 @@
                         var idleRad = (renderAngleNow - 90) * (Math.PI / 180);
                         createThrusterParticle(idleNozzle.x, idleNozzle.y, -Math.cos(idleRad) * 0.8, -Math.sin(idleRad) * 0.8, false);
                     }
+                }
+
                 var idleLerp = idleStage > 0 ? 0.15 : 0.08; // Smooth transition back to center on mouse movement
                 currentIdleOffsetX += (targetIdleX - currentIdleOffsetX) * idleLerp;
                 currentIdleOffsetY += (targetIdleY - currentIdleOffsetY) * idleLerp;
