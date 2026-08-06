@@ -757,7 +757,7 @@
                 y: y,
                 vx: vx + (Math.random() - 0.5) * 1.5,
                 vy: vy + (Math.random() - 0.5) * 1.5,
-                size: isHoveredState ? Math.random() * 3.8 + 2.0 : Math.random() * 3.0 + 1.6,
+                size: isHoveredState ? Math.random() * 6.0 + 4.0 : Math.random() * 5.0 + 3.5,
                 color: isHoveredState ?
                     (Math.random() > 0.4 ? '#00F0FF' : '#A855F7') :
                     (Math.random() > 0.5 ? '#FFE600' : '#FF0055'),
@@ -776,7 +776,7 @@
                     y: nozzle.y,
                     vx: Math.cos(pAngle) * speed,
                     vy: Math.sin(pAngle) * speed,
-                    size: Math.random() * 5.0 + 2.0,
+                    size: Math.random() * 7.0 + 4.5,
                     color: i % 3 === 0 ? '#00F0FF' : (i % 3 === 1 ? '#FFE600' : '#FF0055'),
                     alpha: 1.0,
                     decay: Math.random() * 0.03 + 0.015
@@ -794,7 +794,7 @@
                 y: nozzle.y + Math.sin(rad) * 4,
                 vx: Math.cos(rad) * speed,
                 vy: Math.sin(rad) * speed,
-                size: Math.random() * 2.6 + 1.3,
+                size: Math.random() * 4.0 + 2.5,
                 color: Math.random() > 0.4 ? idlePalette[themeMode].radar[0] : idlePalette[themeMode].radar[1],
                 alpha: 0.85,
                 decay: 0.03
@@ -810,7 +810,7 @@
                     y: y,
                     vx: Math.cos(pAngle) * speed,
                     vy: Math.sin(pAngle) * speed,
-                    size: Math.random() * 3.4 + 1.3,
+                    size: Math.random() * 5.0 + 2.8,
                     color: i % 2 === 0 ? idlePalette[themeMode].pulse[0] : idlePalette[themeMode].pulse[1],
                     alpha: 1.0,
                     decay: 0.024
