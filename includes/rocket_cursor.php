@@ -628,19 +628,19 @@
         };
 
         function resetIdleTimer() {
+            // ลบ Particle ทั้งหมดที่เกิดตอนอยู่นิ่ง (Idle) ทันทีที่ขยับเมาส์
+            if (particles.length > 0) {
+                particles = particles.filter(function(p) {
+                    return !p.isIdle;
+                });
+            }
+
             idleStage = 0;
             idleTime = 0;
             stage2Time = 0;
 
             rocket.classList.remove('idle-stage-1', 'idle-stage-2', 'idle-stage-3', 'trigger-shockwave');
             wrapper.classList.remove('idle-stage-1', 'idle-stage-2', 'idle-stage-3', 'trigger-shockwave');
-
-            // Fast-fade active stardust particles when movement resumes so they don't linger frozen
-            for (var k = 0; k < particles.length; k++) {
-                if (particles[k].damping) {
-                    particles[k].decay = Math.max(particles[k].decay, 0.04);
-                }
-            }
 
             if (idleTimerStage1) clearTimeout(idleTimerStage1);
             if (idleTimerStage2) clearTimeout(idleTimerStage2);
@@ -662,7 +662,7 @@
                 void wrapper.offsetWidth;
                 wrapper.classList.add('trigger-shockwave');
 
-                createGravitationalPulse(pos.x, pos.y);
+                createGravitationalPulse(pos.x, pos.y, true);
             }, 3000);
 
             idleTimerStage3 = setTimeout(function() {
@@ -719,44 +719,7 @@
 
             wrapper.classList.remove('trigger-shockwave');
             void wrapper.offsetWidth;
-            wrapper.classList.add('trigger-shockwave');
-
-            if (isInitialized) {
-                createBurstSparks(pos.x + currentIdleOffsetX, pos.y + currentIdleOffsetY, targetAngle, 32);
-                createGravitationalPulse(pos.x + currentIdleOffsetX, pos.y + currentIdleOffsetY);
-            }
-        });
-
-        window.addEventListener('mouseup', function() {
-            rocket.classList.remove('is-clicking');
-        });
-
-        var interactiveSelector = 'a, button, input, select, textarea, [role="button"], .btn, .card, .glass-card, .accordion-button';
-
-        document.addEventListener('mouseover', function(e) {
-            if (e.target && e.target.closest(interactiveSelector)) {
-                isHovered = true;
-                rocket.classList.add('is-hovering');
-            }
-        }, { passive: true });
-
-        document.addEventListener('mouseout', function(e) {
-            if (e.target && e.target.closest(interactiveSelector)) {
-                isHovered = false;
-                rocket.classList.remove('is-hovering');
-            }
-        }, { passive: true });
-
-        function getEngineNozzlePos(centerX, centerY, currentAngleDeg) {
-            var rad = (currentAngleDeg - 90) * (Math.PI / 180);
-            var nozzleDist = 28;
-            return {
-                x: centerX - Math.cos(rad) * nozzleDist,
-                y: centerY - Math.sin(rad) * nozzleDist
-            };
-        }
-
-        function createThrusterParticle(x, y, vx, vy, isHoveredState) {
+        function createThrusterParticle(x, y, vx, vy, isHoveredState, isIdle) {
             particles.push({
                 x: x,
                 y: y,
@@ -767,7 +730,8 @@
                     (Math.random() > 0.4 ? '#00F0FF' : '#A855F7') :
                     (Math.random() > 0.5 ? '#FFE600' : '#FF0055'),
                 alpha: 1.0,
-                decay: Math.random() * 0.03 + 0.018
+                decay: Math.random() * 0.03 + 0.018,
+                isIdle: !!isIdle
             });
         }
 
@@ -785,6 +749,42 @@
                     color: i % 3 === 0 ? '#00F0FF' : (i % 3 === 1 ? '#FFE600' : '#FF0055'),
                     alpha: 1.0,
                     decay: Math.random() * 0.03 + 0.015
+                });
+            }
+        }
+
+        function createRadarScanPulse(px, py, angleDeg, isIdle) {
+            var nozzle = getEngineNozzlePos(px, py, angleDeg);
+            var rad = (angleDeg + 90 + (Math.random() - 0.5) * 60) * (Math.PI / 180);
+            var speed = Math.random() * 1.2 + 0.4;
+
+            particles.push({
+                x: nozzle.x + Math.cos(rad) * 4,
+                y: nozzle.y + Math.sin(rad) * 4,
+                vx: Math.cos(rad) * speed,
+                vy: Math.sin(rad) * speed,
+                size: Math.random() * 4.0 + 2.5,
+                color: Math.random() > 0.4 ? idlePalette[themeMode].radar[0] : idlePalette[themeMode].radar[1],
+                alpha: 0.85,
+                decay: 0.03,
+                isIdle: !!isIdle
+            });
+        }
+
+        function createGravitationalPulse(x, y, isIdle) {
+            for (var i = 0; i < 24; i++) {
+                var pAngle = (i / 24) * Math.PI * 2;
+                var speed = Math.random() * 2.5 + 1.2;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(pAngle) * speed,
+                    vy: Math.sin(pAngle) * speed,
+                    size: Math.random() * 5.0 + 2.8,
+                    color: i % 2 === 0 ? idlePalette[themeMode].pulse[0] : idlePalette[themeMode].pulse[1],
+                    alpha: 1.0,
+                    decay: 0.024,
+                    isIdle: !!isIdle
                 });
             }
         }
@@ -887,7 +887,7 @@
                         var radarChance = 0.15 + 0.35 * Math.min(T / 6, 1);
 
                         if (Math.random() < radarChance) {
-                            createRadarScanPulse(pos.x + targetIdleX, pos.y + targetIdleY, targetAngle);
+                            createRadarScanPulse(pos.x + targetIdleX, pos.y + targetIdleY, targetAngle, true);
                         }
 
                         // Prominent particle size with smooth organic drift velocity
@@ -908,7 +908,8 @@
                                 alpha: 0,
                                 targetAlpha: Math.random() * 0.45 + 0.3,
                                 fadeIn: Math.random() * 0.04 + 0.02,
-                                decay: Math.random() * 0.016 + 0.01
+                                decay: Math.random() * 0.016 + 0.01,
+                                isIdle: true
                             });
                         }
                     }
@@ -917,7 +918,7 @@
                         var renderAngleNow = angle + idleSway;
                         var idleNozzle = getEngineNozzlePos(pos.x + currentIdleOffsetX, pos.y + currentIdleOffsetY, renderAngleNow);
                         var idleRad = (renderAngleNow - 90) * (Math.PI / 180);
-                        createThrusterParticle(idleNozzle.x, idleNozzle.y, -Math.cos(idleRad) * 0.8, -Math.sin(idleRad) * 0.8, false);
+                        createThrusterParticle(idleNozzle.x, idleNozzle.y, -Math.cos(idleRad) * 0.8, -Math.sin(idleRad) * 0.8, false, true);
                     }
                 }
 
