@@ -19,18 +19,23 @@ if (!$isLoggedIn && !in_array($currentPage, $allowedPages)) {
     exit();
 }
 
-// 🔄 ดึงข้อมูลผู้ใช้สดจากฐานข้อมูลให้ตรงกับตาราง users (id, name, email, img, user_role)
+// 🔄 ดึงข้อมูลผู้ใช้สดจากฐานข้อมูล พร้อม JOIN ตาราง status_users เพื่อเอา level และ exp
 $sessionData = $_SESSION['user_login'] ?? null;
 $userId = $sessionData['id'] ?? ($_SESSION['user_id'] ?? null);
 
 $dbUser = null;
 if ($userId && isset($conn)) {
-    $stmtUser = $conn->prepare("SELECT * FROM `users` WHERE `id` = ?");
+    $stmtUser = $conn->prepare("
+        SELECT u.*, su.level, su.exp 
+        FROM `users` u 
+        LEFT JOIN `status_users` su ON u.id = su.user_id 
+        WHERE u.id = ?
+    ");
     $stmtUser->execute([$userId]);
     $dbUser = $stmtUser->fetch(PDO::FETCH_ASSOC);
 }
 
-// แมปข้อมูลให้ตรงกับคอลัมน์จริงในตาราง users
+// แมปข้อมูลให้ตรงกับคอลัมน์จริงในตาราง users และ status_users
 $navUser = [
     'user_id'   => $dbUser['id'] ?? ($userId ?? 'N'),
     'username'  => $dbUser['name'] ?? ($sessionData['name'] ?? ($_SESSION['name'] ?? 'Player One')),
@@ -41,9 +46,9 @@ $navUser = [
                     : (!empty($sessionData['img']) 
                         ? $sessionData['img'] 
                         : 'https://ui-avatars.com/api/?name=' . urlencode($dbUser['name'] ?? $sessionData['name'] ?? 'Player One')),
-    'level'     => $sessionData['level'] ?? ($_SESSION['level'] ?? '1'),
+    'level'     => $dbUser['level'] ?? ($sessionData['level'] ?? ($_SESSION['level'] ?? '1')),
     'streak'    => $sessionData['streak'] ?? ($_SESSION['login_streak'] ?? ($_SESSION['streak'] ?? '0')),
-    'exp'       => $sessionData['exp'] ?? ($_SESSION['user_exp'] ?? '0')
+    'exp'       => $dbUser['exp'] ?? ($sessionData['exp'] ?? ($_SESSION['user_exp'] ?? '0'))
 ];
 
 $category_data = [];
