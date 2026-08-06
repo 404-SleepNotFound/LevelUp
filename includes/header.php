@@ -44,23 +44,25 @@ if (empty($userId)) {
     $userId = $_SESSION['user_id'] ?? $_SESSION['id'] ?? null;
 }
 
-// 3. กรองให้เหลือแต่ตัวเลขเท่านั้น ป้องกัน SQL Injection หรือ PDO Error หากเผลอส่ง Array ไป Execute
+// 3. กรองข้อมูล ID (แก้ไข: ยกเลิกการใช้ intval() เพราะทำให้ Google ID ที่ยาว 21 หลักพัง และทำให้ Email กลายเป็น 0)
 if (!empty($userId)) {
-    $userId = intval($userId); 
+    // รองรับทั้งตัวเลข Google ID แบบยาวๆ และ Email
+    $userId = trim((string)$userId);
 }
 
 $dbUser = null;
-if (!empty($userId) && $userId > 0 && isset($conn)) {
+// แก้ไข: เอา $userId > 0 ออก เพราะ $userId อาจจะเป็น Email หรือ String Google ID ได้
+if (!empty($userId) && isset($conn)) {
     try {
-        // ดึงข้อมูลจากฐานข้อมูลตาม ID อย่างปลอดภัย
+        // ดึงข้อมูลจากฐานข้อมูลตาม ID อย่างปลอดภัย (เพิ่ม OR u.email เผื่อไว้กรณี Login ด้วย Email)
         $stmtUser = $conn->prepare("
             SELECT u.*, su.level, su.exp 
             FROM `users` u 
             LEFT JOIN `status_users` su ON u.id = su.user_id 
-            WHERE u.id = :uid
+            WHERE u.id = :uid OR u.email = :uid
         ");
-        // Bind Parameter เพื่อความชัวร์ 100% ว่าเป็น Integer 
-        $stmtUser->bindParam(':uid', $userId, PDO::PARAM_INT);
+        // แก้ไข: Bind Parameter เป็น String (PDO::PARAM_STR) เพื่อให้รองรับค่าที่ยาวเกิน Integer ลิมิตได้
+        $stmtUser->bindParam(':uid', $userId, PDO::PARAM_STR);
         $stmtUser->execute();
         
         $result = $stmtUser->fetch(PDO::FETCH_ASSOC);
