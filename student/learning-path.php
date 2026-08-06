@@ -262,17 +262,47 @@ include '../includes/header.php';
         gap: 0.35rem !important;
     }
 
-    /* Custom Form Controls */
+    /* Custom Form Controls & Dropdown Styling */
     .form-select-custom {
         background-color: var(--lv-input-bg) !important;
         border: 1px solid var(--lv-input-border) !important;
         color: var(--lv-input-text) !important;
         border-radius: 12px;
+        padding-top: 0.65rem;
+        padding-bottom: 0.65rem;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        /* เปลี่ยนไอคอนลูกศร Dropdown ให้เป็นสี Cyan */
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2306b6d4' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+        background-position: right 0.85rem center !important;
+        background-size: 16px 12px !important;
     }
 
     .form-select-custom:focus {
         border-color: var(--lv-cyan) !important;
-        box-shadow: 0 0 15px rgba(6, 182, 212, 0.3) !important;
+        box-shadow: 0 0 15px rgba(6, 182, 212, 0.35) !important;
+        outline: none;
+    }
+
+    /* 🌙 ตกแต่งรายการตัวเลือก (<option>) สำหรับ Dark Mode */
+    .form-select-custom option {
+        background-color: #0f172a !important; /* สีพื้นหลังรายการตัวเลือก Dark Navy */
+        color: #f8fafc !important;            /* สีข้อความ */
+        padding: 10px 14px !important;
+    }
+
+    /* ☀️ ตกแต่งรายการตัวเลือก (<option>) สำหรับ Light Mode */
+    html[data-theme="light"] .form-select-custom option {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+    }
+
+    .form-select-custom option:hover,
+    .form-select-custom option:focus,
+    .form-select-custom option:active,
+    .form-select-custom option:checked {
+        background-color: var(--lv-indigo) !important;
+        color: #ffffff !important;
     }
 
     .custom-range-slider {
@@ -453,15 +483,11 @@ include '../includes/header.php';
                     <div class="col-md-6">
                         <label class="form-label fs-sm fw-medium text-muted-custom">เป้าหมายอาชีพ (Career Goal)</label>
                         <select class="form-select form-select-lg form-select-custom shadow-sm fs-6" id="careerSelector">
-                            <?php
-$ROOT_PATH = '../';
-foreach ($plannerData['career_options'] as $key => $label): ?>
+                            <?php foreach ($plannerData['career_options'] as $key => $label): ?>
                                 <option value="<?= htmlspecialchars($key) ?>" <?= ($plannerData['selected_career'] === $key) ? 'selected' : '' ?>>
                                     <?= htmlspecialchars($label) ?>
                                 </option>
-                            <?php
-$ROOT_PATH = '../';
-endforeach; ?>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="col-md-6">
@@ -569,41 +595,25 @@ endforeach; ?>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php
-$ROOT_PATH = '../';
-foreach ($skillGapList as $index => $item): ?>
+                                <?php foreach ($skillGapList as $index => $item): ?>
                                     <tr class="<?= ($index < count($skillGapList) - 1) ? 'border-bottom border-color border-opacity-25' : '' ?>">
                                         <td class="ps-4 fw-medium text-main"><?= htmlspecialchars($item['skill']) ?></td>
                                         <td class="text-center">
-                                            <?php
-$ROOT_PATH = '../';
-if ($item['status'] === 'cleared'): ?>
+                                            <?php if ($item['status'] === 'cleared'): ?>
                                                 <i class="bi bi-check-circle-fill text-success fs-5"></i>
-                                            <?php
-$ROOT_PATH = '../';
-elseif ($item['status'] === 'percent'): ?>
+                                            <?php elseif ($item['status'] === 'percent'): ?>
                                                 <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-25"><?= (int)$item['percent'] ?>%</span>
-                                            <?php
-$ROOT_PATH = '../';
-else: ?>
+                                            <?php else: ?>
                                                 <i class="bi bi-x-circle text-muted-custom opacity-50 fs-5"></i>
-                                            <?php
-$ROOT_PATH = '../';
-endif; ?>
+                                            <?php endif; ?>
                                         </td>
                                         <td class="text-center pe-4">
-                                            <?php
-$ROOT_PATH = '../';
-if ($item['target']): ?>
+                                            <?php if ($item['target']): ?>
                                                 <i class="bi bi-check-circle-fill text-success fs-5"></i>
-                                            <?php
-$ROOT_PATH = '../';
-endif; ?>
+                                            <?php endif; ?>
                                         </td>
                                     </tr>
-                                <?php
-$ROOT_PATH = '../';
-endforeach; ?>
+                                <?php endforeach; ?>
                             </tbody>
                         </table>
                     </div>
@@ -611,9 +621,7 @@ endforeach; ?>
 
                 <h5 class="fw-bold mb-3 text-main d-flex align-items-center"><i class="bi bi-flag-fill text-primary me-2"></i> Milestones</h5>
                 <div class="dashboard-card rounded-4 p-4 border-color">
-                    <?php
-$ROOT_PATH = '../';
-foreach ($milestonesList as $index => $milestone): ?>
+                    <?php foreach ($milestonesList as $index => $milestone): ?>
                         <div class="d-flex align-items-center gap-3 <?= ($milestone['status'] === 'locked') ? 'opacity-50' : '' ?> <?= ($index < count($milestonesList) - 1) ? 'mb-4' : '' ?>">
                             <div class="fs-3 flex-shrink-0"><i class="bi <?= htmlspecialchars($milestone['icon']) ?>"></i></div>
                             <div>
@@ -621,9 +629,7 @@ foreach ($milestonesList as $index => $milestone): ?>
                                 <p class="fs-sm text-muted-custom mb-0"><?= htmlspecialchars($milestone['description']) ?></p>
                             </div>
                         </div>
-                    <?php
-$ROOT_PATH = '../';
-endforeach; ?>
+                    <?php endforeach; ?>
                 </div>
 
             </div>
@@ -638,47 +644,23 @@ endforeach; ?>
                     
                     <div class="roadmap-tree position-relative">
                         
-                        <?php
-$ROOT_PATH = '../';
-foreach ($roadmapNodes as $node): ?>
+                        <?php foreach ($roadmapNodes as $node): ?>
                             <!-- Node Item -->
                             <div class="roadmap-node <?= htmlspecialchars($node['status']) ?> d-flex">
                                 <div class="node-indicator">
-                                    <?php
-$ROOT_PATH = '../';
-if ($node['status'] === 'completed'): ?>
+                                    <?php if ($node['status'] === 'completed'): ?>
                                         <div class="node-icon bg-success text-white"><i class="bi bi-check-lg"></i></div>
-                                        <?php
-$ROOT_PATH = '../';
-if ($node['has_line']): ?><div class="node-line bg-success"></div><?php
-$ROOT_PATH = '../';
-endif; ?>
-                                    <?php
-$ROOT_PATH = '../';
-elseif ($node['status'] === 'active'): ?>
+                                        <?php if ($node['has_line']): ?><div class="node-line bg-success"></div><?php endif; ?>
+                                    <?php elseif ($node['status'] === 'active'): ?>
                                         <div class="node-icon bg-info text-white pulse-ring-active shadow-lg" style="transform: scale(1.15); z-index:3;"><i class="bi bi-play-fill fs-4"></i></div>
-                                        <?php
-$ROOT_PATH = '../';
-if ($node['has_line']): ?><div class="node-line bg-secondary bg-opacity-50"></div><?php
-$ROOT_PATH = '../';
-endif; ?>
-                                    <?php
-$ROOT_PATH = '../';
-else: ?>
+                                        <?php if ($node['has_line']): ?><div class="node-line bg-secondary bg-opacity-50"></div><?php endif; ?>
+                                    <?php else: ?>
                                         <div class="node-icon bg-secondary bg-opacity-25 border border-color text-muted-custom"><i class="bi bi-lock-fill"></i></div>
-                                        <?php
-$ROOT_PATH = '../';
-if ($node['has_line']): ?><div class="node-line bg-secondary bg-opacity-25"></div><?php
-$ROOT_PATH = '../';
-endif; ?>
-                                    <?php
-$ROOT_PATH = '../';
-endif; ?>
+                                        <?php if ($node['has_line']): ?><div class="node-line bg-secondary bg-opacity-25"></div><?php endif; ?>
+                                    <?php endif; ?>
                                 </div>
 
-                                <?php
-$ROOT_PATH = '../';
-if ($node['status'] === 'completed'): ?>
+                                <?php if ($node['status'] === 'completed'): ?>
                                     <div class="node-content dashboard-card border-success border-opacity-50 p-3 p-md-4 rounded-4 w-100 ms-3 ms-md-4 mb-4">
                                         <div class="d-flex justify-content-between align-items-start">
                                             <div>
@@ -691,9 +673,7 @@ if ($node['status'] === 'completed'): ?>
                                         <div class="fs-xs text-muted-custom"><i class="bi <?= htmlspecialchars($node['footer_icon']) ?> me-1"></i> <?= htmlspecialchars($node['footer_text']) ?></div>
                                     </div>
                                 
-                                <?php
-$ROOT_PATH = '../';
-elseif ($node['status'] === 'active'): ?>
+                                <?php elseif ($node['status'] === 'active'): ?>
                                     <div class="node-content dashboard-card border-info p-4 rounded-4 w-100 ms-3 ms-md-4 mb-4 position-relative overflow-hidden" style="background: rgba(6, 182, 212, 0.08) !important;">
                                         <div class="d-flex justify-content-between align-items-start position-relative z-1">
                                             <div>
@@ -708,19 +688,13 @@ elseif ($node['status'] === 'active'): ?>
                                         </div>
                                         <div class="d-flex justify-content-between align-items-center position-relative z-1 mt-3 pt-3 border-top border-color">
                                             <div class="fs-xs text-muted-custom"><i class="bi <?= htmlspecialchars($node['footer_icon']) ?> me-1"></i> <?= htmlspecialchars($node['footer_text']) ?></div>
-                                            <?php
-$ROOT_PATH = '../';
-if (!empty($node['link'])): ?>
+                                            <?php if (!empty($node['link'])): ?>
                                                 <a href="<?= htmlspecialchars($node['link']) ?>" class="btn btn-sm btn-premium rounded-pill px-4 py-1.5 fw-bold">เรียนต่อ <i class="bi bi-arrow-right ms-1"></i></a>
-                                            <?php
-$ROOT_PATH = '../';
-endif; ?>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
 
-                                <?php
-$ROOT_PATH = '../';
-else: ?>
+                                <?php else: ?>
                                     <div class="node-content dashboard-card border-color p-3 p-md-4 rounded-4 w-100 ms-3 ms-md-4 mb-4 opacity-75">
                                         <div class="d-flex justify-content-between align-items-start">
                                             <div>
@@ -729,29 +703,17 @@ else: ?>
                                                 <p class="fs-sm text-muted-custom mb-2"><?= htmlspecialchars($node['description']) ?></p>
                                             </div>
                                         </div>
-                                        <?php
-$ROOT_PATH = '../';
-if (!empty($node['prereq_warning'])): ?>
+                                        <?php if (!empty($node['prereq_warning'])): ?>
                                             <div class="fs-xs text-muted-custom mt-2 pt-2 border-top border-color">
-                                                <?php
-$ROOT_PATH = '../';
-foreach ($node['prereq_warning'] as $warning): ?>
+                                                <?php foreach ($node['prereq_warning'] as $warning): ?>
                                                     <span class="text-danger d-block mb-1"><i class="bi bi-x-circle me-1"></i> <?= htmlspecialchars($warning) ?></span>
-                                                <?php
-$ROOT_PATH = '../';
-endforeach; ?>
+                                                <?php endforeach; ?>
                                             </div>
-                                        <?php
-$ROOT_PATH = '../';
-endif; ?>
+                                        <?php endif; ?>
                                     </div>
-                                <?php
-$ROOT_PATH = '../';
-endif; ?>
+                                <?php endif; ?>
                             </div>
-                        <?php
-$ROOT_PATH = '../';
-endforeach; ?>
+                        <?php endforeach; ?>
 
                     </div>
                 </div>
@@ -797,6 +759,4 @@ endforeach; ?>
 -->
 <script src="../js/sweetalert_learning-path.js?v=<?= time() ?>"></script>
 
-<?php
-$ROOT_PATH = '../';
-include '../includes/footer.php'; ?>
+<?php include '../includes/footer.php'; ?>
