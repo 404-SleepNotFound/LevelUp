@@ -20,8 +20,15 @@ if (!$isLoggedIn && !in_array($currentPage, $allowedPages)) {
     exit();
 }
 
-// 🔄 จัดการ Session Data ให้ปลอดภัย (ป้องกัน error กรณีเป็น string)
-$sessionData = (isset($_SESSION['user_login']) && is_array($_SESSION['user_login'])) ? $_SESSION['user_login'] : [];
+// 🔄 จัดการ Session Data ให้ปลอดภัย (เผื่อกรณีเก็บเป็น Array)
+$sessionData = [];
+if (isset($_SESSION['user_login'])) {
+    if (is_array($_SESSION['user_login'])) {
+        $sessionData = $_SESSION['user_login'];
+    } elseif (is_object($_SESSION['user_login'])) {
+        $sessionData = (array) $_SESSION['user_login'];
+    }
+}
 
 // 🔍 ค้นหา ID ผู้ใช้ให้คลอบคลุมทุกรูปแบบ (ดึงตัวแรกที่เจอ)
 $userId = $_SESSION['user_id'] 
@@ -29,8 +36,14 @@ $userId = $_SESSION['user_id']
        ?? ($sessionData['id'] ?? null) 
        ?? ($sessionData['user_id'] ?? null);
 
+// ❗️ สำคัญ: ถ้าระบบเก็บ ID เป็นตัวเลขตรงๆ ไว้ใน user_login (ไม่ใช่ Array)
+if (empty($userId) && isset($_SESSION['user_login']) && is_scalar($_SESSION['user_login'])) {
+    $userId = $_SESSION['user_login'];
+}
+
 $dbUser = null;
 if ($userId && isset($conn)) {
+    // ดึงข้อมูลจากฐานข้อมูลตาม ID
     $stmtUser = $conn->prepare("
         SELECT u.*, su.level, su.exp 
         FROM `users` u 
