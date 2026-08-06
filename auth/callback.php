@@ -10,9 +10,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// ⚠️ เรียกใช้ไฟล์ตั้งค่า (ตรวจสอบ Path ให้ตรงกับโฟลเดอร์ของคุณ)
+// ⚠️ เรียกใช้ไฟล์ตั้งค่า
 require_once __DIR__ . '/../config/google.php';
-require_once __DIR__ . '/../config/db.php'; // 👈 สำคัญมาก! ต้องเรียก db.php เพื่อใช้ $conn
+require_once __DIR__ . '/../config/db.php'; 
 
 if (isset($_GET['code'])) {
     $code = $_GET['code'];
@@ -59,65 +59,54 @@ if (isset($_GET['code'])) {
             $googleId = (string)($userInfo['id'] ?? '');
             $email    = $userInfo['email'];
             $name     = $userInfo['name'] ?? 'Google User';
-            $picture  = $userInfo['picture'] ?? '';
+            $img      = $userInfo['picture'] ?? ''; // Google เรียก picture แต่เราเก็บลงคอลัมน์ img
             $dbUserId = null;
 
-            // ✅ 3. จัดการ Database (ใช้ $conn)
+            // ✅ 3. จัดการ Database
             if (isset($conn)) {
                 try {
-                    // ค้นหาว่ามี User นี้ในระบบหรือยัง (จาก Google ID หรือ Email)
                     $stmt = $conn->prepare("SELECT id FROM users WHERE google_id = :google_id OR email = :email LIMIT 1");
                     $stmt->execute([':google_id' => $googleId, ':email' => $email]);
                     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
                     if ($user) {
-                        // 🟢 กรณีมี User อยู่แล้ว -> อัปเดตข้อมูลล่าสุดจาก Google (ป้องกันข้อมูลไม่อัปเดต)
+                        // 🟢 มี User อยู่แล้ว -> อัปเดตข้อมูลให้ตรงกับตารางของคุณ (ตัด username, picture ทิ้ง)
                         $dbUserId = $user['id'];
-                        
-                        // อัปเดตชื่อ รูป และผูก google_id (เผื่อล็อกอินครั้งแรกด้วยอีเมลปกติ)
-                        $updateStmt = $conn->prepare("UPDATE users SET google_id = :google_id, name = :name, picture = :picture, img = :img WHERE id = :id");
+                        $updateStmt = $conn->prepare("UPDATE users SET google_id = :google_id, name = :name, img = :img WHERE id = :id");
                         $updateStmt->execute([
                             ':google_id' => $googleId,
                             ':name' => $name, 
-                            ':picture' => $picture, 
-                            ':img' => $picture, // สมมติว่ามีคอลัมน์ img ด้วย
+                            ':img' => $img, 
                             ':id' => $dbUserId
                         ]);
                     } else {
-                        // 🔵 กรณีเป็น User ใหม่ -> ทำการ Insert ลงฐานข้อมูล
-                        $insertStmt = $conn->prepare("INSERT INTO users (google_id, email, username, name, picture, img) VALUES (:google_id, :email, :username, :name, :picture, :img)");
+                        // 🔵 User ใหม่ -> Insert ให้ตรงกับคอลัมน์ในฐานข้อมูล (id, google_id, name, email, img)
+                        $insertStmt = $conn->prepare("INSERT INTO users (google_id, name, email, img) VALUES (:google_id, :name, :email, :img)");
                         $insertStmt->execute([
                             ':google_id' => $googleId, 
-                            ':email' => $email, 
-                            ':username' => $name, // ใช้ชื่อตั้งเป็น username ไปก่อน
                             ':name' => $name, 
-                            ':picture' => $picture,
-                            ':img' => $picture
+                            ':email' => $email, 
+                            ':img' => $img
                         ]);
                         $dbUserId = $conn->lastInsertId();
                     }
                 } catch (PDOException $e) {
-                    // ดักจับ Error เผื่อตารางไม่มีคอลัมน์บางตัว
-                    // error_log("DB Error in Callback: " . $e->getMessage());
+                    // หากยัง Error อีก สามารถดู Log ได้
+                    error_log("DB Error in Callback: " . $e->getMessage());
                 }
             }
 
-            // ถ้า DB ทำงานพลาด หา ID ไม่ได้จริงๆ ให้ Fallback กลับไปใช้ Google ID เพื่อให้เว็บไม่ล่ม
             $finalId = $dbUserId ?? $googleId;
 
             // ✅ 4. เซ็ต Session เข้าสู่ระบบ
             $_SESSION['user_data']  = $userInfo;
             $_SESSION['user_id']    = $finalId;
             
-            // เลียนแบบโครงสร้าง Session ให้ตรงกับระบบเดิมของคุณ
             $_SESSION['user_login'] = [
                 'id'       => $finalId,
                 'name'     => $name,
-                'username' => $name,
                 'email'    => $email,
-                'picture'  => $picture,
-                'img'      => $picture,
-                'avatar'   => $picture,
+                'img'      => $img,
                 'level'    => 1, 
                 'user_exp' => 0, 
                 'streak'   => 1
@@ -129,6 +118,5 @@ if (isset($_GET['code'])) {
         }
     }
 }
-// ถ้าทำงานไม่สำเร็จ ให้เด้งกลับหน้าแรก
 header('Location: ../index.php');
 exit;
