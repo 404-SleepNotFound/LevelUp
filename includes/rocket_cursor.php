@@ -757,7 +757,7 @@
                 y: y,
                 vx: vx + (Math.random() - 0.5) * 1.2,
                 vy: vy + (Math.random() - 0.5) * 1.2,
-                size: isHoveredState ? Math.random() * 3.6 + 2.0 : Math.random() * 3.0 + 1.6,
+                size: Math.random() * 1.5 + 3.5,
                 color: isHoveredState ?
                     (Math.random() > 0.4 ? '#38BDF8' : '#6366F1') :
                     (Math.random() > 0.5 ? '#F59E0B' : '#EF4444'),
@@ -776,7 +776,7 @@
                     y: nozzle.y,
                     vx: Math.cos(pAngle) * speed,
                     vy: Math.sin(pAngle) * speed,
-                    size: Math.random() * 4 + 1.8,
+                    size: Math.random() * 1.5 + 3.5,
                     color: i % 2 === 0 ? '#38BDF8' : '#FDE047',
                     alpha: 1.0,
                     decay: Math.random() * 0.035 + 0.02
@@ -794,7 +794,7 @@
                 y: nozzle.y + Math.sin(rad) * 4,
                 vx: Math.cos(rad) * speed,
                 vy: Math.sin(rad) * speed,
-                size: Math.random() * 1.8 + 0.8,
+                size: Math.random() * 1.1 + 0.6,
                 color: Math.random() > 0.4 ? idlePalette[themeMode].radar[0] : idlePalette[themeMode].radar[1],
                 alpha: 0.7,
                 decay: 0.035
@@ -810,10 +810,10 @@
                     y: y,
                     vx: Math.cos(pAngle) * speed,
                     vy: Math.sin(pAngle) * speed,
-                    size: Math.random() * 3.2 + 1.4,
+                    size: Math.random() * 1.5 + 3.5,
                     color: i % 2 === 0 ? idlePalette[themeMode].pulse[0] : idlePalette[themeMode].pulse[1],
                     alpha: 1.0,
-                    decay: 0.022
+                    decay: 0.024
                 });
             }
         }
@@ -968,14 +968,14 @@
                     ctx.globalCompositeOperation = 'lighter';
                     ctx.globalAlpha = Math.max(0, p.alpha);
 
-                    var radGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 1.5);
+                    var radGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
                     radGrad.addColorStop(0, p.color);
-                    radGrad.addColorStop(0.5, p.color);
+                    radGrad.addColorStop(0.7, p.color);
                     radGrad.addColorStop(1, 'transparent');
 
                     ctx.fillStyle = radGrad;
                     ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size * 1.5, 0, Math.PI * 2);
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.restore();
                 }
