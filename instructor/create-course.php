@@ -11,10 +11,15 @@ $user_id = $_SESSION['user_login']['user_id'] ?? ($_SESSION['user_id'] ?? 0);
 // ดึงข้อมูล Category ด้วย PDO
 $category_data = [];
 if (isset($conn)) {
-    $sql = "SELECT * FROM `category`";
-    $result = $conn->query($sql);
-    if ($result) {
-        $category_data = $result->fetchAll(PDO::FETCH_ASSOC);
+    try {
+        $sql = "SELECT * FROM `category`";
+        $result = $conn->query($sql);
+        if ($result) {
+            $category_data = $result->fetchAll(PDO::FETCH_ASSOC);
+        }
+    } catch (PDOException $e) {
+        // Handle exception silently to not break the UI, or log it
+        error_log("DB Error: " . $e->getMessage());
     }
 }
 // ⚠️ โหลดผ่านระบบ AJAX ของหน้าหลัก ไม่ต้อง include header.php หรือ footer.php ซ้ำซ้อน
@@ -220,6 +225,7 @@ if (isset($conn)) {
     .form-dark-input:focus {
         border-color: #06b6d4 !important;
         box-shadow: 0 0 10px rgba(6, 182, 212, 0.3) !important;
+        outline: none;
     }
 
     .form-dark-input option {
@@ -570,10 +576,10 @@ if (isset($conn)) {
                             <label class="form-label form-label-custom">ระยะเวลาคอร์สโดยประมาณ</label>
                             <div class="row g-2">
                                 <div class="col-4">
-                                    <input type="number" class="form-control form-dark-input" id="duration_hours" placeholder="ชั่วโมงรวม" name="duration_hours">
+                                    <input type="number" class="form-control form-dark-input" id="duration_hours" placeholder="ชั่วโมงรวม" name="duration_hours" min="0">
                                 </div>
                                 <div class="col-4">
-                                    <input type="number" class="form-control form-dark-input" id="duration_chapters" placeholder="จำนวนบท" name="duration_chapters">
+                                    <input type="number" class="form-control form-dark-input" id="duration_chapters" placeholder="จำนวนบท" name="duration_chapters" min="0">
                                 </div>
                                 <div class="col-4">
                                     <input type="text" class="form-control form-dark-input" id="duration_week" placeholder="ชม./สัปดาห์" name="duration_week">
@@ -1065,7 +1071,11 @@ if (isset($conn)) {
 
         Alerts.aiProcess('คำนวณและประมวลผลพิมพ์เขียวโครงสร้างคอร์ส', 1800, function() {
             $('#ai_blueprint_result').removeClass('d-none');
-            $('#ai_blueprint_text').html(`✨ [วิเคราะห์และวางรากฐานสำเร็จสำหรับวิชา: ${topic}]\n• หมวดหมู่แนะนำ: Programming / Software Development\n• ความยาวที่แนะนำ: 8 บทใหญ่ (16-20 ชั่วโมง)\n• แล็บปฏิบัติการ: Coding Sandbox 3 จุด\n• ผลลัพธ์: สามารถเขียนและ Deploy ชิ้นงานจริงได้`);
+            $('#ai_blueprint_text').html(`✨ [วิเคราะห์และวางรากฐานสำเร็จสำหรับวิชา: ${topic}]
+• หมวดหมู่แนะนำ: Programming / Software Development
+• ความยาวที่แนะนำ: 8 บทใหญ่ (16-20 ชั่วโมง)
+• แล็บปฏิบัติการ: Coding Sandbox 3 จุด
+• ผลลัพธ์: สามารถเขียนและ Deploy ชิ้นงานจริงได้`);
         });
     }
 
