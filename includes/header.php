@@ -4,8 +4,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// เช็คว่าล็อคอินอยู่หรือไม่ (รองรับทั้งแบบเก็บ user_login และ user_id)
 if (!isset($isLoggedIn)) {
-    $isLoggedIn = isset($_SESSION['user_login']) ? true : false;
+    $isLoggedIn = (isset($_SESSION['user_login']) || isset($_SESSION['user_id']) || isset($_SESSION['id'])) ? true : false;
 }
 
 require_once __DIR__ . '/../config/db.php';
@@ -19,9 +20,14 @@ if (!$isLoggedIn && !in_array($currentPage, $allowedPages)) {
     exit();
 }
 
-// 🔄 ดึงข้อมูลผู้ใช้สดจากฐานข้อมูล พร้อม JOIN ตาราง status_users เพื่อเอา level และ exp
-$sessionData = $_SESSION['user_login'] ?? null;
-$userId = $sessionData['id'] ?? ($_SESSION['user_id'] ?? null);
+// 🔄 จัดการ Session Data ให้ปลอดภัย (ป้องกัน error กรณีเป็น string)
+$sessionData = (isset($_SESSION['user_login']) && is_array($_SESSION['user_login'])) ? $_SESSION['user_login'] : [];
+
+// 🔍 ค้นหา ID ผู้ใช้ให้คลอบคลุมทุกรูปแบบ (ดึงตัวแรกที่เจอ)
+$userId = $_SESSION['user_id'] 
+       ?? $_SESSION['id'] 
+       ?? ($sessionData['id'] ?? null) 
+       ?? ($sessionData['user_id'] ?? null);
 
 $dbUser = null;
 if ($userId && isset($conn)) {
@@ -35,17 +41,19 @@ if ($userId && isset($conn)) {
     $dbUser = $stmtUser->fetch(PDO::FETCH_ASSOC);
 }
 
-// แมปข้อมูลให้ตรงกับคอลัมน์จริงในตาราง users และ status_users
+// แมปข้อมูลให้ตรงกับคอลัมน์จริงในตาราง users และ status_users (มี Fallback ครบถ้วน)
 $navUser = [
     'user_id'   => $dbUser['id'] ?? ($userId ?? 'N'),
     'username'  => $dbUser['name'] ?? ($sessionData['name'] ?? ($_SESSION['name'] ?? 'Player One')),
-    'email'     => $dbUser['email'] ?? ($sessionData['email'] ?? ''),
-    'user_role' => $dbUser['user_role'] ?? ($sessionData['user_role'] ?? 'student'),
+    'email'     => $dbUser['email'] ?? ($sessionData['email'] ?? ($_SESSION['email'] ?? '')),
+    'user_role' => $dbUser['user_role'] ?? ($sessionData['user_role'] ?? ($_SESSION['user_role'] ?? 'student')),
     'avatar'    => !empty($dbUser['img']) 
                     ? $dbUser['img'] 
                     : (!empty($sessionData['img']) 
                         ? $sessionData['img'] 
-                        : 'https://ui-avatars.com/api/?name=' . urlencode($dbUser['name'] ?? $sessionData['name'] ?? 'Player One')),
+                        : (!empty($_SESSION['img']) 
+                            ? $_SESSION['img'] 
+                            : 'https://ui-avatars.com/api/?name=' . urlencode($dbUser['name'] ?? ($sessionData['name'] ?? ($_SESSION['name'] ?? 'Player One'))))),
     'level'     => $dbUser['level'] ?? ($sessionData['level'] ?? ($_SESSION['level'] ?? '1')),
     'streak'    => $sessionData['streak'] ?? ($_SESSION['login_streak'] ?? ($_SESSION['streak'] ?? '0')),
     'exp'       => $dbUser['exp'] ?? ($sessionData['exp'] ?? ($_SESSION['user_exp'] ?? '0'))
