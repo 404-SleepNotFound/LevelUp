@@ -49,10 +49,54 @@ if (file_exists(__DIR__ . '/../includes/header.php')) {
      STYLESHEET SECTION (LEVELUP CORE STYLE EMBED)
 ========================================================================
 -->
-<!-- เรียกใช้งาน Custom Scrollbar -->
-<link rel="stylesheet" href="<?= $ROOT_PATH; ?>assets/css/custom-scrollbar.css">
+<!-- เรียกใช้งาน Custom Scrollbar (แก้ไข Path เป็น css/ และติด version กัน cache) -->
+<link rel="stylesheet" href="<?= $ROOT_PATH; ?>css/custom-scrollbar.css?v=1.0">
 
 <style>
+    /* Custom Scrollbar Styles (ฝังตรงในหน้าลบปัญหาเรื่อง Selector เพื่อให้แสดงผลทันที) */
+    * {
+        scrollbar-width: thin;
+    }
+    html[data-theme="dark"], :root:not([data-theme="light"]) {
+        scrollbar-color: #6366f1 #090d1a;
+    }
+    html[data-theme="light"] {
+        scrollbar-color: #94a3b8 #f1f5f9;
+    }
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    html[data-theme="dark"]::-webkit-scrollbar-track,
+    :root:not([data-theme="light"])::-webkit-scrollbar-track,
+    ::-webkit-scrollbar-track {
+        background: #090d1a !important;
+    }
+    html[data-theme="dark"]::-webkit-scrollbar-thumb,
+    :root:not([data-theme="light"])::-webkit-scrollbar-thumb,
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, #6366f1 0%, #06b6d4 100%) !important;
+        border-radius: 10px !important;
+        border: 2px solid #090d1a !important;
+    }
+    html[data-theme="dark"]::-webkit-scrollbar-thumb:hover,
+    :root:not([data-theme="light"])::-webkit-scrollbar-thumb:hover,
+    ::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(180deg, #818cf8 0%, #22d3ee 100%) !important;
+        box-shadow: 0 0 10px rgba(6, 182, 212, 0.6);
+    }
+    html[data-theme="light"]::-webkit-scrollbar-track {
+        background: #f1f5f9 !important;
+    }
+    html[data-theme="light"]::-webkit-scrollbar-thumb {
+        background: #cbd5e1 !important;
+        border-radius: 10px !important;
+        border: 2px solid #f1f5f9 !important;
+    }
+    html[data-theme="light"]::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8 !important;
+    }
+
     :root, html[data-theme="dark"] {
         --lv-bg-dark: #090d16;
         --lv-card-bg: rgba(15, 23, 42, 0.88);
