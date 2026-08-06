@@ -3,7 +3,8 @@
  * LevelUp Rocket Cursor Component v3.6 (Pro Sci-Fi Orbital Edition)
  * - Complete Redesign: Aerodynamic vector model with balanced proportions & sleek lighting.
  * - Calibrated Hotspot: Mouse click origin aligned perfectly to rocket nose tip.
- * - Dynamic Plasma Flame, Radar Scan, Gravitational Orbit & Particle Trail effect.
+ * - Instant Idle-Particle Purge: Instant wipe of all orbital particles when mouse moves.
+ * - Max Orbit Radius: 80px radius in Idle Stage 2 & 3.
  * Usage in PHP: <?php include 'rocket-cursor.php'; ?>
  */
 ?>
@@ -234,7 +235,7 @@
         opacity: 0;
         pointer-events: none;
         transform: scale(0.3);
-        transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: opacity 0.25s ease-out, transform 0.25s ease-out;
         filter: drop-shadow(0 2px 10px rgba(15, 23, 42, 0.4)) drop-shadow(0 0 10px rgba(var(--rocket-cyan-rgb), 0.8));
     }
 
@@ -259,7 +260,7 @@
         opacity: 0;
         pointer-events: none;
         transform: scale(0.5) rotate(0deg);
-        transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: opacity 0.25s ease-out, transform 0.25s ease-out;
         box-shadow: 0 0 12px rgba(var(--rocket-indigo-rgb), 0.35), 0 0 9px rgba(var(--rocket-halo-rgb), var(--rocket-halo-alpha));
     }
 
@@ -277,7 +278,7 @@
         background: conic-gradient(from 0deg, rgba(var(--rocket-cyan-rgb), 0.55) 0deg, rgba(var(--rocket-cyan-rgb), 0) 55deg, transparent 360deg);
         -webkit-mask-image: radial-gradient(circle, transparent 54%, black 56%, black 100%);
         mask-image: radial-gradient(circle, transparent 54%, black 56%, black 100%);
-        transition: opacity 0.35s ease-out;
+        transition: opacity 0.2s ease-out;
     }
 
     .rocket-core-aura {
@@ -294,7 +295,7 @@
         opacity: 0;
         pointer-events: none;
         transform: scale(0.5);
-        transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+        transition: opacity 0.25s ease-out, transform 0.25s ease-out;
     }
 
     .rocket-shockwave-ring {
@@ -474,7 +475,7 @@
         animation-duration: 0.08s;
     }
 
-    /* Movement Thrust State (bigger, brighter flame while dragging) */
+    /* Movement Thrust State */
     #rocket-cursor-main.is-moving .rocket-flame-core {
         transform: scaleY(1.7) scaleX(1.3) !important;
         filter: drop-shadow(0 0 12px rgba(250, 204, 21, 1)) drop-shadow(0 0 20px rgba(249, 115, 22, 0.95)) !important;
@@ -488,7 +489,7 @@
         transform: scale(1.4);
     }
 
-    /* Click Active State (body recoil + plasma flare combo) */
+    /* Click Active State */
     #rocket-cursor-main.is-clicking {
         transform: scale(0.9) rotate(-10deg);
     }
@@ -627,13 +628,17 @@
             }
         };
 
-        function resetIdleTimer() {
-            // ลบ Particle ทั้งหมดที่เกิดตอนอยู่นิ่ง (Idle) ทันทีที่ขยับเมาส์
+        // ลบ Particle ทั้งหมดที่เกิดขึ้นในสถานะอยู่นิ่ง (Idle Particles) ทันทีที่ขยับเมาส์
+        function purgeIdleParticles() {
             if (particles.length > 0) {
                 particles = particles.filter(function(p) {
                     return !p.isIdle;
                 });
             }
+        }
+
+        function resetIdleTimer() {
+            purgeIdleParticles();
 
             idleStage = 0;
             idleTime = 0;
@@ -706,6 +711,7 @@
         document.addEventListener('mouseleave', function() {
             wrapper.style.opacity = '0';
             canvas.style.opacity = '0';
+            purgeIdleParticles();
         });
 
         document.addEventListener('mouseenter', function(e) {
@@ -719,6 +725,25 @@
 
             wrapper.classList.remove('trigger-shockwave');
             void wrapper.offsetWidth;
+            wrapper.classList.add('trigger-shockwave');
+
+            createBurstSparks(pos.x, pos.y, angle, 16);
+        });
+
+        window.addEventListener('mouseup', function() {
+            rocket.classList.remove('is-clicking');
+        });
+
+        // Compute real-time engine nozzle output coordinates based on rocket angle and tip origin
+        function getEngineNozzlePos(px, py, angleDeg) {
+            var rad = (angleDeg - 90) * (Math.PI / 180);
+            var dist = 28; // Distance from nose tip to engine thruster nozzle
+            return {
+                x: px - Math.cos(rad) * dist,
+                y: py - Math.sin(rad) * dist
+            };
+        }
+
         function createThrusterParticle(x, y, vx, vy, isHoveredState, isIdle) {
             particles.push({
                 x: x,
@@ -748,7 +773,8 @@
                     size: Math.random() * 7.0 + 4.5,
                     color: i % 3 === 0 ? '#00F0FF' : (i % 3 === 1 ? '#FFE600' : '#FF0055'),
                     alpha: 1.0,
-                    decay: Math.random() * 0.03 + 0.015
+                    decay: Math.random() * 0.03 + 0.015,
+                    isIdle: false
                 });
             }
         }
@@ -789,39 +815,21 @@
             }
         }
 
-        function createRadarScanPulse(px, py, angleDeg) {
-            var nozzle = getEngineNozzlePos(px, py, angleDeg);
-            var rad = (angleDeg + 90 + (Math.random() - 0.5) * 60) * (Math.PI / 180);
-            var speed = Math.random() * 1.2 + 0.4;
-
-            particles.push({
-                x: nozzle.x + Math.cos(rad) * 4,
-                y: nozzle.y + Math.sin(rad) * 4,
-                vx: Math.cos(rad) * speed,
-                vy: Math.sin(rad) * speed,
-                size: Math.random() * 4.0 + 2.5,
-                color: Math.random() > 0.4 ? idlePalette[themeMode].radar[0] : idlePalette[themeMode].radar[1],
-                alpha: 0.85,
-                decay: 0.03
+        // Bind interactive elements hover state
+        function bindHoverTargets() {
+            var targets = document.querySelectorAll('a, button, input, select, textarea, [role="button"], .hoverable');
+            targets.forEach(function(el) {
+                el.addEventListener('mouseenter', function() {
+                    isHovered = true;
+                    rocket.classList.add('is-hovering');
+                });
+                el.addEventListener('mouseleave', function() {
+                    isHovered = false;
+                    rocket.classList.remove('is-hovering');
+                });
             });
         }
-
-        function createGravitationalPulse(x, y) {
-            for (var i = 0; i < 24; i++) {
-                var pAngle = (i / 24) * Math.PI * 2;
-                var speed = Math.random() * 2.5 + 1.2;
-                particles.push({
-                    x: x,
-                    y: y,
-                    vx: Math.cos(pAngle) * speed,
-                    vy: Math.sin(pAngle) * speed,
-                    size: Math.random() * 5.0 + 2.8,
-                    color: i % 2 === 0 ? idlePalette[themeMode].pulse[0] : idlePalette[themeMode].pulse[1],
-                    alpha: 1.0,
-                    decay: 0.024
-                });
-            }
-        }
+        bindHoverTargets();
 
         function render() {
             if (isInitialized) {
@@ -832,6 +840,11 @@
                 var dx = pos.x - lastPos.x;
                 var dy = pos.y - lastPos.y;
                 var speed = Math.sqrt(dx * dx + dy * dy);
+
+                // หากเมาส์เคลื่อนที่เร็วเกินกว่า閾ֵ (Speed > 0.4) ให้ลบ Idle particles ทันที
+                if (speed > 0.4) {
+                    purgeIdleParticles();
+                }
 
                 if (speed > 0.4) {
                     targetAngle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
@@ -860,8 +873,8 @@
                         var growProgress = Math.min(T / growDuration, 1);
                         var growEase = growProgress * growProgress * (3 - 2 * growProgress);
 
-                        // Balanced orbit radius: min 12px, max 80px (expanded orbit)
-                        var minR = 12;
+                        // Max orbit radius 80px
+                        var minR = 15;
                         var maxR = 80;
                         var baseR = minR + (maxR - minR) * growEase;
                         var breathe = growProgress >= 1 ? Math.sin(T * 0.6) * 4 : 0;
@@ -890,7 +903,7 @@
                             createRadarScanPulse(pos.x + targetIdleX, pos.y + targetIdleY, targetAngle, true);
                         }
 
-                        // Prominent particle size with smooth organic drift velocity
+                        // Stardust creation during deep orbit
                         if (stardustRamp > 0 && Math.random() < 0.22 * stardustRamp) {
                             var orbRad = Math.random() * Math.PI * 2;
                             var orbDist = currentRadius + (Math.random() - 0.5) * 6;
@@ -902,8 +915,8 @@
                                 y: pos.y + Math.sin(orbRad) * orbDist,
                                 vx: -Math.sin(orbRad) * floatSpeed,
                                 vy: Math.cos(orbRad) * floatSpeed,
-                                damping: 0.985, // Gentle momentum glide without abrupt freezing
-                                size: Math.random() * 4.0 + 4.5, // Refined particle size for 80px radius
+                                damping: 0.985,
+                                size: Math.random() * 4.5 + 5.0, // 5.0 - 9.5px size
                                 color: vibrantColors[Math.floor(Math.random() * vibrantColors.length)],
                                 alpha: 0,
                                 targetAlpha: Math.random() * 0.45 + 0.3,
@@ -922,7 +935,7 @@
                     }
                 }
 
-                var idleLerp = idleStage > 0 ? 0.15 : 0.08; // Smooth transition back to center on mouse movement
+                var idleLerp = idleStage > 0 ? 0.15 : 0.12;
                 currentIdleOffsetX += (targetIdleX - currentIdleOffsetX) * idleLerp;
                 currentIdleOffsetY += (targetIdleY - currentIdleOffsetY) * idleLerp;
 
@@ -938,12 +951,12 @@
                     var backVx = -Math.cos(rad) * (speed * 0.5 + 1.8);
                     var backVy = -Math.sin(rad) * (speed * 0.5 + 1.8);
 
-                    createThrusterParticle(mainNozzle.x, mainNozzle.y, backVx, backVy, isHovered);
+                    createThrusterParticle(mainNozzle.x, mainNozzle.y, backVx, backVy, isHovered, false);
                 } else {
                     rocket.classList.remove('is-moving');
                 }
 
-                // Enforce active particle cap
+                // Enforce active particle limit
                 while (particles.length > 120) {
                     particles.shift();
                 }
@@ -952,15 +965,20 @@
 
                 for (var i = particles.length - 1; i >= 0; i--) {
                     var p = particles[i];
+
+                    // Double safeguard: omit drawing idle particles if mouse speed active
+                    if (p.isIdle && speed > 0.4) {
+                        particles.splice(i, 1);
+                        continue;
+                    }
+
                     p.x += p.vx;
                     p.y += p.vy;
 
-                    // Apply smooth dynamic momentum reduction
                     var dampFactor = p.damping || 0.93;
                     p.vx *= dampFactor;
                     p.vy *= dampFactor;
 
-                    // Controlled micro-drift so particles keep moving softly instead of freezing completely
                     if (p.damping) {
                         p.vx += (Math.random() - 0.5) * 0.04;
                         p.vy += (Math.random() - 0.5) * 0.04;
@@ -979,7 +997,6 @@
 
                     ctx.save();
                     ctx.globalCompositeOperation = 'lighter';
-                    // Exponential opacity curves prevent harsh pops/sudden disappearances
                     var smoothAlpha = Math.pow(Math.max(0, p.alpha), 1.4);
                     ctx.globalAlpha = smoothAlpha;
 
