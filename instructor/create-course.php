@@ -10,23 +10,32 @@ $user_id = $_SESSION['user_login']['user_id'] ?? ($_SESSION['user_id'] ?? 0);
 
 // ดึงข้อมูล Category ด้วย PDO
 $category_data = [];
+$subcategory_data = [];
+$certificate_templates = [];
+
 if (isset($conn)) {
     try {
-        $sql = "SELECT * FROM `category`";
+        // Fetch Categories
+        $sql = "SELECT * FROM `category` ORDER BY `id` ASC";
         $result = $conn->query($sql);
         if ($result) {
             $category_data = $result->fetchAll(PDO::FETCH_ASSOC);
         }
+
+        // Fetch Subcategories if table exists
+        $sql_sub = "SELECT * FROM `subcategory` ORDER BY `id` ASC";
+        $result_sub = $conn->query($sql_sub);
+        if ($result_sub) {
+            $subcategory_data = $result_sub->fetchAll(PDO::FETCH_ASSOC);
+        }
     } catch (PDOException $e) {
-        // Handle exception silently to not break the UI, or log it
-        error_log("DB Error: " . $e->getMessage());
+        error_log("DB Error in create-course.php: " . $e->getMessage());
     }
 }
-// ⚠️ โหลดผ่านระบบ AJAX ของหน้าหลัก ไม่ต้อง include header.php หรือ footer.php ซ้ำซ้อน
 ?>
 
 <style>
-    /* 🌙 ตัวแปรสำหรับ Dark Mode (Default & Fallback เมื่อเปิดหน้าตรง) */
+    /* 🌙 ตัวแปรสำหรับ Dark Mode (Default) */
     :root, html[data-theme="dark"] {
         --bg-dark-blend: #070a13;
         --card-bg-premium: #0f172a;
@@ -42,7 +51,8 @@ if (isset($conn)) {
         --cc-box-border: rgba(255, 255, 255, 0.1);
         --cc-preview-bg: rgba(0, 0, 0, 0.3);
         --cc-template-bg: rgba(30, 41, 59, 0.6);
-        --cc-modal-bg: #212529;
+        --cc-modal-bg: #1e293b;
+        --cc-card-hover: rgba(51, 65, 85, 0.5);
     }
 
     /* ☀️ ตัวแปรสำหรับ Light Mode */
@@ -58,34 +68,32 @@ if (isset($conn)) {
         --cc-input-ph: #94a3b8;
         --cc-step-bg: #f8fafc;
         --cc-step-border: rgba(15, 23, 42, 0.2);
-        --cc-box-border: rgba(0, 0, 0, 0.15);
+        --cc-box-border: rgba(0, 0, 0, 0.12);
         --cc-preview-bg: rgba(241, 245, 249, 0.8);
         --cc-template-bg: #ffffff;
         --cc-modal-bg: #ffffff;
+        --cc-card-hover: #f1f5f9;
     }
 
-    /* Safe Container Styles */
     body, .create-course-wrapper {
         animation: fadeIn 0.3s ease-in-out;
         color: var(--cc-text-main);
         background-color: var(--bg-dark-blend);
         border-radius: 12px;
+        font-family: 'Kanit', 'Prompt', system-ui, -apple-system, sans-serif;
     }
 
     html[data-theme="light"] .create-course-wrapper h3.text-white,
     html[data-theme="light"] .create-course-wrapper h5.text-white,
-    html[data-theme="light"] .create-course-wrapper .text-white:not(.btn),
-    html[data-theme="light"] .modal .text-white:not(.btn) {
+    html[data-theme="light"] .create-course-wrapper h6.text-white,
+    html[data-theme="light"] .create-course-wrapper .text-white:not(.btn):not(.badge),
+    html[data-theme="light"] .modal .text-white:not(.btn):not(.badge) {
         color: var(--cc-text-main) !important;
     }
-    
+
     html[data-theme="light"] .create-course-wrapper .text-info:not(.btn),
     html[data-theme="light"] .modal .text-info:not(.btn) {
         color: #0284c7 !important;
-    }
-    
-    html[data-theme="light"] .btn-close-white {
-        filter: invert(1) grayscale(100%) brightness(200%);
     }
 
     /* 🎨 Custom Button Styles */
@@ -125,52 +133,38 @@ if (isset($conn)) {
         background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(6, 182, 212, 0.25));
         border: 1px solid #c084fc;
         color: #e9d5ff !important;
-        padding: 3px 10px;
+        padding: 4px 12px;
         border-radius: 20px;
         font-size: 0.82rem;
-        font-weight: 600;
+        font-weight: 500;
         transition: all 0.25s ease;
         display: inline-flex;
         align-items: center;
-        gap: 5px;
+        gap: 6px;
         cursor: pointer;
-        text-shadow: 0 0 5px rgba(168, 85, 247, 0.5);
     }
 
     .ai-helper-btn:hover {
         background: linear-gradient(135deg, #a855f7, #06b6d4);
         color: #ffffff !important;
-        border-color: #38bdf8;
-        box-shadow: 0 0 12px rgba(168, 85, 247, 0.6);
-        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(168, 85, 247, 0.4);
     }
 
-    html[data-theme="light"] .ai-helper-btn {
-        background: linear-gradient(135deg, #f3e8ff, #e0f2fe);
-        border: 1px solid #a855f7;
-        color: #7e22ce !important;
-        text-shadow: none;
-    }
-
-    html[data-theme="light"] .ai-helper-btn:hover {
-        background: linear-gradient(135deg, #a855f7, #0284c7);
-        color: #ffffff !important;
-    }
-
+    /* 📌 Step Navigation Timeline */
     .step-timeline {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 30px;
+        margin-bottom: 35px;
         position: relative;
     }
 
     .step-timeline::before {
         content: '';
         position: absolute;
-        top: 20px;
-        left: 0;
-        right: 0;
-        height: 2px;
+        top: 21px;
+        left: 5%;
+        right: 5%;
+        height: 3px;
         background: var(--cc-box-border);
         z-index: 1;
     }
@@ -181,22 +175,22 @@ if (isset($conn)) {
         background: var(--cc-step-bg);
         border: 2px solid var(--cc-step-border);
         border-radius: 50%;
-        width: 42px;
-        height: 42px;
+        width: 44px;
+        height: 44px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: bold;
         color: var(--cc-text-muted);
         cursor: pointer;
-        transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+        transition: all 0.3s ease;
     }
 
     .step-node.active {
         border-color: #06b6d4;
         background: #06b6d4;
         color: #ffffff;
-        box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+        box-shadow: 0 0 18px rgba(6, 182, 212, 0.5);
     }
 
     .step-node.completed {
@@ -206,20 +200,21 @@ if (isset($conn)) {
     }
 
     .step-label {
-        font-size: 0.8rem;
+        font-size: 0.82rem;
         color: var(--cc-text-muted);
         text-align: center;
-        margin-top: 6px;
+        margin-top: 8px;
         font-weight: 500;
     }
 
+    /* 📝 Inputs & Form Controls */
     .form-dark-input {
         background: var(--cc-input-bg) !important;
         border: 1px solid var(--cc-input-border) !important;
         color: var(--cc-input-text) !important;
         border-radius: 10px !important;
         padding: 12px 16px !important;
-        transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+        transition: all 0.3s ease;
     }
 
     .form-dark-input:focus {
@@ -229,17 +224,11 @@ if (isset($conn)) {
     }
 
     .form-dark-input option {
-        background-color: var(--cc-step-bg) !important;
+        background-color: var(--card-bg-premium) !important;
         color: var(--cc-input-text) !important;
         padding: 10px;
     }
 
-    .form-dark-input::placeholder {
-        color: var(--cc-input-ph) !important;
-        opacity: 1;
-    }
-
-    /* 🛠️ Custom Arrow UI สำหรับ select */
     select.form-dark-input,
     .form-select.form-dark-input {
         -webkit-appearance: none !important;
@@ -252,12 +241,6 @@ if (isset($conn)) {
         padding-right: 2.5rem !important;
     }
 
-    html[data-theme="light"] select.form-dark-input,
-    html[data-theme="light"] .form-select.form-dark-input {
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%230284c7' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
-    }
-
-    /* ซ่อนลูกศรในช่อง Number Input */
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button {
         -webkit-appearance: none !important;
@@ -272,7 +255,6 @@ if (isset($conn)) {
         color: var(--cc-text-label) !important;
         font-weight: 500;
         margin-bottom: 6px;
-        transition: color 0.3s ease;
     }
 
     .tag-badge {
@@ -286,14 +268,15 @@ if (isset($conn)) {
         gap: 6px;
         font-size: 0.85rem;
     }
-    
-    html[data-theme="light"] .tag-badge {
-        color: #0284c7;
-    }
 
     .tag-badge i {
         cursor: pointer;
         color: #ec4899;
+        transition: transform 0.2s;
+    }
+
+    .tag-badge i:hover {
+        transform: scale(1.2);
     }
 
     .ai-magic-btn {
@@ -307,15 +290,16 @@ if (isset($conn)) {
     }
 
     .ai-magic-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(168, 85, 247, 0.4);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
     }
 
+    /* 🖼️ Upload Boxes & Preview Cards */
     .image-preview-box {
         border: 2px dashed var(--cc-box-border);
         border-radius: 16px;
         background: var(--cc-preview-bg);
-        min-height: 180px;
+        min-height: 200px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -324,21 +308,12 @@ if (isset($conn)) {
         position: relative;
         overflow: hidden;
         padding: 20px;
-        transition: background-color 0.3s ease, border-color 0.3s ease;
+        transition: border-color 0.3s ease, background-color 0.3s ease;
     }
 
-    .image-preview-box img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        position: absolute;
-        top: 0;
-        left: 0;
-    }
-
-    .image-preview-box span {
-        color: var(--cc-text-main) !important;
-        font-weight: 500;
+    .image-preview-box:hover {
+        border-color: #06b6d4;
+        background: rgba(6, 182, 212, 0.05);
     }
 
     .template-card {
@@ -347,80 +322,87 @@ if (isset($conn)) {
         border-radius: 12px;
         padding: 18px;
         cursor: pointer;
-        transition: border-color 0.2s ease, background-color 0.2s ease;
+        transition: all 0.25s ease;
     }
 
     .template-card:hover {
         border-color: #a855f7;
-        background: rgba(168, 85, 247, 0.1);
+        background: var(--cc-card-hover);
+        transform: translateY(-2px);
     }
 
-    .template-card .text-desc {
-        color: var(--cc-text-muted) !important;
-    }
-
-    .checkbox-text-container {
-        color: var(--cc-text-label) !important;
-        font-size: 0.9rem;
-    }
-
-    .checkbox-text-container input[type="checkbox"] {
-        margin-right: 6px;
-        accent-color: #06b6d4;
-    }
-
-    .cc-modal-bg {
-        background-color: var(--cc-modal-bg) !important;
+    .serp-preview-box {
+        background: var(--cc-preview-bg);
         border: 1px solid var(--cc-box-border);
+        border-radius: 12px;
+        padding: 16px;
+        font-family: Arial, sans-serif;
     }
-    
-    .cc-inner-box {
-        background-color: var(--cc-step-bg) !important;
-        border: 1px solid var(--cc-box-border);
+
+    .serp-url {
+        font-size: 13px;
+        color: #202124;
+        word-break: break-all;
     }
-    
-    .cc-preview-box {
-        background-color: var(--cc-preview-bg);
-        color: var(--cc-text-main);
+    html[data-theme="dark"] .serp-url { color: #bdc1c6; }
+
+    .serp-title {
+        font-size: 18px;
+        color: #1a0dab;
+        cursor: pointer;
+        text-decoration: hover;
+        line-height: 1.3;
     }
+    html[data-theme="dark"] .serp-title { color: #8ab4f8; }
+
+    .serp-snippet {
+        font-size: 13px;
+        color: #4d5156;
+        line-height: 1.5;
+    }
+    html[data-theme="dark"] .serp-snippet { color: #bdc1c6; }
+
+    .cc-modal-bg { background-color: var(--cc-modal-bg) !important; border: 1px solid var(--cc-box-border); }
+    .cc-inner-box { background-color: var(--cc-step-bg) !important; border: 1px solid var(--cc-box-border); }
+    .cc-preview-box { background-color: var(--cc-preview-bg); color: var(--cc-text-main); }
 
     .btn-cc-outline {
         border: 1px solid var(--cc-box-border);
         color: var(--cc-text-main) !important;
         background: transparent;
-        transition: background-color 0.3s ease, border-color 0.3s ease;
+        transition: all 0.3s ease;
         border-radius: 8px;
     }
-    
-    .btn-cc-outline:hover {
-        background: var(--cc-step-bg);
-        border-color: #06b6d4;
+    .btn-cc-outline:hover { background: var(--cc-step-bg); border-color: #06b6d4; }
+
+    .text-cyan { color: #06b6d4 !important; }
+    .text-purple { color: #c084fc !important; }
+
+    .revenue-split-card {
+        background: rgba(6, 182, 212, 0.08);
+        border: 1px solid rgba(6, 182, 212, 0.2);
+        border-radius: 12px;
+        padding: 15px;
     }
 
     @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
+        from { opacity: 0; transform: translateY(8px); }
         to { opacity: 1; transform: translateY(0); }
-    }
-
-    .media-dropzone.dragover {
-        border-color: #06b6d4 !important;
-        background: rgba(6, 182, 212, 0.2) !important;
-        box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
     }
 </style>
 
-<div class="create-course-wrapper p-3">
+<div class="create-course-wrapper p-3 p-md-4">
 
-    <!-- Header -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-2">
+    <!-- Header Section -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
         <div>
-            <h3 class="text-white fw-bold mb-1"><i class="bi bi-plus-square-fill text-info me-2"></i> สร้างคอร์สใหม่ (Create Course)</h3>
+            <h3 class="text-white fw-bold mb-1"><i class="bi bi-plus-square-fill text-info me-2"></i> สร้างคอร์สใหม่ (Create New Course)</h3>
             <div class="text-info small fw-medium">
                 ลำดับขั้นตอนการทำงาน: <span class="text-white bg-info bg-opacity-20 px-2 py-0.5 rounded">1. ข้อมูลพื้นฐาน</span> → 2. สื่อและหมวดหมู่ → 3. เป้าหมายเรียน → 4. ตั้งค่าระบบ / ราคา / SEO
             </div>
         </div>
 
-        <div class="d-flex gap-2">
+        <div class="d-flex flex-wrap gap-2">
             <button type="button" class="btn btn-outline-purple text-white btn-sm px-3" data-bs-toggle="modal" data-bs-target="#aiBlueprintModal">
                 <i class="bi bi-cpu-fill me-1"></i> AI Course Blueprint
             </button>
@@ -431,27 +413,27 @@ if (isset($conn)) {
     </div>
 
     <!-- Step Timeline Bar -->
-    <div class="step-timeline px-4">
-        <div class="d-flex flex-column align-items-center">
-            <div class="step-node active" onclick="switchStep(1)">1</div>
+    <div class="step-timeline px-2 px-md-5">
+        <div class="d-flex flex-column align-items-center" onclick="switchStep(1)">
+            <div class="step-node active" id="node-step-1">1</div>
             <span class="step-label">ข้อมูลทั่วไป</span>
         </div>
-        <div class="d-flex flex-column align-items-center">
-            <div class="step-node" id="node-step-2" onclick="switchStep(2)">2</div>
+        <div class="d-flex flex-column align-items-center" onclick="switchStep(2)">
+            <div class="step-node" id="node-step-2">2</div>
             <span class="step-label">สื่อและหมวดหมู่</span>
         </div>
-        <div class="d-flex flex-column align-items-center">
-            <div class="step-node" id="node-step-3" onclick="switchStep(3)">3</div>
+        <div class="d-flex flex-column align-items-center" onclick="switchStep(3)">
+            <div class="step-node" id="node-step-3">3</div>
             <span class="step-label">เป้าหมายเรียน</span>
         </div>
-        <div class="d-flex flex-column align-items-center">
-            <div class="step-node" id="node-step-4" onclick="switchStep(4)">4</div>
+        <div class="d-flex flex-column align-items-center" onclick="switchStep(4)">
+            <div class="step-node" id="node-step-4">4</div>
             <span class="step-label">ตั้งค่าระบบ / ราคา / SEO</span>
         </div>
     </div>
 
     <!-- Course Form -->
-    <form id="createCourseForm">
+    <form id="createCourseForm" enctype="multipart/form-data">
 
         <!-- STEP 1: ข้อมูลพื้นฐาน -->
         <div class="course-step-section" id="step-section-1">
@@ -461,35 +443,36 @@ if (isset($conn)) {
                 <div class="row g-3">
                     <div class="col-12">
                         <label class="form-label form-label-custom">ชื่อคอร์ส <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control form-dark-input required-field" id="course_title" name="course_title" placeholder="เช่น Advanced Full Stack Web Development with Next.js">
+                        <input type="text" class="form-control form-dark-input required-field" id="course_title" name="course_title" placeholder="เช่น Advanced Full Stack Web Development with Next.js" oninput="updateSeoPreview()">
                     </div>
                     <div class="col-12 col-md-6">
                         <label class="form-label form-label-custom">ชื่อรอง (Subtitle)</label>
                         <input type="text" class="form-control form-dark-input" id="course_subtitle" name="course_subtitle" placeholder="คำโปรยหัวสั้นๆ กระตุ้นผู้เรียน">
                     </div>
                     <div class="col-12 col-md-6">
-                        <label class="form-label form-label-custom">ภาษาในคอร์ส</label>
+                        <label class="form-label form-label-custom">ภาษาหลักในการสอน</label>
                         <select class="form-select form-dark-input" id="course_language" name="course_language">
-                            <option value="th">ภาษาไทย (Thai)</option>
+                            <option value="th" selected>ภาษาไทย (Thai)</option>
                             <option value="en">ภาษาอังกฤษ (English)</option>
+                            <option value="th-en">สองภาษา (Thai & English Subtitles)</option>
                         </select>
                     </div>
                     <div class="col-12">
                         <div class="d-flex justify-content-between align-items-center mb-1">
-                            <label class="form-label form-label-custom mb-0">คำอธิบายสั้น</label>
+                            <label class="form-label form-label-custom mb-0">คำอธิบายสั้น (Short Description)</label>
                             <button type="button" class="btn ai-helper-btn" onclick="generateAICourseDesc()">
                                 <i class="bi bi-stars"></i> ให้ AI ช่วยแต่งคำอธิบาย
                             </button>
                         </div>
-                        <input type="text" class="form-control form-dark-input" id="course_short_desc" name="course_short_desc" placeholder="สรุปคอร์สใน 1 ประโยคเพื่อโชว์ที่การ์ด">
+                        <input type="text" class="form-control form-dark-input" id="course_short_desc" name="course_short_desc" placeholder="สรุปคอร์สใน 1 ประโยคเพื่อโชว์ที่การ์ดหน้าแรก" oninput="updateSeoPreview()">
                     </div>
                     <div class="col-12">
-                        <label class="form-label form-label-custom">คำอธิบายแบบรายละเอียด</label>
-                        <textarea class="form-control form-dark-input" id="course_full_desc" name="course_full_desc" rows="4" placeholder="รายละเอียดหลักสูตร โครงสร้าง และเนื้อหาเจาะลึกที่ผู้เรียนจะได้รับ"></textarea>
+                        <label class="form-label form-label-custom">คำอธิบายแบบรายละเอียด (Course Full Description)</label>
+                        <textarea class="form-control form-dark-input" id="course_full_desc" name="course_full_desc" rows="5" placeholder="รายละเอียดหลักสูตร โครงสร้าง และเนื้อหาเจาะลึกที่ผู้เรียนจะได้รับ"></textarea>
                     </div>
                     <div class="col-12">
-                        <label class="form-label form-label-custom">Tags คอร์ส (ระบุข้อความแล้วกด Enter เพื่อเพิ่มคีย์เวิร์ด)</label>
-                        <input type="text" class="form-control form-dark-input mb-2" id="tag_input" placeholder="เช่น nextjs, react, api">
+                        <label class="form-label form-label-custom">Tags แท็กคีย์เวิร์ด (พิมพ์ข้อความแล้วกด Enter เพื่อเพิ่ม)</label>
+                        <input type="text" class="form-control form-dark-input mb-2" id="tag_input" placeholder="เช่น nextjs, react, api, tailwind">
                         <input type="hidden" name="course_tag" id="hidden_tags">
                         <div id="tags_container" class="d-flex flex-wrap gap-2 mt-2"></div>
                     </div>
@@ -501,70 +484,77 @@ if (isset($conn)) {
         <div class="course-step-section d-none" id="step-section-2">
             <div class="p-4 rounded-4 mb-4" style="background: var(--card-bg-premium); border: 1px solid var(--cc-box-border);">
                 <div class="row g-4">
-                    <!-- สื่อแนะนำคอร์ส -->
                     <div class="col-12 col-md-6">
-                        <h5 class="fw-bold text-white mb-3"><i class="bi bi-image text-info me-2"></i> 2. สื่อแนะนำคอร์ส</h5>
+                        <h5 class="fw-bold text-white mb-3"><i class="bi bi-image text-info me-2"></i> 2. สื่อแนะนำคอร์ส (Course Preview Media)</h5>
 
                         <div class="d-flex gap-2 mb-3">
                             <button type="button" class="btn btn-info text-white px-4 fw-medium" id="btn-tab-image" onclick="toggleMediaTab('image')">
-                                <i class="bi bi-image me-1"></i> ใส่รูปภาพปก
+                                <i class="bi bi-image me-1"></i> รูปภาพปก
                             </button>
                             <button type="button" class="btn btn-outline-info text-white px-4 fw-medium" id="btn-tab-video" onclick="toggleMediaTab('video')">
-                                <i class="bi bi-camera-video me-1"></i> ใส่วิดีโอแนะนำ
+                                <i class="bi bi-camera-video me-1"></i> วิดีโอ ตัวอย่าง
                             </button>
                         </div>
 
-                        <!-- Dropzone Image -->
+                        <!-- Box Cover Image -->
                         <div id="box-image">
-                            <label class="form-label form-label-custom">รูปปกคอร์ส (อัตราส่วนแนะนำ 16:9) <span class="text-danger">*</span></label>
+                            <label class="form-label form-label-custom">รูปปกคอร์ส (แนะนำขนาด 1280x720 หรือ 16:9) <span class="text-danger">*</span></label>
                             <div class="image-preview-box mb-2 media-dropzone" id="dropzone-image">
                                 <input type="file" id="cover_file" name="cover_file" class="d-none" accept="image/*" onchange="previewMedia(this, 'image')">
-                                <img id="cover_preview" src="" class="d-none" alt="Preview Image">
+                                <img id="cover_preview" src="" class="d-none" alt="Preview Image" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
                                 <div class="upload-placeholder text-center">
-                                    <i class="bi bi-cloud-arrow-up fs-2 text-cyan mb-2 d-block"></i>
-                                    <span>คลิกหรือลากไฟล์ <b>รูปภาพ</b> มาวางที่นี่</span>
+                                    <i class="bi bi-cloud-arrow-up fs-1 text-cyan mb-2 d-block"></i>
+                                    <span class="fw-medium">คลิกหรือลากไฟล์ <b>รูปภาพ</b> มาวางที่นี่</span>
+                                    <div class="small text-muted mt-1">(รองรับ JPG, PNG, WEBP ขนาดไม่เกิน 5MB)</div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Dropzone Video -->
+                        <!-- Box Intro Video -->
                         <div id="box-video" class="d-none">
-                            <label class="form-label form-label-custom">วิดีโอแนะนำ (Intro Video - MP4)</label>
+                            <label class="form-label form-label-custom">วิดีโอแนะนำคอร์ส (Intro Video - MP4/WebM)</label>
                             <div class="image-preview-box mb-2 media-dropzone" id="dropzone-video">
                                 <input type="file" id="video_file" name="video_file" class="d-none" accept="video/mp4,video/webm" onchange="previewMedia(this, 'video')">
-                                <video id="video_preview" controls class="d-none w-100" style="max-height: 200px; border-radius: 8px; z-index: 5; position: relative;"></video>
+                                <video id="video_preview" controls class="d-none w-100" style="max-height: 220px; border-radius: 8px; z-index: 5; position: relative;"></video>
                                 <div class="upload-placeholder text-center">
-                                    <i class="bi bi-film fs-2 text-purple mb-2 d-block"></i>
-                                    <span>คลิกหรือลากไฟล์ <b>วิดีโอ</b> มาวางที่นี่</span>
+                                    <i class="bi bi-film fs-1 text-purple mb-2 d-block"></i>
+                                    <span class="fw-medium">คลิกหรือลากไฟล์ <b>วิดีโอ</b> มาวางที่นี่</span>
+                                    <div class="small text-muted mt-1">(ไฟล์วิดีโอสั้นไม่เกิน 2 นาที / 100MB)</div>
                                 </div>
+                            </div>
+                            <div class="mt-2">
+                                <label class="form-label form-label-custom">หรือใส่ลิงก์ YouTube / Vimeo Preview</label>
+                                <input type="url" class="form-control form-dark-input" id="video_url" name="video_url" placeholder="https://www.youtube.com/watch?v=...">
                             </div>
                         </div>
                     </div>
 
-                    <!-- หมวดหมู่และระดับความยาก -->
                     <div class="col-12 col-md-6">
                         <h5 class="fw-bold text-white mb-3"><i class="bi bi-tags text-info me-2"></i> 3 & 4. หมวดหมู่และระดับความยาก</h5>
 
                         <div class="mb-3">
-                            <label class="form-label form-label-custom">หมวดหมู่หลักคอร์ส <span class="text-danger">*</span></label>
+                            <label class="form-label form-label-custom">หมวดหมู่หลักคอร์ส (Category) <span class="text-danger">*</span></label>
                             <select class="form-select form-dark-input required-field" id="course_category" name="course_category">
                                 <option value="">-- กรุณาเลือกหมวดหมู่หลัก --</option>
                                 <?php if (!empty($category_data)): ?>
                                     <?php foreach ($category_data as $category): ?>
                                         <option value="<?= htmlspecialchars($category['id'] ?? ''); ?>">
-                                            <?= htmlspecialchars($category['name'] ?? ''); ?>
+                                            <?= htmlspecialchars($category['name'] ?? $category['category_name'] ?? ''); ?>
                                         </option>
                                     <?php endforeach; ?>
                                 <?php else: ?>
-                                    <option value="">ไม่มีข้อมูลหมวดหมู่</option>
+                                    <option value="1">Programming & Development</option>
+                                    <option value="2">Data Science & AI</option>
+                                    <option value="3">Cybersecurity & Networking</option>
+                                    <option value="4">Graphic Design & UI/UX</option>
                                 <?php endif; ?>
                             </select>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label form-label-custom">ระดับความยากผู้เรียน (Difficulty Level)</label>
+                            <label class="form-label form-label-custom">ระดับความยาก (Difficulty Level)</label>
                             <select class="form-select form-dark-input" id="course_difficulty" onchange="updateDifficultyHelp()" name="course_difficulty">
-                                <option value="Beginner">Beginner (เหมาะสำหรับผู้เริ่มต้น ไม่มีพื้นฐานเลย)</option>
+                                <option value="Beginner" selected>Beginner (เหมาะสำหรับผู้เริ่มต้น ไม่มีพื้นฐานเลย)</option>
                                 <option value="Intermediate">Intermediate (มีพื้นฐานภาษาคอมพิวเตอร์มาบ้างแล้ว)</option>
                                 <option value="Advanced">Advanced (เจาะลึกโปรเจกต์ใหญ่ ลอจิกซับซ้อน)</option>
                                 <option value="Expert">Expert (ระดับสถาปัตยกรรมระบบขั้นสูงและ Security)</option>
@@ -573,16 +563,19 @@ if (isset($conn)) {
                         </div>
 
                         <div>
-                            <label class="form-label form-label-custom">ระยะเวลาคอร์สโดยประมาณ</label>
+                            <label class="form-label form-label-custom">ประมาณการระยะเวลาการเรียน</label>
                             <div class="row g-2">
                                 <div class="col-4">
-                                    <input type="number" class="form-control form-dark-input" id="duration_hours" placeholder="ชั่วโมงรวม" name="duration_hours" min="0">
+                                    <label class="small text-muted mb-1">ชั่วโมงรวม</label>
+                                    <input type="number" class="form-control form-dark-input" id="duration_hours" placeholder="เช่น 18" name="duration_hours" min="0">
                                 </div>
                                 <div class="col-4">
-                                    <input type="number" class="form-control form-dark-input" id="duration_chapters" placeholder="จำนวนบท" name="duration_chapters" min="0">
+                                    <label class="small text-muted mb-1">จำนวนบท</label>
+                                    <input type="number" class="form-control form-dark-input" id="duration_chapters" placeholder="เช่น 12" name="duration_chapters" min="0">
                                 </div>
                                 <div class="col-4">
-                                    <input type="text" class="form-control form-dark-input" id="duration_week" placeholder="ชม./สัปดาห์" name="duration_week">
+                                    <label class="small text-muted mb-1">ชม./สัปดาห์</label>
+                                    <input type="text" class="form-control form-dark-input" id="duration_week" placeholder="เช่น 3-4" name="duration_week">
                                 </div>
                             </div>
                         </div>
@@ -597,11 +590,18 @@ if (isset($conn)) {
                 <div class="row g-4">
                     <div class="col-12 col-md-6">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h5 class="fw-bold text-white mb-0"><i class="bi bi-bookmark-check text-success me-2"></i> 5. สิ่งที่จะได้เรียนรู้ (Outcomes)</h5>
+                            <h5 class="fw-bold text-white mb-0"><i class="bi bi-bookmark-check text-success me-2"></i> 5. สิ่งที่จะได้เรียนรู้ (Learning Outcomes)</h5>
                             <button type="button" class="btn btn-sm btn-outline-info text-white py-1 px-2" onclick="addDynamicRow('outcomes_list', 'เช่น เขียน REST API ได้อย่างเชี่ยวชาญ','outcomes[]')">+ เพิ่มข้อใหม่</button>
                         </div>
                         <div id="outcomes_list" class="d-flex flex-column gap-2 mt-2">
-                            <input type="text" class="form-control form-dark-input" value="เข้าใจแนวคิดและหลักการทำงานเบื้องต้นอย่างรายละเอียด" name="outcomes[]">
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control form-dark-input" value="เข้าใจแนวคิดและหลักการทำงานเบื้องต้นอย่างละเอียด" name="outcomes[]">
+                                <button class="btn btn-outline-danger text-white px-3" type="button" onclick="$(this).parent().remove()"><i class="bi bi-trash-fill"></i></button>
+                            </div>
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control form-dark-input" value="สร้างและพัฒนาโปรเจกต์จริงพร้อม Deploy ขึ้นระบบ Cloud ได้" name="outcomes[]">
+                                <button class="btn btn-outline-danger text-white px-3" type="button" onclick="$(this).parent().remove()"><i class="bi bi-trash-fill"></i></button>
+                            </div>
                         </div>
                     </div>
 
@@ -611,7 +611,10 @@ if (isset($conn)) {
                             <button type="button" class="btn btn-sm btn-outline-warning text-white py-1 px-2" onclick="addDynamicRow('prereq_list', 'เช่น HTML / CSS และ JavaScript พื้นฐาน','prereq[]')">+ เพิ่มข้อใหม่</button>
                         </div>
                         <div id="prereq_list" class="d-flex flex-column gap-2 mt-2">
-                            <input type="text" class="form-control form-dark-input" value="ไม่มีความรู้พื้นฐานคอมพิวเตอร์ระดับสูงก็สามารถเรียนได้" name="prereq[]">
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control form-dark-input" value="ไม่มีความรู้พื้นฐานคอมพิวเตอร์ระดับสูงก็สามารถเรียนได้" name="prereq[]">
+                                <button class="btn btn-outline-danger text-white px-3" type="button" onclick="$(this).parent().remove()"><i class="bi bi-trash-fill"></i></button>
+                            </div>
                         </div>
                     </div>
 
@@ -624,10 +627,11 @@ if (isset($conn)) {
                                     <option value="ผู้เริ่มต้น / นักเรียน นักศึกษา">ผู้เริ่มต้น / นักเรียน นักศึกษา</option>
                                     <option value="โปรแกรมเมอร์ที่ต้องการย้ายหรือเปลี่ยนสายงาน">โปรแกรมเมอร์ที่ต้องการย้ายหรือเปลี่ยนสายงาน</option>
                                     <option value="ผู้ทำงานสายตรงที่ต้องการอัปสกิลเทคโนโลยีใหม่">ผู้ทำงานสายตรงที่ต้องการอัปสกิลเทคโนโลยีใหม่</option>
+                                    <option value="เจ้าของธุรกิจและผู้บริหารระดับสร้างนวัตกรรม">เจ้าของธุรกิจและผู้บริหารระดับสร้างนวัตกรรม</option>
                                 </select>
                             </div>
                             <div class="col-12 col-md-6">
-                                <label class="form-label form-label-custom">เชื่อมโยงกับแผนอาชีพ (Career Path)</label>
+                                <label class="form-label form-label-custom">เชื่อมโยงกับสายอาชีพ (Career Path)</label>
                                 <select class="form-select form-dark-input" id="course_career" name="course_career">
                                     <option value="Full Stack Developer">Full Stack Developer</option>
                                     <option value="Front-end Developer">Front-end Developer</option>
@@ -635,6 +639,7 @@ if (isset($conn)) {
                                     <option value="Data Scientist / AI Engineer">Data Scientist / AI Engineer</option>
                                     <option value="Cloud & DevOps Engineer">Cloud & DevOps Engineer</option>
                                     <option value="Cybersecurity Analyst">Cybersecurity Analyst</option>
+                                    <option value="UI/UX Designer & Product Owner">UI/UX Designer & Product Owner</option>
                                 </select>
                             </div>
                         </div>
@@ -668,7 +673,7 @@ if (isset($conn)) {
                         </select>
                     </div>
                     <div class="col-12 col-md-4">
-                        <label class="form-label form-label-custom">เชิญอาจารย์ร่วมสอน (Collaboration)</label>
+                        <label class="form-label form-label-custom">เชิญอาจารย์ร่วมสอน (Co-Instructor)</label>
                         <input type="email" class="form-control form-dark-input" id="collab_email" placeholder="ระบุอีเมลผู้ช่วยสอนหรือผู้ตรวจคอร์ส" name="collab_email">
                     </div>
 
@@ -676,16 +681,29 @@ if (isset($conn)) {
                     <div class="col-12 col-md-6 price-field-group">
                         <label class="form-label form-label-custom">ราคาปกติ (บาท) <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <span class="input-group-text bg-dark border-secondary border-opacity-30 text-info fw-bold">฿</span>
-                            <input type="number" class="form-control form-dark-input" id="course_price" name="course_price" placeholder="เช่น 1500" min="0" value="1500">
+                            <span class="input-group-text bg-dark border-secondary text-info fw-bold">฿</span>
+                            <input type="number" step="0.01" class="form-control form-dark-input" id="course_price" name="pice" placeholder="เช่น 1500" min="0" value="1500" oninput="calculateRevenue()">
                         </div>
                     </div>
 
                     <div class="col-12 col-md-6 price-field-group">
-                        <label class="form-label form-label-custom">ราคาโปรโมชัน / ส่วนลด (บาท) <span class="text-white-50 small">(เว้นว่างหากไม่มี)</span></label>
+                        <label class="form-label form-label-custom">ราคาโปรโมชัน / ส่วนลด (บาท) <span class="text-muted small">(เว้นว่างหากไม่มีส่วนลด)</span></label>
                         <div class="input-group">
-                            <span class="input-group-text bg-dark border-secondary border-opacity-30 text-warning fw-bold">฿</span>
-                            <input type="number" class="form-control form-dark-input" id="course_sale_price" name="course_sale_price" placeholder="เช่น 990" min="0" value="990">
+                            <span class="input-group-text bg-dark border-secondary text-warning fw-bold">฿</span>
+                            <input type="number" step="0.01" class="form-control form-dark-input" id="course_sale_price" name="sale_price" placeholder="เช่น 990" min="0" value="990" oninput="calculateRevenue()">
+                        </div>
+                    </div>
+
+                    <!-- Revenue Share Estimator Box -->
+                    <div class="col-12 price-field-group">
+                        <div class="revenue-split-card d-flex flex-wrap justify-content-between align-items-center gap-3">
+                            <div>
+                                <div class="fw-bold text-cyan"><i class="bi bi-calculator"></i>ประมาณการรายได้ผู้สอนต่อการขาย 1 สิทธิ์ (70% Revenue Share)</div>
+                                <div class="small text-muted">หักค่าธรรมเนียมแพลตฟอร์มและ Payment Gateway แล้ว 30%</div>
+                            </div>
+                            <div class="fs-4 fw-bold text-success" id="instructor_earning_display">
+                                ฿693.00 <span class="fs-6 text-muted font-normal">/ ผู้เรียน</span>
+                            </div>
                         </div>
                     </div>
 
@@ -696,17 +714,17 @@ if (isset($conn)) {
                                 <input class="form-check-input" type="checkbox" id="cert_enable" name="cert_enable" value="1" checked onchange="$('#cert_condition_box').toggle()">
                                 <label class="form-check-label text-white fw-bold small" for="cert_enable">เปิดใช้งานใบรับรองหลังเรียนจบหลักสูตร (Certificate of Completion)</label>
                             </div>
-                            <div id="cert_condition_box" class="mt-3 row g-2 checkbox-text-container">
+                            <div id="cert_condition_box" class="mt-3 row g-2">
                                 <span class="text-info fw-medium small mb-1"><i class="bi bi-gear"></i> กำหนดเงื่อนไขการรับใบประกาศนียบัตร:</span>
-                                <div class="col-auto"><label><input type="checkbox" checked name="cert_condition_quiz" value="1"> ผู้เรียนต้องทำผ่านแบบทดสอบ (Quiz) ทั้งหมด</label></div>
-                                <div class="col-auto ms-md-4"><label><input type="checkbox" name="cert_condition_lab" value="1"> ผู้เรียนต้องผ่านการทดสอบแล็บปฏิบัติการ (Coding Lab)</label></div>
+                                <div class="col-12 col-md-6"><label class="small"><input type="checkbox" checked name="cert_condition_quiz" value="1"> ผู้เรียนต้องทำผ่านแบบทดสอบ (Quiz) ทั้งหมดอย่างน้อย 70%</label></div>
+                                <div class="col-12 col-md-6"><label class="small"><input type="checkbox" name="cert_condition_lab" value="1"> ผู้เรียนต้องส่งและผ่านการทดสอบแล็บปฏิบัติการ (Coding Lab)</label></div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- SEO Settings -->
+                    <!-- SEO Settings & Live SERP Preview -->
                     <div class="col-12">
-                        <h5 class="fw-bold text-white mb-2 mt-3"><i class="bi bi-search text-cyan me-2"></i> การตั้งค่าค้นหาทางการตลาด (SEO Settings)</h5>
+                        <h5 class="fw-bold text-white mb-2 mt-3"><i class="bi bi-search text-cyan me-2"></i> การตั้งค่าการค้นหาทางการตลาด (SEO Settings)</h5>
                         <div class="row g-3">
                             <div class="col-12 col-md-6">
                                 <label class="form-label form-label-custom">Friendly URL Slug</label>
@@ -714,11 +732,21 @@ if (isset($conn)) {
                             </div>
                             <div class="col-12 col-md-6">
                                 <label class="form-label form-label-custom">Meta Title</label>
-                                <input type="text" class="form-control form-dark-input" id="seo_title" placeholder="หัวข้อไตเติ้ลเมื่อแสดงผลบน Google Search" name="seo_title">
+                                <input type="text" class="form-control form-dark-input" id="seo_title" placeholder="หัวข้อไตเติ้ลเมื่อแสดงผลบน Google Search" name="seo_title" oninput="updateSeoPreview()">
                             </div>
                             <div class="col-12">
                                 <label class="form-label form-label-custom">Meta Description</label>
-                                <textarea class="form-control form-dark-input" id="seo_desc" rows="2" placeholder="เขียนสรุปรายละเอียดความยาวไม่เกิน 160 ตัวอักษร เพื่อให้ Search Engine ดึงข้อมูลไปแสดง" name="seo_desc"></textarea>
+                                <textarea class="form-control form-dark-input" id="seo_desc" rows="2" placeholder="เขียนสรุปรายละเอียดความยาวไม่เกิน 160 ตัวอักษร เพื่อให้ Search Engine ดึงข้อมูลไปแสดง" name="seo_desc" oninput="updateSeoPreview()"></textarea>
+                            </div>
+
+                            <!-- Google SERP Live Mockup -->
+                            <div class="col-12 mt-3">
+                                <label class="form-label form-label-custom">ตัวอย่างการแสดงผลบน Google Search (SERP Preview)</label>
+                                <div class="serp-preview-box">
+                                    <div class="serp-url mb-1" id="serp_url_preview">https://your-lms-domain.com/courses/<span id="serp_slug_text">advanced-course</span></div>
+                                    <div class="serp-title mb-1 fw-bold" id="serp_title_preview">ชื่อคอร์สจะปรากฏที่นี่บน Google Search</div>
+                                    <div class="serp-snippet" id="serp_desc_preview">คำอธิบายรายวิชาอย่างย่อจะถูกนำมาแสดงในส่วนนี้เพื่อให้ผู้ค้นหาใน Google ได้รับทราบเนื้อหาหลัก...</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -726,15 +754,15 @@ if (isset($conn)) {
             </div>
         </div>
 
-        <!-- Navigation Buttons -->
-        <div class="d-flex justify-content-between align-items-center mb-5">
+        <!-- Navigation Action Buttons -->
+        <div class="d-flex justify-content-between align-items-center mb-5 gap-2">
             <div>
                 <button type="button" class="btn btn-cc-outline px-3" id="btn-prev-step" onclick="changeStep(-1)" disabled>
                     <i class="bi bi-arrow-left me-1"></i> ย้อนกลับ
                 </button>
             </div>
 
-            <div class="d-flex gap-2">
+            <div class="d-flex flex-wrap gap-2 justify-content-end">
                 <button type="button" class="btn btn-outline-warning text-white" onclick="saveCourseDraft()">
                     <i class="bi bi-file-earmark-lock-fill me-1"></i> บันทึกร่าง (Draft)
                 </button>
@@ -747,7 +775,7 @@ if (isset($conn)) {
                 </button>
 
                 <button type="submit" class="btn btn-success px-4 text-white fw-medium d-none" id="btn-submit-course">
-                    <i class="bi bi-check-circle-fill me-1"></i> บันทึกคอร์สเรียบร้อย <i class="bi bi-chevron-right ms-1"></i>
+                    <i class="bi bi-check-circle-fill me-1"></i> ยืนยันบันทึกคอร์สเรียบร้อย <i class="bi bi-chevron-right ms-1"></i>
                 </button>
             </div>
         </div>
@@ -755,9 +783,7 @@ if (isset($conn)) {
     </form>
 </div>
 
-<!-- ==========================================
-     [MODAL 1] AI Course Blueprint Assistant
-     ========================================== -->
+<!-- [MODAL 1] AI Course Blueprint Assistant -->
 <div class="modal fade" id="aiBlueprintModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content text-white cc-modal-bg rounded-4">
@@ -773,7 +799,7 @@ if (isset($conn)) {
                 </div>
                 <div id="ai_blueprint_result" class="d-none p-3 rounded-3 cc-inner-box">
                     <h6 class="fw-bold text-info mb-2"><i class="bi bi-patch-check"></i> แผนพิมพ์เขียวโครงสร้างที่ AI แนะนำ:</h6>
-                    <div id="ai_blueprint_text" class="small lh-base text-pre-wrap mb-3 p-2 rounded cc-preview-box"></div>
+                    <div id="ai_blueprint_text" class="small lh-base text-pre-wrap mb-3 p-3 rounded cc-preview-box"></div>
                     <button type="button" class="btn btn-sm btn-info text-white px-3" onclick="applyBlueprintToForm()">นำข้อมูลพิมพ์เขียวไปจัดลงฟอร์มทันที</button>
                 </div>
             </div>
@@ -781,9 +807,7 @@ if (isset($conn)) {
     </div>
 </div>
 
-<!-- ==========================================
-     [MODAL 2] Course Template Library
-     ========================================== -->
+<!-- [MODAL 2] Course Template Library -->
 <div class="modal fade" id="templateModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-md">
         <div class="modal-content text-white cc-modal-bg rounded-4">
@@ -793,16 +817,46 @@ if (isset($conn)) {
             </div>
             <div class="modal-body p-4 d-flex flex-column gap-3">
                 <div class="template-card" onclick="selectTemplate('Programming')">
-                    <div class="fw-bold text-success mb-1"><i class="bi bi-code-slash"></i> Programming Course Template</div>
-                    <div class="small text-desc">ตั้งโครงสร้างมาตรฐาน มีแล็บโค้ดดิ้งสำเร็จรูป 4 จุด พร้อมห้องแบบทดสอบวัดผล</div>
+                    <div class="fw-bold text-success mb-1"><i class="bi bi-code-slash me-1"></i> Programming Course Template</div>
+                    <div class="small text-muted">ตั้งโครงสร้างมาตรฐาน มีแล็บโค้ดดิ้งสำเร็จรูป 4 จุด พร้อมห้องแบบทดสอบวัดผล</div>
                 </div>
                 <div class="template-card" onclick="selectTemplate('DataScience')">
-                    <div class="fw-bold text-info mb-1"><i class="bi bi-bar-chart-line-fill"></i> Data Science & AI Template</div>
-                    <div class="small text-desc">เน้นบทเรียนวิเคราะห์ข้อมูล การอ่านกราฟสถิติ และสรุปทฤษฎีแมชชีนเลิร์นนิ่ง</div>
+                    <div class="fw-bold text-info mb-1"><i class="bi bi-bar-chart-line-fill me-1"></i> Data Science & AI Template</div>
+                    <div class="small text-muted">เน้นบทเรียนวิเคราะห์ข้อมูล การอ่านกราฟสถิติ และสรุปทฤษฎีแมชชีนเลิร์นนิ่ง</div>
                 </div>
                 <div class="template-card" onclick="selectTemplate('Cyber')">
-                    <div class="fw-bold text-danger mb-1"><i class="bi bi-shield-lock-fill"></i> Cybersecurity & Cloud Template</div>
-                    <div class="small text-desc">เหมาะสำหรับการสอน Network, DevOps เน้นโครงสร้างการทดลอง Virtual Labs</div>
+                    <div class="fw-bold text-danger mb-1"><i class="bi bi-shield-lock-fill me-1"></i> Cybersecurity & Cloud Template</div>
+                    <div class="small text-muted">เหมาะสำหรับการสอน Network, DevOps เน้นโครงสร้างการทดลอง Virtual Labs</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- [MODAL 3] Course Live Preview Modal -->
+<div class="modal fade" id="previewCourseModalObj" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content text-white cc-modal-bg rounded-4">
+            <div class="modal-header p-3" style="border-bottom: 1px solid var(--cc-box-border);">
+                <h5 class="modal-title fw-bold text-white"><i class="bi bi-eye text-info me-2"></i> ตัวอย่างการแสดงผลการ์ดคอร์ส (Course Card Preview)</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="card p-3 rounded-4" style="background: var(--card-bg-premium); border: 1px solid var(--cc-box-border); max-width: 420px; margin: 0 auto;">
+                    <div style="height: 200px; background: var(--cc-preview-bg); border-radius: 10px; overflow: hidden;" class="mb-3 d-flex align-items-center justify-content-center">
+                        <img id="card_preview_img" src="" class="w-100 h-100 d-none" style="object-fit: cover;">
+                        <span id="card_preview_img_ph" class="text-muted"><i class="bi bi-image fs-1 d-block text-center"></i> ไม่มีภาพปก</span>
+                    </div>
+                    <span class="badge bg-info text-dark w-auto align-self-start mb-2" id="card_preview_level">Beginner</span>
+                    <h5 class="fw-bold text-white mb-2" id="card_preview_title">ชื่อคอร์สเรียนจะปรากฏที่นี่</h5>
+                    <p class="small text-muted mb-3" id="card_preview_desc">คำอธิบายสั้นของคอร์สจะปรากฏตรงส่วนนี้...</p>
+                    <div class="d-flex justify-content-between align-items-center pt-2" style="border-top: 1px solid var(--cc-box-border);">
+                        <div>
+                            <span class="text-cyan fw-bold fs-5" id="card_preview_price">฿1,500</span>
+                            <span class="text-muted text-decoration-line-through small ms-1" id="card_preview_sale">฿990</span>
+                        </div>
+                        <span class="btn btn-sm btn-cyan">ดูรายละเอียด</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -810,185 +864,37 @@ if (isset($conn)) {
 </div>
 
 <script>
-    // 🛡️ Fallback สำหรับ InstructorAlerts เผื่อเรียกใช้เปิดหน้านี้ตรงๆ โดยไม่ผ่าน instructor.php
     var Alerts = window.InstructorAlerts || {
-        toast: function(type, msg) { alert('[' + type.toUpperCase() + '] ' + msg); },
-        saveDraft: function() { alert('ทำการบันทึกร่างเรียบร้อยแล้ว'); },
+        toast: function(type, msg) { 
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: type, title: msg, toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+            } else {
+                console.log('[' + type.toUpperCase() + '] ' + msg); 
+            }
+        },
+        saveDraft: function() { 
+            Alerts.toast('success', 'ทำการบันทึกร่างข้อมูลเรียบร้อยแล้ว'); 
+        },
         aiProcess: function(msg, time, callback) { setTimeout(callback, time); }
     };
 
     var currentStep = 1;
     var tagsArray = [];
 
-    // 💡 ซ่อน/แสดงช่องใส่ราคา ตามประเภทคอร์ส
-    function togglePriceFields(type) {
-        if (type === 'Free') {
-            $('.price-field-group').fadeOut(200);
-            $('#course_price').val(0);
-            $('#course_sale_price').val(0);
-        } else {
-            $('.price-field-group').fadeIn(200);
-        }
-    }
-
-    // 1. สลับแท็บรูป/วิดีโอ
-    function toggleMediaTab(type) {
-        if (type === 'image') {
-            $("#btn-tab-image").removeClass('btn-outline-info').addClass('btn-info');
-            $("#btn-tab-video").removeClass('btn-info').addClass('btn-outline-info');
-            $("#box-image").removeClass('d-none');
-            $("#box-video").addClass('d-none');
-        } else if (type === 'video') {
-            $("#btn-tab-image").removeClass('btn-info').addClass('btn-outline-info');
-            $("#btn-tab-video").removeClass('btn-outline-info').addClass('btn-info');
-            $("#box-video").removeClass('d-none');
-            $("#box-image").addClass('d-none');
-        }
-    }
-
-    // 2. Preview ไฟล์
-    function previewMedia(input, type) {
-        if (input.files && input.files[0]) {
-            var reader = new FileReader();
-            var file = input.files[0];
-
-            reader.onload = function(e) {
-                if (type === 'image') {
-                    $('#cover_preview').attr('src', e.target.result).removeClass('d-none');
-                    $('#dropzone-image .upload-placeholder').addClass('d-none');
-                } else if (type === 'video') {
-                    $('#video_preview').attr('src', e.target.result).removeClass('d-none');
-                    $('#dropzone-video .upload-placeholder').addClass('d-none');
-                }
-            }
-            reader.readAsDataURL(file);
-        }
-    }
-
-    $(document).ready(function() {
-        togglePriceFields($('#course_type').val());
-
-        $(document).on('dragenter dragover dragleave drop', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        });
-
-        $('#dropzone-image').on('click', function(e) {
-            if (e.target.id !== 'cover_file') {
-                $('#cover_file').click();
-            }
-        });
-
-        $('#dropzone-video').on('click', function(e) {
-            if (e.target.id !== 'video_file' && e.target.tagName !== 'VIDEO') {
-                $('#video_file').click();
-            }
-        });
-
-        $('.media-dropzone').on('dragover', function() {
-            $(this).addClass('border-primary').css('background', 'rgba(6, 182, 212, 0.2)');
-        });
-
-        $('.media-dropzone').on('dragleave drop', function() {
-            $(this).removeClass('border-primary').css('background', '');
-        });
-
-        $('#dropzone-image').on('drop', function(e) {
-            var files = e.originalEvent.dataTransfer.files;
-            if (files.length > 0) {
-                $('#cover_file')[0].files = files;
-                previewMedia($('#cover_file')[0], 'image');
-            }
-        });
-
-        $('#dropzone-video').on('drop', function(e) {
-            var files = e.originalEvent.dataTransfer.files;
-            if (files.length > 0) {
-                $('#video_file')[0].files = files;
-                previewMedia($('#video_file')[0], 'video');
-            }
-        });
-
-        // Tags
-        $('#tag_input').on('keypress', function(e) {
-            if (e.which === 13) {
+    /* 🏷️ Tag System Manager */
+    function initTagSystem() {
+        $('#tag_input').on('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ',') {
                 e.preventDefault();
-                var tag = $(this).val().trim().toLowerCase();
-                if (tag && !tagsArray.includes(tag)) {
-                    tagsArray.push(tag);
+                var val = $(this).val().trim().replace(',', '');
+                if (val && !tagsArray.includes(val)) {
+                    tagsArray.push(val);
                     renderTags();
+                    $(this).val('');
                 }
-                $(this).val('');
             }
         });
-
-        // Submit Form via AJAX
-        $('#createCourseForm').on('submit', function(e) {
-            e.preventDefault();
-
-            var isValid = true;
-            $('.required-field').each(function() {
-                if ($(this).val().trim() === "") {
-                    isValid = false;
-                    $(this).addClass('is-invalid');
-                } else {
-                    $(this).removeClass('is-invalid');
-                }
-            });
-
-            if (!isValid) {
-                Alerts.toast('warning', 'กรุณากรอกข้อมูลสำคัญที่มีเครื่องหมาย (*) ให้ครบถ้วน');
-                switchStep(1);
-                return false;
-            }
-
-            var formData = new FormData(this);
-            formData.append('action', 'save');
-            formData.append('user_id', '<?= $user_id ?>');
-
-            // 🛠️ ส่งค่าราคาครอบคลุมทุกตัวแปร (รองรับทั้ง pice, price, course_price, sale_price) ป้องกัน DB รับค่า NULL
-            var priceVal = $('#course_price').val() || '0';
-            var salePriceVal = $('#course_sale_price').val() || '0';
-
-            formData.append('pice', priceVal);            // เผื่อ DB ใช้ชื่อคอลัมน์ pice
-            formData.append('price', priceVal);           // ชื่อมาตรฐาน price
-            formData.append('course_price', priceVal);    // ชื่อ input ในฟอร์ม
-            formData.append('sale_price', salePriceVal);   // ชื่อมาตรฐาน sale_price
-            formData.append('course_sale_price', salePriceVal);
-
-            // จัดการข้อมูล Outcomes และ Prereq
-            formData.delete('outcomes');
-            formData.delete('outcomes[]');
-            formData.delete('prereq');
-            formData.delete('prereq[]');
-
-            $('input[name="outcomes"], input[name="outcomes[]"]').each(function() {
-                if ($(this).val().trim() !== "") formData.append('outcomes[]', $(this).val().trim());
-            });
-            $('input[name="prereq"], input[name="prereq[]"]').each(function() {
-                if ($(this).val().trim() !== "") formData.append('prereq[]', $(this).val().trim());
-            });
-
-            $.ajax({
-                url: 'services/course.php',
-                type: 'POST',
-                data: formData,
-                contentType: false,
-                processData: false,
-                dataType: 'json',
-                success: function(response) {
-                    if (response.status === 'success') {
-                        Alerts.toast('success', response.message || 'บันทึกข้อมูลคอร์สสำเร็จเรียบร้อย!');
-                    } else {
-                        Alerts.toast('error', response.message || 'เกิดข้อผิดพลาดในการบันทึก');
-                    }
-                },
-                error: function(xhr, status, error) {
-                    Alerts.toast('error', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ (Status: ' + xhr.status + ')');
-                }
-            });
-        });
-    });
+    }
 
     function renderTags() {
         var html = '';
@@ -1004,6 +910,82 @@ if (isset($conn)) {
         renderTags();
     }
 
+    /* 💰 Revenue & Price Calculator */
+    function calculateRevenue() {
+        var price = parseFloat($('#course_price').val()) || 0;
+        var sale = parseFloat($('#course_sale_price').val()) || 0;
+        var effectivePrice = (sale > 0 && sale < price) ? sale : price;
+        var instructorEarning = effectivePrice * 0.70; // 70% Revenue share
+
+        $('#instructor_earning_display').html(`฿${instructorEarning.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span class="fs-6 text-muted font-normal">/ ผู้เรียน</span>`);
+    }
+
+    function togglePriceFields(type) {
+        if (type === 'Free') {
+            $('.price-field-group').fadeOut(200);
+            $('#course_price').val(0);
+            $('#course_sale_price').val(0);
+        } else {
+            $('.price-field-group').fadeIn(200);
+        }
+        calculateRevenue();
+    }
+
+    /* 🖼️ Media Handler & Switcher */
+    function toggleMediaTab(type) {
+        if (type === 'image') {
+            $("#btn-tab-image").removeClass('btn-outline-info').addClass('btn-info');
+            $("#btn-tab-video").removeClass('btn-info').addClass('btn-outline-info');
+            $("#box-image").removeClass('d-none');
+            $("#box-video").addClass('d-none');
+        } else if (type === 'video') {
+            $("#btn-tab-image").removeClass('btn-info').addClass('btn-outline-info');
+            $("#btn-tab-video").removeClass('btn-outline-info').addClass('btn-info');
+            $("#box-video").removeClass('d-none');
+            $("#box-image").addClass('d-none');
+        }
+    }
+
+    function previewMedia(input, type) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            var file = input.files[0];
+
+            reader.onload = function(e) {
+                if (type === 'image') {
+                    $('#cover_preview').attr('src', e.target.result).removeClass('d-none');
+                    $('#card_preview_img').attr('src', e.target.result).removeClass('d-none');
+                    $('#card_preview_img_ph').addClass('d-none');
+                    $('#dropzone-image .upload-placeholder').addClass('d-none');
+                } else if (type === 'video') {
+                    $('#video_preview').attr('src', e.target.result).removeClass('d-none');
+                    $('#dropzone-video .upload-placeholder').addClass('d-none');
+                }
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    /* 🔍 SEO SERP Preview Update */
+    function updateSeoPreview() {
+        var title = $('#seo_title').val() || $('#course_title').val() || 'ชื่อคอร์สจะปรากฏที่นี่บน Google Search';
+        var desc = $('#seo_desc').val() || $('#course_short_desc').val() || 'คำอธิบายรายวิชาอย่างย่อจะถูกนำมาแสดงในส่วนนี้เพื่อให้ผู้ค้นหาใน Google ได้รับทราบเนื้อหาหลัก...';
+        var slug = $('#seo_slug').val() || createSlug($('#course_title').val());
+
+        $('#serp_title_preview').text(title);
+        $('#serp_desc_preview').text(desc);
+        $('#serp_slug_text').text(slug ? slug : 'course-permalink');
+    }
+
+    function createSlug(str) {
+        if (!str) return '';
+        return str.toLowerCase()
+            .replace(/[^\w\s-]/g, '')
+            .replace(/[\s_-]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+    }
+
+    /* 🔄 Step Navigation Control */
     function switchStep(stepNum) {
         if (stepNum < 1 || stepNum > 4) return;
         if (currentStep === stepNum) return;
@@ -1041,6 +1023,7 @@ if (isset($conn)) {
         switchStep(currentStep + direction);
     }
 
+    /* ➕ Dynamic Outcomes and Prerequisites Manager */
     function addDynamicRow(containerId, placeholderText, inputName) {
         $(`#${containerId}`).append(`
             <div class="input-group input-group-sm mt-2">
@@ -1059,8 +1042,9 @@ if (isset($conn)) {
         $('#difficulty_help').text(txt);
     }
 
-    function saveCourseDraft() {
-        Alerts.saveDraft();
+    /* 💾 Actions & AI Features */
+    function saveCourseDraft() { 
+        Alerts.saveDraft(); 
     }
 
     function generateAICourseDesc() {
@@ -1070,8 +1054,10 @@ if (isset($conn)) {
             return;
         }
 
-        Alerts.aiProcess('สร้างคำอธิบายคอร์สสั้นอัตโนมัติ', 1500, function() {
+        Alerts.aiProcess('กำลังสร้างคำอธิบายคอร์สสั้นอัตโนมัติ...', 1200, function() {
             $('#course_short_desc').val(`คอร์สเร่งรัดและเจาะลึกวิชา ${title} มุ่งเน้นการลงมือปฏิบัติจริงเพื่อเสริมทักษะระดับมืออาชีพ`);
+            updateSeoPreview();
+            Alerts.toast('success', 'AI สร้างคำอธิบายสั้นเรียบร้อยแล้ว');
         });
     }
 
@@ -1082,13 +1068,13 @@ if (isset($conn)) {
             return;
         }
 
-        Alerts.aiProcess('คำนวณและประมวลผลพิมพ์เขียวโครงสร้างคอร์ส', 1800, function() {
+        Alerts.aiProcess('คำนวณและประมวลผลพิมพ์เขียวโครงสร้างคอร์ส...', 1500, function() {
             $('#ai_blueprint_result').removeClass('d-none');
-            $('#ai_blueprint_text').html(`✨ [วิเคราะห์และวางรากฐานสำเร็จสำหรับวิชา: ${topic}]
-• หมวดหมู่แนะนำ: Programming / Software Development
-• ความยาวที่แนะนำ: 8 บทใหญ่ (16-20 ชั่วโมง)
-• แล็บปฏิบัติการ: Coding Sandbox 3 จุด
-• ผลลัพธ์: สามารถเขียนและ Deploy ชิ้นงานจริงได้`);
+            $('#ai_blueprint_text').html(`✨ [วิเคราะห์และวางรากฐานสำเร็จสำหรับวิชา: <b>${topic}</b>]
+• หมวดหมู่แนะนำ: Programming & Software Development
+• ความยาวที่แนะนำ: 8 บทใหญ่ (18-20 ชั่วโมง)
+• แล็บปฏิบัติการ: Interactive Sandbox 3 จุด
+• ผลลัพธ์: สามารถเขียนและ Deploy ชิ้นงานจริงได้พร้อมต่อยอดสายอาชีพ`);
         });
     }
 
@@ -1098,26 +1084,142 @@ if (isset($conn)) {
         $('#course_short_desc').val(`คอร์สเรียนฉบับสมบูรณ์ปูพื้นฐานและลงลึกทุกมิติสำคัญสำหรับ ${topic}`);
         $('#aiBlueprintModal').modal('hide');
         switchStep(1);
+        updateSeoPreview();
         Alerts.toast('success', 'ปรับใช้ข้อมูลพิมพ์เขียวลงในฟอร์มเรียบร้อยแล้ว');
     }
 
     function selectTemplate(type) {
         if (type === 'Programming') {
             $('#course_title').val('Core Programming Architecture Mastery');
+            $('#course_short_desc').val('เรียนรู้สถาปัตยกรรมซอฟต์แวร์และการเขียนโค้ด clean code ระดับองค์กร');
         } else if (type === 'DataScience') {
             $('#course_title').val('Data Intelligence & Advanced Applied AI Insights');
+            $('#course_short_desc').val('การวิเคราะห์ข้อมูลเชิงลึกและการสร้างโมเดล Machine Learning เพื่อการใช้งานจริง');
         } else {
             $('#course_title').val('Enterprise Cybersecurity Architect & DevOps Security');
+            $('#course_short_desc').val('เจาะลึกระบบความปลอดภัยเครือข่ายและการทำ DevSecOps ในระบบ Cloud');
         }
         $('#templateModal').modal('hide');
         switchStep(1);
+        updateSeoPreview();
         Alerts.toast('info', 'เลือกใช้งาน Template เรียบร้อย');
     }
 
     function previewCourseModal() {
-        var title = $('#course_title').val() || '[ยังไม่ได้ระบุชื่อคอร์ส]';
-        var price = $('#course_price').val() || 0;
-        
-        Alerts.toast('info', `ตัวอย่างคอร์ส: ${title} (ราคา ฿${price})`);
+        var title = $('#course_title').val() || 'ชื่อคอร์สเรียนจะปรากฏที่นี่';
+        var desc = $('#course_short_desc').val() || 'คำอธิบายสั้นของคอร์สจะปรากฏตรงส่วนนี้...';
+        var price = parseFloat($('#course_price').val()) || 0;
+        var sale = parseFloat($('#course_sale_price').val()) || 0;
+        var level = $('#course_difficulty').val() || 'Beginner';
+
+        $('#card_preview_title').text(title);
+        $('#card_preview_desc').text(desc);
+        $('#card_preview_level').text(level);
+
+        if (sale > 0 && sale < price) {
+            $('#card_preview_price').text(`฿${sale.toLocaleString()}`);
+            $('#card_preview_sale').text(`฿${price.toLocaleString()}`).removeClass('d-none');
+        } else {
+            $('#card_preview_price').text(price > 0 ? `฿${price.toLocaleString()}` : 'เรียนฟรี');
+            $('#card_preview_sale').addClass('d-none');
+        }
+
+        var previewModal = new bootstrap.Modal(document.getElementById('previewCourseModalObj'));
+        previewModal.show();
     }
+
+    $(document).ready(function() {
+        initTagSystem();
+        togglePriceFields($('#course_type').val());
+        calculateRevenue();
+        updateSeoPreview();
+
+        // Drag and drop prevent defaults
+        $(document).on('dragenter dragover dragleave drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        // Dropzone click triggers
+        $('#dropzone-image').on('click', function(e) {
+            if (e.target.id !== 'cover_file') {
+                $('#cover_file').click();
+            }
+        });
+
+        $('#dropzone-video').on('click', function(e) {
+            if (e.target.id !== 'video_file' && e.target.tagName !== 'VIDEO') {
+                $('#video_file').click();
+            }
+        });
+
+        // Form Submit Handler
+        $('#createCourseForm').on('submit', function(e) {
+            e.preventDefault();
+
+            var isValid = true;
+            $('.required-field').each(function() {
+                if ($(this).val().trim() === "") {
+                    isValid = false;
+                    $(this).addClass('is-invalid');
+                } else {
+                    $(this).removeClass('is-invalid');
+                }
+            });
+
+            if (!isValid) {
+                Alerts.toast('warning', 'กรุณากรอกข้อมูลสำคัญที่มีเครื่องหมาย (*) ให้ครบถ้วน');
+                switchStep(1);
+                return false;
+            }
+
+            var formData = new FormData(this);
+            formData.append('action', 'save');
+            formData.append('user_id', '<?= $user_id ?>');
+
+            var rawPrice = $('#course_price').val();
+            var rawSalePrice = $('#course_sale_price').val();
+
+            var priceVal = (rawPrice !== '' && !isNaN(rawPrice)) ? parseFloat(rawPrice) : 0;
+            var salePriceVal = (rawSalePrice !== '' && !isNaN(rawSalePrice)) ? parseFloat(rawSalePrice) : 0;
+
+            formData.set('pice', priceVal);
+            formData.set('price', priceVal);
+            formData.set('course_price', priceVal);
+            formData.set('sale_price', salePriceVal);
+            formData.set('course_sale_price', salePriceVal);
+
+            // Outcomes & Prereq Arrays
+            formData.delete('outcomes');
+            formData.delete('outcomes[]');
+            formData.delete('prereq');
+            formData.delete('prereq[]');
+
+            $('input[name="outcomes[]"]').each(function() {
+                if ($(this).val().trim() !== "") formData.append('outcomes[]', $(this).val().trim());
+            });
+            $('input[name="prereq[]"]').each(function() {
+                if ($(this).val().trim() !== "") formData.append('prereq[]', $(this).val().trim());
+            });
+
+            $.ajax({
+                url: 'services/course.php',
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                dataType: 'json',
+                success: function(response) {
+                    if (response.status === 'success') {
+                        Alerts.toast('success', response.message || 'บันทึกข้อมูลคอร์สสำเร็จเรียบร้อย!');
+                    } else {
+                        Alerts.toast('error', response.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    Alerts.toast('error', 'เชื่อมต่อเซิร์ฟเวอร์เรียบร้อยแล้ว (Status: ' + xhr.status + ')');
+                }
+            });
+        });
+    });
 </script>
