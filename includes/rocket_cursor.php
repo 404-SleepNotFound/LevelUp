@@ -936,13 +936,12 @@
                     var backVy = -Math.sin(rad) * (speed * 0.5 + 1.8);
 
                     createThrusterParticle(mainNozzle.x, mainNozzle.y, backVx, backVy, isHovered);
-                    createThrusterParticle(mainNozzle.x, mainNozzle.y, backVx, backVy, isHovered);
                 } else {
                     rocket.classList.remove('is-moving');
                 }
 
                 // Enforce max active particle buffer cap
-                while (particles.length > 180) {
+                while (particles.length > 110) {
                     particles.shift();
                 }
 
@@ -952,6 +951,8 @@
                     var p = particles[i];
                     p.x += p.vx;
                     p.y += p.vy;
+                    p.vx *= 0.92;
+                    p.vy *= 0.92;
 
                     if (p.fadeIn && p.alpha < p.targetAlpha) {
                         p.alpha += p.fadeIn;
