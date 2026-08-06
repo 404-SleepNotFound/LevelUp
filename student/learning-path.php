@@ -313,6 +313,11 @@ include '../includes/header.php';
     .custom-dropdown-wrapper {
         position: relative;
         width: 100%;
+        z-index: 10;
+    }
+
+    .custom-dropdown-wrapper.active {
+        z-index: 1050;
     }
 
     .custom-dropdown-btn {
@@ -576,8 +581,8 @@ include '../includes/header.php';
 <!-- ========================================================================= -->
 
 <!-- 1. AI Simulator & Control Panel -->
-<section class="ai-hero-section py-4 py-lg-5 position-relative overflow-hidden border-bottom border-color">
-    <div class="ai-glow-bg position-absolute top-0 start-50 translate-middle-x" style="width: 800px; height: 400px; opacity: 0.2;"></div>
+<section class="ai-hero-section py-4 py-lg-5 position-relative border-bottom border-color">
+    <div class="ai-glow-bg position-absolute top-0 start-50 translate-middle-x" style="width: 800px; height: 400px; opacity: 0.2; pointer-events: none;"></div>
     <div class="container-xl position-relative z-1">
         <div class="row align-items-center g-4">
             <div class="col-12 col-lg-7">
