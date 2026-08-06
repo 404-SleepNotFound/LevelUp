@@ -693,42 +693,6 @@
         function createRadarScanPulse(px, py, angleDeg) {
             var nozzle = getEngineNozzlePos(px, py, angleDeg);
             var rad = (angleDeg + 90 + (Math.random() - 0.5) * 60) * (Math.PI / 180);
-            var speed = Math.random() * 1.2 + 0.4;
-
-            particles.push({
-                x: nozzle.x + Math.cos(rad) * 4,
-                y: nozzle.y + Math.sin(rad) * 4,
-                vx: Math.cos(rad) * speed,
-                vy: Math.sin(rad) * speed,
-                size: Math.random() * 3.5 + 2.0,
-                color: Math.random() > 0.4 ? idlePalette[themeMode].radar[0] : idlePalette[themeMode].radar[1],
-                alpha: 0.85,
-                decay: 0.025,
-                sway: Math.random() * Math.PI * 2
-            });
-        }
-
-        function createGravitationalPulse(x, y) {
-            for (var i = 0; i < 24; i++) {
-                var pAngle = (i / 24) * Math.PI * 2;
-                var speed = Math.random() * 2.5 + 1.2;
-                particles.push({
-                    x: x,
-                    y: y,
-                    vx: Math.cos(pAngle) * speed,
-                    vy: Math.sin(pAngle) * speed,
-                    size: Math.random() * 4.5 + 2.5,
-                    color: i % 2 === 0 ? idlePalette[themeMode].pulse[0] : idlePalette[themeMode].pulse[1],
-                    alpha: 1.0,
-                    decay: 0.022,
-                    sway: Math.random() * Math.PI * 2
-                });
-            }
-        }
-
-        function createRadarScanPulse(px, py, angleDeg) {
-            var nozzle = getEngineNozzlePos(px, py, angleDeg);
-            var rad = (angleDeg + 90 + (Math.random() - 0.5) * 60) * (Math.PI / 180);
             var speed = Math.random() * 1.5 + 0.5;
             
             particles.push({
@@ -812,10 +776,11 @@
                         var vx = dRdt * Math.cos(orbTheta) - currentRadius * omega * Math.sin(orbTheta);
                         var vy = dRdt * Math.sin(orbTheta) + currentRadius * omega * Math.cos(orbTheta);
                         var orbitalAngle = Math.atan2(vy, vx) * (180 / Math.PI) + 90;
-                        if (stardustRamp > 0 && Math.random() < 0.18 * stardustRamp) {
+                        
+                        if (Math.random() < 0.15) {
                             var orbRad = Math.random() * Math.PI * 2;
                             var orbDist = currentRadius + (Math.random() - 0.5) * 8;
-                            var vibrantColors = idlePalette[themeMode].stardust;
+                            var vibrantColors = ['#00F0FF', '#A855F7', '#FF007F', '#38BDF8'];
 
                             particles.push({
                                 x: pos.x + Math.cos(orbRad) * orbDist,
