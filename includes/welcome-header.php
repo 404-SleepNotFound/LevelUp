@@ -4,25 +4,33 @@ if (session_status() === PHP_SESSION_NONE) {
     @session_start();
 }
 
-global $navUser;
+// โหลดไฟล์เชื่อมต่อฐานข้อมูลถ้ายังไม่มี
+require_once __DIR__ . '/../config/db.php';
 
-// 🔍 STEP 1: ถ้าระบบหลักประกาศ $navUser ไว้แล้ว ให้ดึงตามคีย์จริงทันที
-if (isset($navUser) && is_array($navUser)) {
-    $user_id       = $navUser['user_id'] ?? 'N';
-    $user_username = $navUser['username'] ?? 'Player One';
-    $user_avatar   = $navUser['avatar'] ?? 'https://ui-avatars.com/api/?name=Player+One';
-    $user_level    = $navUser['level'] ?? '1';
-    $user_exp      = $navUser['exp'] ?? '0';
-} 
-// 🔍 STEP 2: [Smart Fallback] ถ้าระบบหลักยังไม่โหลด $navUser
-else {
-    $sessionData   = $_SESSION['user_login'] ?? null;
-    $user_id       = $sessionData['user_id'] ?? ($_SESSION['user_id'] ?? 'N');
-    $user_username = $sessionData['name'] ?? ($_SESSION['username'] ?? 'Player One');
-    $user_avatar   = $sessionData['img'] ?? ($_SESSION['user_picture'] ?? 'https://ui-avatars.com/api/?name=Player+One');
-    $user_level    = $sessionData['level'] ?? ($_SESSION['user_level'] ?? ($_SESSION['level'] ?? '1'));
-    $user_exp      = $sessionData['exp'] ?? ($_SESSION['user_exp'] ?? ($_SESSION['exp'] ?? '0'));
+global $navUser, $conn;
+
+// 🔍 STEP 1: หา ID ผู้ใช้จาก Session หรือ $navUser
+$sessionData   = $_SESSION['user_login'] ?? null;
+$currentUserId = $navUser['user_id'] ?? ($navUser['id'] ?? ($sessionData['id'] ?? ($_SESSION['user_id'] ?? null)));
+
+// 🔍 STEP 2: คิวรีข้อมูลผู้ใช้ Real-time จากตาราง `users`
+$dbUser = null;
+if ($currentUserId && isset($conn)) {
+    $stmtUser = $conn->prepare("SELECT * FROM `users` WHERE `id` = ?");
+    $stmtUser->execute([$currentUserId]);
+    $dbUser = $stmtUser->fetch(PDO::FETCH_ASSOC);
 }
+
+// 🔍 STEP 3: แมปข้อมูลให้ตรงกับคอลัมน์ในฐานข้อมูลจริง (id, name, img)
+$user_id       = $dbUser['id'] ?? ($currentUserId ?? 'N');
+$user_username = $dbUser['name'] ?? ($navUser['username'] ?? ($sessionData['name'] ?? 'Player One'));
+$user_avatar   = !empty($dbUser['img']) 
+                    ? $dbUser['img'] 
+                    : ($navUser['avatar'] ?? ($sessionData['img'] ?? 'https://ui-avatars.com/api/?name=' . urlencode($user_username)));
+
+// สำหรับค่าที่ไม่มีในตาราง users (level, exp) ให้ดึงจาก navUser / session หรือ Default
+$user_level    = $navUser['level'] ?? ($sessionData['level'] ?? ($_SESSION['level'] ?? '1'));
+$user_exp      = $navUser['exp'] ?? ($sessionData['exp'] ?? ($_SESSION['user_exp'] ?? '0'));
 
 // คำนวณเปอร์เซ็นต์สำหรับหลอด EXP (แปลงค่า 'N' หรือ String ให้เป็นตัวเลขปลอดภัย)
 $numeric_exp    = is_numeric($user_exp) ? (int)$user_exp : 0;
