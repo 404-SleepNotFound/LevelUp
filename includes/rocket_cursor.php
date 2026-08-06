@@ -881,6 +881,8 @@
 
                         if (Math.random() < radarChance) {
                             createRadarScanPulse(pos.x + targetIdleX, pos.y + targetIdleY, targetAngle);
+                        }
+
                         // Prominent particle size with smooth organic drift velocity
                         if (stardustRamp > 0 && Math.random() < 0.22 * stardustRamp) {
                             var orbRad = Math.random() * Math.PI * 2;
