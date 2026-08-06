@@ -13,11 +13,11 @@ $plannerData = [
     'estimated_months' => 5,
     'overall_progress' => 65,
     'career_options' => [
-        'backend'  => 'Backend Developer (Class)',
-        'frontend' => 'Frontend Developer (Class)',
-        'fullstack'=> 'Full Stack Developer (Class)',
-        'data'     => 'Data Scientist (Class)',
-        'cyber'    => 'Cybersecurity Analyst (Class)'
+        'backend'   => ['title' => 'Backend Developer (Class)', 'icon' => 'bi-server', 'desc' => 'เน้น Architecture, API & Database'],
+        'frontend'  => ['title' => 'Frontend Developer (Class)', 'icon' => 'bi-layout-text-window-reverse', 'desc' => 'เน้น UI/UX, Web Design & React'],
+        'fullstack' => ['title' => 'Full Stack Developer (Class)', 'icon' => 'bi-layers-half', 'desc' => 'ครบวงจรทั้ง Frontend & Backend'],
+        'data'      => ['title' => 'Data Scientist (Class)', 'icon' => 'bi-graph-up-arrow', 'desc' => 'เน้น Data Analysis & AI Model'],
+        'cyber'     => ['title' => 'Cybersecurity Analyst (Class)', 'icon' => 'bi-shield-lock', 'desc' => 'เน้น Security & Defense System']
     ]
 ];
 
@@ -309,6 +309,116 @@ include '../includes/header.php';
         accent-color: var(--lv-cyan);
     }
 
+    /* 🎯 Custom Styled Career Dropdown Design */
+    .custom-dropdown-wrapper {
+        position: relative;
+        width: 100%;
+    }
+
+    .custom-dropdown-btn {
+        width: 100%;
+        background-color: var(--lv-input-bg) !important;
+        border: 1px solid var(--lv-input-border) !important;
+        color: var(--lv-input-text) !important;
+        border-radius: 14px;
+        padding: 0.75rem 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .custom-dropdown-btn:hover, 
+    .custom-dropdown-wrapper.active .custom-dropdown-btn {
+        border-color: var(--lv-cyan) !important;
+        box-shadow: 0 0 20px rgba(6, 182, 212, 0.3) !important;
+    }
+
+    .custom-dropdown-btn .chevron-icon {
+        transition: transform 0.3s ease;
+        color: var(--lv-cyan);
+    }
+
+    .custom-dropdown-wrapper.active .custom-dropdown-btn .chevron-icon {
+        transform: rotate(180deg);
+    }
+
+    .custom-dropdown-menu {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        width: 100%;
+        background: var(--lv-card-bg) !important;
+        border: 1px solid var(--lv-card-border) !important;
+        border-radius: 16px;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
+        z-index: 1050;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 8px;
+    }
+
+    .custom-dropdown-wrapper.active .custom-dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .custom-dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        color: var(--lv-text-main);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-bottom: 2px;
+    }
+
+    .custom-dropdown-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .custom-dropdown-item:hover {
+        background: rgba(6, 182, 212, 0.12);
+        transform: translateX(4px);
+    }
+
+    .custom-dropdown-item.selected {
+        background: linear-gradient(135deg, rgba(6, 182, 212, 0.18) 0%, rgba(99, 102, 241, 0.18) 100%);
+        border: 1px solid rgba(6, 182, 212, 0.35);
+    }
+
+    .custom-dropdown-item .item-icon-box {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--lv-card-border);
+        color: var(--lv-cyan);
+        font-size: 1.15rem;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+    }
+
+    .custom-dropdown-item:hover .item-icon-box,
+    .custom-dropdown-item.selected .item-icon-box {
+        background: linear-gradient(135deg, var(--lv-cyan), var(--lv-indigo));
+        color: #ffffff;
+        border-color: transparent;
+        box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+    }
+
     /* Custom Gamified Buttons */
     .btn-premium {
         background: linear-gradient(135deg, var(--lv-cyan) 0%, var(--lv-indigo) 100%) !important;
@@ -482,13 +592,42 @@ include '../includes/header.php';
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label fs-sm fw-medium text-muted-custom">เป้าหมายอาชีพ (Career Goal)</label>
-                        <select class="form-select form-select-lg form-select-custom shadow-sm fs-6" id="careerSelector">
-                            <?php foreach ($plannerData['career_options'] as $key => $label): ?>
-                                <option value="<?= htmlspecialchars($key) ?>" <?= ($plannerData['selected_career'] === $key) ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($label) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                        
+                        <!-- Hidden input for backward compatibility with JS/Backend -->
+                        <input type="hidden" id="careerSelector" value="<?= htmlspecialchars($plannerData['selected_career']) ?>">
+
+                        <!-- Custom Futuristic Dropdown Selector -->
+                        <?php 
+                            $selectedKey = $plannerData['selected_career'];
+                            $selectedItem = $plannerData['career_options'][$selectedKey] ?? reset($plannerData['career_options']);
+                        ?>
+                        <div class="custom-dropdown-wrapper" id="customCareerDropdown">
+                            <div class="custom-dropdown-btn shadow-sm" id="careerDropdownTrigger">
+                                <div class="d-flex align-items-center gap-2 overflow-hidden">
+                                    <i class="bi <?= htmlspecialchars($selectedItem['icon']) ?> fs-5 text-info" id="selectedCareerIcon"></i>
+                                    <span class="fw-semibold text-truncate" id="selectedCareerTitle"><?= htmlspecialchars($selectedItem['title']) ?></span>
+                                </div>
+                                <i class="bi bi-chevron-down chevron-icon ms-2"></i>
+                            </div>
+
+                            <div class="custom-dropdown-menu">
+                                <?php foreach ($plannerData['career_options'] as $key => $option): ?>
+                                    <div class="custom-dropdown-item <?= ($key === $selectedKey) ? 'selected' : '' ?>" 
+                                         data-value="<?= htmlspecialchars($key) ?>"
+                                         data-title="<?= htmlspecialchars($option['title']) ?>"
+                                         data-icon="<?= htmlspecialchars($option['icon']) ?>">
+                                        <div class="item-icon-box">
+                                            <i class="bi <?= htmlspecialchars($option['icon']) ?>"></i>
+                                        </div>
+                                        <div class="overflow-hidden">
+                                            <div class="fw-bold fs-sm text-truncate"><?= htmlspecialchars($option['title']) ?></div>
+                                            <div class="fs-xs text-muted-custom text-truncate"><?= htmlspecialchars($option['desc']) ?></div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fs-sm fw-medium text-muted-custom d-flex justify-content-between">
@@ -742,10 +881,63 @@ include '../includes/header.php';
         }
     }
 
+    function initCustomDropdown() {
+        const wrapper = document.getElementById('customCareerDropdown');
+        const trigger = document.getElementById('careerDropdownTrigger');
+        const hiddenInput = document.getElementById('careerSelector');
+        const items = document.querySelectorAll('.custom-dropdown-item');
+
+        if (wrapper && trigger) {
+            // Toggle dropdown open/close
+            trigger.addEventListener('click', function(e) {
+                e.stopPropagation();
+                wrapper.classList.toggle('active');
+            });
+
+            // Item selection
+            items.forEach(item => {
+                item.addEventListener('click', function() {
+                    const val = this.dataset.value;
+                    const title = this.dataset.title;
+                    const icon = this.dataset.icon;
+
+                    // Update UI Display
+                    const selectedTitle = document.getElementById('selectedCareerTitle');
+                    const selectedIcon = document.getElementById('selectedCareerIcon');
+                    if (selectedTitle) selectedTitle.textContent = title;
+                    if (selectedIcon) selectedIcon.className = 'bi ' + icon + ' fs-5 text-info';
+
+                    // Update active selected class
+                    items.forEach(i => i.classList.remove('selected'));
+                    this.classList.add('selected');
+
+                    // Update hidden input & trigger change event
+                    if (hiddenInput) {
+                        hiddenInput.value = val;
+                        hiddenInput.dispatchEvent(new Event('change'));
+                    }
+
+                    wrapper.classList.remove('active');
+                });
+            });
+
+            // Close when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!wrapper.contains(e.target)) {
+                    wrapper.classList.remove('active');
+                }
+            });
+        }
+    }
+
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initSlider);
+        document.addEventListener('DOMContentLoaded', () => {
+            initSlider();
+            initCustomDropdown();
+        });
     } else {
         initSlider();
+        initCustomDropdown();
     }
 </script>
 
