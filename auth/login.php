@@ -44,14 +44,14 @@ if (file_exists(__DIR__ . '/../includes/header.php')) {
 }
 ?>
 
-<!-- Custom Scrollbar Style -->
-<link rel="stylesheet" href="<?= $ROOT_PATH; ?>assets/css/custom-scrollbar.css">
-
 <!-- 
 ========================================================================
      STYLESHEET SECTION (LEVELUP CORE STYLE EMBED)
 ========================================================================
 -->
+<!-- เรียกใช้งาน Custom Scrollbar -->
+<link rel="stylesheet" href="<?= $ROOT_PATH; ?>assets/css/custom-scrollbar.css">
+
 <style>
     :root, html[data-theme="dark"] {
         --lv-bg-dark: #090d16;
