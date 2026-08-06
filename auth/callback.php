@@ -1,5 +1,5 @@
 ﻿<?php
-// 1. ตั้งค่า Cookie Path
+// 1. ตั้งค่า Cookie Path ให้ครอบคลุมทุกโฟลเดอร์ในเว็บ
 if (session_status() === PHP_SESSION_NONE) {
     session_set_cookie_params([
         'lifetime' => 0,
@@ -11,9 +11,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// ดึงไฟล์ Config และไฟล์เชื่อมต่อ Database
+// ดึงไฟล์ Config ของ Google และ **อย่าลืมดึงไฟล์เชื่อมต่อ Database ของคุณมาด้วย**
 require_once __DIR__ . '/../config/google.php';
-// require_once __DIR__ . '/../config/db.php'; // 👈 อย่าลืม include ไฟล์เชื่อมต่อ Database ของคุณที่นี่
+// require_once __DIR__ . '/../config/db.php'; // ⚠️ เปลี่ยนพาธนี้ให้ตรงกับไฟล์เชื่อมต่อ DB ของคุณ
 
 // ตรวจสอบ CSRF State Token
 if (isset($_GET['state']) && isset($_SESSION['oauth2state'])) {
@@ -75,41 +75,51 @@ if (isset($_GET['code'])) {
         if (isset($userInfo['email'])) {
             $googleId = (string)($userInfo['id'] ?? '');
             $email    = $userInfo['email'];
-            $name     = $userInfo['name'] ?? $email;
+            $name     = $userInfo['name'] ?? ($email ?? 'Google User');
             $picture  = $userInfo['picture'] ?? '';
-
-            // ------------------------------------------------------------------
-            // 🔍 ส่วนที่เพิ่มเข้ามา: ดึง ID จริงจาก Database
-            // ------------------------------------------------------------------
+            
             $dbUserId = null;
 
-            /* 📌 ตัวอย่างการเขียนคำสั่งดึง/บันทึก DB (เปิดใช้งานแล้วปรับชื่อตาราง/ตัวแปรตามจริง)
+            // ==========================================================
+            // 🛠️ ส่วนที่แก้ไข: ดึงข้อมูล ID ภายในจาก Database
+            // หมายเหตุ: โค้ดด้านล่างใช้ PDO (หากใช้ MySQLi ให้ปรับคำสั่งให้ตรงกัน)
+            // ==========================================================
             
-            // 1. ลองค้นหาผู้ใช้จาก Database ด้วย email หรือ google_id
-            $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ? OR google_id = ?");
-            $stmt->execute([$email, $googleId]);
+            /* ⚠️ เอา Comment (/* และ * /) ด้านล่างนี้ออก และปรับชื่อตารางให้ตรงกับในฐานข้อมูลของคุณ ⚠️
+            
+            // 1. ค้นหาว่าใน Database มีบัญชีที่ผูกด้วย google_id หรือ email นี้หรือยัง
+            $stmt = $pdo->prepare("SELECT id FROM users WHERE google_id = :google_id OR email = :email LIMIT 1");
+            $stmt->execute([':google_id' => $googleId, ':email' => $email]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($user) {
-                // ถ้ามีผู้ใช้อยู่แล้ว -> ดึง Primary Key ID ใน DB มาใช้ (เช่น 1, 2, 3...)
+                // มีข้อมูลแล้ว -> ใช้ ID จาก Database (เช่น 18, 19, 20...)
                 $dbUserId = $user['id'];
             } else {
-                // ถ้ายังไม่มี -> เพิ่มผู้ใช้ใหม่ลง DB แล้วดึง ID ล่าสุดมาใช้
-                $stmtInsert = $pdo->prepare("INSERT INTO users (google_id, name, email, picture) VALUES (?, ?, ?, ?)");
-                $stmtInsert->execute([$googleId, $name, $email, $picture]);
+                // ยังไม่มีข้อมูล -> บันทึกผู้ใช้ใหม่ลง Database
+                $insertStmt = $pdo->prepare("INSERT INTO users (google_id, email, username, name, picture) VALUES (:google_id, :email, :username, :name, :picture)");
+                $insertStmt->execute([
+                    ':google_id' => $googleId,
+                    ':email'     => $email,
+                    ':username'  => $name,
+                    ':name'      => $name,
+                    ':picture'   => $picture
+                ]);
+                
+                // ดึง ID ล่าสุดที่เพิ่งถูกเพิ่มเข้าไป
                 $dbUserId = $pdo->lastInsertId();
             }
             */
 
-            // กำหนด ID ให้เป็น DB ID (ถ้าไม่มีให้ fallback เป็น googleId ไปก่อน)
-            $finalUserId = $dbUserId ?? $googleId;
+            // หากยังไม่ได้เอาคอมเมนต์ด้านบนออก หรือ DB ล่ม ให้ fallback เป็น Google ID กันพัง
+            $finalId = $dbUserId ?? $googleId;
 
-            // บันทึก Session
+            // บันทึก Session เป็น ID จาก Database แน่นอนแล้ว
             $_SESSION['user_data'] = $userInfo;
-            $_SESSION['user_id']   = $finalUserId;
+            $_SESSION['user_id']   = $finalId; // ใช้ DB ID (เช่น 18)
             
             $_SESSION['user_login'] = [
-                'id'       => $finalUserId, // 👈 ตอนนี้จะเป็น ID จาก Database (เช่น 1, 2) แล้วครับ
+                'id'       => $finalId,    // ใช้ DB ID ตรงนี้ครับ
                 'name'     => $name,
                 'username' => $name,
                 'email'    => $email,
@@ -121,7 +131,10 @@ if (isset($_GET['code'])) {
                 'streak'   => 1
             ];
 
+            // บันทึก Session ลงดิสก์ทันทีก่อนเปลี่ยนหน้า
             session_write_close();
+            
+            // ส่งกลับหน้าแรก
             header('Location: ../index.php');
             exit;
         }
@@ -137,5 +150,6 @@ if (isset($_GET['code'])) {
     }
 }
 
+// ถ้าไม่มี code ส่งมา ให้เด้งกลับหน้าแรก
 header('Location: ../index.php');
 exit;
