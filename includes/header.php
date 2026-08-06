@@ -20,41 +20,61 @@ if (!$isLoggedIn && !in_array($currentPage, $allowedPages)) {
     exit();
 }
 
-// 🔄 จัดการ Session Data ให้ปลอดภัย (เผื่อกรณีเก็บเป็น Array)
+// 🔄 ระบบดึง ID ผู้ใช้อย่างรัดกุม ป้องกัน Type Error
+$userId = null;
 $sessionData = [];
+
+// 1. ตรวจสอบว่ามีข้อมูลถูกเก็บไว้ใน user_login หรือไม่
 if (isset($_SESSION['user_login'])) {
     if (is_array($_SESSION['user_login'])) {
         $sessionData = $_SESSION['user_login'];
+        // ค้นหา ID จาก Array อย่างปลอดภัย
+        $userId = $sessionData['id'] ?? $sessionData['user_id'] ?? null;
     } elseif (is_object($_SESSION['user_login'])) {
         $sessionData = (array) $_SESSION['user_login'];
+        $userId = $sessionData['id'] ?? $sessionData['user_id'] ?? null;
+    } elseif (is_scalar($_SESSION['user_login'])) {
+        // ถ้าระบบของคุณเซ็ตค่า id เข้าไปใน user_login ตรงๆ (เช่น = 18)
+        $userId = $_SESSION['user_login'];
     }
 }
 
-// 🔍 ค้นหา ID ผู้ใช้ให้คลอบคลุมทุกรูปแบบ (ดึงตัวแรกที่เจอ)
-$userId = $_SESSION['user_id'] 
-       ?? $_SESSION['id'] 
-       ?? ($sessionData['id'] ?? null) 
-       ?? ($sessionData['user_id'] ?? null);
+// 2. ถ้ายังไม่ได้ ID ให้ค้นหาจาก Session Root ตัวยอดฮิตเผื่อไว้
+if (empty($userId)) {
+    $userId = $_SESSION['user_id'] ?? $_SESSION['id'] ?? null;
+}
 
-// ❗️ สำคัญ: ถ้าระบบเก็บ ID เป็นตัวเลขตรงๆ ไว้ใน user_login (ไม่ใช่ Array)
-if (empty($userId) && isset($_SESSION['user_login']) && is_scalar($_SESSION['user_login'])) {
-    $userId = $_SESSION['user_login'];
+// 3. กรองให้เหลือแต่ตัวเลขเท่านั้น ป้องกัน SQL Injection หรือ PDO Error หากเผลอส่ง Array ไป Execute
+if (!empty($userId)) {
+    $userId = intval($userId); 
 }
 
 $dbUser = null;
-if ($userId && isset($conn)) {
-    // ดึงข้อมูลจากฐานข้อมูลตาม ID
-    $stmtUser = $conn->prepare("
-        SELECT u.*, su.level, su.exp 
-        FROM `users` u 
-        LEFT JOIN `status_users` su ON u.id = su.user_id 
-        WHERE u.id = ?
-    ");
-    $stmtUser->execute([$userId]);
-    $dbUser = $stmtUser->fetch(PDO::FETCH_ASSOC);
+if (!empty($userId) && $userId > 0 && isset($conn)) {
+    try {
+        // ดึงข้อมูลจากฐานข้อมูลตาม ID อย่างปลอดภัย
+        $stmtUser = $conn->prepare("
+            SELECT u.*, su.level, su.exp 
+            FROM `users` u 
+            LEFT JOIN `status_users` su ON u.id = su.user_id 
+            WHERE u.id = :uid
+        ");
+        // Bind Parameter เพื่อความชัวร์ 100% ว่าเป็น Integer 
+        $stmtUser->bindParam(':uid', $userId, PDO::PARAM_INT);
+        $stmtUser->execute();
+        
+        $result = $stmtUser->fetch(PDO::FETCH_ASSOC);
+        if ($result) {
+            $dbUser = $result;
+        }
+    } catch (PDOException $e) {
+        // หากต้องการ Debug ให้เปิด Comment บรรทัดด้านล่าง
+        // error_log("PDO Error in header.php: " . $e->getMessage());
+    }
 }
 
 // แมปข้อมูลให้ตรงกับคอลัมน์จริงในตาราง users และ status_users (มี Fallback ครบถ้วน)
+// ให้ความสำคัญกับ $dbUser เป็นอันดับแรก เพราะคือข้อมูลจริงล่าสุดจากฐานข้อมูล
 $navUser = [
     'user_id'   => $dbUser['id'] ?? ($userId ?? 'N'),
     'username'  => $dbUser['name'] ?? ($sessionData['name'] ?? ($_SESSION['name'] ?? 'Player One')),
