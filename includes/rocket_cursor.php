@@ -234,8 +234,67 @@
         opacity: 0;
         pointer-events: none;
         transform: scale(0.3);
-        transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1), transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         filter: drop-shadow(0 2px 10px rgba(15, 23, 42, 0.4)) drop-shadow(0 0 10px rgba(var(--rocket-cyan-rgb), 0.8));
+    }
+
+    .planet-svg {
+        width: 100%;
+        height: 100%;
+        animation: planetFloat 4s infinite ease-in-out;
+    }
+
+    .rocket-shield-ring {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 64px;
+        height: 64px;
+        margin-top: -32px;
+        margin-left: -32px;
+        border: 1.5px solid rgba(var(--rocket-indigo-rgb), 0.75);
+        border-top: 2px solid rgba(var(--rocket-cyan-rgb), 0.95);
+        border-bottom: 2px solid rgba(var(--rocket-purple-rgb), 0.95);
+        border-radius: 50%;
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(0.5) rotate(0deg);
+        transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 0 12px rgba(var(--rocket-indigo-rgb), 0.35), 0 0 9px rgba(var(--rocket-halo-rgb), var(--rocket-halo-alpha));
+    }
+
+    .rocket-radar-sweep {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 70px;
+        height: 70px;
+        margin-top: -35px;
+        margin-left: -35px;
+        border-radius: 50%;
+        opacity: 0;
+        pointer-events: none;
+        background: conic-gradient(from 0deg, rgba(var(--rocket-cyan-rgb), 0.55) 0deg, rgba(var(--rocket-cyan-rgb), 0) 55deg, transparent 360deg);
+        -webkit-mask-image: radial-gradient(circle, transparent 54%, black 56%, black 100%);
+        mask-image: radial-gradient(circle, transparent 54%, black 56%, black 100%);
+        transition: opacity 0.35s ease-out;
+    }
+
+    .rocket-core-aura {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        margin-top: -28px;
+        margin-left: -28px;
+        background: radial-gradient(circle, rgba(var(--rocket-indigo-rgb), 0.45) 0%, rgba(var(--rocket-purple-rgb), 0.2) 50%, rgba(0, 0, 0, 0) 75%);
+        border-radius: 50%;
+        filter: blur(5px);
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(0.5);
+        transition: opacity 0.4s ease-out, transform 0.4s ease-out;
     }
 
     .planet-svg {
@@ -635,6 +694,13 @@
             rocket.classList.remove('idle-stage-1', 'idle-stage-2', 'idle-stage-3', 'trigger-shockwave');
             wrapper.classList.remove('idle-stage-1', 'idle-stage-2', 'idle-stage-3', 'trigger-shockwave');
 
+            // Fast-fade active stardust particles when movement resumes so they don't linger frozen
+            for (var k = 0; k < particles.length; k++) {
+                if (particles[k].damping) {
+                    particles[k].decay = Math.max(particles[k].decay, 0.04);
+                }
+            }
+
             if (idleTimerStage1) clearTimeout(idleTimerStage1);
             if (idleTimerStage2) clearTimeout(idleTimerStage2);
             if (idleTimerStage3) clearTimeout(idleTimerStage3);
@@ -912,9 +978,7 @@
                         var idleRad = (renderAngleNow - 90) * (Math.PI / 180);
                         createThrusterParticle(idleNozzle.x, idleNozzle.y, -Math.cos(idleRad) * 0.8, -Math.sin(idleRad) * 0.8, false);
                     }
-                }
-
-                var idleLerp = 0.15;
+                var idleLerp = idleStage > 0 ? 0.15 : 0.08; // Smooth transition back to center on mouse movement
                 currentIdleOffsetX += (targetIdleX - currentIdleOffsetX) * idleLerp;
                 currentIdleOffsetY += (targetIdleY - currentIdleOffsetY) * idleLerp;
 
@@ -971,7 +1035,9 @@
 
                     ctx.save();
                     ctx.globalCompositeOperation = 'lighter';
-                    ctx.globalAlpha = Math.max(0, p.alpha);
+                    // Exponential opacity curves prevent harsh pops/sudden disappearances
+                    var smoothAlpha = Math.pow(Math.max(0, p.alpha), 1.4);
+                    ctx.globalAlpha = smoothAlpha;
 
                     var radGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
                     radGrad.addColorStop(0, p.color);
