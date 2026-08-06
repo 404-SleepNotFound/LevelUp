@@ -1,5 +1,4 @@
 ﻿<?php
-$ROOT_PATH = '../';
 session_start();
 
 // =========================================================================
@@ -153,6 +152,9 @@ $roadmapNodes = [
 
 include '../includes/header.php';
 ?>
+
+<!-- เรียกใช้งาน Custom Scrollbar Stylesheet -->
+<link rel="stylesheet" href="../css/custom-scrollbar.css?v=1.0">
 
 <!-- Custom Embedded Styles for Learning Path (LevelUp Design System - Dual Theme) -->
 <style>
@@ -949,11 +951,7 @@ include '../includes/header.php';
 <!-- SweetAlert2 Library CDN -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<!-- 
-  เรียกใช้ Custom SweetAlert Controller
-  หมายเหตุ: ปรับแก้ Path เป็น js/sweetalert_learning-path.js เพื่อป้องกันปัญหา 404 Not Found
-  พร้อมใส่ ?v=<?= time() ?> ป้องกันการจดจำ Cache เก่าของ Browser
--->
+<!-- Custom SweetAlert Controller -->
 <script src="../js/sweetalert_learning-path.js?v=<?= time() ?>"></script>
 
 <?php include '../includes/footer.php'; ?>
