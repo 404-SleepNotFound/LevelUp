@@ -70,15 +70,19 @@ if (isset($_GET['code'])) {
         $userResponse = curl_exec($ch2);
         curl_close($ch2);
 
-        $userInfo = json_decode($userResponse, true);
+        // ✅ เพิ่ม JSON_BIGINT_AS_STRING เพื่อป้องกันไม่ให้ JSON แปลงตัวเลข ID 21 หลักเป็น Float/Int
+        $userInfo = json_decode($userResponse, true, 512, JSON_BIGINT_AS_STRING);
 
         if (isset($userInfo['email'])) {
+            // ✅ ดึง Google ID และบังคับแปลงเป็น String อย่างชัดเจน
+            $googleId = isset($userInfo['id']) ? (string)$userInfo['id'] : '';
+
             // บันทึก Session ให้ละครบทุกคีย์ที่ index.php และระบบดึงไปใช้
             $_SESSION['user_data'] = $userInfo;
-            $_SESSION['user_id']   = $userInfo['id'] ?? $userInfo['email'];
+            $_SESSION['user_id']   = $googleId ?: $userInfo['email'];
             
             $_SESSION['user_login'] = [
-                'id'       => $userInfo['id'] ?? '',
+                'id'       => $googleId,
                 'name'     => $userInfo['name'] ?? ($userInfo['email'] ?? 'Google User'),
                 'username' => $userInfo['name'] ?? ($userInfo['email'] ?? 'Google User'),
                 'email'    => $userInfo['email'],
