@@ -13,24 +13,29 @@ global $navUser, $conn;
 $sessionData   = $_SESSION['user_login'] ?? null;
 $currentUserId = $navUser['user_id'] ?? ($navUser['id'] ?? ($sessionData['id'] ?? ($_SESSION['user_id'] ?? null)));
 
-// 🔍 STEP 2: คิวรีข้อมูลผู้ใช้ Real-time จากตาราง `users`
+// 🔍 STEP 2: คิวรีข้อมูลผู้ใช้ Real-time จากตาราง users พร้อม JOIN ตาราง status_users เพื่อดึง level และ exp
 $dbUser = null;
 if ($currentUserId && isset($conn)) {
-    $stmtUser = $conn->prepare("SELECT * FROM `users` WHERE `id` = ?");
+    $stmtUser = $conn->prepare("
+        SELECT u.*, su.level, su.exp 
+        FROM `users` u 
+        LEFT JOIN `status_users` su ON u.id = su.user_id 
+        WHERE u.id = ?
+    ");
     $stmtUser->execute([$currentUserId]);
     $dbUser = $stmtUser->fetch(PDO::FETCH_ASSOC);
 }
 
-// 🔍 STEP 3: แมปข้อมูลให้ตรงกับคอลัมน์ในฐานข้อมูลจริง (id, name, img)
+// 🔍 STEP 3: แมปข้อมูลให้ตรงกับคอลัมน์ในฐานข้อมูลจริง (id, name, img, level, exp)
 $user_id       = $dbUser['id'] ?? ($currentUserId ?? 'N');
 $user_username = $dbUser['name'] ?? ($navUser['username'] ?? ($sessionData['name'] ?? 'Player One'));
 $user_avatar   = !empty($dbUser['img']) 
                     ? $dbUser['img'] 
                     : ($navUser['avatar'] ?? ($sessionData['img'] ?? 'https://ui-avatars.com/api/?name=' . urlencode($user_username)));
 
-// สำหรับค่าที่ไม่มีในตาราง users (level, exp) ให้ดึงจาก navUser / session หรือ Default
-$user_level    = $navUser['level'] ?? ($sessionData['level'] ?? ($_SESSION['level'] ?? '1'));
-$user_exp      = $navUser['exp'] ?? ($sessionData['exp'] ?? ($_SESSION['user_exp'] ?? '0'));
+// ดึงค่า level และ exp จาก $dbUser (ตาราง status_users) ก่อน fallback ไปหา $navUser / session
+$user_level    = $dbUser['level'] ?? ($navUser['level'] ?? ($sessionData['level'] ?? ($_SESSION['level'] ?? '1')));
+$user_exp      = $dbUser['exp'] ?? ($navUser['exp'] ?? ($sessionData['exp'] ?? ($_SESSION['user_exp'] ?? '0')));
 
 // คำนวณเปอร์เซ็นต์สำหรับหลอด EXP (แปลงค่า 'N' หรือ String ให้เป็นตัวเลขปลอดภัย)
 $numeric_exp    = is_numeric($user_exp) ? (int)$user_exp : 0;
