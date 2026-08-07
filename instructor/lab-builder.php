@@ -5,19 +5,67 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 ?>
 
 <style>
-    /* Scope Lab Builder Styles ให้เข้ากับ Premium Dark Theme */
+    /* ----------------------------------------------------
+       🎨 Theme Variables Setup (Light / Dark Mode Support)
+       ---------------------------------------------------- */
+    :root, 
+    html[data-theme="dark"], 
+    [data-bs-theme="dark"] {
+        --lab-bg-card: rgba(16, 24, 48, 0.65);
+        --lab-border-card: rgba(255, 255, 255, 0.08);
+        --lab-title-color: #f8fafc;
+        --lab-muted-color: rgba(255, 255, 255, 0.60);
+        --lab-label-color: #cbd5e1;
+        
+        --lab-input-bg: rgba(15, 23, 42, 0.8);
+        --lab-input-border: rgba(255, 255, 255, 0.12);
+        --lab-input-text: #f8fafc;
+        --lab-input-ph: #64748b;
+        
+        --lab-sub-box-bg: rgba(0, 0, 0, 0.25);
+        --lab-sub-box-border: rgba(255, 255, 255, 0.08);
+        --lab-vlb-block-bg: rgba(30, 41, 59, 0.6);
+        --lab-modal-bg: #0f172a;
+    }
+
+    html[data-theme="light"], 
+    [data-bs-theme="light"] {
+        --lab-bg-card: #ffffff;
+        --lab-border-card: #e2e8f0;
+        --lab-title-color: #0f172a;
+        --lab-muted-color: #64748b;
+        --lab-label-color: #334155;
+        
+        --lab-input-bg: #f8fafc;
+        --lab-input-border: #cbd5e1;
+        --lab-input-text: #0f172a;
+        --lab-input-ph: #94a3b8;
+        
+        --lab-sub-box-bg: #f1f5f9;
+        --lab-sub-box-border: #e2e8f0;
+        --lab-vlb-block-bg: #ffffff;
+        --lab-modal-bg: #ffffff;
+    }
+
+    /* Scope Lab Builder Styles */
     .lab-container {
         animation: fadeInLab 0.35s ease-in-out;
         width: 100%;
         overflow-x: hidden;
     }
+    
+    .lab-main-title {
+        color: var(--lab-title-color);
+    }
+
     .lab-section-card {
-        background: rgba(16, 24, 48, 0.65);
-        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: var(--lab-bg-card);
+        border: 1px solid var(--lab-border-card);
         border-radius: 16px;
         padding: 16px;
         margin-bottom: 20px;
         backdrop-filter: blur(10px);
+        transition: background-color 0.3s ease, border-color 0.3s ease;
     }
     @media (min-width: 768px) {
         .lab-section-card {
@@ -25,11 +73,12 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             margin-bottom: 24px;
         }
     }
+    
     .section-title {
         font-size: 1.05rem;
         font-weight: 600;
-        color: #f8fafc;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        color: var(--lab-title-color);
+        border-bottom: 1px solid var(--lab-border-card);
         padding-bottom: 12px;
         margin-bottom: 20px;
         display: flex;
@@ -50,34 +99,33 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         .section-title i { margin-top: 0; }
     }
 
-    /* 🛠️ [FIXED] ดึงตัวหนังสือจาง/คำโปรยย่อย ให้เด่นชัดอ่านง่ายบนธีมมืด ไม่กลืนหาย */
+    /* Dynamic Dynamic Text Classes */
     .text-muted {
-        color: rgba(255, 255, 255, 0.52) !important;
+        color: var(--lab-muted-color) !important;
     }
     .text-white-50 {
-        color: rgba(255, 255, 255, 0.60) !important;
+        color: var(--lab-muted-color) !important;
     }
 
-    /* 🛠️ [SUPER FIX] ป้องกันสระและวรรณยุกต์ไทยจม/ขอบตัดในกล่องรับข้อมูล */
+    /* Form Controls Adaptive */
     .form-control-premium {
-        background: rgba(15, 23, 42, 0.8) !important;
-        border: 1px solid rgba(255, 255, 255, 0.12) !important;
-        color: #f8fafc !important;
+        background: var(--lab-input-bg) !important;
+        border: 1px solid var(--lab-input-border) !important;
+        color: var(--lab-input-text) !important;
         border-radius: 10px;
         
-        /* จัด Offset ของ Padding ใหม่เพื่อดันฟอนต์ไทยให้อยู่ตรงกลาง */
         padding-top: 13px !important;
         padding-bottom: 13px !important;
         padding-left: 16px !important;
         padding-right: 16px !important;
         
-        /* ขยาย line-height และความสูงเพื่อรองรับสระบน-ล่าง */
         line-height: 1.7 !important;
         height: auto !important; 
         min-height: 52px !important;
         font-size: 0.95rem !important;
         display: block;
         width: 100%;
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
     }
     
     .form-control-premium:focus {
@@ -91,7 +139,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         padding-bottom: 14px !important;
     }
 
-    /* จัดระเบียบ Dropdown Select ไม่ให้ข้อความจม */
     select.form-control-premium {
         appearance: none;
         background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
@@ -101,15 +148,14 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         padding-right: 42px !important;
     }
 
-    /* ปรับแต่ง Input Group ให้สมดุลไม่เบียดตัวอักษร */
     .input-group .form-control-premium {
         border-top-left-radius: 0 !important;
         border-bottom-left-radius: 0 !important;
     }
     .input-group-text {
-        background: rgba(30, 41, 59, 0.8) !important;
-        border: 1px solid rgba(255, 255, 255, 0.12) !important;
-        color: #94a3b8 !important;
+        background: var(--lab-sub-box-bg) !important;
+        border: 1px solid var(--lab-input-border) !important;
+        color: var(--lab-muted-color) !important;
         padding: 0 16px !important;
         display: flex;
         align-items: center;
@@ -117,27 +163,47 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     }
 
     .form-label-premium {
-        color: #cbd5e1 !important;
+        color: var(--lab-label-color) !important;
         font-weight: 500;
         margin-bottom: 8px;
         font-size: 0.88rem;
         display: inline-block;
     }
     .form-control-premium::placeholder {
-        color: #64748b !important;
+        color: var(--lab-input-ph) !important;
+    }
+
+    /* Sub Boxes & Cards Adaptive */
+    .lab-sub-box {
+        background: var(--lab-sub-box-bg);
+        border: 1px solid var(--lab-sub-box-border);
+        border-radius: 8px;
+        padding: 12px;
+    }
+
+    .btn-purple {
+        background-color: #a855f7;
+        border-color: #a855f7;
+        color: #ffffff;
+    }
+    .btn-purple:hover {
+        background-color: #9333ea;
+        border-color: #9333ea;
+        color: #ffffff;
     }
 
     /* Visual Builder Drag & Drop Blocks Layout */
     .vlb-stage {
-        background: rgba(0, 0, 0, 0.2);
-        border: 2px dashed rgba(255, 255, 255, 0.1);
+        background: var(--lab-sub-box-bg);
+        border: 2px dashed var(--lab-sub-box-border);
         border-radius: 12px;
         padding: 16px;
         min-height: 180px;
     }
     .vlb-block-item {
-        background: rgba(30, 41, 59, 0.6);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: var(--lab-vlb-block-bg);
+        border: 1px solid var(--lab-sub-box-border);
+        color: var(--lab-title-color);
         border-radius: 8px;
         padding: 12px;
         margin-bottom: 10px;
@@ -145,6 +211,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         display: flex;
         align-items: center;
         justify-content: space-between;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
     }
     .vlb-block-item:active { cursor: grabbing; }
 
@@ -160,15 +227,15 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         }
     }
     .analytics-card {
-        background: rgba(0, 0, 0, 0.2);
+        background: var(--lab-sub-box-bg);
         padding: 12px;
         border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--lab-sub-box-border);
     }
     @media (min-width: 992px) {
         .analytics-card {
             border: none;
-            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            border-right: 1px solid var(--lab-sub-box-border);
             border-radius: 0;
             background: transparent;
             padding: 0 8px;
@@ -176,6 +243,13 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         .analytics-card:last-child {
             border-right: none;
         }
+    }
+
+    /* Modal Adaptive */
+    .modal-content.lab-modal {
+        background-color: var(--lab-modal-bg);
+        color: var(--lab-title-color);
+        border: 1px solid var(--lab-sub-box-border);
     }
 
     @keyframes fadeInLab {
@@ -188,7 +262,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     <!-- Top Action Info Bar -->
     <div class="d-flex justify-content-between align-items-start mb-4 flex-column flex-md-row gap-3">
         <div class="w-100">
-            <h3 class="text-white fw-bold mb-1 fs-4"><i class="bi bi-terminal-fill text-primary me-2"></i>ระบบสร้างและจัดการห้องปฏิบัติการ (Lab Builder)</h3>
+            <h3 class="lab-main-title fw-bold mb-1 fs-4"><i class="bi bi-terminal-fill text-primary me-2"></i>ระบบสร้างและจัดการห้องปฏิบัติการ (Lab Builder)</h3>
             <p class="text-muted small mb-0">สร้างและกำหนดสภาพแวดล้อมจำลอง (Sandbox) สำหรับจัดทำคอร์สปฏิบัติการ Coding, Linux, SQL, Docker และระบบความปลอดภัยไซเบอร์</p>
         </div>
     </div>
@@ -260,14 +334,14 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         <!-- ==========================================
              ⭐ FEATURE 2: AI ENVIRONMENT GENERATOR
              ========================================== -->
-        <div class="lab-section-card bg-purple bg-opacity-5" style="border: 1px solid rgba(168, 85, 247, 0.25);">
+        <div class="lab-section-card bg-purple bg-opacity-10" style="border: 1px solid rgba(168, 85, 247, 0.35);">
             <div class="section-title text-purple" style="color: #a855f7 !important;">
                 <i class="bi bi-cpu-fill"></i> ⭐ AI Environment Generator (ตัวช่วยติดตั้งระบบอัตโนมัติ)
             </div>
             <p class="text-muted small mt-0 mb-3">พิมพ์เป้าหมายของ Lab ที่ต้องการเพื่อให้ AI ช่วยร่างชุดสภาพแวดล้อม โจทย์ ซอร์สโค้ดเริ่มต้น และ Test Cases ทันที</p>
             <div class="input-group">
                 <input type="text" class="form-control form-control-premium" id="aiPromptInput" placeholder='เช่น "สร้าง Linux Lab สำหรับฝึกใช้งานคำสั่งพื้นฐาน" หรือ "สร้าง Node.js API เชื่อมต่อ MongoDB Lab"'>
-                <button type="button" class="btn btn-purple text-white px-4" onclick="alert('AI กำลังสร้างสภาพแวดล้อมจำลอง กรุณารอสักครู่...')"><i class="bi bi-magic me-1"></i> สั่งการ AI</button>
+                <button type="button" class="btn btn-purple px-4" onclick="alert('AI กำลังสร้างสภาพแวดล้อมจำลอง กรุณารอสักครู่...')"><i class="bi bi-magic me-1"></i> สั่งการ AI</button>
             </div>
         </div>
 
@@ -311,11 +385,11 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 </div>
                 <div class="col-12">
                     <label class="form-label form-label-premium">6. Terminal Configuration (รองรับหลายหน้าต่าง)</label>
-                    <div class="p-2 border border-secondary border-opacity-20 rounded bg-dark bg-opacity-30">
-                        <div class="form-check form-check-inline small"><input type="checkbox" class="form-check-input" checked> Bash Shell</div>
-                        <div class="form-check form-check-inline small"><input type="checkbox" class="form-check-input"> Zsh</div>
-                        <div class="form-check form-check-inline small"><input type="checkbox" class="form-check-input"> PowerShell</div>
-                        <div class="form-check form-check-inline small"><input type="checkbox" class="form-check-input"> CMD</div>
+                    <div class="lab-sub-box">
+                        <div class="form-check form-check-inline small"><input type="checkbox" class="form-check-input" checked> <span class="lab-main-title">Bash Shell</span></div>
+                        <div class="form-check form-check-inline small"><input type="checkbox" class="form-check-input"> <span class="lab-main-title">Zsh</span></div>
+                        <div class="form-check form-check-inline small"><input type="checkbox" class="form-check-input"> <span class="lab-main-title">PowerShell</span></div>
+                        <div class="form-check form-check-inline small"><input type="checkbox" class="form-check-input"> <span class="lab-main-title">CMD</span></div>
                     </div>
                 </div>
             </div>
@@ -332,13 +406,13 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             
             <div class="row g-3">
                 <div class="col-12 col-md-4">
-                    <div class="p-3 bg-dark bg-opacity-40 rounded border border-secondary border-opacity-20">
-                        <span class="small fw-bold text-white mb-2 d-block">กล่องเครื่องมือบล็อกชิ้นส่วน</span>
-                        <div class="badge bg-dark border border-secondary p-2 mb-1 w-100 text-start">📝 Instruction Block</div>
-                        <div class="badge bg-dark border border-secondary p-2 mb-1 w-100 text-start">💻 Code Editor Block</div>
-                        <div class="badge bg-dark border border-secondary p-2 mb-1 w-100 text-start">🖥️ Terminal Block</div>
-                        <div class="badge bg-dark border border-secondary p-2 mb-1 w-100 text-start">🗄️ Database Block</div>
-                        <div class="badge bg-dark border border-secondary p-2 mb-1 w-100 text-start">🌐 Browser Preview Block</div>
+                    <div class="lab-sub-box">
+                        <span class="small fw-bold lab-main-title mb-2 d-block">กล่องเครื่องมือบล็อกชิ้นส่วน</span>
+                        <div class="vlb-block-item p-2 mb-1 w-100 text-start">📝 Instruction Block</div>
+                        <div class="vlb-block-item p-2 mb-1 w-100 text-start">💻 Code Editor Block</div>
+                        <div class="vlb-block-item p-2 mb-1 w-100 text-start">🖥️ Terminal Block</div>
+                        <div class="vlb-block-item p-2 mb-1 w-100 text-start">🗄️ Database Block</div>
+                        <div class="vlb-block-item p-2 mb-1 w-100 text-start">🌐 Browser Preview Block</div>
                     </div>
                 </div>
                 <div class="col-12 col-md-8">
@@ -360,7 +434,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <div class="row g-3">
                 <div class="col-12 col-md-6">
                     <label class="form-label form-label-premium">4. Starter Files (โครงสร้างไฟล์เริ่มต้นเขียนโค้ด)</label>
-                    <textarea class="form-control form-control-premium font-monospace text-cyan small" rows="3" placeholder="ตัวอย่างโครงไฟล์ เช่น docker-compose.yml หรือ README.md"># Lab Configuration File&#10;version: '3.8'&#10;services:&#10;  web_node:&#10;    image: nginx:alpine</textarea>
+                    <textarea class="form-control form-control-premium font-monospace text-info small" rows="3" placeholder="ตัวอย่างโครงไฟล์ เช่น docker-compose.yml หรือ README.md"># Lab Configuration File&#10;version: '3.8'&#10;services:&#10;  web_node:&#10;    image: nginx:alpine</textarea>
                 </div>
                 <div class="col-12 col-md-6">
                     <label class="form-label form-label-premium">5. สเปกค่าเบื้องต้นของหน้าต่าง Code Editor</label>
@@ -382,15 +456,15 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <div class="row g-3">
                 <div class="col-12 col-lg-8">
                     <label class="form-label form-label-premium">คำแนะนำขั้นตอนการทำแล็บ (รองรับตาราง, ภาพ, วิดีโอ หรือ Markdown)</label>
-                    <textarea class="form-control form-control-premium font-monospace small text-white" rows="3">1. รันคอนเทนเนอร์ตัวแรกชื่อ `web-app` บนน็ตเวิร์กบริดจ์ทั่วไป&#10;2. ตรวจสอบการ Ping ค้นหาชื่อโฮสต์ปลายทางภายในกลุ่มจำลอง</textarea>
+                    <textarea class="form-control form-control-premium font-monospace small" rows="3">1. รันคอนเทนเนอร์ตัวแรกชื่อ `web-app` บนน็ตเวิร์กบริดจ์ทั่วไป&#10;2. ตรวจสอบการ Ping ค้นหาชื่อโฮสต์ปลายทางภายในกลุ่มจำลอง</textarea>
                 </div>
                 <div class="col-12 col-lg-4">
                     <label class="form-label form-label-premium">10. AI Lab Copilot Actions</label>
                     <div class="row g-2">
-                        <div class="col-6"><button type="button" class="btn btn-dark border border-secondary text-white w-100 py-2 small" onclick="alert('AI เจน Test Case สำเร็จ')"><i class="bi bi-node-plus"></i> ช่วยคิดสคริปต์ตรวจ</button></div>
-                        <div class="col-6"><button type="button" class="btn btn-dark border border-secondary text-white w-100 py-2 small" onclick="alert('AI ตรวจคำสะกดเรียบร้อย')"><i class="bi bi-spellcheck"></i> ตรวจคำอธิบาย</button></div>
-                        <div class="col-6"><button type="button" class="btn btn-dark border border-secondary text-white w-100 py-2 small" onclick="alert('AI สร้างกล่องความช่วยเหลือสำเร็จ')"><i class="bi bi-lightbulb"></i> ออกแบบคำใบ้</button></div>
-                        <div class="col-6"><button type="button" class="btn btn-dark border border-secondary text-white w-100 py-2 small" onclick="alert('AI ตรวจคำตอบจำลองสำเร็จ')"><i class="bi bi-check-circle"></i> จำลองเฉลยโค้ด</button></div>
+                        <div class="col-6"><button type="button" class="btn btn-outline-secondary lab-main-title border w-100 py-2 small" onclick="alert('AI เจน Test Case สำเร็จ')"><i class="bi bi-node-plus"></i> ช่วยคิดสคริปต์ตรวจ</button></div>
+                        <div class="col-6"><button type="button" class="btn btn-outline-secondary lab-main-title border w-100 py-2 small" onclick="alert('AI ตรวจคำสะกดเรียบร้อย')"><i class="bi bi-spellcheck"></i> ตรวจคำอธิบาย</button></div>
+                        <div class="col-6"><button type="button" class="btn btn-outline-secondary lab-main-title border w-100 py-2 small" onclick="alert('AI สร้างกล่องความช่วยเหลือสำเร็จ')"><i class="bi bi-lightbulb"></i> ออกแบบคำใบ้</button></div>
+                        <div class="col-6"><button type="button" class="btn btn-outline-secondary lab-main-title border w-100 py-2 small" onclick="alert('AI ตรวจคำตอบจำลองสำเร็จ')"><i class="bi bi-check-circle"></i> จำลองเฉลยโค้ด</button></div>
                     </div>
                 </div>
             </div>
@@ -415,11 +489,11 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                     <input type="number" class="form-control form-control-premium" value="20">
                 </div>
                 <div class="col-12">
-                    <div class="p-2 border border-secondary border-opacity-20 rounded bg-dark bg-opacity-30 small">
-                        <span class="d-block mb-2 fw-bold text-white-50">9. กฎและเงื่อนไขการให้ผ่านแล็บ (Validation Rules)</span>
-                        <div class="form-check form-check-inline"><input type="checkbox" class="form-check-input" checked> รันชุดคำสั่งผ่านคอมไพเลอร์สำเร็จ</div>
-                        <div class="form-check form-check-inline"><input type="checkbox" class="form-check-input" checked> ผลลัพธ์ (Output) ตรงกันครอบคลุม</div>
-                        <div class="form-check form-check-inline"><input type="checkbox" class="form-check-input"> โครงสร้างไฟล์ในระบบ Explorer ครบถ้วน</div>
+                    <div class="lab-sub-box small">
+                        <span class="d-block mb-2 fw-bold text-muted">9. กฎและเงื่อนไขการให้ผ่านแล็บ (Validation Rules)</span>
+                        <div class="form-check form-check-inline"><input type="checkbox" class="form-check-input" checked> <span class="lab-main-title">รันชุดคำสั่งผ่านคอมไพเลอร์สำเร็จ</span></div>
+                        <div class="form-check form-check-inline"><input type="checkbox" class="form-check-input" checked> <span class="lab-main-title">ผลลัพธ์ (Output) ตรงกันครอบคลุม</span></div>
+                        <div class="form-check form-check-inline"><input type="checkbox" class="form-check-input"> <span class="lab-main-title">โครงสร้างไฟล์ในระบบ Explorer ครบถ้วน</span></div>
                     </div>
                 </div>
             </div>
@@ -462,7 +536,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 </div>
                 <div class="col-12 col-md-3">
                     <label class="form-label form-label-premium">15. Resource Files แนบเอกสารเพิ่ม</label>
-                    <button type="button" class="btn btn-dark border border-secondary text-white w-100 py-2.5 small" onclick="alert('เปิดหน้าต่างไฟล์แนบ')"><i class="bi bi-paperclip"></i> แนบ PDF / API doc</button>
+                    <button type="button" class="btn btn-outline-secondary lab-main-title border w-100 py-2.5 small" onclick="alert('เปิดหน้าต่างไฟล์แนบ')"><i class="bi bi-paperclip"></i> แนบ PDF / API doc</button>
                 </div>
                 <div class="col-12 col-md-3">
                     <label class="form-label form-label-premium">16. Skill Mapping</label>
@@ -474,14 +548,14 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         <!-- ==========================================
              19. LAB PERFORMANCE ANALYTICS
              ========================================== -->
-        <div class="lab-section-card bg-dark bg-opacity-20 border border-secondary border-opacity-40">
-            <div class="section-title text-white-50">
+        <div class="lab-section-card">
+            <div class="section-title">
                 <i class="bi bi-bar-chart-line-fill"></i> 19. Lab Realtime Analytics Module (สถิติปฏิบัติการ)
             </div>
             <div class="analytics-grid font-monospace text-center">
-                <div class="analytics-card"><div class="text-muted small">จำนวนผู้ทำสะสม</div><h5 class="fw-bold text-white mb-0 fs-6 mt-1">89 คน</h5></div>
+                <div class="analytics-card"><div class="text-muted small">จำนวนผู้ทำสะสม</div><h5 class="fw-bold lab-main-title mb-0 fs-6 mt-1">89 คน</h5></div>
                 <div class="analytics-card"><div class="text-muted small">อัตราการผ่านด่าน</div><h5 class="fw-bold text-success mb-0 fs-6 mt-1">64.8%</h5></div>
-                <div class="analytics-card"><div class="text-muted small">เวลาเฉลี่ย/รอบ</div><h5 class="fw-bold text-cyan mb-0 fs-6 mt-1">26 นาที</h5></div>
+                <div class="analytics-card"><div class="text-muted small">เวลาเฉลี่ย/รอบ</div><h5 class="fw-bold text-info mb-0 fs-6 mt-1">26 นาที</h5></div>
                 <div class="analytics-card"><div class="text-muted small">จุดผิดบ่อยที่สุด</div><h5 class="fw-bold text-danger mb-0 fs-6 mt-1">Test Case 2 (44%)</h5></div>
                 <div class="analytics-card"><div class="text-muted small">สถิติการเปิดคำใบ้</div><h5 class="fw-bold text-warning mb-0 fs-6 mt-1">Hint 1 (72 ครั้ง)</h5></div>
             </div>
@@ -492,22 +566,22 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
              ========================================== -->
         <div class="lab-section-card">
             <div class="section-title"><i class="bi bi-clock-history"></i> 18. Version Control Logs</div>
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 font-monospace text-white-50 small">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 font-monospace text-muted small">
                 <div><i class="bi bi-shield-check text-success"></i> Auto Save: บันทึกข้อมูลสภาพแวดล้อมสำรองลงระบบ Cloud แล้ว</div>
-                <div>เวอร์ชันประวัติ: <span class="text-cyan">v1.4 (Draft Updated)</span></div>
+                <div>เวอร์ชันประวัติ: <span class="text-info fw-bold">v1.4 (Draft Updated)</span></div>
             </div>
         </div>
 
         <!-- ==========================================
-             20. PUBLISH HUB HUB ACTION CONTROL PANEL
+             20. PUBLISH HUB ACTION CONTROL PANEL
              ========================================== -->
-        <div class="p-3 rounded-4 bg-dark bg-opacity-50 border border-secondary border-opacity-30 d-flex justify-content-between align-items-center flex-column flex-md-row gap-3">
+        <div class="p-3 rounded-4 lab-sub-box d-flex justify-content-between align-items-center flex-column flex-md-row gap-3">
             <div class="d-flex w-100 w-md-auto justify-content-between gap-2">
                 <button type="button" class="btn btn-outline-danger btn-sm py-2 px-3" onclick="alert('ลบแล็บข้อนี้เรียบร้อย')"><i class="bi bi-trash-fill"></i> ลบ</button>
-                <button type="button" class="btn btn-outline-secondary btn-sm text-white-50 py-2 px-3" onclick="alert('คัดลอกโคลนแล็บสำเร็จ')"><i class="bi bi-copy"></i> Duplicate</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm lab-main-title py-2 px-3" onclick="alert('คัดลอกโคลนแล็บสำเร็จ')"><i class="bi bi-copy"></i> Duplicate</button>
             </div>
             <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
-                <button type="button" class="btn btn-outline-primary text-cyan py-2 px-3" data-bs-toggle="modal" data-bs-target="#labSimulatorModal"><i class="bi bi-eye-fill me-1"></i> 17. Preview Lab</button>
+                <button type="button" class="btn btn-outline-primary text-info py-2 px-3" data-bs-toggle="modal" data-bs-target="#labSimulatorModal"><i class="bi bi-eye-fill me-1"></i> 17. Preview Lab</button>
                 <button type="button" class="btn btn-secondary text-white py-2 px-3" onclick="alert('บันทึกร่างแล็บสำเร็จ')"><i class="bi bi-cloud-check-fill"></i> Save Draft</button>
                 <button type="button" class="btn btn-primary text-white py-2 px-4 fw-bold" onclick="alert('เผยแพร่แล็บชุดปฏิบัติการสำเร็จ')"><i class="bi bi-rocket-takeoff-fill"></i> Publish Lab</button>
             </div>
@@ -519,26 +593,26 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 <!-- 17. PREVIEW LAB SIMULATOR MODAL -->
 <div class="modal fade" id="labSimulatorModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl">
-        <div class="modal-content bg-dark text-white border border-secondary border-opacity-20">
-            <div class="modal-header border-secondary border-opacity-20 bg-black bg-opacity-30">
+        <div class="modal-content lab-modal shadow-lg">
+            <div class="modal-header border-bottom border-secondary border-opacity-20">
                 <h6 class="modal-title fw-bold text-primary"><i class="bi bi-laptop me-2"></i>17. Preview Mode (มุมมองจริงของผู้เรียน)</h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-3 bg-black bg-opacity-20">
+            <div class="modal-body p-3">
                 <div class="row g-2">
                     <div class="col-12 col-md-4">
-                        <div class="p-3 rounded bg-dark border border-secondary border-opacity-20 h-100">
-                            <h6 class="text-white border-bottom border-secondary pb-2 small">📝 โจทย์และคำสั่งปฏิบัติการ</h6>
-                            <p class="text-white-50 small mt-2">จงสร้าง Custom Bridge Network ในระบบ Docker โดยกำหนดชุดไอพี Subnet ให้เป็นไปตามโจทย์ระบุ</p>
+                        <div class="p-3 rounded lab-sub-box h-100">
+                            <h6 class="lab-main-title border-bottom border-secondary border-opacity-20 pb-2 small">📝 โจทย์และคำสั่งปฏิบัติการ</h6>
+                            <p class="text-muted small mt-2">จงสร้าง Custom Bridge Network ในระบบ Docker โดยกำหนดชุดไอพี Subnet ให้เป็นไปตามโจทย์ระบุ</p>
                         </div>
                     </div>
                     <div class="col-12 col-md-8">
-                        <div class="p-3 rounded bg-black text-success font-monospace small mb-2 border border-secondary" style="min-height: 140px;">
+                        <div class="p-3 rounded bg-dark text-success font-monospace small mb-2 border border-secondary" style="min-height: 140px;">
                             root@sandbox-sandbox:~# <span class="text-white animate-blink">|</span>
                         </div>
-                        <div class="p-2 rounded bg-dark border border-secondary border-opacity-40 text-muted small text-end">
-                            <span class="me-2"><i class="bi bi-circle-fill text-danger small"></i> Test Case 1</span>
-                            <span><i class="bi bi-circle-fill text-danger small"></i> Test Case 2</span>
+                        <div class="p-2 rounded lab-sub-box small text-end">
+                            <span class="me-2 text-muted"><i class="bi bi-circle-fill text-danger small"></i> Test Case 1</span>
+                            <span class="text-muted"><i class="bi bi-circle-fill text-danger small"></i> Test Case 2</span>
                         </div>
                     </div>
                 </div>
