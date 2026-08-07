@@ -5,19 +5,58 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 ?>
 
 <style>
-    /* Scope Quiz Builder Styles ให้เข้ากับ Premium Dark Theme */
+    /* 🎨 CSS Variables Dynamic Theme (Light & Dark Mode) */
+    :root, html[data-theme="dark"] {
+        --lv-bg-dark: #0b0f19;
+        --lv-card-bg: rgba(16, 24, 48, 0.65);
+        --lv-card-border: rgba(255, 255, 255, 0.08);
+        --lv-border-glow: rgba(99, 102, 241, 0.2);
+        --lv-cyan: #06b6d4;
+        --lv-indigo: #6366f1;
+        --lv-text-main: #f8fafc;
+        --lv-text-muted: rgba(255, 255, 255, 0.55);
+        --lv-input-bg: rgba(15, 23, 42, 0.8);
+        --lv-input-border: rgba(255, 255, 255, 0.12);
+        --lv-input-text: #f8fafc;
+        --lv-box-bg: rgba(0, 0, 0, 0.25);
+        --lv-label: #cbd5e1;
+        --lv-placeholder: #64748b;
+        --lv-select-icon: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    }
+
+    html[data-theme="light"] {
+        --lv-bg-dark: #f8fafc;
+        --lv-card-bg: #ffffff;
+        --lv-card-border: rgba(0, 0, 0, 0.08);
+        --lv-border-glow: rgba(99, 102, 241, 0.15);
+        --lv-cyan: #0284c7;
+        --lv-indigo: #4f46e5;
+        --lv-text-main: #0f172a;
+        --lv-text-muted: #64748b;
+        --lv-input-bg: #ffffff;
+        --lv-input-border: #cbd5e1;
+        --lv-input-text: #0f172a;
+        --lv-box-bg: #f8fafc;
+        --lv-label: #334155;
+        --lv-placeholder: #94a3b8;
+        --lv-select-icon: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23334155' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    }
+
+    /* Scope Quiz Builder Styles */
     .quiz-container {
         animation: fadeInQuiz 0.35s ease-in-out;
         width: 100%;
         overflow-x: hidden;
+        color: var(--lv-text-main);
     }
     .quiz-section-card {
-        background: rgba(16, 24, 48, 0.65);
-        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: var(--lv-card-bg);
+        border: 1px solid var(--lv-card-border);
         border-radius: 16px;
         padding: 16px;
         margin-bottom: 20px;
         backdrop-filter: blur(10px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
     }
     @media (min-width: 768px) {
         .quiz-section-card {
@@ -28,8 +67,8 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     .section-title {
         font-size: 1.05rem;
         font-weight: 600;
-        color: #f8fafc;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        color: var(--lv-text-main);
+        border-bottom: 1px solid var(--lv-card-border);
         padding-bottom: 12px;
         margin-bottom: 20px;
         display: flex;
@@ -43,45 +82,49 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         }
     }
     .section-title i {
-        color: #06b6d4;
+        color: var(--lv-cyan);
         margin-top: 2px;
     }
     @media (min-width: 768px) {
         .section-title i { margin-top: 0; }
     }
 
-    /* 🛠️ [FIXED] ดึงตัวหนังสือจม/จางไกลๆ ให้เด่นชัดขึ้นบนพื้นหลังมืด */
+    /* Override Text Colors dynamically for both themes */
+    .quiz-container .text-muted,
     .text-muted {
-        color: rgba(255, 255, 255, 0.48) !important;
+        color: var(--lv-text-muted) !important;
     }
+    .quiz-container .text-white-50,
     .text-white-50 {
-        color: rgba(255, 255, 255, 0.55) !important;
+        color: var(--lv-text-muted) !important;
+    }
+    .quiz-container .text-cyan {
+        color: var(--lv-cyan) !important;
     }
 
-    /* 🛠️ [SUPER FIX] ล้างระบบกล่องจมแบบเด็ดขาด (ล็อกฟอนต์ไทยไม่ให้โดนตัดขอบและจมลงล่าง) */
+    /* Form Controls & Inputs */
     .form-control-premium {
-        background: rgba(15, 23, 42, 0.8) !important;
-        border: 1px solid rgba(255, 255, 255, 0.12) !important;
-        color: #f8fafc !important;
+        background: var(--lv-input-bg) !important;
+        border: 1px solid var(--lv-input-border) !important;
+        color: var(--lv-input-text) !important;
         border-radius: 10px;
         
-        /* ปรับระดับ Padding ใหม่เพื่อยกสระไทยไม่ให้จม */
         padding-top: 13px !important;
         padding-bottom: 13px !important;
         padding-left: 16px !important;
         padding-right: 16px !important;
         
-        /* ใช้ line-height และความสูงที่คำนวณเผื่อสระ บน-ล่าง */
         line-height: 1.7 !important;
         height: auto !important; 
         min-height: 52px !important;
         font-size: 0.95rem !important;
         display: block;
         width: 100%;
+        transition: border-color 0.2s ease, background-color 0.2s ease;
     }
     
     .form-control-premium:focus {
-        border-color: #06b6d4 !important;
+        border-color: var(--lv-cyan) !important;
         box-shadow: 0 0 0 0.25rem rgba(6, 182, 212, 0.15) !important;
     }
     
@@ -91,25 +134,24 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         padding-bottom: 14px !important;
     }
 
-    /* ปรับแต่งส่วน Dropdown Select ให้ตรงกลาง ไม่จม */
     select.form-control-premium {
         appearance: none;
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+        background-image: var(--lv-select-icon) !important;
         background-repeat: no-repeat !important;
         background-position: right 16px center !important;
         background-size: 12px 12px !important;
         padding-right: 42px !important;
     }
 
-    /* ปรับแต่ง Input Group Component เพื่อไม่ให้บีบตัวหนังสือจม */
+    /* Input Group Component */
     .input-group .form-control-premium {
         border-top-left-radius: 0 !important;
         border-bottom-left-radius: 0 !important;
     }
     .input-group-text {
-        background: rgba(30, 41, 59, 0.8) !important;
-        border: 1px solid rgba(255, 255, 255, 0.12) !important;
-        color: #94a3b8 !important;
+        background: var(--lv-box-bg) !important;
+        border: 1px solid var(--lv-input-border) !important;
+        color: var(--lv-text-muted) !important;
         padding: 0 16px !important;
         display: flex;
         align-items: center;
@@ -117,20 +159,20 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     }
 
     .form-label-premium {
-        color: #cbd5e1 !important;
+        color: var(--lv-label) !important;
         font-weight: 500;
         margin-bottom: 8px;
         font-size: 0.88rem;
         display: inline-block;
     }
     .form-control-premium::placeholder {
-        color: #64748b !important;
+        color: var(--lv-placeholder) !important;
     }
 
     /* Question Item Box Layout */
     .question-build-item {
-        background: rgba(0, 0, 0, 0.25);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: var(--lv-box-bg);
+        border: 1px solid var(--lv-card-border);
         border-radius: 12px;
         padding: 16px;
         margin-bottom: 16px;
@@ -143,7 +185,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         .question-build-item:active { cursor: grabbing; }
     }
 
-    /* สถิติ Mobile Responsive Grid */
+    /* Analytics Responsive Grid */
     .analytics-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -155,15 +197,15 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         }
     }
     .analytics-card {
-        background: rgba(0, 0, 0, 0.2);
+        background: var(--lv-box-bg);
         padding: 12px;
         border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--lv-card-border);
     }
     @media (min-width: 992px) {
         .analytics-card {
             border: none;
-            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            border-right: 1px solid var(--lv-card-border);
             border-radius: 0;
             background: transparent;
             padding: 0 8px;
@@ -178,6 +220,40 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         word-break: break-word;
         text-align: left;
         line-height: 1.4;
+    }
+
+    /* ☀️ Light Mode Theme Overrides สำหรับ Bootstrap Classes ใน Quiz Container */
+    html[data-theme="light"] .quiz-container .text-white,
+    html[data-theme="light"] #quizSimulatorModal .text-white {
+        color: var(--lv-text-main) !important;
+    }
+    html[data-theme="light"] .quiz-container .bg-dark,
+    html[data-theme="light"] #quizSimulatorModal .bg-dark {
+        background-color: var(--lv-box-bg) !important;
+    }
+    html[data-theme="light"] .quiz-container .bg-black,
+    html[data-theme="light"] #quizSimulatorModal .bg-black {
+        background-color: rgba(0, 0, 0, 0.03) !important;
+    }
+    html[data-theme="light"] .quiz-container .btn-dark {
+        background-color: #ffffff !important;
+        color: var(--lv-text-main) !important;
+        border-color: var(--lv-input-border) !important;
+    }
+    html[data-theme="light"] .quiz-container .btn-dark:hover {
+        background-color: #e2e8f0 !important;
+    }
+    html[data-theme="light"] .quiz-container .border-secondary,
+    html[data-theme="light"] #quizSimulatorModal .border-secondary {
+        border-color: rgba(0, 0, 0, 0.1) !important;
+    }
+    html[data-theme="light"] #quizSimulatorModal .modal-content {
+        background-color: #ffffff !important;
+        color: var(--lv-text-main) !important;
+        border-color: rgba(0, 0, 0, 0.1) !important;
+    }
+    html[data-theme="light"] #quizSimulatorModal .btn-close-white {
+        filter: invert(1) grayscale(100%) brightness(0);
     }
 
     @keyframes fadeInQuiz {
@@ -316,7 +392,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                         </div>
 
                         <div class="col-12 col-md-9">
-                            <label class="form-label form-label-premium">คำอธิบายเฉลยคำตอบอย่างละเอียด (Explanation)</label>
+                            <label class="form-label form-label-premium">คำอธิบายเฉลยคำตอบอย่างรายละเอียด (Explanation)</label>
                             <input type="text" class="form-control form-control-premium small" value="เนื่องจากอาเรย์แถวแรกคือ index 0 และแถวถัดมาคือ index 1 ค่าแรกของแถวจึงเป็น [1][0] ซึ่งตรงกับค่า 24">
                         </div>
                         <div class="col-12 col-md-3">
