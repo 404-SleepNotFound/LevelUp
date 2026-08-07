@@ -59,8 +59,10 @@
     background-color: rgba(15, 23, 42, 0.96);
     border: 1px solid rgba(99, 102, 241, 0.18);
     border-radius: 22px;
-    min-width: 320px;
+    min-width: 260px;
     max-width: 420px;
+    box-sizing: border-box;
+    max-width: min(420px, calc(100vw - 48px));
     padding: 0.75rem 0 0.75rem 0.5rem; /* reserve space for scrollbar */
     box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
     color: var(--nav-text);
@@ -96,6 +98,38 @@
     border-radius: 16px;
     margin: 0 0.75rem 0.35rem;
     transition: background-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
+}
+
+/* Keep dropdowns within viewport on small screens and when aligned to end */
+.dropdown-menu.dropdown-menu-end,
+.lu-dropdown-menu.dropdown-menu-end {
+    right: 0;
+    left: auto;
+    padding-right: 0.75rem; /* ensure space for scrollbar */
+}
+
+/* Ensure custom menus also respect viewport */
+.custom-dropdown-menu,
+.custom-filter-dropdown .dropdown-menu {
+    max-width: min(460px, calc(100vw - 48px));
+    box-sizing: border-box;
+}
+
+/* On very small screens, make dropdowns full-width of container */
+@media (max-width: 576px) {
+    .dropdown-menu,
+    .lu-dropdown-menu,
+    .custom-dropdown-menu,
+    .custom-filter-dropdown .dropdown-menu {
+        position: absolute !important;
+        left: 0 !important;
+        right: 0 !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        border-radius: 12px !important;
+    }
+    .btn-dropdown-trigger { width: 100% !important; }
 }
 
 .dropdown-item:last-child,
