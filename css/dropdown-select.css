@@ -324,7 +324,7 @@ html[data-theme="light"] .lu-select option {
     color: #0f172a !important;
 }
 
-.html[data-theme="dark"] .form-select-custom,
+html[data-theme="dark"] .form-select-custom,
 :root:not([data-theme="light"]) .form-select-custom {
     background-color: #0f172a !important;
     border-color: rgba(99, 102, 241, 0.3) !important;
