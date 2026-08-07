@@ -72,31 +72,45 @@ $fallbackImg = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=8
 
 // ---------------------------------------------------
 // 2.1 นับจำนวนบทเรียน (คอร์ส) จริงต่อหมวดหมู่ จากตาราง `course`
+// รองรับทั้งการเชื่อมต่อแบบ PDO และ mysqli
 // ---------------------------------------------------
-if ($db && $db instanceof PDO) {
+$countSql = "SELECT `category_id`, COUNT(`category_id`) AS `total_count` FROM `course` GROUP BY `category_id`";
+$courseCountMap = [];
+
+if ($db instanceof PDO) {
     try {
-        $countSql  = "SELECT `category_id`, COUNT(`category_id`) AS `total_count` FROM `course` GROUP BY `category_id`";
         $countStmt = $db->prepare($countSql);
         $countStmt->execute();
         $countRows = $countStmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // สร้าง map [category_id => total_count]
-        $courseCountMap = [];
         foreach ($countRows as $row) {
             $courseCountMap[(int)$row['category_id']] = (int)$row['total_count'];
         }
-
-        // แทนค่า count เดิม (0) ด้วยจำนวนจริงจาก DB โดยจับคู่ตาม id
-        foreach ($category_data as &$cat) {
-            $cat['count'] = $courseCountMap[$cat['id']] ?? 0;
-        }
-        unset($cat);
     } catch (PDOException $e) {
-        error_log("Error counting courses per category: " . $e->getMessage());
+        error_log("Error counting courses per category (PDO): " . $e->getMessage());
     }
+} elseif ($db instanceof mysqli) {
+    $countResult = $db->query($countSql);
+    if ($countResult) {
+        while ($row = $countResult->fetch_assoc()) {
+            $courseCountMap[(int)$row['category_id']] = (int)$row['total_count'];
+        }
+    } else {
+        error_log("Error counting courses per category (mysqli): " . $db->error);
+    }
+} else {
+    // ไม่พบการเชื่อมต่อ DB ที่รองรับ (ไม่ใช่ PDO หรือ mysqli) — ตรวจสอบไฟล์ config/db.php
+    error_log("Category course count: DB connection not found or unsupported type (\$conn/\$pdo).");
 }
 
-if ($db && $db instanceof PDO) {
+// แทนค่า count เดิม (0) ด้วยจำนวนจริงจาก DB โดยจับคู่ตาม id
+if (!empty($courseCountMap)) {
+    foreach ($category_data as &$cat) {
+        $cat['count'] = $courseCountMap[$cat['id']] ?? 0;
+    }
+    unset($cat);
+}
+
+if ($db && ($db instanceof PDO)) {
     try {
         $raw_courses = [];
         try {
