@@ -156,14 +156,16 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         border-color: rgba(6, 182, 212, 0.3);
         background: rgba(15, 23, 42, 0.8);
     }
+
+    /* 🛠️ FIX Checkbox: กำหนดสีขอบและพื้นหลังให้คมชัด มองเห็นชัดเจนทุกโหมด */
     .custom-checkbox-card .form-check-input {
         width: 18px !important;
         height: 18px !important;
         margin: 0 !important;
         cursor: pointer;
         flex-shrink: 0;
-        background-color: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.25);
+        background-color: rgba(15, 23, 42, 0.8) !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
     }
     .custom-checkbox-card .form-check-input:checked {
         background-color: #06b6d4 !important;
@@ -220,6 +222,16 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     html[data-theme="light"] .editor-container .btn-dark:hover { background-color: #f1f5f9 !important; }
     html[data-theme="light"] .editor-container .border-secondary { border-color: #cbd5e1 !important; }
     html[data-theme="light"] .form-label-premium { color: #334155 !important; }
+
+    /* ☀️ Checkbox สำหรับ Light Mode */
+    html[data-theme="light"] .custom-checkbox-card .form-check-input {
+        background-color: #ffffff !important;
+        border: 1.5px solid #64748b !important; /* ขอบสีเทาเข้ม ชัดเจนบนการ์ดขาว */
+    }
+    html[data-theme="light"] .custom-checkbox-card .form-check-input:checked {
+        background-color: #06b6d4 !important;
+        border-color: #06b6d4 !important;
+    }
 
     /* UI Preview Modal */
     html[data-theme="light"] #livePreviewModal .modal-content { background-color: #ffffff !important; color: #0f172a !important; border-color: #e2e8f0 !important; }
