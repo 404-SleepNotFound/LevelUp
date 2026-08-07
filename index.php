@@ -110,6 +110,21 @@ if (!empty($courseCountMap)) {
     unset($cat);
 }
 
+// ---------------------------------------------------
+// 2.2 DEBUG ชั่วคราว: ตรวจสอบสถานะการเชื่อมต่อ DB และผลลัพธ์การนับ
+// (ลบส่วนนี้ทิ้งได้เมื่อแก้ปัญหาเสร็จแล้ว — ดูผลได้จาก "View Page Source")
+// ---------------------------------------------------
+echo "<!-- DEBUG category-count start\n";
+echo "ROOT_PATH = " . var_export($ROOT_PATH, true) . "\n";
+echo "config/db.php exists (relative to ROOT_PATH): " . var_export(file_exists($ROOT_PATH . 'config/db.php'), true) . "\n";
+echo "db.php exists (relative to ROOT_PATH): " . var_export(file_exists($ROOT_PATH . 'db.php'), true) . "\n";
+echo "__DIR__ = " . __DIR__ . "\n";
+echo "conn variable set: " . var_export(isset($conn), true) . "\n";
+echo "pdo variable set: " . var_export(isset($pdo), true) . "\n";
+echo "\$db type: " . (is_object($db) ? get_class($db) : var_export($db, true)) . "\n";
+echo "courseCountMap: " . var_export($courseCountMap, true) . "\n";
+echo "DEBUG category-count end -->\n";
+
 if ($db && ($db instanceof PDO)) {
     try {
         $raw_courses = [];
