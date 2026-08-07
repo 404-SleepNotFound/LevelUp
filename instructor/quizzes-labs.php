@@ -128,9 +128,10 @@ $assignmentHistory = [
         --ql-table-border: rgba(255, 255, 255, 0.08);
         --ql-table-hover: rgba(255, 255, 255, 0.04);
         
-        --ql-input-bg: #0f172a;
+        --ql-input-bg: rgba(15, 23, 42, 0.8);
         --ql-input-border: rgba(255, 255, 255, 0.15);
         --ql-input-text: #f8fafc;
+        --ql-placeholder: rgba(255, 255, 255, 0.4);
         
         /* Badges (Dark Mode) */
         --badge-warning-bg: rgba(255, 193, 7, 0.15);
@@ -166,15 +167,16 @@ $assignmentHistory = [
     [data-bs-theme="light"], 
     body:not(.dark-mode) {
         --ql-card-bg: #ffffff;
-        --ql-card-border: rgba(0, 0, 0, 0.08);
+        --ql-card-border: #e2e8f0;
         --ql-text-main: #0f172a;
         --ql-text-muted: #64748b;
-        --ql-table-border: rgba(0, 0, 0, 0.08);
-        --ql-table-hover: rgba(0, 0, 0, 0.025);
+        --ql-table-border: #e2e8f0;
+        --ql-table-hover: #f8fafc;
 
         --ql-input-bg: #f8fafc;
         --ql-input-border: #cbd5e1;
         --ql-input-text: #0f172a;
+        --ql-placeholder: #94a3b8;
 
         /* Badges (Light Mode) */
         --badge-warning-bg: #fffbeb;
@@ -204,34 +206,83 @@ $assignmentHistory = [
     }
 
     /* =============================================================
-       3. GLOBAL HEADER & TYPOGRAPHY FIX (PREVENTS TEXT BLENDING)
+       3. GLOBAL LIGHT MODE UI CORRECTIONS (PREVENT BLENDING)
        ============================================================= */
-    html[data-theme="light"] h1,
-    html[data-theme="light"] h2,
-    html[data-theme="light"] h3,
-    html[data-theme="light"] h4,
-    html[data-theme="light"] h5,
-    html[data-theme="light"] h6,
-    html[data-theme="light"] .page-title,
-    html[data-theme="light"] .page-header-title,
-    [data-bs-theme="light"] h1,
-    [data-bs-theme="light"] h2,
-    [data-bs-theme="light"] h3,
-    [data-bs-theme="light"] h4,
-    [data-bs-theme="light"] h5,
-    [data-bs-theme="light"] h6 {
-        color: #0f172a !important;
-    }
+    html[data-theme="light"],
+    [data-bs-theme="light"],
+    body:not(.dark-mode) {
+        /* Headings & Text Fixes */
+        h1, h2, h3, h4, h5, h6,
+        .page-title,
+        .page-header-title,
+        .card-title {
+            color: #0f172a !important;
+        }
 
-    html[data-theme="light"] .text-white,
-    html[data-theme="light"] .text-white-50 {
-        color: #334155 !important;
+        .text-white,
+        .text-white-50,
+        [class*="text-white"] {
+            color: #334155 !important;
+            opacity: 1 !important;
+        }
+
+        /* Form Labels & Small Text */
+        label,
+        .form-label {
+            color: #334155 !important;
+            font-weight: 600;
+        }
+
+        .text-muted,
+        small {
+            color: #64748b !important;
+        }
+
+        /* Cards & Section Boxes */
+        .dashboard-card,
+        .card,
+        .lab-builder-card,
+        div[class*="card"] {
+            background-color: var(--ql-card-bg) !important;
+            border: 1px solid var(--ql-card-border) !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
+            color: var(--ql-text-main) !important;
+        }
+
+        /* Form Inputs, Selects, Textareas */
+        .form-control,
+        .form-select,
+        textarea,
+        input[type="text"],
+        input[type="number"],
+        select {
+            background-color: var(--ql-input-bg) !important;
+            border: 1px solid var(--ql-input-border) !important;
+            color: var(--ql-input-text) !important;
+        }
+
+        .form-control::placeholder,
+        textarea::placeholder {
+            color: var(--ql-placeholder) !important;
+        }
+
+        .form-control:focus,
+        .form-select:focus,
+        textarea:focus {
+            background-color: #ffffff !important;
+            border-color: #6366f1 !important;
+            color: #0f172a !important;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
+        }
+
+        option {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+        }
     }
 
     /* Card Box Styles */
-    .dashboard-card,
-    .card,
-    .lab-builder-card {
+    .dashboard-card {
         background: var(--ql-card-bg) !important;
         border: 1px solid var(--ql-card-border) !important;
         border-radius: 16px;
@@ -239,29 +290,6 @@ $assignmentHistory = [
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
         backdrop-filter: blur(10px);
         transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-    }
-
-    /* Global Form Controls (Inputs, Selects, Textareas) Light/Dark Support */
-    .form-control, 
-    .form-select, 
-    textarea,
-    input[type="text"],
-    input[type="number"],
-    select {
-        background-color: var(--ql-input-bg) !important;
-        border: 1px solid var(--ql-input-border) !important;
-        color: var(--ql-input-text) !important;
-        transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-    }
-
-    .form-select option {
-        background-color: var(--ql-card-bg) !important;
-        color: var(--ql-text-main) !important;
-    }
-
-    .form-label, 
-    label {
-        color: var(--ql-text-main) !important;
     }
 
     /* Table custom adjustments */
@@ -286,8 +314,7 @@ $assignmentHistory = [
         letter-spacing: 0.5px;
     }
 
-    .quizzes-labs-component .text-muted,
-    .text-muted {
+    .quizzes-labs-component .text-muted {
         color: var(--ql-text-muted) !important;
     }
 
