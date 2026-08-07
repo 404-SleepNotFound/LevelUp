@@ -271,9 +271,6 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
 }
 ?>
 
-<!-- 🎨 Custom Scrollbar CSS -->
-<link rel="stylesheet" href="<?php echo $ROOT_PATH; ?>css/custom-scrollbar.css">
-
 <!-- Include jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 

@@ -132,8 +132,6 @@ if ($db) {
 }
 ?>
 
-<!-- 🎨 Custom Scrollbar CSS & FontAwesome -->
-<link rel="stylesheet" href="<?php echo $ROOT_PATH; ?>css/custom-scrollbar.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <!-- 🎨 Custom Styles -->

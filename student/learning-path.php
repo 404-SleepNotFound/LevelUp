@@ -153,9 +153,6 @@ $roadmapNodes = [
 include '../includes/header.php';
 ?>
 
-<!-- เรียกใช้งาน Custom Scrollbar Stylesheet -->
-<link rel="stylesheet" href="../css/custom-scrollbar.css?v=1.0">
-
 <!-- Custom Embedded Styles for Learning Path (LevelUp Design System - Dual Theme) -->
 <style>
     /* 🌙 Dark Mode Theme Variables (Default) */

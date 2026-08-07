@@ -8,9 +8,6 @@ include '../includes/header.php';
 $user_role = 'Senior Instructor';
 ?>
 
-<!-- 🎨 ดึงไฟล์ Custom Scrollbar CSS มาใช้งาน -->
-<link rel="stylesheet" href="<?= $ROOT_PATH ?>css/custom-scrollbar.css">
-
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 

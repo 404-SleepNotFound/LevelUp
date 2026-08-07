@@ -46,8 +46,6 @@ include '../includes/header.php';
 <!-- นำเข้า Font & Library -->
 <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Kanit:wght@300;400;500;600&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-<!-- เรียกใช้ Custom Scrollbar CSS ส่วนกลาง -->
-<link rel="stylesheet" href="../css/custom-scrollbar.css?v=1.0">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/loader.min.js"></script>
 
 <style>

@@ -204,9 +204,6 @@ function getEmbedUrl($url)
     <!-- SweetAlert2 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- 🎨 เรียกใช้งาน Custom Scrollbar CSS -->
-    <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/custom-scrollbar.css">
-
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
 

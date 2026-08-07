@@ -120,8 +120,6 @@ $inst_bio = $instructor['bio'] ?? 'ผู้เชี่ยวชาญประ
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/custom-scrollbar.css?v=1.0">
-
     <style>
         /* 🌙 DARK MODE (DEFAULT) */
         :root, html[data-theme="dark"] {

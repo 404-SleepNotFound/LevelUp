@@ -49,9 +49,6 @@ if (file_exists(__DIR__ . '/../includes/header.php')) {
      STYLESHEET SECTION (LEVELUP CORE STYLE EMBED)
 ========================================================================
 -->
-<!-- เรียกใช้งาน Custom Scrollbar (แก้ไข Path เป็น css/ และติด version กัน cache) -->
-<link rel="stylesheet" href="<?= $ROOT_PATH; ?>css/custom-scrollbar.css?v=1.0">
-
 <style>
     /* Custom Scrollbar Styles (ฝังตรงในหน้าลบปัญหาเรื่อง Selector เพื่อให้แสดงผลทันที) */
     * {
