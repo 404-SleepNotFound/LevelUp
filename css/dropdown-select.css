@@ -8,8 +8,7 @@ used across the LevelUp platform.
 /* -----------------------------------------------------------------
 
 Shared Select Styling
-
-*/
+----------------------------------------------------------------- */
 .form-select,
 .lu-select,
 .form-select-custom {
@@ -53,8 +52,7 @@ cursor: not-allowed;
 
 /* -----------------------------------------------------------------
 2. Shared Dropdown Menu Styling
-
-*/
+----------------------------------------------------------------- */
 .dropdown-menu,
 .lu-dropdown-menu {
 background-color: rgba(15, 23, 42, 0.96);
@@ -219,8 +217,7 @@ margin: 0.5rem 0;
 
 /* -----------------------------------------------------------------
 3. Button Dropdown Triggers
-
-*/
+----------------------------------------------------------------- */
 .btn-dropdown-trigger {
 border-radius: 999px;
 min-height: 48px;
@@ -259,8 +256,7 @@ box-shadow: 0 0 18px rgba(6, 182, 212, 0.18);
 
 /* -----------------------------------------------------------------
 4. Theme-specific Overrides
-
-*/
+----------------------------------------------------------------- */
 html[data-theme="light"] .dropdown-menu,
 html[data-theme="light"] .lu-dropdown-menu,
 html[data-theme="light"] .form-select,
@@ -297,8 +293,7 @@ background-color: rgba(99, 102, 241, 0.08);
 
 /* -----------------------------------------------------------------
 5. Custom Filter Dropdowns (Centralized)
-
-*/
+----------------------------------------------------------------- */
 .custom-filter-dropdown {
 position: relative !important;
 }
@@ -379,8 +374,7 @@ border-color: #06b6d4 !important;
 
 /* -----------------------------------------------------------------
 6. Custom Sort Dropdown Item Styles
-
-*/
+----------------------------------------------------------------- */
 .dropdown-item-custom,
 .lu-dropdown-item {
 color: var(--nav-text) !important;
@@ -413,8 +407,7 @@ padding-left: 1.05rem !important;
 
 /* -----------------------------------------------------------------
 7. Custom Dropdown Builder Styles
-
-*/
+----------------------------------------------------------------- */
 .form-select-custom,
 .lu-select {
 min-height: 46px !important;
@@ -461,8 +454,7 @@ color: #f8fafc !important;
 
 /* -----------------------------------------------------------------
 8. Custom Interactive Dropdown Builder
-
-*/
+----------------------------------------------------------------- */
 .custom-dropdown-wrapper {
 position: relative;
 }
@@ -567,38 +559,61 @@ box-shadow: 0 6px 18px rgba(6, 182, 212, 0.24);
 }
 
 /* -----------------------------------------------------------------
-9. Dropdown Scrollbar Fixes (Prevent Corner Overflow)
+9. High-Specificity Dropdown Scrollbar Fixes
+(Overrides custom-scrollbar.css without editing it)
+----------------------------------------------------------------- */
 
-*/
-.dropdown-menu::-webkit-scrollbar,
-.lu-dropdown-menu::-webkit-scrollbar,
-.custom-dropdown-menu::-webkit-scrollbar,
-.custom-filter-dropdown .dropdown-menu::-webkit-scrollbar {
-width: 8px;
+/* 9.1 Set width and height with higher specificity */
+html body .dropdown-menu::-webkit-scrollbar,
+html body .lu-dropdown-menu::-webkit-scrollbar,
+html body .custom-dropdown-menu::-webkit-scrollbar,
+html body .custom-filter-dropdown .dropdown-menu::-webkit-scrollbar {
+width: 10px !important;
+height: 10px !important;
 }
 
-.dropdown-menu::-webkit-scrollbar-track,
-.lu-dropdown-menu::-webkit-scrollbar-track,
-.custom-dropdown-menu::-webkit-scrollbar-track,
-.custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-track {
+/* 9.2 Hide default scrollbar buttons (arrows ▲ ▼) entirely */
+html body .dropdown-menu::-webkit-scrollbar-button,
+html body .lu-dropdown-menu::-webkit-scrollbar-button,
+html body .custom-dropdown-menu::-webkit-scrollbar-button,
+html body .custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-button {
+display: none !important;
+width: 0 !important;
+height: 0 !important;
+}
+
+/* 9.3 Inset scrollbar track using transparent border & background-clip */
+html body .dropdown-menu::-webkit-scrollbar-track,
+html body .lu-dropdown-menu::-webkit-scrollbar-track,
+html body .custom-dropdown-menu::-webkit-scrollbar-track,
+html body .custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-track {
 background: transparent !important;
-margin-top: 14px;
-margin-bottom: 14px;
-border-radius: 999px;
+border-top: 18px solid transparent !important;
+border-bottom: 18px solid transparent !important;
+border-right: 3px solid transparent !important;
+background-clip: padding-box !important;
 }
 
-.dropdown-menu::-webkit-scrollbar-thumb,
-.lu-dropdown-menu::-webkit-scrollbar-thumb,
-.custom-dropdown-menu::-webkit-scrollbar-thumb,
-.custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-thumb {
+/* 9.4 Inset scrollbar thumb away from rounded top/bottom corners and right edge */
+html body .dropdown-menu::-webkit-scrollbar-thumb,
+html body .lu-dropdown-menu::-webkit-scrollbar-thumb,
+html body .custom-dropdown-menu::-webkit-scrollbar-thumb,
+html body .custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-thumb {
 background: linear-gradient(180deg, #06b6d4 0%, #6366f1 100%) !important;
-border-radius: 999px;
-border: 1px solid rgba(15, 23, 42, 0.5) !important;
+border-radius: 999px !important;
+border-top: 18px solid transparent !important;
+border-bottom: 18px solid transparent !important;
+border-right: 3px solid transparent !important;
+background-clip: padding-box !important;
 }
 
-.dropdown-menu::-webkit-scrollbar-thumb:hover,
-.lu-dropdown-menu::-webkit-scrollbar-thumb:hover,
-.custom-dropdown-menu::-webkit-scrollbar-thumb:hover,
-.custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-thumb:hover {
+html body .dropdown-menu::-webkit-scrollbar-thumb:hover,
+html body .lu-dropdown-menu::-webkit-scrollbar-thumb:hover,
+html body .custom-dropdown-menu::-webkit-scrollbar-thumb:hover,
+html body .custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-thumb:hover {
 background: linear-gradient(180deg, #22d3ee 0%, #818cf8 100%) !important;
+border-top: 18px solid transparent !important;
+border-bottom: 18px solid transparent !important;
+border-right: 3px solid transparent !important;
+background-clip: padding-box !important;
 }
