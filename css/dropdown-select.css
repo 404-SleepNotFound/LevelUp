@@ -132,6 +132,23 @@
     .btn-dropdown-trigger { width: 100% !important; }
 }
 
+/* Modifier utilities: compact / wide dropdown variants for page-specific needs */
+.lu-dropdown--compact .dropdown-menu,
+.lu-dropdown--compact .custom-dropdown-menu,
+.lu-dropdown--compact .custom-filter-dropdown .dropdown-menu {
+    min-width: 220px !important;
+    max-width: 320px !important;
+    box-sizing: border-box !important;
+}
+
+.lu-dropdown--wide .dropdown-menu,
+.lu-dropdown--wide .custom-dropdown-menu,
+.lu-dropdown--wide .custom-filter-dropdown .dropdown-menu {
+    min-width: 340px !important;
+    max-width: min(720px, calc(100vw - 48px)) !important;
+    box-sizing: border-box !important;
+}
+
 .dropdown-item:last-child,
 .lu-dropdown-item:last-child {
     margin-bottom: 0;

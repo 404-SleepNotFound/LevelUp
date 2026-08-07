@@ -381,7 +381,7 @@ if ($db) {
             <span class="text-muted-custom fw-medium me-2 small d-none d-md-inline-block"><i class="fas fa-filter text-info me-1"></i> คัดกรองภารกิจ:</span>
 
             <!-- Dropdown 1: หมวดหมู่เนื้อหา -->
-            <div class="dropdown custom-filter-dropdown">
+            <div class="dropdown custom-filter-dropdown lu-dropdown--compact">
                 <button class="btn btn-dropdown-trigger dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-display="static" data-bs-auto-close="outside" aria-expanded="false">
                     <span><i class="fas fa-th-large text-primary me-2"></i>หมวดหมู่เนื้อหา</span>
                     <i class="fas fa-chevron-down small ms-2 opacity-50"></i>
@@ -405,7 +405,7 @@ if ($db) {
             </div>
 
             <!-- Dropdown 2: ระดับความท้าทาย -->
-            <div class="dropdown custom-filter-dropdown">
+            <div class="dropdown custom-filter-dropdown lu-dropdown--compact">
                 <button class="btn btn-dropdown-trigger dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-display="static" data-bs-auto-close="outside" aria-expanded="false">
                     <span><i class="fas fa-trophy text-warning me-2"></i>ระดับความท้าทาย</span>
                     <i class="fas fa-chevron-down small ms-2 opacity-50"></i>
@@ -435,7 +435,7 @@ if ($db) {
             </div>
 
             <!-- Dropdown 3: ฟังก์ชันห้องแล็บเสริม -->
-            <div class="dropdown custom-filter-dropdown">
+            <div class="dropdown custom-filter-dropdown lu-dropdown--compact">
                 <button class="btn btn-dropdown-trigger dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-display="static" data-bs-auto-close="outside" aria-expanded="false">
                     <span><i class="fas fa-flask text-success me-2"></i>ฟังก์ชันห้องแล็บเสริม</span>
                     <i class="fas fa-chevron-down small ms-2 opacity-50"></i>
