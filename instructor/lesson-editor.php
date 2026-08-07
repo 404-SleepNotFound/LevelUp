@@ -35,6 +35,17 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         color: #06b6d4;
     }
 
+    /* High Contrast Legibility Controls */
+    .editor-container .text-muted,
+    .editor-container p.text-muted,
+    .editor-subtitle {
+        color: rgba(226, 232, 240, 0.75) !important;
+        font-size: 0.88rem;
+    }
+    .editor-container .text-white-50 {
+        color: rgba(241, 245, 249, 0.85) !important;
+    }
+
     /* 🛠️ ล้างระบบกล่องจม: แก้ไข Input, Select, Textarea ทุกกล่องในหน้าจอ */
     .form-control-premium {
         background: var(--nav-input-bg, rgba(15, 23, 42, 0.8)) !important;
@@ -52,22 +63,31 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         background: var(--card-bg, #0f172a) !important;
     }
 
-    /* ✨ FIX 1: ตกแต่งปุ่ม Choose File ให้สวยงามกลมกลืนกับ Theme */
-    .form-control-premium::file-selector-button,
-    .form-control-premium::-webkit-file-upload-button {
+    /* ✨ FIX: แก้ไขปุ่ม Choose File เอียง และจัด Alignment กึ่งกลางสมดุล 100% */
+    input[type="file"].form-control-premium {
+        display: flex !important;
+        align-items: center !important;
+        padding: 6px 12px !important;
+    }
+    input[type="file"].form-control-premium::file-selector-button,
+    input[type="file"].form-control-premium::-webkit-file-upload-button {
         background: rgba(6, 182, 212, 0.15) !important;
         color: #06b6d4 !important;
         border: 1px solid rgba(6, 182, 212, 0.3) !important;
         border-radius: 6px;
-        padding: 4px 12px;
-        margin-right: 12px;
+        padding: 6px 14px !important;
+        margin-right: 12px !important;
         font-size: 0.85rem;
         font-weight: 500;
         cursor: pointer;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        line-height: 1 !important;
         transition: all 0.2s ease-in-out;
     }
-    .form-control-premium::file-selector-button:hover,
-    .form-control-premium::-webkit-file-upload-button:hover {
+    input[type="file"].form-control-premium::file-selector-button:hover,
+    input[type="file"].form-control-premium::-webkit-file-upload-button:hover {
         background: #06b6d4 !important;
         color: #ffffff !important;
     }
@@ -87,16 +107,16 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     }
 
     .form-label-premium {
-        color: var(--nav-text-muted, #cbd5e1) !important; 
+        color: #e2e8f0 !important; 
         font-weight: 500;
         margin-bottom: 6px;
         font-size: 0.88rem;
     }
     .form-control-premium::placeholder {
-        color: var(--nav-text-muted, #64748b) !important;
+        color: #94a3b8 !important;
     }
 
-    /* ✨ FIX 2: ปรับแต่งปุ่มกล่อง Interactive Buttons และ Card Items ให้สีเนียนสวยงาม */
+    /* ปรับแต่งปุ่มกล่อง Interactive Buttons */
     .btn-interactive-item {
         background: var(--nav-input-bg, rgba(15, 23, 42, 0.6)) !important;
         border: 1px solid var(--nav-input-border, rgba(255, 255, 255, 0.1)) !important;
@@ -118,7 +138,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         transform: translateY(-1px);
     }
 
-    /* ✨ FIX 3: ปรับแก้ Checkbox กล่อง Virtual Lab ไม่ให้เอียง และจัดวางกึ่งกลางเป๊ะ */
+    /* Checkbox Card */
     .custom-checkbox-card {
         background: var(--nav-input-bg, rgba(15, 23, 42, 0.6));
         border: 1px solid var(--nav-input-border, rgba(255, 255, 255, 0.1));
@@ -148,7 +168,8 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         background-color: #06b6d4 !important;
         border-color: #06b6d4 !important;
     }
-    .custom-checkbox-card label {
+    .custom-checkbox-card label,
+    .custom-checkbox-card span {
         cursor: pointer;
         margin: 0;
         font-size: 0.9rem;
@@ -179,6 +200,10 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     html[data-theme="light"] .editor-container .text-white,
     html[data-theme="light"] .modal .text-white { color: #0f172a !important; }
     
+    html[data-theme="light"] .editor-container .text-muted,
+    html[data-theme="light"] .editor-container p.text-muted,
+    html[data-theme="light"] .editor-subtitle { color: #475569 !important; }
+    
     html[data-theme="light"] .editor-container .text-white-50,
     html[data-theme="light"] .modal .text-white-50 { color: #64748b !important; }
     
@@ -192,7 +217,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     }
     html[data-theme="light"] .editor-container .btn-dark:hover { background-color: #f1f5f9 !important; }
     html[data-theme="light"] .editor-container .border-secondary { border-color: #cbd5e1 !important; }
-    html[data-theme="light"] .editor-container .text-muted { color: #64748b !important; }
+    html[data-theme="light"] .form-label-premium { color: #334155 !important; }
 
     /* UI Preview Modal */
     html[data-theme="light"] #livePreviewModal .modal-content { background-color: #ffffff !important; color: #0f172a !important; border-color: #e2e8f0 !important; }
@@ -214,7 +239,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
             <h3 class="text-white fw-bold mb-1"><i class="bi bi-pencil-square text-cyan me-2"></i>ระบบสร้างและแก้ไขบทเรียน (Lesson Editor)</h3>
-            <p class="text-muted small mb-0">ปรับแต่งเนื้อหา วิดีโอ แล็บ ควิซ และใช้ระบบ AI ช่วยตรวจขัดเกลาเนื้อหาการเรียนรู้</p>
+            <p class="editor-subtitle mb-0">ปรับแต่งเนื้อหา วิดีโอ แล็บ ควิซ และใช้ระบบ AI ช่วยตรวจขัดเกลาเนื้อหาการเรียนรู้</p>
         </div>
         <div id="validation-quick-alert" class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-20 p-2 font-monospace">
             <i class="bi bi-shield-exclamation me-1"></i> 19. Validation: ตรวจพบลิงก์ภายนอกยังไม่ได้ทดสอบ
@@ -274,7 +299,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <div class="section-title text-cyan">
                 <i class="bi bi-layers-half"></i> ⭐ Block-based Lesson Builder (ตัวจัดเรียงบล็อกเนื้อหาแบบ Dynamic)
             </div>
-            <p class="text-muted small mt-0 mb-3">กดเพิ่มบล็อกด้านล่างเพื่อทำการแทรกกล่องเนื้อหาและลากจัดตำแหน่งได้อย่างอิสระ</p>
+            <p class="editor-subtitle mt-0 mb-3">กดเพิ่มบล็อกด้านล่างเพื่อทำการแทรกกล่องเนื้อหาและลากจัดตำแหน่งได้อย่างอิสระ</p>
             <div class="d-flex flex-wrap gap-2 mb-3">
                 <button type="button" class="btn btn-sm btn-dark border border-secondary" onclick="addNewContentBlock('text')">📝 Text Block</button>
                 <button type="button" class="btn btn-sm btn-dark border border-secondary" onclick="addNewContentBlock('video')">🎥 Video Block</button>
@@ -308,7 +333,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         </div>
 
         <!-- ==========================================
-             3. VIDEO EDITOR (แก้ไขปุ่ม Choose File สวยงาม)
+             3. VIDEO EDITOR
              ========================================== -->
         <div class="editor-section-card">
             <div class="section-title">
@@ -344,7 +369,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <div class="section-title">
                 <i class="bi bi-file-earmark-arrow-up-fill text-success"></i> 4. Document Management (อัปโหลดและจัดการเอกสาร)
             </div>
-            <p class="text-muted small mt-0">รองรับระบบประมวลผลไฟล์สเปกตรัมกว้าง: PDF, Slide, ZIP, Source Code, Dataset, Image</p>
+            <p class="editor-subtitle mt-0">รองรับระบบประมวลผลไฟล์สเปกตรัมกว้าง: PDF, Slide, ZIP, Source Code, Dataset, Image</p>
             <div class="p-4 border border-dashed border-secondary border-opacity-40 rounded-3 text-center bg-dark bg-opacity-20">
                 <i class="bi bi-cloud-arrow-up fs-2 text-muted mb-2 d-block"></i>
                 <span class="text-white-50 small d-block mb-2">ลากไฟล์เอกสารมาวางที่นี่ หรือคลิกเพื่อเลือกอัปโหลดไฟล์เข้าระบบคลาวด์คอร์ส</span>
@@ -373,7 +398,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         </div>
 
         <!-- ==========================================
-             6. INTERACTIVE CONTENT (แก้ไขปรับสีปุ่มใหม่)
+             6. INTERACTIVE CONTENT
              ========================================== -->
         <div class="editor-section-card">
             <div class="section-title">
@@ -440,13 +465,13 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         </div>
 
         <!-- ==========================================
-             9. VIRTUAL LAB INTEGRATION (แก้ไข Checkbox ตรงแนวเป๊ะ)
+             9. VIRTUAL LAB INTEGRATION
              ========================================== -->
         <div class="editor-section-card">
             <div class="section-title">
                 <i class="bi bi-cloud-haze2-fill text-cyan"></i> 9. Virtual Lab Integration (ห้องแล็บจำลองระบบ Cloud Sandbox)
             </div>
-            <p class="text-muted small mt-0 mb-3">เชื่อมโยงบทเรียนกับสภาพแวดล้อมระบบปฏิบัติการ คอนเทนเนอร์ หรือโครงสร้างเครือข่ายความปลอดภัยสูง</p>
+            <p class="editor-subtitle mt-0 mb-3">เชื่อมโยงบทเรียนกับสภาพแวดล้อมระบบปฏิบัติการ คอนเทนเนอร์ หรือโครงสร้างเครือข่ายความปลอดภัยสูง</p>
             <div class="row g-2.5">
                 <div class="col-6 col-md-4">
                     <label class="custom-checkbox-card">
@@ -544,7 +569,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                         <div class="progress mb-2 bg-secondary bg-opacity-20" style="height: 6px;">
                             <div class="progress-bar bg-success" role="progressbar" style="width: 94%"></div>
                         </div>
-                        <div style="font-size: 0.75rem; line-height: 1.45;" class="text-white-50">
+                        <div style="font-size: 0.78rem; line-height: 1.45;" class="text-white-50">
                             <span class="text-warning fw-bold">[คำแนะนำจาก AI]:</span> โครงสร้างและเวลาศึกษายอดเยี่ยมแล้ว แนะนำให้เพิ่มตัวอย่างบล็อกโค้ดฝั่งภาษา Python เพิ่มเติมเพื่อความครอบคลุมของผู้เรียนระดับต้น
                         </div>
                     </div>
@@ -602,7 +627,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 font-monospace" style="font-size: 0.82rem;">
                 <div class="text-white-50"><i class="bi bi-arrow-repeat text-success animate-spin"></i> Auto Save ล่าสุดเมื่อสักครู่...</div>
                 <div class="d-flex gap-3 align-items-center">
-                    <span class="text-muted">v1.4 (บันทึกแบบร่างก่อนหน้า)</span>
+                    <span class="editor-subtitle">v1.4 (บันทึกแบบร่างก่อนหน้า)</span>
                     <a href="#" class="text-cyan text-decoration-none fw-bold" onclick="alert('กู้คืนข้อมูลแบบร่างเสร็จสมบูรณ์!')"><i class="bi bi-arrow-counterclockwise"></i> Restore Version นี้</a>
                 </div>
             </div>
@@ -642,7 +667,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <div class="modal-body p-3 bg-black bg-opacity-20 d-flex justify-content-center">
                 <div id="preview-viewport-box" class="bg-dark p-4 rounded-3 shadow w-100 transition-all border border-secondary border-opacity-20 overflow-y-auto" style="max-width: 100%; height: 500px;">
                     <h4 class="text-white fw-bold">บทที่ 3: โครงสร้างและสโคปของตัวแปรใน Modern Programming</h4>
-                    <span class="text-muted small">⏱️ เวลาเรียน: อ่าน 15 นาที, วิดีโอ 20 นาที, Lab 30 นาที</span>
+                    <span class="editor-subtitle">⏱️ เวลาเรียน: อ่าน 15 นาที, วิดีโอ 20 นาที, Lab 30 นาที</span>
                     <hr class="border-secondary border-opacity-20">
                     <p class="text-white-50 small">[หน้าจำลองการเรนเดอร์เนื้อหาจริงที่จะถูกแสดงบนหน้าจอของผู้เรียนแบบ Responsive Screen]</p>
                 </div>
