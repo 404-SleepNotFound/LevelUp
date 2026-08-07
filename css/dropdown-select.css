@@ -59,11 +59,14 @@
     background-color: rgba(15, 23, 42, 0.96);
     border: 1px solid rgba(99, 102, 241, 0.18);
     border-radius: 22px;
-    min-width: 260px;
-    padding: 0.75rem 0;
+    min-width: 320px;
+    max-width: 420px;
+    padding: 0.75rem 0 0.75rem 0.5rem; /* reserve space for scrollbar */
     box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
     color: var(--nav-text);
     backdrop-filter: blur(18px);
+    z-index: 2050;
+    overflow: hidden;
 }
 
 .dropdown-menu.show,
@@ -87,7 +90,7 @@
     display: flex;
     align-items: center;
     gap: 0.9rem;
-    padding: 1rem 1.3rem;
+    padding: 1rem 1.6rem 1rem 1.3rem; /* extra right padding so scrollbar doesn't overlap content */
     color: var(--nav-text);
     font-size: 0.95rem;
     border-radius: 16px;
@@ -135,6 +138,44 @@
     border-color: rgba(148, 163, 184, 0.18);
     margin: 0.5rem 0;
 }
+
+/* -----------------------------------------------------------------
+   9. Custom Scrollbar for Dropdowns
+   -----------------------------------------------------------------
+*/
+.dropdown-menu::-webkit-scrollbar,
+.custom-filter-dropdown .dropdown-menu::-webkit-scrollbar,
+.custom-dropdown-menu::-webkit-scrollbar {
+    width: 12px;
+}
+
+.dropdown-menu::-webkit-scrollbar-track,
+.custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-track,
+.custom-dropdown-menu::-webkit-scrollbar-track {
+    background: linear-gradient(180deg, rgba(15,23,42,0.88), rgba(15,23,42,0.7));
+    border-radius: 999px;
+    margin: 6px 0;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb,
+.custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-thumb,
+.custom-dropdown-menu::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(6,182,212,0.95), rgba(99,102,241,0.95));
+    border-radius: 999px;
+    border: 2px solid rgba(15,23,42,0.6);
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb:hover,
+.custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-thumb:hover,
+.custom-dropdown-menu::-webkit-scrollbar-thumb:hover {
+    filter: brightness(1.05);
+}
+
+/* Firefox */
+.dropdown-menu,
+.custom-filter-dropdown .dropdown-menu,
+.custom-dropdown-menu { scrollbar-width: thin; scrollbar-color: rgba(6,182,212,0.9) rgba(15,23,42,0.7); }
+
 
 /* -----------------------------------------------------------------
    3. Button Dropdown Triggers
@@ -242,14 +283,16 @@ html[data-theme="light"] .btn-dropdown-trigger:focus {
     background-color: rgba(99, 102, 241, 0.08) !important;
 }
 
-.custom-filter-dropdown .dropdown-menu {
+ .custom-filter-dropdown .dropdown-menu {
     border-radius: 20px !important;
-    padding: 1rem 1.1rem !important;
-    min-width: 280px !important;
-    max-height: 300px !important;
+    padding: 0.9rem 0.6rem 0.9rem 0.6rem !important;
+    min-width: 340px !important;
+    max-width: 460px !important;
+    max-height: 360px !important;
     overflow-y: auto !important;
     margin-top: 8px !important;
     box-shadow: 0 18px 36px rgba(15, 23, 42, 0.18) !important;
+    z-index: 2050 !important;
 }
 
 .custom-filter-dropdown .form-check {
@@ -420,7 +463,10 @@ html[data-theme="dark"] .form-select-custom,
     visibility: hidden;
     transform: translateY(-12px);
     transition: opacity 0.24s ease, transform 0.24s ease, visibility 0.24s ease;
-    padding: 0.75rem 0;
+    padding: 0.5rem 0 0.5rem 0.5rem;
+    max-height: 420px;
+    overflow-y: auto;
+    z-index: 2050;
 }
 
 .custom-dropdown-wrapper.active .custom-dropdown-menu {
