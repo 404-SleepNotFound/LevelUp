@@ -642,6 +642,49 @@ if (!$isAjax):
                         $('html').removeClass('theme-transitioning');
                     }, 300);
                 });
+
+                function positionDropdownMenu($dropdown) {
+                    const $menu = $dropdown.find('.dropdown-menu').first();
+                    const $trigger = $dropdown.find('[data-bs-toggle="dropdown"]').first();
+
+                    if (!$menu.length || !$trigger.length) {
+                        return;
+                    }
+
+                    const rect = $trigger[0].getBoundingClientRect();
+                    const viewportWidth = window.innerWidth;
+                    const menuWidth = Math.min($menu.outerWidth(), viewportWidth - 24);
+                    const isEndAligned = $menu.hasClass('dropdown-menu-end');
+
+                    let left = rect.left + (rect.width / 2) - (menuWidth / 2);
+                    if (isEndAligned) {
+                        left = rect.right - menuWidth;
+                    } else if (left < 12) {
+                        left = 12;
+                    } else if (left + menuWidth > viewportWidth - 12) {
+                        left = viewportWidth - menuWidth - 12;
+                    }
+
+                    $menu.css({
+                        position: 'fixed',
+                        top: (rect.bottom + 8) + 'px',
+                        left: left + 'px',
+                        right: 'auto',
+                        transform: 'none',
+                        maxHeight: '320px',
+                        width: menuWidth + 'px'
+                    });
+                }
+
+                $(document).on('shown.bs.dropdown', '.dropdown', function() {
+                    positionDropdownMenu($(this));
+                });
+
+                $(window).on('resize orientationchange', function() {
+                    $('.dropdown.show').each(function() {
+                        positionDropdownMenu($(this));
+                    });
+                });
             });
         </script>
 

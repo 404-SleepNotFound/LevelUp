@@ -62,13 +62,16 @@
     min-width: 260px;
     max-width: 420px;
     box-sizing: border-box;
-    max-width: min(420px, calc(100vw - 48px));
+    max-width: min(420px, calc(100vw - 24px));
     padding: 0.75rem 0 0.75rem 0.5rem; /* reserve space for scrollbar */
     box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
     color: var(--nav-text);
     backdrop-filter: blur(18px);
     z-index: 2050;
+    max-height: min(320px, calc(100dvh - 120px));
     overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
 }
 
 .dropdown-menu.show,
@@ -105,6 +108,7 @@
 .lu-dropdown-menu.dropdown-menu-end {
     right: 0;
     left: auto;
+    transform: none;
     padding-right: 0.75rem; /* ensure space for scrollbar */
 }
 
@@ -115,20 +119,31 @@
     box-sizing: border-box;
 }
 
-/* On very small screens, make dropdowns full-width of container */
+/* On very small screens, keep the menu centered and inside the viewport */
 @media (max-width: 576px) {
     .dropdown-menu,
     .lu-dropdown-menu,
     .custom-dropdown-menu,
     .custom-filter-dropdown .dropdown-menu {
-        position: absolute !important;
-        left: 0 !important;
-        right: 0 !important;
-        min-width: 100% !important;
-        max-width: 100% !important;
+        position: fixed !important;
+        left: 50% !important;
+        right: auto !important;
+        transform: translateX(-50%) !important;
+        min-width: min(100%, calc(100vw - 24px)) !important;
+        max-width: min(100%, calc(100vw - 24px)) !important;
+        width: auto !important;
         margin: 0 !important;
         border-radius: 12px !important;
+        max-height: min(70dvh, 360px) !important;
     }
+
+    .dropdown-menu.dropdown-menu-end,
+    .lu-dropdown-menu.dropdown-menu-end {
+        left: auto !important;
+        right: 12px !important;
+        transform: none !important;
+    }
+
     .btn-dropdown-trigger { width: 100% !important; }
 }
 
