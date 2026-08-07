@@ -35,15 +35,16 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         color: #06b6d4;
     }
 
-    /* High Contrast Legibility Controls */
+    /* ✨ FIX: แก้ไขฟอนต์ตัวเล็ก / คำอธิบาย ให้สว่างชัดเจน ไม่กลืนกับพื้นหลังสีกรมท่า */
+    .editor-subtitle,
     .editor-container .text-muted,
     .editor-container p.text-muted,
-    .editor-subtitle {
-        color: rgba(226, 232, 240, 0.75) !important;
+    .editor-container .text-white-50,
+    .editor-container small.text-muted,
+    .editor-container .small {
+        color: #cbd5e1 !important; /* ปรับเป็นสีเงินสว่าง (Slate-300) อ่านง่าย ชัดเจน */
+        opacity: 1 !important;
         font-size: 0.88rem;
-    }
-    .editor-container .text-white-50 {
-        color: rgba(241, 245, 249, 0.85) !important;
     }
 
     /* 🛠️ ล้างระบบกล่องจม: แก้ไข Input, Select, Textarea ทุกกล่องในหน้าจอ */
@@ -63,7 +64,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         background: var(--card-bg, #0f172a) !important;
     }
 
-    /* ✨ FIX: แก้ไขปุ่ม Choose File เอียง และจัด Alignment กึ่งกลางสมดุล 100% */
+    /* จัด alignment ปุ่ม Choose File ให้ตรงกลาง 100% */
     input[type="file"].form-control-premium {
         display: flex !important;
         align-items: center !important;
@@ -197,15 +198,16 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     }
 
     /* ☀️ LIGHT MODE OVERRIDES */
-    html[data-theme="light"] .editor-container .text-white,
-    html[data-theme="light"] .modal .text-white { color: #0f172a !important; }
-    
+    html[data-theme="light"] .editor-subtitle,
     html[data-theme="light"] .editor-container .text-muted,
     html[data-theme="light"] .editor-container p.text-muted,
-    html[data-theme="light"] .editor-subtitle { color: #475569 !important; }
-    
     html[data-theme="light"] .editor-container .text-white-50,
-    html[data-theme="light"] .modal .text-white-50 { color: #64748b !important; }
+    html[data-theme="light"] .editor-container .small {
+        color: #475569 !important; /* ปรับสีสำหรับธีมสว่างให้เข้มอ่านง่าย */
+    }
+
+    html[data-theme="light"] .editor-container .text-white,
+    html[data-theme="light"] .modal .text-white { color: #0f172a !important; }
     
     html[data-theme="light"] .editor-container .bg-dark { background-color: #f1f5f9 !important; }
     html[data-theme="light"] .editor-container .bg-black { background-color: #e2e8f0 !important; }
@@ -272,7 +274,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                     <input type="number" class="form-control form-control-premium" value="3">
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label form-label-premium">คำอธิบายรายวิชาย่อย</label>
+                    <label class="form-label form-label-premium">คำอธิบายรายวิชา ย่อย</label>
                     <textarea class="form-control form-control-premium" rows="2">เจาะลึกความต่างของการประกาศตัวแปรในขอบเขตการทำงานแบบต่างๆ</textarea>
                 </div>
                 <div class="col-md-3">
