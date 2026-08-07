@@ -92,6 +92,9 @@ if (!$current_user_id) {
 }
 ?>
 
+<!-- Import Dropdown Select Stylesheet -->
+<link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css">
+
 <!-- SweetAlert2 Library & Handler -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="js/sweetalert_instructor.js"></script>
