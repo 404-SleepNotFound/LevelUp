@@ -54,9 +54,11 @@ $course = [
     'certificate_type' => $course_data['certificate_type'] ?? 'มีใบรับรองเมื่อเรียนจบ',
     'updated_at' => $course_data['updated_at'] ?? null,
     
-    // คำนวณราคา หรือแสดงประเภทคอร์ส
-    'price' => is_numeric($course_data['type']) ? (float)$course_data['type'] : 0,
-    'type_text' => is_numeric($course_data['type']) ? number_format((float)$course_data['type']) . ' ฿' : ($course_data['type'] ?? 'เรียนฟรี'),
+    // ดึงราคาจากคอลัมน์ pice
+    'price' => (isset($course_data['pice']) && is_numeric($course_data['pice'])) ? (float)$course_data['pice'] : 0,
+    'type_text' => (!empty($course_data['pice']) && is_numeric($course_data['pice']) && (float)$course_data['pice'] > 0) 
+                    ? number_format((float)$course_data['pice']) . ' ฿' 
+                    : 'เรียนฟรี',
     
     // ข้อมูลจำลองสำหรับส่วนที่ยังไม่มีตาราง (สถิติ/รีวิว)
     'rating' => 4.8,
@@ -144,10 +146,10 @@ try {
             }
         }
 
-        // จัดรูปแบบราคา
-        $price_text = is_numeric($rel['type'] ?? '') 
-            ? number_format((float)$rel['type']) . ' ฿' 
-            : ($rel['type'] ?? 'เรียนฟรี');
+        // จัดรูปแบบราคาจากคอลัมน์ pice ของคอร์สที่เกี่ยวข้อง
+        $price_text = (!empty($rel['pice']) && is_numeric($rel['pice']) && (float)$rel['pice'] > 0) 
+            ? number_format((float)$rel['pice']) . ' ฿' 
+            : 'เรียนฟรี';
 
         $related_courses[] = [
             'id'         => $rel['id'],
