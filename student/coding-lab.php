@@ -126,12 +126,6 @@ include '../includes/header.php';
     .font-outfit { font-family: 'Outfit', sans-serif; }
     .font-mono { font-family: 'Fira Code', monospace; }
 
-    /* Custom Scrollbar */
-    .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--lab-border); border-radius: 10px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--lab-primary); }
-
     /* Layout & Glassmorphism */
     .coding-lab-layout { height: calc(100vh - 70px); overflow: hidden; }
     
