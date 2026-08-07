@@ -115,8 +115,11 @@ $assignmentHistory = [
 ];
 ?>
 
-<!-- 🎨 Dynamic Light & Dark Theme CSS Variables -->
+<!-- 🎨 Dynamic Light & Dark Theme CSS Variables & Overrides -->
 <style>
+    /* =============================================================
+       1. DARK MODE VARIABLES (DEFAULT / ROOT)
+       ============================================================= */
     :root, html[data-theme="dark"], [data-bs-theme="dark"], body.dark-mode {
         --ql-card-bg: rgba(16, 24, 48, 0.65);
         --ql-card-border: rgba(255, 255, 255, 0.08);
@@ -124,6 +127,10 @@ $assignmentHistory = [
         --ql-text-muted: rgba(255, 255, 255, 0.55);
         --ql-table-border: rgba(255, 255, 255, 0.08);
         --ql-table-hover: rgba(255, 255, 255, 0.04);
+        
+        --ql-input-bg: #0f172a;
+        --ql-input-border: rgba(255, 255, 255, 0.15);
+        --ql-input-text: #f8fafc;
         
         /* Badges (Dark Mode) */
         --badge-warning-bg: rgba(255, 193, 7, 0.15);
@@ -152,13 +159,22 @@ $assignmentHistory = [
         --text-purple-clr: #a855f7;
     }
 
-    html[data-theme="light"], [data-bs-theme="light"] {
+    /* =============================================================
+       2. LIGHT MODE OVERRIDES
+       ============================================================= */
+    html[data-theme="light"], 
+    [data-bs-theme="light"], 
+    body:not(.dark-mode) {
         --ql-card-bg: #ffffff;
         --ql-card-border: rgba(0, 0, 0, 0.08);
         --ql-text-main: #0f172a;
         --ql-text-muted: #64748b;
         --ql-table-border: rgba(0, 0, 0, 0.08);
         --ql-table-hover: rgba(0, 0, 0, 0.025);
+
+        --ql-input-bg: #f8fafc;
+        --ql-input-border: #cbd5e1;
+        --ql-input-text: #0f172a;
 
         /* Badges (Light Mode) */
         --badge-warning-bg: #fffbeb;
@@ -187,8 +203,35 @@ $assignmentHistory = [
         --text-purple-clr: #7c3aed;
     }
 
+    /* =============================================================
+       3. GLOBAL HEADER & TYPOGRAPHY FIX (PREVENTS TEXT BLENDING)
+       ============================================================= */
+    html[data-theme="light"] h1,
+    html[data-theme="light"] h2,
+    html[data-theme="light"] h3,
+    html[data-theme="light"] h4,
+    html[data-theme="light"] h5,
+    html[data-theme="light"] h6,
+    html[data-theme="light"] .page-title,
+    html[data-theme="light"] .page-header-title,
+    [data-bs-theme="light"] h1,
+    [data-bs-theme="light"] h2,
+    [data-bs-theme="light"] h3,
+    [data-bs-theme="light"] h4,
+    [data-bs-theme="light"] h5,
+    [data-bs-theme="light"] h6 {
+        color: #0f172a !important;
+    }
+
+    html[data-theme="light"] .text-white,
+    html[data-theme="light"] .text-white-50 {
+        color: #334155 !important;
+    }
+
     /* Card Box Styles */
-    .dashboard-card {
+    .dashboard-card,
+    .card,
+    .lab-builder-card {
         background: var(--ql-card-bg) !important;
         border: 1px solid var(--ql-card-border) !important;
         border-radius: 16px;
@@ -196,6 +239,29 @@ $assignmentHistory = [
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
         backdrop-filter: blur(10px);
         transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Global Form Controls (Inputs, Selects, Textareas) Light/Dark Support */
+    .form-control, 
+    .form-select, 
+    textarea,
+    input[type="text"],
+    input[type="number"],
+    select {
+        background-color: var(--ql-input-bg) !important;
+        border: 1px solid var(--ql-input-border) !important;
+        color: var(--ql-input-text) !important;
+        transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    }
+
+    .form-select option {
+        background-color: var(--ql-card-bg) !important;
+        color: var(--ql-text-main) !important;
+    }
+
+    .form-label, 
+    label {
+        color: var(--ql-text-main) !important;
     }
 
     /* Table custom adjustments */
@@ -220,7 +286,8 @@ $assignmentHistory = [
         letter-spacing: 0.5px;
     }
 
-    .quizzes-labs-component .text-muted {
+    .quizzes-labs-component .text-muted,
+    .text-muted {
         color: var(--ql-text-muted) !important;
     }
 
