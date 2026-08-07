@@ -233,6 +233,7 @@ if (!$isAjax):
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800;900&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
         <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/custom-scrollbar.css?v=1.0">
+        <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css?v=1.0">
 
         <!-- 🎨 4. COMPONENT CSS RULES -->
         <style>
