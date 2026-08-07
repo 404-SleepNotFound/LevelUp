@@ -369,8 +369,24 @@ $inst_bio = $instructor['bio'] ?? 'ผู้เชี่ยวชาญประ
                         <div class="row g-3">
                             <?php foreach ($courses as $c): ?>
                                 <?php 
-                                    $c_img = !empty($c['img']) ? $c['img'] : 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=600&q=80';
-                                    
+                                    $defaultImg = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=600&q=80';
+                                    $rawImg = $c['cover_file'] ?? $c['cover'] ?? $c['img'] ?? $c['image'] ?? $c['thumbnail'] ?? '';
+                                    $c_img = $defaultImg;
+
+                                    if (!empty($rawImg)) {
+                                        if (filter_var($rawImg, FILTER_VALIDATE_URL)) {
+                                            $c_img = $rawImg;
+                                        } elseif (file_exists($ROOT_PATH . $rawImg)) {
+                                            $c_img = $ROOT_PATH . $rawImg;
+                                        } elseif (file_exists($rawImg)) {
+                                            $c_img = $rawImg;
+                                        } elseif (file_exists($ROOT_PATH . 'uploads/covers/' . basename($rawImg))) {
+                                            $c_img = $ROOT_PATH . 'uploads/covers/' . basename($rawImg);
+                                        } elseif (file_exists($ROOT_PATH . 'uploads/' . basename($rawImg))) {
+                                            $c_img = $ROOT_PATH . 'uploads/' . basename($rawImg);
+                                        }
+                                    }
+
                                     // จัดการเรื่องราคา
                                     $c_price = 'เรียนฟรี';
                                     if (isset($c['price']) && is_numeric($c['price'])) {
