@@ -90,6 +90,22 @@ if (isset($_GET['code'])) {
                         ]);
                         $dbUserId = $conn->lastInsertId();
                     }
+
+                    // ✅ ตรวจสอบว่า user มีเรคอร์ดใน status_users หรือยัง ถ้ายังไม่มีให้สร้างค่าเริ่มต้น
+                    if (!empty($dbUserId)) {
+                        $statusCheck = $conn->prepare("SELECT id FROM status_users WHERE user_id = :user_id LIMIT 1");
+                        $statusCheck->execute([':user_id' => $dbUserId]);
+                        $statusRow = $statusCheck->fetch(PDO::FETCH_ASSOC);
+
+                        if (!$statusRow) {
+                            $insertStatus = $conn->prepare("INSERT INTO status_users (user_id, level, exp) VALUES (:user_id, :level, :exp)");
+                            $insertStatus->execute([
+                                ':user_id' => $dbUserId,
+                                ':level'   => 1,
+                                ':exp'     => 0
+                            ]);
+                        }
+                    }
                 } catch (PDOException $e) {
                     // หากยัง Error อีก สามารถดู Log ได้
                     error_log("DB Error in Callback: " . $e->getMessage());
