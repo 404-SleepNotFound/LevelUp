@@ -691,16 +691,18 @@ function getEmbedUrl($url)
                     <!-- Course Overview -->
                     <div class="dashboard-card rounded-4 p-4 mb-4">
                         <h5 class="fw-bold mb-3 text-white d-flex align-items-center fs-5"><i class="bi bi-file-text text-info me-2"></i> รายละเอียดคอร์สเรียน (Description)</h5>
-                        <p class="text-white-50 fw-light lh-lg mb-0" style="font-size: 0.92rem;">
-                            <?= nl2br(htmlspecialchars($course['description'])) ?>
-                        </p>
+                        <div class="text-white-50 fw-light lh-lg mb-0" style="font-size: 0.92rem;">
+                            <?= $course['description'] ?>
+                        </div>
                     </div>
 
                     <?php if (!empty($course['target'])): ?>
                         <!-- Target Audience -->
                         <div class="dashboard-card rounded-4 p-4 mb-4">
                             <h5 class="fw-bold mb-2 text-white d-flex align-items-center fs-6"><i class="bi bi-bullseye text-danger me-2"></i> คอร์สนี้เหมาะสำหรับใคร</h5>
-                            <p class="text-white-50 mb-0 small"><?= nl2br(htmlspecialchars($course['target'])) ?></p>
+                            <div class="text-white-50 mb-0 small">
+                                <?= $course['target'] ?>
+                            </div>
                         </div>
                     <?php endif; ?>
 
@@ -1130,34 +1132,35 @@ function getEmbedUrl($url)
                 const loadingId = 'ai-loading-' + Date.now();
                 $chatBody.append(`
             <div class="ai-msg d-flex gap-2 mb-3" id="${loadingId}">
-                <div class="chat-bubble-ai rounded-3 p-2 text-white-50" style="font-size:0.78rem;">
-                    <i class="bi bi-cpu me-1"></i> กำลังวิเคราะห์...
+                <div class="chat-bubble-ai rounded-3 p-2.5 shadow-sm d-flex align-items-center gap-2" style="font-size: 0.85rem;">
+                    <div class="spinner-border spinner-border-sm text-info" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <span>กำลังคิด...</span>
                 </div>
             </div>
         `);
                 scrollToChatBottom();
 
-                setTimeout(function() {
+                // Mocking AI Response Delay
+                setTimeout(() => {
                     $(`#${loadingId}`).remove();
-                    let replyMessage = `รับข้อความเกี่ยวกับ "${text}" คอร์สนี้เน้นปฏิบัติและมีทีมงานคอยช่วยเหลือเสมอครับ 🚀`;
-                    if (text.includes('มือใหม่')) replyMessage = '🛡️ คอร์สนี้ปูพื้นฐานตั้งแต่ศูนย์ครับ มือใหม่เรียนได้แน่นอน!';
-                    else if (text.includes('โปรเจกต์')) replyMessage = '💻 ตลอดคอร์สมีโปรเจกต์ทำระบบ Web App 3 ชิ้นใหญ่ครับ!';
-
                     $chatBody.append(`
                 <div class="ai-msg d-flex gap-2 mb-3">
-                    <div class="chat-bubble-ai rounded-3 p-2.5 shadow-sm" style="max-width: 88%; font-size: 0.85rem;">
-                        ${replyMessage}
+                    <div class="chat-bubble-ai rounded-3 p-3 shadow-sm w-100" style="font-size: 0.85rem;">
+                        ขออภัยครับ ตอนนี้ผมเป็นเพียงระบบ Demo ยังไม่สามารถตอบคำถามของคุณได้จริงในขณะนี้ 😅
                     </div>
                 </div>
             `);
                     scrollToChatBottom();
-                }, 600);
+                }, 1500);
             }
 
             function scrollToChatBottom() {
-                const chatBody = document.getElementById('aiChatBody');
-                if (chatBody) chatBody.scrollTop = chatBody.scrollHeight;
+                const $chatBody = $('#aiChatBody');
+                $chatBody.scrollTop($chatBody[0].scrollHeight);
             }
+
         });
     </script>
 </body>
