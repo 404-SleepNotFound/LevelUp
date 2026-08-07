@@ -41,9 +41,9 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         border: 1px solid var(--nav-input-border, rgba(255, 255, 255, 0.12)) !important;
         color: var(--body-text, #f8fafc) !important;
         border-radius: 10px;
-        padding: 10px 14px !important; /* เพิ่มพื้นที่แนวตั้งกันตัวอักษรไทยจม */
-        line-height: 1.6 !important; /* เว้นระยะบรรทัดภาษาไทยให้หายใจออก */
-        min-height: 46px; /* กำหนดความสูงขั้นต่ำที่ปลอดภัย */
+        padding: 10px 14px !important;
+        line-height: 1.6 !important;
+        min-height: 46px;
         transition: all 0.3s ease;
     }
     .form-control-premium:focus {
@@ -51,13 +51,32 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         box-shadow: 0 0 0 0.25rem rgba(6, 182, 212, 0.15) !important;
         background: var(--card-bg, #0f172a) !important;
     }
+
+    /* ✨ FIX 1: ตกแต่งปุ่ม Choose File ให้สวยงามกลมกลืนกับ Theme */
+    .form-control-premium::file-selector-button,
+    .form-control-premium::-webkit-file-upload-button {
+        background: rgba(6, 182, 212, 0.15) !important;
+        color: #06b6d4 !important;
+        border: 1px solid rgba(6, 182, 212, 0.3) !important;
+        border-radius: 6px;
+        padding: 4px 12px;
+        margin-right: 12px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+    }
+    .form-control-premium::file-selector-button:hover,
+    .form-control-premium::-webkit-file-upload-button:hover {
+        background: #06b6d4 !important;
+        color: #ffffff !important;
+    }
     
-    /* แก้ไข Textarea ดึงพื้นที่แถวให้กว้างและไม่อุดอู้ */
     textarea.form-control-premium {
         min-height: 90px !important;
     }
 
-    /* ปรับแต่ง Dropdown Select (ล้างไอคอนจมและฟอนต์ทับซ้อน) */
+    /* Dropdown Select */
     select.form-control-premium {
         appearance: none;
         background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
@@ -67,7 +86,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         padding-right: 40px !important;
     }
 
-    /* สไตล์สีตัวหนังสือและ Placeholder ให้ลอยเด่นเห็นชัดเจน */
     .form-label-premium {
         color: var(--nav-text-muted, #cbd5e1) !important; 
         font-weight: 500;
@@ -76,6 +94,65 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     }
     .form-control-premium::placeholder {
         color: var(--nav-text-muted, #64748b) !important;
+    }
+
+    /* ✨ FIX 2: ปรับแต่งปุ่มกล่อง Interactive Buttons และ Card Items ให้สีเนียนสวยงาม */
+    .btn-interactive-item {
+        background: var(--nav-input-bg, rgba(15, 23, 42, 0.6)) !important;
+        border: 1px solid var(--nav-input-border, rgba(255, 255, 255, 0.1)) !important;
+        color: var(--body-text, #f8fafc) !important;
+        border-radius: 10px;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        text-align: left;
+        font-size: 0.88rem;
+        transition: all 0.25s ease;
+    }
+    .btn-interactive-item:hover {
+        background: rgba(6, 182, 212, 0.12) !important;
+        border-color: rgba(6, 182, 212, 0.4) !important;
+        color: #06b6d4 !important;
+        transform: translateY(-1px);
+    }
+
+    /* ✨ FIX 3: ปรับแก้ Checkbox กล่อง Virtual Lab ไม่ให้เอียง และจัดวางกึ่งกลางเป๊ะ */
+    .custom-checkbox-card {
+        background: var(--nav-input-bg, rgba(15, 23, 42, 0.6));
+        border: 1px solid var(--nav-input-border, rgba(255, 255, 255, 0.1));
+        border-radius: 10px;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.2s ease;
+    }
+    .custom-checkbox-card:hover {
+        border-color: rgba(6, 182, 212, 0.3);
+        background: rgba(15, 23, 42, 0.8);
+    }
+    .custom-checkbox-card .form-check-input {
+        width: 18px !important;
+        height: 18px !important;
+        margin: 0 !important;
+        cursor: pointer;
+        flex-shrink: 0;
+        background-color: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+    .custom-checkbox-card .form-check-input:checked {
+        background-color: #06b6d4 !important;
+        border-color: #06b6d4 !important;
+    }
+    .custom-checkbox-card label {
+        cursor: pointer;
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--body-text, #f8fafc);
     }
 
     .block-unit-item {
@@ -98,10 +175,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         background: var(--nav-dropdown-hover-bg, rgba(255, 255, 255, 0.08));
     }
 
-    /* =========================================================
-       ☀️ LIGHT MODE OVERRIDES: บังคับเปลี่ยนสีคลาสของ Bootstrap 
-       เฉพาะในหน้า Lesson Editor เมื่อปรับเป็นโหมดสว่าง
-       ========================================================= */
+    /* ☀️ LIGHT MODE OVERRIDES */
     html[data-theme="light"] .editor-container .text-white,
     html[data-theme="light"] .modal .text-white { color: #0f172a !important; }
     
@@ -120,7 +194,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     html[data-theme="light"] .editor-container .border-secondary { border-color: #cbd5e1 !important; }
     html[data-theme="light"] .editor-container .text-muted { color: #64748b !important; }
 
-    /* แก้ไข UI ส่วนจำลองจอแสดงผล (Preview Modal) ให้รองรับ Light Mode */
+    /* UI Preview Modal */
     html[data-theme="light"] #livePreviewModal .modal-content { background-color: #ffffff !important; color: #0f172a !important; border-color: #e2e8f0 !important; }
     html[data-theme="light"] #livePreviewModal .modal-header { background-color: #f8fafc !important; border-bottom-color: #e2e8f0 !important; }
     html[data-theme="light"] #livePreviewModal .modal-body { background-color: #f1f5f9 !important; }
@@ -142,7 +216,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <h3 class="text-white fw-bold mb-1"><i class="bi bi-pencil-square text-cyan me-2"></i>ระบบสร้างและแก้ไขบทเรียน (Lesson Editor)</h3>
             <p class="text-muted small mb-0">ปรับแต่งเนื้อหา วิดีโอ แล็บ ควิซ และใช้ระบบ AI ช่วยตรวจขัดเกลาเนื้อหาการเรียนรู้</p>
         </div>
-        <!-- 17. Preview & 19. Validation Alert Badge -->
         <div id="validation-quick-alert" class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-20 p-2 font-monospace">
             <i class="bi bi-shield-exclamation me-1"></i> 19. Validation: ตรวจพบลิงก์ภายนอกยังไม่ได้ทดสอบ
         </div>
@@ -210,15 +283,12 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 <button type="button" class="btn btn-sm btn-dark border border-secondary" onclick="addNewContentBlock('lab')">🖥️ Lab Block</button>
             </div>
 
-            <!-- Dynamic Containers Drop Target -->
             <div id="block-builder-stage">
-                <!-- 2. Rich Text Editor Block Sample Included inside builder -->
                 <div class="block-unit-item" id="sample-rich-editor-block">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="small fw-bold text-white-50 font-monospace"><i class="bi bi-grid-3x2-gap-fill me-2"></i>2. Rich Text Editor Content Block</span>
                         <span class="badge bg-secondary small">Default Text Engine</span>
                     </div>
-                    <!-- 2. Rich Text Editor Toolbar Controls -->
                     <div class="btn-toolbar rich-editor-toolbar bg-dark p-2 rounded-top border border-secondary border-opacity-30 gap-1" role="toolbar">
                         <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 fw-bold text-white">H1</button>
                         <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 fw-bold text-white">H2</button>
@@ -238,7 +308,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         </div>
 
         <!-- ==========================================
-             3. VIDEO EDITOR
+             3. VIDEO EDITOR (แก้ไขปุ่ม Choose File สวยงาม)
              ========================================== -->
         <div class="editor-section-card">
             <div class="section-title">
@@ -278,7 +348,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <div class="p-4 border border-dashed border-secondary border-opacity-40 rounded-3 text-center bg-dark bg-opacity-20">
                 <i class="bi bi-cloud-arrow-up fs-2 text-muted mb-2 d-block"></i>
                 <span class="text-white-50 small d-block mb-2">ลากไฟล์เอกสารมาวางที่นี่ หรือคลิกเพื่อเลือกอัปโหลดไฟล์เข้าระบบคลาวด์คอร์ส</span>
-                <input type="file" class="form-control form-control-premium mx-auto" style="max-width: 350px;" multiple>
+                <input type="file" class="form-control form-control-premium mx-auto" style="max-width: 380px;" multiple>
             </div>
         </div>
 
@@ -303,19 +373,19 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         </div>
 
         <!-- ==========================================
-             6. INTERACTIVE CONTENT
+             6. INTERACTIVE CONTENT (แก้ไขปรับสีปุ่มใหม่)
              ========================================== -->
         <div class="editor-section-card">
             <div class="section-title">
                 <i class="bi bi-braces-asterisk text-purple"></i> 6. Interactive Content (เพิ่มเนื้อหาแบบโต้ตอบ)
             </div>
-            <div class="row g-2">
-                <div class="col-6 col-md-4"><button type="button" class="btn btn-dark border border-secondary w-100 text-start py-2.5 small"><i class="bi bi-menu-button-wide me-2 text-info"></i>+ Accordion</button></div>
-                <div class="col-6 col-md-4"><button type="button" class="btn btn-dark border border-secondary w-100 text-start py-2.5 small"><i class="bi bi-segmented-nav me-2 text-info"></i>+ Tabs Menu</button></div>
-                <div class="col-6 col-md-4"><button type="button" class="btn btn-dark border border-secondary w-100 text-start py-2.5 small"><i class="bi bi-exclamation-octagon me-2 text-info"></i>+ Callout Box</button></div>
-                <div class="col-6 col-md-4"><button type="button" class="btn btn-dark border border-secondary w-100 text-start py-2.5 small"><i class="bi bi-clock-history me-2 text-info"></i>+ Timeline</button></div>
-                <div class="col-6 col-md-4"><button type="button" class="btn btn-dark border border-secondary w-100 text-start py-2.5 small"><i class="bi bi-diagram-2 me-2 text-info"></i>+ Diagram</button></div>
-                <div class="col-6 col-md-4"><button type="button" class="btn btn-dark border border-secondary w-100 text-start py-2.5 small"><i class="bi bi-globe me-2 text-info"></i>+ Embed Website</button></div>
+            <div class="row g-2.5">
+                <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item"><i class="bi bi-menu-button-wide text-info me-1"></i> + Accordion</button></div>
+                <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item"><i class="bi bi-segmented-nav text-info me-1"></i> + Tabs Menu</button></div>
+                <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item"><i class="bi bi-exclamation-octagon text-info me-1"></i> + Callout Box</button></div>
+                <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item"><i class="bi bi-clock-history text-info me-1"></i> + Timeline</button></div>
+                <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item"><i class="bi bi-diagram-2 text-info me-1"></i> + Diagram</button></div>
+                <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item"><i class="bi bi-globe text-info me-1"></i> + Embed Website</button></div>
             </div>
         </div>
 
@@ -370,20 +440,50 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         </div>
 
         <!-- ==========================================
-             9. VIRTUAL LAB INTEGRATION
+             9. VIRTUAL LAB INTEGRATION (แก้ไข Checkbox ตรงแนวเป๊ะ)
              ========================================== -->
         <div class="editor-section-card">
             <div class="section-title">
                 <i class="bi bi-cloud-haze2-fill text-cyan"></i> 9. Virtual Lab Integration (ห้องแล็บจำลองระบบ Cloud Sandbox)
             </div>
-            <p class="text-muted small mt-0">เชื่อมโยงบทเรียนกับสภาพแวดล้อมระบบปฏิบัติการ คอนเทนเนอร์ หรือโครงสร้างเครือข่ายความปลอดภัยสูง</p>
-            <div class="row g-2">
-                <div class="col-6 col-md-4"><div class="p-2.5 border border-secondary border-opacity-30 rounded bg-dark bg-opacity-40 d-flex align-items-center"><input type="checkbox" class="form-check-input me-2"> Linux Command CLI</div></div>
-                <div class="col-6 col-md-4"><div class="p-2.5 border border-secondary border-opacity-30 rounded bg-dark bg-opacity-40 d-flex align-items-center"><input type="checkbox" class="form-check-input me-2" checked> Docker Containers</div></div>
-                <div class="col-6 col-md-4"><div class="p-2.5 border border-secondary border-opacity-30 rounded bg-dark bg-opacity-40 d-flex align-items-center"><input type="checkbox" class="form-check-input me-2"> SQL Server Sandbox</div></div>
-                <div class="col-6 col-md-4"><div class="p-2.5 border border-secondary border-opacity-30 rounded bg-dark bg-opacity-40 d-flex align-items-center"><input type="checkbox" class="form-check-input me-2"> Network Topology</div></div>
-                <div class="col-6 col-md-4"><div class="p-2.5 border border-secondary border-opacity-30 rounded bg-dark bg-opacity-40 d-flex align-items-center"><input type="checkbox" class="form-check-input me-2"> Cloud AWS/GCP Provider</div></div>
-                <div class="col-6 col-md-4"><div class="p-2.5 border border-secondary border-opacity-30 rounded bg-dark bg-opacity-40 d-flex align-items-center"><input type="checkbox" class="form-check-input me-2"> Cybersecurity CTF Capture</div></div>
+            <p class="text-muted small mt-0 mb-3">เชื่อมโยงบทเรียนกับสภาพแวดล้อมระบบปฏิบัติการ คอนเทนเนอร์ หรือโครงสร้างเครือข่ายความปลอดภัยสูง</p>
+            <div class="row g-2.5">
+                <div class="col-6 col-md-4">
+                    <label class="custom-checkbox-card">
+                        <input type="checkbox" class="form-check-input">
+                        <span>Linux Command CLI</span>
+                    </label>
+                </div>
+                <div class="col-6 col-md-4">
+                    <label class="custom-checkbox-card">
+                        <input type="checkbox" class="form-check-input" checked>
+                        <span>Docker Containers</span>
+                    </label>
+                </div>
+                <div class="col-6 col-md-4">
+                    <label class="custom-checkbox-card">
+                        <input type="checkbox" class="form-check-input">
+                        <span>SQL Server Sandbox</span>
+                    </label>
+                </div>
+                <div class="col-6 col-md-4">
+                    <label class="custom-checkbox-card">
+                        <input type="checkbox" class="form-check-input">
+                        <span>Network Topology</span>
+                    </label>
+                </div>
+                <div class="col-6 col-md-4">
+                    <label class="custom-checkbox-card">
+                        <input type="checkbox" class="form-check-input">
+                        <span>Cloud AWS/GCP Provider</span>
+                    </label>
+                </div>
+                <div class="col-6 col-md-4">
+                    <label class="custom-checkbox-card">
+                        <input type="checkbox" class="form-check-input">
+                        <span>Cybersecurity CTF Capture</span>
+                    </label>
+                </div>
             </div>
         </div>
 
@@ -423,7 +523,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             </div>
             
             <div class="row g-3">
-                <!-- 11. AI Lesson Actions Generator Layout Menu -->
                 <div class="col-12 col-lg-8">
                     <label class="form-label form-label-premium d-block">11. ฟังก์ชันตัวช่วยสร้างสรรค์ด้วยปัญญาประดิษฐ์ (AI Generative Matrix)</label>
                     <div class="row g-2">
@@ -436,7 +535,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                     </div>
                 </div>
 
-                <!-- ⭐ FEATURE 2: AI QUALITY SCORE AUDITOR PANEL -->
                 <div class="col-12 col-lg-4">
                     <div class="p-3 rounded-3 bg-dark bg-opacity-60 border border-secondary border-opacity-40">
                         <div class="d-flex justify-content-between align-items-center mb-1">
@@ -460,12 +558,10 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         <div class="editor-section-card">
             <div class="section-title"><i class="bi bi-sliders2-vertical"></i> Advanced Configuration Modules (12 - 16)</div>
             <div class="row g-3">
-                <!-- 12. Learning Objectives -->
                 <div class="col-md-4">
                     <label class="form-label form-label-premium">12. Learning Objectives (เป้าหมายแยกบรรทัด)</label>
                     <textarea class="form-control form-control-premium small" rows="2" placeholder="ตัวอย่าง:&#10;- เข้าใจ Scope Variables&#10;- สามารถเขียน Function ได้"></textarea>
                 </div>
-                <!-- 13. Prerequisite Matrix Links -->
                 <div class="col-md-4">
                     <label class="form-label form-label-premium">13. Prerequisite (ต้องเรียนบทไหนก่อน)</label>
                     <select class="form-select form-control-premium small" multiple style="min-height: 80px !important;">
@@ -473,17 +569,14 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                         <option>Lesson 2: Setup Environment IDE</option>
                     </select>
                 </div>
-                <!-- 14. Estimated Learning Time Control -->
                 <div class="col-md-4">
                     <label class="form-label form-label-premium">14. Estimated Learning Time (เวลาเรียนรวม)</label>
                     <input type="text" class="form-control form-control-premium" value="อ่าน 15 นาที, ดูวิดีโอ 20 นาที, Lab 30 นาที">
                 </div>
-                <!-- 15. Resources Links Setup -->
                 <div class="col-md-6">
                     <label class="form-label form-label-premium">15. Resources (ลิงก์แนบ GitHub / Docs / ลิงก์ดาวน์โหลด)</label>
                     <input type="text" class="form-control form-control-premium small" value="GitHub: https://github.com/example/scope-lesson, Docs: https://mdn.io">
                 </div>
-                <!-- 16. SEO & Metadata Center Routing -->
                 <div class="col-md-6">
                     <div class="row g-2">
                         <div class="col-6">
@@ -533,9 +626,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     </form>
 </div>
 
-<!-- =================================================================================
-     17. PREVIEW SIMULATOR FULLSCREEN SCREEN MODAL LAYER
-     ================================================================================= -->
+<!-- PREVIEW MODAL LAYER -->
 <div class="modal fade" id="livePreviewModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-fullscreen-lg-down">
         <div class="modal-content bg-dark text-white border border-secondary border-opacity-20">
@@ -570,7 +661,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         alert('เรียกใช้งานโครงสร้างคำสั่งคลาวด์คอร์ส: ' + type.toUpperCase() + ' สำเร็จแล้วครับ!');
     }
 
-    // สำหรับกล่องที่กดสร้างใหม่แบบ dynamic ก็เพิ่มคลาสที่ปลอดภัยตัวนี้เข้าไปด้วย
     function addNewContentBlock(blockType) {
         var randomNum = Math.floor(Math.random() * 10000);
         var blockElementHtml = `
