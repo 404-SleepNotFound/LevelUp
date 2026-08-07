@@ -95,7 +95,7 @@ if (!$student_data) {
 ?>
 
 <!DOCTYPE html>
-<html lang="th" data-theme="dark">
+<html lang="th" data-theme="dark" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -112,7 +112,9 @@ if (!$student_data) {
     ========================================================================
     -->
     <style>
-        :root, html[data-theme="dark"] {
+        :root, 
+        html[data-theme="dark"], 
+        [data-bs-theme="dark"] {
             --lv-bg-dark: #090d1a;
             --lv-card-bg: rgba(20, 27, 45, 0.75);
             --lv-card-hover-bg: rgba(28, 38, 62, 0.85);
@@ -129,32 +131,43 @@ if (!$student_data) {
             --lv-text-muted: #94a3b8;
             --lv-inner-bg: rgba(255, 255, 255, 0.03);
             --lv-inner-border: rgba(255, 255, 255, 0.06);
+            --lv-divider-border: rgba(255, 255, 255, 0.12);
             --lv-btn-bg: rgba(255, 255, 255, 0.03);
             --lv-btn-border: rgba(255, 255, 255, 0.08);
             --lv-btn-hover: rgba(255, 255, 255, 0.08);
+
+            --lv-grid-pattern: rgba(150, 150, 150, 0.04);
+            --lv-radial-1: rgba(99, 102, 241, 0.08);
+            --lv-radial-2: rgba(139, 92, 246, 0.05);
         }
 
-        /* ☀️ LIGHT MODE OVERRIDES - Grounded & High Contrast Architecture */
-        html[data-theme="light"] {
-            --lv-bg-dark: #f1f5f9;
+        /* ☀️ LIGHT MODE OVERRIDES - High Contrast & Clean Modern Architecture */
+        html[data-theme="light"], 
+        [data-bs-theme="light"] {
+            --lv-bg-dark: #f8fafc;
             --lv-card-bg: #ffffff;
             --lv-card-hover-bg: #ffffff;
-            --lv-border-glow: rgba(203, 213, 225, 0.8);
-            --lv-card-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.05), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
+            --lv-border-glow: #e2e8f0;
+            --lv-card-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.06), 0 4px 6px -2px rgba(15, 23, 42, 0.03);
             
             --lv-primary: #4f46e5;
             --lv-success: #059669;
             --lv-warning: #d97706;
-            --lv-info: #0891b2;
+            --lv-info: #0284c7;
             --lv-danger: #dc2626;
             
             --lv-text-main: #0f172a;
             --lv-text-muted: #64748b;
-            --lv-inner-bg: #f8fafc;
-            --lv-inner-border: #e2e8f0;
+            --lv-inner-bg: #f1f5f9;
+            --lv-inner-border: #cbd5e1;
+            --lv-divider-border: #e2e8f0;
             --lv-btn-bg: #ffffff;
             --lv-btn-border: #cbd5e1;
             --lv-btn-hover: #f1f5f9;
+
+            --lv-grid-pattern: rgba(203, 213, 225, 0.35);
+            --lv-radial-1: rgba(99, 102, 241, 0.05);
+            --lv-radial-2: rgba(139, 92, 246, 0.03);
         }
 
         body {
@@ -169,25 +182,20 @@ if (!$student_data) {
         /* Utility classes overrides for Light Mode */
         html[data-theme="light"] .text-white { color: var(--lv-text-main) !important; }
         html[data-theme="light"] .text-muted { color: var(--lv-text-muted) !important; }
+        html[data-theme="light"] .border-secondary { border-color: var(--lv-divider-border) !important; }
 
-        /* Cyber Grid Background Effect - Natural & Softened */
+        /* Cyber Grid Background Effect - Responsive to Light/Dark Mode */
         .dashboard-section {
-            background: radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.08) 0%, transparent 45%),
-                        radial-gradient(circle at 85% 75%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
-                        linear-gradient(rgba(150, 150, 150, 0.04) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(150, 150, 150, 0.04) 1px, transparent 1px);
+            background: radial-gradient(circle at 15% 15%, var(--lv-radial-1) 0%, transparent 45%),
+                        radial-gradient(circle at 85% 75%, var(--lv-radial-2) 0%, transparent 50%),
+                        linear-gradient(var(--lv-grid-pattern) 1px, transparent 1px),
+                        linear-gradient(90deg, var(--lv-grid-pattern) 1px, transparent 1px);
             background-size: 100% 100%, 100% 100%, 36px 36px, 36px 36px;
             min-height: 100vh;
+            transition: background 0.3s ease;
         }
 
-        html[data-theme="light"] .dashboard-section {
-            background: radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.04) 0%, transparent 50%),
-                        linear-gradient(rgba(203, 213, 225, 0.25) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(203, 213, 225, 0.25) 1px, transparent 1px);
-            background-size: 100% 100%, 32px 32px, 32px 32px;
-        }
-
-        /* Glassmorphism Premium Card Architecture with Grounded Shadow */
+        /* Glassmorphism Premium Card Architecture */
         .dashboard-card {
             background: var(--lv-card-bg);
             border: 1px solid var(--lv-border-glow) !important;
@@ -195,7 +203,7 @@ if (!$student_data) {
             -webkit-backdrop-filter: blur(20px);
             box-shadow: var(--lv-card-shadow);
             border-radius: 18px !important;
-            transition: all 0.3s ease;
+            transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
         .avatar-glow {
@@ -253,6 +261,11 @@ if (!$student_data) {
             border: 1px solid var(--lv-inner-border);
             border-radius: 14px;
             padding: 16px;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .lv-divider {
+            border-top: 1px solid var(--lv-divider-border) !important;
         }
     </style>
 </head>
@@ -270,7 +283,7 @@ if (file_exists($ROOT_PATH . 'header.php')) {
 <section class="dashboard-section py-4 py-lg-5">
     <div class="container-xl">
         
-        <!-- Header Bar: ปุ่มย้อนกลับ และ Status Badge (ลบปุ่ม Dark Mode ออกแล้ว) -->
+        <!-- Header Bar: ปุ่มย้อนกลับ และ Status Badge -->
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
             <a href="javascript:history.back()" class="btn-outline-surface px-4 py-2">
                 <i class="bi bi-arrow-left me-1"></i> กลับหน้ารายชื่อ
@@ -306,7 +319,7 @@ if (file_exists($ROOT_PATH . 'header.php')) {
                         </span>
                     </div>
 
-                    <div class="text-start mt-4 pt-4 border-top border-secondary border-opacity-25">
+                    <div class="text-start mt-4 pt-4 lv-divider">
                         <p class="fs-sm mb-2" style="color: var(--lv-text-muted);">เป้าหมายสายอาชีพ</p>
                         <h6 class="fw-bold text-white mb-4"><i class="bi bi-crosshair text-info me-2"></i><?= htmlspecialchars($student_data['career_goal']) ?></h6>
                         
@@ -405,6 +418,7 @@ if (file_exists($ROOT_PATH . 'header.php')) {
     document.addEventListener('DOMContentLoaded', () => {
         const savedTheme = localStorage.getItem('theme') || localStorage.getItem('student_detail_theme') || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
+        document.documentElement.setAttribute('data-bs-theme', savedTheme);
     });
 </script>
 
