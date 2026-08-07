@@ -288,11 +288,7 @@ $user_role = 'Senior Instructor';
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- 🔔 1. ดึง SweetAlert2 Library CDN -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- 🔔 ลบไฟล์ Script ที่ซ้ำซ้อนออกแล้ว (jQuery, Bootstrap, SweetAlert2) เนื่องจากถูกโหลดใน header.php แล้ว -->
 
 <!-- 🔔 2. ดึงไฟล์ Custom Instructor Alert Handler -->
 <script src="<?= $ROOT_PATH ?>js/sweetalert_instructor.js"></script>
