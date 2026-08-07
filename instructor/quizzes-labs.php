@@ -115,62 +115,155 @@ $assignmentHistory = [
 ];
 ?>
 
-<!-- FIX BUG: Custom Theme-Adaptive CSS for Tables and Badges -->
+<!-- 🎨 Dynamic Light & Dark Theme CSS Variables -->
 <style>
+    :root, html[data-theme="dark"], [data-bs-theme="dark"], body.dark-mode {
+        --ql-card-bg: rgba(16, 24, 48, 0.65);
+        --ql-card-border: rgba(255, 255, 255, 0.08);
+        --ql-text-main: #f8fafc;
+        --ql-text-muted: rgba(255, 255, 255, 0.55);
+        --ql-table-border: rgba(255, 255, 255, 0.08);
+        --ql-table-hover: rgba(255, 255, 255, 0.04);
+        
+        /* Badges (Dark Mode) */
+        --badge-warning-bg: rgba(255, 193, 7, 0.15);
+        --badge-warning-text: #ffc107;
+        --badge-warning-border: rgba(255, 193, 7, 0.3);
+
+        --badge-success-bg: rgba(25, 135, 84, 0.15);
+        --badge-success-text: #2ecc71;
+        --badge-success-border: rgba(25, 135, 84, 0.3);
+
+        --badge-info-bg: rgba(13, 202, 240, 0.15);
+        --badge-info-text: #0dcaf0;
+        --badge-info-border: rgba(13, 202, 240, 0.3);
+
+        --badge-purple-bg: rgba(111, 66, 193, 0.18);
+        --badge-purple-text: #c084fc;
+        --badge-purple-border: rgba(168, 85, 247, 0.3);
+
+        --badge-category-bg: rgba(255, 255, 255, 0.08);
+        --badge-category-text: #cbd5e1;
+        --badge-category-border: rgba(255, 255, 255, 0.12);
+
+        --ql-btn-border: rgba(255, 255, 255, 0.2);
+        --ql-btn-text: #cbd5e1;
+        --ql-btn-hover-bg: rgba(255, 255, 255, 0.1);
+        --text-purple-clr: #a855f7;
+    }
+
+    html[data-theme="light"], [data-bs-theme="light"] {
+        --ql-card-bg: #ffffff;
+        --ql-card-border: rgba(0, 0, 0, 0.08);
+        --ql-text-main: #0f172a;
+        --ql-text-muted: #64748b;
+        --ql-table-border: rgba(0, 0, 0, 0.08);
+        --ql-table-hover: rgba(0, 0, 0, 0.025);
+
+        /* Badges (Light Mode) */
+        --badge-warning-bg: #fffbeb;
+        --badge-warning-text: #b45309;
+        --badge-warning-border: #fde68a;
+
+        --badge-success-bg: #f0fdf4;
+        --badge-success-text: #15803d;
+        --badge-success-border: #bbf7d0;
+
+        --badge-info-bg: #f0f9ff;
+        --badge-info-text: #0369a1;
+        --badge-info-border: #bae6fd;
+
+        --badge-purple-bg: #faf5ff;
+        --badge-purple-text: #6b21a8;
+        --badge-purple-border: #e9d5ff;
+
+        --badge-category-bg: #f1f5f9;
+        --badge-category-text: #475569;
+        --badge-category-border: #e2e8f0;
+
+        --ql-btn-border: #cbd5e1;
+        --ql-btn-text: #475569;
+        --ql-btn-hover-bg: #f1f5f9;
+        --text-purple-clr: #7c3aed;
+    }
+
+    /* Card Box Styles */
+    .dashboard-card {
+        background: var(--ql-card-bg) !important;
+        border: 1px solid var(--ql-card-border) !important;
+        border-radius: 16px;
+        color: var(--ql-text-main) !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        backdrop-filter: blur(10px);
+        transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Table custom adjustments */
     .table-custom {
         --bs-table-bg: transparent !important;
         --bs-table-accent-bg: transparent !important;
-        --bs-table-hover-bg: rgba(128, 128, 128, 0.08) !important;
-        --bs-table-color: inherit !important;
-        color: inherit !important;
+        --bs-table-hover-bg: var(--ql-table-hover) !important;
+        --bs-table-color: var(--ql-text-main) !important;
+        color: var(--ql-text-main) !important;
     }
     .table-custom th, 
     .table-custom td {
         background-color: transparent !important;
-        color: inherit !important;
-        border-bottom-color: rgba(128, 128, 128, 0.15) !important;
+        color: var(--ql-text-main) !important;
+        border-bottom-color: var(--ql-table-border) !important;
     }
     .table-custom th {
-        opacity: 0.65;
+        color: var(--ql-text-muted) !important;
         font-weight: 600;
         text-transform: uppercase;
         font-size: 0.75rem;
         letter-spacing: 0.5px;
     }
 
-    /* Standardized Soft Badges (Light & Dark Compatible) */
-    .badge-soft-warning {
-        background-color: rgba(255, 193, 7, 0.18) !important;
-        color: #b45309 !important;
-        border: 1px solid rgba(255, 193, 7, 0.35) !important;
-    }
-    .badge-soft-success {
-        background-color: rgba(25, 135, 84, 0.18) !important;
-        color: #15803d !important;
-        border: 1px solid rgba(25, 135, 84, 0.35) !important;
-    }
-    .badge-soft-info {
-        background-color: rgba(13, 202, 240, 0.18) !important;
-        color: #0369a1 !important;
-        border: 1px solid rgba(13, 202, 240, 0.35) !important;
-    }
-    .badge-soft-purple {
-        background-color: rgba(111, 66, 193, 0.18) !important;
-        color: #6b21a8 !important;
-        border: 1px solid rgba(111, 66, 193, 0.35) !important;
-    }
-    .badge-soft-category {
-        background-color: rgba(108, 117, 125, 0.12) !important;
-        color: #4b5563 !important;
-        border: 1px solid rgba(108, 117, 125, 0.25) !important;
+    .quizzes-labs-component .text-muted {
+        color: var(--ql-text-muted) !important;
     }
 
-    /* Dark Mode Adjustments for Soft Badges */
-    [data-bs-theme="dark"] .badge-soft-warning, body.dark-mode .badge-soft-warning { color: #ffc107 !important; }
-    [data-bs-theme="dark"] .badge-soft-success, body.dark-mode .badge-soft-success { color: #2ecc71 !important; }
-    [data-bs-theme="dark"] .badge-soft-info, body.dark-mode .badge-soft-info { color: #0dcaf0 !important; }
-    [data-bs-theme="dark"] .badge-soft-purple, body.dark-mode .badge-soft-purple { color: #a855f7 !important; }
-    [data-bs-theme="dark"] .badge-soft-category, body.dark-mode .badge-soft-category { color: #cbd5e1 !important; }
+    /* Standardized Soft Badges */
+    .badge-soft-warning {
+        background-color: var(--badge-warning-bg) !important;
+        color: var(--badge-warning-text) !important;
+        border: 1px solid var(--badge-warning-border) !important;
+    }
+    .badge-soft-success {
+        background-color: var(--badge-success-bg) !important;
+        color: var(--badge-success-text) !important;
+        border: 1px solid var(--badge-success-border) !important;
+    }
+    .badge-soft-info {
+        background-color: var(--badge-info-bg) !important;
+        color: var(--badge-info-text) !important;
+        border: 1px solid var(--badge-info-border) !important;
+    }
+    .badge-soft-purple {
+        background-color: var(--badge-purple-bg) !important;
+        color: var(--badge-purple-text) !important;
+        border: 1px solid var(--badge-purple-border) !important;
+    }
+    .badge-soft-category {
+        background-color: var(--badge-category-bg) !important;
+        color: var(--badge-category-text) !important;
+        border: 1px solid var(--badge-category-border) !important;
+    }
+
+    /* Buttons adaptation */
+    .quizzes-labs-component .btn-outline-secondary {
+        border-color: var(--ql-btn-border) !important;
+        color: var(--ql-btn-text) !important;
+    }
+    .quizzes-labs-component .btn-outline-secondary:hover {
+        background-color: var(--ql-btn-hover-bg) !important;
+        color: var(--ql-text-main) !important;
+    }
+
+    .text-purple {
+        color: var(--text-purple-clr) !important;
+    }
 </style>
 
 <div class="quizzes-labs-component animate__animated animate__fadeIn">
@@ -198,12 +291,8 @@ $assignmentHistory = [
                             </tr>
                         </thead>
                         <tbody>
-                            <?php
-$ROOT_PATH = '../';
-if (!empty($quizHistory)): ?>
-                                <?php
-$ROOT_PATH = '../';
-foreach($quizHistory as $q): ?>
+                            <?php if (!empty($quizHistory)): ?>
+                                <?php foreach($quizHistory as $q): ?>
                                     <tr class="searchable-item" data-type="quiz" data-status="<?= strtolower(e($q['status'])) ?>">
                                         <td class="fw-semibold">
                                             <div><?= e($q['title']) ?></div>
@@ -220,18 +309,12 @@ foreach($quizHistory as $q): ?>
                                             </span>
                                         </td>
                                     </tr>
-                                <?php
-$ROOT_PATH = '../';
-endforeach; ?>
-                            <?php
-$ROOT_PATH = '../';
-else: ?>
+                                <?php endforeach; ?>
+                            <?php else: ?>
                                 <tr>
                                     <td colspan="4" class="text-center text-muted py-4">ไม่พบข้อมูลแบบทดสอบ</td>
                                 </tr>
-                            <?php
-$ROOT_PATH = '../';
-endif; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -260,12 +343,8 @@ endif; ?>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php
-$ROOT_PATH = '../';
-if (!empty($codingLabHistory)): ?>
-                                <?php
-$ROOT_PATH = '../';
-foreach($codingLabHistory as $cl): ?>
+                            <?php if (!empty($codingLabHistory)): ?>
+                                <?php foreach($codingLabHistory as $cl): ?>
                                     <tr class="searchable-item" data-type="lab">
                                         <td class="fw-semibold">
                                             <div><?= e($cl['lab_name']) ?></div>
@@ -279,18 +358,12 @@ foreach($codingLabHistory as $cl): ?>
                                             </span>
                                         </td>
                                     </tr>
-                                <?php
-$ROOT_PATH = '../';
-endforeach; ?>
-                            <?php
-$ROOT_PATH = '../';
-else: ?>
+                                <?php endforeach; ?>
+                            <?php else: ?>
                                 <tr>
                                     <td colspan="4" class="text-center text-muted py-4">ไม่พบข้อมูล Coding Lab</td>
                                 </tr>
-                            <?php
-$ROOT_PATH = '../';
-endif; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -319,12 +392,8 @@ endif; ?>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php
-$ROOT_PATH = '../';
-if (!empty($virtualLabHistory)): ?>
-                                <?php
-$ROOT_PATH = '../';
-foreach($virtualLabHistory as $vl): ?>
+                            <?php if (!empty($virtualLabHistory)): ?>
+                                <?php foreach($virtualLabHistory as $vl): ?>
                                     <tr class="searchable-item" data-type="lab">
                                         <td>
                                             <div class="fw-semibold mb-1"><?= e($vl['lab']) ?></div>
@@ -334,18 +403,12 @@ foreach($virtualLabHistory as $vl): ?>
                                         <td class="text-muted"><?= e($vl['sessions']) ?> ครั้ง</td>
                                         <td class="text-info fw-bold"><?= e($vl['score']) ?></td>
                                     </tr>
-                                <?php
-$ROOT_PATH = '../';
-endforeach; ?>
-                            <?php
-$ROOT_PATH = '../';
-else: ?>
+                                <?php endforeach; ?>
+                            <?php else: ?>
                                 <tr>
                                     <td colspan="4" class="text-center text-muted py-4">ไม่พบข้อมูล Virtual Lab</td>
                                 </tr>
-                            <?php
-$ROOT_PATH = '../';
-endif; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -374,12 +437,8 @@ endif; ?>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php
-$ROOT_PATH = '../';
-if (!empty($assignmentHistory)): ?>
-                                <?php
-$ROOT_PATH = '../';
-foreach($assignmentHistory as $as): ?>
+                            <?php if (!empty($assignmentHistory)): ?>
+                                <?php foreach($assignmentHistory as $as): ?>
                                     <tr class="searchable-item" data-type="assignment">
                                         <td class="fw-semibold">
                                             <div><?= e($as['assignment']) ?></div>
@@ -395,18 +454,12 @@ foreach($assignmentHistory as $as): ?>
                                             </a>
                                         </td>
                                     </tr>
-                                <?php
-$ROOT_PATH = '../';
-endforeach; ?>
-                            <?php
-$ROOT_PATH = '../';
-else: ?>
+                                <?php endforeach; ?>
+                            <?php else: ?>
                                 <tr>
                                     <td colspan="4" class="text-center text-muted py-4">ไม่พบข้อมูลประวัติการส่งงาน</td>
                                 </tr>
-                            <?php
-$ROOT_PATH = '../';
-endif; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
