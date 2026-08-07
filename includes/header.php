@@ -4,6 +4,19 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// 🛠️ [FIX] ระบบ Auto-Detect $ROOT_PATH 
+// ป้องกันบัค URL เบิ้ล (เช่น student/student/...) กรณีไฟล์ปัจจุบันลืมประกาศตัวแปร
+if (!isset($ROOT_PATH) || $ROOT_PATH === '') {
+    $current_folder = basename(dirname($_SERVER['SCRIPT_NAME']));
+    $sub_folders = ['student', 'admin', 'auth', 'ai', 'config']; // รายชื่อโฟลเดอร์ย่อยในระบบ
+    
+    if (in_array(strtolower($current_folder), $sub_folders)) {
+        $ROOT_PATH = '../';
+    } else {
+        $ROOT_PATH = './';
+    }
+}
+
 // เช็คว่าล็อคอินอยู่หรือไม่ (รองรับทั้งแบบเก็บ user_login และ user_id)
 if (!isset($isLoggedIn)) {
     $isLoggedIn = (isset($_SESSION['user_login']) || isset($_SESSION['user_id']) || isset($_SESSION['id'])) ? true : false;
