@@ -51,10 +51,30 @@ if ($db) {
     }
 }
 
+// กำหนดรูปภาพสำรองมาตรฐาน (เหมือนใน index.php)
+$fallbackImg = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=600&auto=format&fit=crop';
+
 $course_details = [];
 foreach ($raw_courses as $item) {
-    $rawImg = $item['img'] ?? $item['cover'] ?? $item['cover_file'] ?? $item['image'] ?? $item['thumbnail'] ?? '';
-    $courseImg = !empty($rawImg) ? $rawImg : 'https://via.placeholder.com/300x160';
+    $rawImg = $item['cover_file'] ?? $item['cover'] ?? $item['img'] ?? $item['image'] ?? $item['thumbnail'] ?? '';
+    $courseImg = $fallbackImg;
+
+    // ระบบจัดการ Path รูปภาพ (ถอดแบบมาจาก index.php)
+    if (!empty($rawImg)) {
+        if (filter_var($rawImg, FILTER_VALIDATE_URL)) {
+            $courseImg = $rawImg;
+        } elseif (file_exists($ROOT_PATH . $rawImg)) {
+            $courseImg = $ROOT_PATH . $rawImg;
+        } elseif (file_exists($ROOT_PATH . 'uploads/covers/' . basename($rawImg))) {
+            $courseImg = $ROOT_PATH . 'uploads/covers/' . basename($rawImg);
+        } elseif (file_exists($ROOT_PATH . 'uploads/' . basename($rawImg))) {
+            $courseImg = $ROOT_PATH . 'uploads/' . basename($rawImg);
+        } elseif (file_exists($ROOT_PATH . 'assets/images/default-course.jpg')) {
+            $courseImg = $ROOT_PATH . 'assets/images/default-course.jpg';
+        }
+    } elseif (file_exists($ROOT_PATH . 'assets/images/default-course.jpg')) {
+        $courseImg = $ROOT_PATH . 'assets/images/default-course.jpg';
+    }
 
     $course_details[] = [
         'course_id'     => $item['id'] ?? $item['course_id'] ?? 0,
@@ -392,6 +412,7 @@ if ($db) {
         font-size: 0.75rem;
         padding: 4px 10px;
         border-radius: 30px;
+        z-index: 2;
     }
 
     .tier-indicator {
@@ -404,6 +425,7 @@ if ($db) {
         border-radius: 30px;
         font-size: 0.75rem;
         font-weight: 600;
+        z-index: 2;
     }
 
     .tier-beginner { color: #f59e0b !important; }
@@ -648,7 +670,7 @@ if ($db) {
 
 <script>
     <?php
-    $mapped_courses = array_map(function ($item) {
+    $mapped_courses = array_map(function ($item) use ($fallbackImg) {
         $rawDifficulty = trim($item['difficulty'] ?? 'Beginner');
         $difficulty = ucfirst(strtolower($rawDifficulty));
 
@@ -676,7 +698,7 @@ if ($db) {
             'category' => trim(preg_replace('/[\s\xA0]+/u', ' ', $item['category_name'] ?? 'ทั่วไป')),
             'level'    => $difficulty,
             'xp'       => $xpValue,
-            'img'      => $item['course_img'] ?? 'https://via.placeholder.com/300x160',
+            'img'      => !empty($item['course_img']) ? $item['course_img'] : $fallbackImg,
             'rating'   => isset($item['rating']) ? (float)$item['rating'] : 5.0,
             'price'    => isset($item['price']) ? (float)$item['price'] : 0,
             'ai'       => true,
@@ -685,6 +707,7 @@ if ($db) {
     }, $course_details);
     ?>
 
+    const fallbackImage = "<?= $fallbackImg ?>";
     const mockCoursesData = <?= json_encode($mapped_courses, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 
     window.CourseExplorer = {
@@ -843,7 +866,7 @@ if ($db) {
                         <div class="course-image-wrapper">
                             <span class="reward-badge-pill">+${course.xp} XP</span>
                             <span class="tier-indicator ${tierClass}"><i class="fas fa-shield-alt"></i> ${course.level}</span>
-                            <img src="${course.img}" alt="${course.title}" onerror="this.src='https://via.placeholder.com/300x160'">
+                            <img src="${course.img}" alt="${course.title}" onerror="this.onerror=null; this.src='${fallbackImage}';">
                         </div>
                         <div class="p-3 d-flex flex-column flex-grow-1 justify-content-between">
                             <div>
