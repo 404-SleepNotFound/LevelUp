@@ -59,3 +59,39 @@ html[data-theme="light"] ::-webkit-scrollbar-thumb {
 html[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
     background: #94a3b8 !important;
 }
+
+/* ------------------------------------------------------
+   Dropdown-specific scrollbar (larger, more visible)
+   Scoped to dropdown menus so other scrollbars remain subtle
+   ------------------------------------------------------ */
+.dropdown-menu::-webkit-scrollbar,
+.custom-dropdown-menu::-webkit-scrollbar,
+.custom-filter-dropdown .dropdown-menu::-webkit-scrollbar {
+    width: 12px;
+}
+
+.dropdown-menu::-webkit-scrollbar-track,
+.custom-dropdown-menu::-webkit-scrollbar-track,
+.custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-track {
+    background: linear-gradient(180deg, rgba(15,23,42,0.9), rgba(15,23,42,0.75));
+    border-radius: 999px;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb,
+.custom-dropdown-menu::-webkit-scrollbar-thumb,
+.custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #06b6d4 0%, #6366f1 100%);
+    border-radius: 999px;
+    border: 2px solid rgba(15,23,42,0.65);
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb:hover,
+.custom-dropdown-menu::-webkit-scrollbar-thumb:hover,
+.custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-thumb:hover {
+    filter: brightness(1.06);
+}
+
+/* Firefox: scoped rules */
+.dropdown-menu,
+.custom-dropdown-menu,
+.custom-filter-dropdown .dropdown-menu { scrollbar-width: thin; scrollbar-color: #06b6d4 rgba(15,23,42,0.75); }
