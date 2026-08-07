@@ -254,11 +254,11 @@ $inst_bio = $instructor['bio'] ?? 'ผู้เชี่ยวชาญประ
 <body class="py-4">
 
     <?php 
-    // 📌 ดึงไฟล์ Header มาใช้งานเพื่อรับปุ่มเปิด/ปิด Light Mode
-    if (file_exists($ROOT_PATH . 'header.php')) {
-        include_once $ROOT_PATH . 'header.php';
-    } elseif (file_exists('header.php')) {
-        include_once 'header.php';
+    // 📌 ดึงไฟล์ Header มาใช้งานเพื่อรับปุ่มเปิด/ปิด Light Mode และสกินเมาส์
+    if (file_exists($ROOT_PATH . 'includes/header.php')) {
+        include_once $ROOT_PATH . 'includes/header.php';
+    } elseif (file_exists('includes/header.php')) {
+        include_once 'includes/header.php';
     }
     ?>
 
