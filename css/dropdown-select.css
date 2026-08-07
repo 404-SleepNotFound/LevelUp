@@ -101,7 +101,6 @@ color: var(--nav-text);
 font-size: 0.95rem;
 border-radius: 16px;
 margin: 0 0.75rem 0.35rem;
-/* Fixed: หักลบ margin ซ้าย(0.75) และขวา(0.75) ออกจากความกว้าง เพื่อไม่ให้ทะลุกรอบ */
 width: calc(100% - 1.5rem);
 transition: background-color 0.2s ease, color 0.2s ease;
 }
@@ -381,7 +380,7 @@ border-color: #06b6d4 !important;
 /* -----------------------------------------------------------------
 6. Custom Sort Dropdown Item Styles
 
-/
+*/
 .dropdown-item-custom,
 .lu-dropdown-item {
 color: var(--nav-text) !important;
@@ -394,8 +393,8 @@ display: flex !important;
 align-items: center !important;
 justify-content: space-between !important;
 gap: 0.75rem !important;
-margin: 0 0.75rem 0.35rem !important; / จัด margin ให้เท่ากับเมนูหลัก /
-width: calc(100% - 1.5rem) !important; / หักลบ margin เพื่อแก้กล่องทะลุ */
+margin: 0 0.75rem 0.35rem !important;
+width: calc(100% - 1.5rem) !important;
 }
 
 .dropdown-item-custom:hover,
@@ -526,7 +525,7 @@ color: var(--body-text);
 cursor: pointer;
 transition: background-color 0.2s ease, box-shadow 0.2s ease;
 margin: 0 0.85rem 0.4rem;
-width: calc(100% - 1.7rem); /* Fixed: หักลบ margin (0.85 * 2) เพื่อไม่ให้ทะลุกรอบ */
+width: calc(100% - 1.7rem);
 background: rgba(255, 255, 255, 0.02);
 }
 
@@ -565,4 +564,41 @@ background: linear-gradient(135deg, var(--lv-cyan), var(--lv-indigo));
 color: #ffffff;
 border-color: transparent;
 box-shadow: 0 6px 18px rgba(6, 182, 212, 0.24);
+}
+
+/* -----------------------------------------------------------------
+9. Dropdown Scrollbar Fixes (Prevent Corner Overflow)
+
+*/
+.dropdown-menu::-webkit-scrollbar,
+.lu-dropdown-menu::-webkit-scrollbar,
+.custom-dropdown-menu::-webkit-scrollbar,
+.custom-filter-dropdown .dropdown-menu::-webkit-scrollbar {
+width: 8px;
+}
+
+.dropdown-menu::-webkit-scrollbar-track,
+.lu-dropdown-menu::-webkit-scrollbar-track,
+.custom-dropdown-menu::-webkit-scrollbar-track,
+.custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-track {
+background: transparent !important;
+margin-top: 14px;
+margin-bottom: 14px;
+border-radius: 999px;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb,
+.lu-dropdown-menu::-webkit-scrollbar-thumb,
+.custom-dropdown-menu::-webkit-scrollbar-thumb,
+.custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-thumb {
+background: linear-gradient(180deg, #06b6d4 0%, #6366f1 100%) !important;
+border-radius: 999px;
+border: 1px solid rgba(15, 23, 42, 0.5) !important;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb:hover,
+.lu-dropdown-menu::-webkit-scrollbar-thumb:hover,
+.custom-dropdown-menu::-webkit-scrollbar-thumb:hover,
+.custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-thumb:hover {
+background: linear-gradient(180deg, #22d3ee 0%, #818cf8 100%) !important;
 }
