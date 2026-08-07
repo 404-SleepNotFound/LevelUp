@@ -610,6 +610,7 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
         </div>
 
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3 justify-content-center" id="category-grid-container">
+            <!-- DEBUG render-time category_data: <?= htmlspecialchars(json_encode($category_data, JSON_UNESCAPED_UNICODE)) ?> -->
             <?php
             $rendered_categories = [];
             $seen_names = [];
