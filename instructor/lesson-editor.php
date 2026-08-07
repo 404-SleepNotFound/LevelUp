@@ -1,687 +1,694 @@
-﻿<!DOCTYPE html>
-<html lang="th">
+﻿<?php
+$ROOT_PATH = '../';
+// [Security Framework & Session Verification]
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
+// ห้ามใส่ include '../includes/header.php' หรือ footer เด็ดขาด เพราะหน้า instructor.php โหลดให้แล้ว
+?>
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Lesson & Content Block Builder</title>
-    <!-- Tailwind CSS via CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts (Kanit) -->
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <title>Lesson Editor UI</title>
+    <!-- เพิ่ม Bootstrap & Icons สำหรับการแสดงผล (ลบออกได้หากระบบหลักมีอยู่แล้ว) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
     <style>
-        body { font-family: 'Kanit', sans-serif; }
-        .font-mono-code { font-family: 'Fira Code', monospace; }
+        /* ---------------------------------------------------
+           Fallback Theme Variables (กรณีเปิดไฟล์นี้เดี่ยวๆ)
+           --------------------------------------------------- */
+        :root {
+            --lv-bg-dark: #1e293b;
+            --lv-card-bg: #0f172a;
+            --lv-text-main: #f8fafc;
+            --lv-text-muted: #94a3b8;
+            --lv-border-glow: #334155;
+            --lv-cyan: #06b6d4;
+        }
+        
+        body {
+            background-color: #020617; /* Background สำหรับทดสอบ */
+            padding: 20px;
+        }
+
+        /* ---------------------------------------------------
+           Theme Variables Support (Dark/Light Mode)
+           --------------------------------------------------- */
+        .theme-bg-dark { background-color: var(--lv-bg-dark) !important; }
+        .theme-bg-card { background-color: var(--lv-card-bg) !important; }
+        .theme-text-main { color: var(--lv-text-main) !important; }
+        .theme-text-muted { color: var(--lv-text-muted) !important; }
+        .theme-border { border-color: var(--lv-border-glow) !important; }
+        
+        .btn-theme-dark {
+            background-color: var(--lv-bg-dark);
+            color: var(--lv-text-main);
+            border: 1px solid var(--lv-border-glow);
+        }
+        .btn-theme-dark:hover {
+            background-color: var(--lv-border-glow);
+            color: var(--lv-text-main);
+        }
+
+        /* ---------------------------------------------------
+           Scope Editor Styles
+           --------------------------------------------------- */
+        .editor-container {
+            animation: fadeInEditor 0.35s ease-in-out;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .editor-section-card {
+            background: var(--lv-card-bg);
+            border: 1px solid var(--lv-border-glow);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(10px);
+            color: var(--lv-text-main);
+        }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--lv-text-main);
+            border-bottom: 1px solid var(--lv-border-glow);
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-title i {
+            color: var(--lv-cyan);
+        }
+
+        /* 🛠️ ล้างระบบกล่องจม: แก้ไข Input, Select, Textarea ทุกกล่องในหน้าจอ */
+        .form-control-premium {
+            background: var(--lv-bg-dark) !important;
+            border: 1px solid var(--lv-border-glow) !important;
+            color: var(--lv-text-main) !important;
+            border-radius: 10px;
+            padding: 10px 14px !important;
+            line-height: 1.6 !important;
+            min-height: 46px; 
+        }
+        .form-control-premium:focus {
+            border-color: var(--lv-cyan) !important;
+            box-shadow: 0 0 0 0.25rem rgba(6, 182, 212, 0.15) !important;
+        }
+        
+        textarea.form-control-premium {
+            min-height: 90px !important;
+        }
+
+        select.form-control-premium {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 14px center !important;
+            background-size: 12px 12px !important;
+            padding-right: 40px !important;
+        }
+
+        /* สไตล์สีตัวหนังสือและ Placeholder ให้ลอยเด่นเห็นชัดเจน */
+        .form-label-premium {
+            color: var(--lv-text-main) !important; 
+            font-weight: 500;
+            margin-bottom: 6px;
+            font-size: 0.88rem;
+        }
+        .form-control-premium::placeholder {
+            color: var(--lv-text-muted) !important;
+        }
+
+        .block-unit-item {
+            background: var(--lv-bg-dark);
+            border: 1px solid var(--lv-border-glow);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 12px;
+            color: var(--lv-text-main);
+            transition: all 0.2s ease;
+        }
+        
+        .block-unit-item:hover {
+            border-color: rgba(6, 182, 212, 0.5);
+        }
+
+        .cursor-grab {
+            cursor: grab;
+        }
+        .cursor-grab:active {
+            cursor: grabbing;
+        }
+        
+        .rich-editor-toolbar .btn {
+            color: var(--lv-text-muted);
+            border-color: var(--lv-border-glow);
+            padding: 6px 12px;
+        }
+        .rich-editor-toolbar .btn:hover {
+            color: var(--lv-text-main);
+            background: var(--lv-border-glow);
+        }
+        
+        @keyframes fadeInEditor {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideInBlock {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-in {
+            animation: slideInBlock 0.3s ease-out forwards;
+        }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+<body>
 
-    <!-- Top Navigation Header -->
-    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-30 shadow-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="bg-indigo-600 text-white p-2.5 rounded-xl shadow-lg shadow-indigo-500/30">
-                    <i class="fa-solid fa-cubes text-xl"></i>
-                </div>
-                <div>
-                    <h1 class="text-lg font-bold text-white tracking-wide">Course Builder Pro</h1>
-                    <p class="text-xs text-slate-400">ระบบสร้างเนื้อหาบทเรียนแบบ Dynamic Block</p>
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="flex items-center gap-2 sm:gap-3">
-                <button onclick="toggleViewMode()" id="viewModeBtn" class="px-3.5 py-2 rounded-lg text-sm font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-2">
-                    <i class="fa-solid fa-eye text-indigo-400"></i>
-                    <span id="viewModeText">ดูมุมมองนักเรียน</span>
-                </button>
-                <button onclick="exportJSON()" class="px-3.5 py-2 rounded-lg text-sm font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-2">
-                    <i class="fa-solid fa-code text-emerald-400"></i>
-                    <span>ส่งออก JSON</span>
-                </button>
-                <button onclick="saveCourse()" class="px-4 py-2 rounded-lg text-sm font-medium bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 transition flex items-center gap-2">
-                    <i class="fa-solid fa-floppy-disk"></i>
-                    <span>บันทึกบทเรียน</span>
-                </button>
-            </div>
+<div class="editor-container">
+    <!-- Top Action Info -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="theme-text-main fw-bold mb-1"><i class="bi bi-pencil-square text-cyan me-2" style="color: var(--lv-cyan);"></i>ระบบสร้างและแก้ไขบทเรียน (Lesson Editor)</h3>
+            <p class="theme-text-muted small mb-0">ปรับแต่งเนื้อหา วิดีโอ แล็บ ควิซ และใช้ระบบ AI ช่วยตรวจขัดเกลาเนื้อหาการเรียนรู้</p>
         </div>
-    </header>
+        <!-- 17. Preview & 19. Validation Alert Badge -->
+        <div id="validation-quick-alert" class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-20 p-2 font-monospace">
+            <i class="bi bi-shield-exclamation me-1"></i> 19. Validation: ตรวจพบลิงก์ภายนอกยังไม่ได้ทดสอบ
+        </div>
+    </div>
 
-    <!-- Main Container -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
+    <form id="lessonMasterForm" onsubmit="event.preventDefault();">
         
-        <!-- Left Sidebar: Controls & Add Block Toolbar -->
-        <aside class="lg:col-span-1 space-y-6">
-            <!-- Course Info Settings -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
-                <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-gear text-indigo-400"></i> ตั้งค่าบทเรียน
-                </h2>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">ชื่อบทเรียน</label>
-                        <input type="text" id="courseTitle" value="การเขียนโปรแกรมเชิงวัตถุด้วย JavaScript" 
-                            class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">คำอธิบายย่อ</label>
-                        <textarea id="courseDesc" rows="2" 
-                            class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition resize-none">ทำความเข้าใจแนวคิด OOP และการนำไปประยุกต์ใช้งานในโปรเจกต์จริง</textarea>
-                    </div>
+        <!-- ==========================================
+             1. LESSON INFORMATION
+             ========================================== -->
+        <div class="editor-section-card">
+            <div class="section-title">
+                <i class="bi bi-info-circle-fill"></i> 1. Lesson Information (ข้อมูลพื้นฐานบทเรียน)
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label form-label-premium">ชื่อบทเรียน</label>
+                    <input type="text" class="form-control form-control-premium" id="lesson_title" value="บทที่ 3: โครงสร้างและสโคปของตัวแปรใน Modern Programming">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label form-label-premium">Chapter (บทหลัก)</label>
+                    <select class="form-select form-control-premium">
+                        <option>Chapter 1: Getting Started</option>
+                        <option selected>Chapter 2: Variables & Syntax Core</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label form-label-premium">ลำดับบทเรียน (Order)</label>
+                    <input type="number" class="form-control form-control-premium" value="3">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label form-label-premium">คำอธิบายรายวิชาย่อย</label>
+                    <textarea class="form-control form-control-premium" rows="2">เจาะลึกความต่างของการประกาศตัวแปรในขอบเขตการทำงานแบบต่างๆ</textarea>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label form-label-premium">ประเภทบทเรียน</label>
+                    <select class="form-select form-control-premium">
+                        <option>ทฤษฎีทั่วไป (Theory Lecture)</option>
+                        <option selected>ปฏิบัติการแล็บ (Lab Practical)</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label form-label-premium">สถานะ (Status)</label>
+                    <select class="form-select form-control-premium text-warning fw-bold">
+                        <option value="draft" selected>🟡 Draft (แบบร่าง)</option>
+                        <option value="published">🟢 Published (เผยแพร่แล้ว)</option>
+                    </select>
                 </div>
             </div>
+        </div>
 
-            <!-- Add Block Control Panel -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl sticky top-24">
-                <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-plus-circle text-indigo-400"></i> เพิ่ม Block เนื้อหา
-                </h2>
-                <div class="grid grid-cols-1 gap-2.5">
-                    <button onclick="addBlock('text')" class="group flex items-center gap-3 p-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 hover:border-blue-500/50 transition text-left">
-                        <div class="w-9 h-9 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <i class="fa-solid fa-align-left text-sm"></i>
-                        </div>
-                        <div>
-                            <div class="text-xs font-semibold text-slate-200">Text Block</div>
-                            <div class="text-[11px] text-slate-400">ข้อความ, คำอธิบาย, เนื้อหาหลัก</div>
-                        </div>
-                    </button>
+        <!-- ==========================================
+             ⭐ FEATURE 1: BLOCK-BASED LESSON BUILDER
+             ========================================== -->
+        <div class="editor-section-card border border-info border-opacity-20" style="border-color: rgba(6, 182, 212, 0.3) !important;">
+            <div class="section-title text-info" style="color: var(--lv-cyan) !important;">
+                <i class="bi bi-layers-half"></i> ⭐ Block-based Lesson Builder (ตัวจัดเรียงบล็อกเนื้อหาแบบ Dynamic)
+            </div>
+            <p class="theme-text-muted small mt-0 mb-3">กดเพิ่มบล็อกด้านล่างเพื่อทำการแทรกกล่องเนื้อหาและลากจัดตำแหน่งได้อย่างอิสระ</p>
+            <div class="d-flex flex-wrap gap-2 mb-4 p-3 rounded theme-bg-dark border theme-border align-items-center">
+                <span class="theme-text-muted small fw-bold me-2"><i class="bi bi-plus-circle me-1"></i> Add Block:</span>
+                <button type="button" class="btn btn-sm btn-theme-dark border-secondary" onclick="addNewContentBlock('text')">📝 Text Block</button>
+                <button type="button" class="btn btn-sm btn-theme-dark border-secondary" onclick="addNewContentBlock('video')">🎥 Video Block</button>
+                <button type="button" class="btn btn-sm btn-theme-dark border-secondary" onclick="addNewContentBlock('code')">💻 Code Block</button>
+                <button type="button" class="btn btn-sm btn-theme-dark border-secondary" onclick="addNewContentBlock('quiz')">🧪 Quiz Block</button>
+                <button type="button" class="btn btn-sm btn-theme-dark border-secondary" onclick="addNewContentBlock('lab')">🖥️ Lab Block</button>
+            </div>
 
-                    <button onclick="addBlock('video')" class="group flex items-center gap-3 p-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 hover:border-red-500/50 transition text-left">
-                        <div class="w-9 h-9 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <i class="fa-solid fa-video text-sm"></i>
-                        </div>
-                        <div>
-                            <div class="text-xs font-semibold text-slate-200">Video Block</div>
-                            <div class="text-[11px] text-slate-400">ฝังวิดีโอ YouTube หรือ URL</div>
-                        </div>
-                    </button>
-
-                    <button onclick="addBlock('code')" class="group flex items-center gap-3 p-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 hover:border-emerald-500/50 transition text-left">
-                        <div class="w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <i class="fa-solid fa-code text-sm"></i>
-                        </div>
-                        <div>
-                            <div class="text-xs font-semibold text-slate-200">Code Snippet</div>
-                            <div class="text-[11px] text-slate-400">โค้ดตัวอย่างพร้อมเลือกภาษา</div>
-                        </div>
-                    </button>
-
-                    <button onclick="addBlock('quiz')" class="group flex items-center gap-3 p-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 hover:border-purple-500/50 transition text-left">
-                        <div class="w-9 h-9 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <i class="fa-solid fa-circle-question text-sm"></i>
-                        </div>
-                        <div>
-                            <div class="text-xs font-semibold text-slate-200">Quiz Block</div>
-                            <div class="text-[11px] text-slate-400">คำถามปรนัยเพื่อทดสอบความเข้าใจ</div>
-                        </div>
-                    </button>
-
-                    <button onclick="addBlock('lab')" class="group flex items-center gap-3 p-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 hover:border-amber-500/50 transition text-left">
-                        <div class="w-9 h-9 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <i class="fa-solid fa-flask text-sm"></i>
-                        </div>
-                        <div>
-                            <div class="text-xs font-semibold text-slate-200">Interactive Lab</div>
-                            <div class="text-[11px] text-slate-400">โจทย์ฝึกปฏิบัติการและภารกิจ</div>
-                        </div>
-                    </button>
+            <!-- Dynamic Containers Drop Target -->
+            <div id="block-builder-stage">
+                <!-- 2. Rich Text Editor Block Sample Included inside builder -->
+                <div class="block-unit-item" id="sample-rich-editor-block">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="small fw-bold theme-text-muted font-monospace d-flex align-items-center gap-2">
+                            <i class="bi bi-grip-vertical fs-5 cursor-grab"></i>
+                            <i class="bi bi-grid-3x2-gap-fill text-info"></i>2. Rich Text Editor Content Block
+                        </span>
+                        <span class="badge bg-secondary small">Default Text Engine</span>
+                    </div>
+                    <!-- 2. Rich Text Editor Toolbar Controls -->
+                    <div class="btn-toolbar rich-editor-toolbar theme-bg-card p-2 rounded-top border theme-border gap-1" role="toolbar">
+                        <button type="button" class="btn btn-xs py-0 px-2 fw-bold theme-text-main">H1</button>
+                        <button type="button" class="btn btn-xs py-0 px-2 fw-bold theme-text-main">H2</button>
+                        <button type="button" class="btn btn-xs py-0 px-2"><i class="bi bi-type-bold"></i></button>
+                        <button type="button" class="btn btn-xs py-0 px-2"><i class="bi bi-type-italic"></i></button>
+                        <button type="button" class="btn btn-xs py-0 px-2"><i class="bi bi-list-ul"></i></button>
+                        <button type="button" class="btn btn-xs py-0 px-2"><i class="bi bi-list-ol"></i></button>
+                        <button type="button" class="btn btn-xs py-0 px-2"><i class="bi bi-table"></i></button>
+                        <button type="button" class="btn btn-xs py-0 px-2"><i class="bi bi-image"></i></button>
+                        <button type="button" class="btn btn-xs py-0 px-2"><i class="bi bi-link-45deg"></i></button>
+                        <button type="button" class="btn btn-xs py-0 px-2"><i class="bi bi-quote"></i></button>
+                        <button type="button" class="btn btn-xs py-0 px-2 font-monospace" title="LaTeX Equation">$$ LaTeX</button>
+                    </div>
+                    <textarea class="form-control form-control-premium rounded-0 rounded-bottom border-top-0 font-monospace small" rows="4" placeholder="ป้อนเนื้อหาบทเรียน รองรับย่อหน้า โค้ด ตาราง รูปภาพ หรือสมการคณิตศาสตร์ภายนอก เช่น $E = mc^2$ ..."></textarea>
                 </div>
             </div>
-        </aside>
+        </div>
 
-        <!-- Right Content Area: Canvas / Blocks List -->
-        <section class="lg:col-span-3 space-y-6">
+        <!-- ==========================================
+             3. VIDEO EDITOR
+             ========================================== -->
+        <div class="editor-section-card">
+            <div class="section-title">
+                <i class="bi bi-camera-video-fill text-warning"></i> 3. Video Editor (จัดการระบบวิดีโอการสอน)
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label form-label-premium">Upload Video Source File</label>
+                    <input type="file" class="form-control form-control-premium">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label form-label-premium">หรือ Embed Link วิดีโอภายนอก (YouTube / Vimeo)</label>
+                    <input type="text" class="form-control form-control-premium" placeholder="https://www.youtube.com/watch?v=...">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label form-label-premium">รูปภาพหน้าปกวิดีโอ (Thumbnail)</label>
+                    <input type="file" class="form-control form-control-premium">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label form-label-premium">ไฟล์คำบรรยายซับไตเติล (Subtitle SRT / VTT)</label>
+                    <input type="file" class="form-control form-control-premium">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="button" class="btn btn-outline-info w-100 btn-premium-action" style="min-height: 46px;" onclick="alert('จำลองการเปิดเล่นวิดีโอ Preview Video Player')"><i class="bi bi-play-circle me-1"></i> Preview Video</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             4. DOCUMENT MANAGEMENT
+             ========================================== -->
+        <div class="editor-section-card">
+            <div class="section-title">
+                <i class="bi bi-file-earmark-arrow-up-fill text-success"></i> 4. Document Management (อัปโหลดและจัดการเอกสาร)
+            </div>
+            <p class="theme-text-muted small mt-0">รองรับระบบประมวลผลไฟล์สเปกตรัมกว้าง: PDF, Slide, ZIP, Source Code, Dataset, Image</p>
+            <div class="p-4 border border-secondary border-opacity-50 rounded-3 text-center theme-bg-dark" style="border-style: dashed !important;">
+                <i class="bi bi-cloud-arrow-up fs-2 theme-text-muted mb-2 d-block"></i>
+                <span class="theme-text-muted small d-block mb-3">ลากไฟล์เอกสารมาวางที่นี่ หรือคลิกเพื่อเลือกอัปโหลดไฟล์เข้าระบบคลาวด์คอร์ส</span>
+                <input type="file" class="form-control form-control-premium mx-auto" style="max-width: 350px;" multiple>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             5. CODE BLOCK
+             ========================================== -->
+        <div class="editor-section-card">
+            <div class="section-title">
+                <i class="bi bi-code-square text-info"></i> 5. Code Block (แทรกตัวอย่างซอร์สโค้ด)
+            </div>
+            <div class="row g-2 mb-2 align-items-center">
+                <div class="col-md-4">
+                    <select class="form-select form-control-premium small">
+                        <option>PHP</option><option selected>JavaScript</option><option>Python</option><option>Java</option><option>C</option><option>C++</option><option>SQL</option><option>HTML/CSS</option>
+                    </select>
+                </div>
+                <div class="col-md-8 text-end">
+                    <button type="button" class="btn btn-sm btn-outline-info theme-border py-2" onclick="alert('คัดลอกโค้ดต้นแบบลงคลิปบอร์ดแล้ว!')"><i class="bi bi-copy me-1"></i> Copy Code Button</button>
+                </div>
+            </div>
+            <textarea class="form-control form-control-premium font-monospace text-info small" rows="3">const currentScope = "Modern Block Scope Logic";&#10;console.log(`Executing within ${currentScope}`);</textarea>
+        </div>
+
+        <!-- ==========================================
+             6. INTERACTIVE CONTENT
+             ========================================== -->
+        <div class="editor-section-card">
+            <div class="section-title">
+                <i class="bi bi-braces-asterisk" style="color:#a855f7;"></i> 6. Interactive Content (เพิ่มเนื้อหาแบบโต้ตอบ)
+            </div>
+            <div class="row g-2">
+                <div class="col-6 col-md-4"><button type="button" class="btn btn-theme-dark w-100 text-start py-2 small"><i class="bi bi-menu-button-wide me-2 text-info"></i>+ Accordion</button></div>
+                <div class="col-6 col-md-4"><button type="button" class="btn btn-theme-dark w-100 text-start py-2 small"><i class="bi bi-segmented-nav me-2 text-info"></i>+ Tabs Menu</button></div>
+                <div class="col-6 col-md-4"><button type="button" class="btn btn-theme-dark w-100 text-start py-2 small"><i class="bi bi-exclamation-octagon me-2 text-info"></i>+ Callout Box</button></div>
+                <div class="col-6 col-md-4"><button type="button" class="btn btn-theme-dark w-100 text-start py-2 small"><i class="bi bi-clock-history me-2 text-info"></i>+ Timeline</button></div>
+                <div class="col-6 col-md-4"><button type="button" class="btn btn-theme-dark w-100 text-start py-2 small"><i class="bi bi-diagram-2 me-2 text-info"></i>+ Diagram</button></div>
+                <div class="col-6 col-md-4"><button type="button" class="btn btn-theme-dark w-100 text-start py-2 small"><i class="bi bi-globe me-2 text-info"></i>+ Embed Website</button></div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             7. QUIZ INTEGRATION
+             ========================================== -->
+        <div class="editor-section-card">
+            <div class="section-title">
+                <i class="bi bi-patch-question-fill text-warning"></i> 7. Quiz Integration (เชื่อมต่อชุดข้อสอบ)
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label form-label-premium">ดึงหัวข้อข้อสอบเดิมที่มีอยู่</label>
+                    <select class="form-select form-control-premium">
+                        <option selected>[กรุณาเลือกควิซจากคลังส่วนกลาง]</option>
+                        <option>Quiz 1: Fundamentals of Block Scope</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label form-label-premium">กำหนดตำแหน่งแสดง</label>
+                    <select class="form-select form-control-premium">
+                        <option>ท้ายสุดของบทเรียน</option>
+                        <option>แทรกกลางเนื้อหา (ก่อนขึ้นหัวข้อแล็บ)</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="button" class="btn btn-success w-100 fw-medium" style="min-height: 46px;" onclick="alert('ระบบกำลังเปิด Modal สร้างควิซใหม่...')"><i class="bi bi-plus-lg"></i> สร้าง Quiz ใหม่</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             8. CODING LAB INTEGRATION
+             ========================================== -->
+        <div class="editor-section-card">
+            <div class="section-title">
+                <i class="bi bi-terminal-fill text-success"></i> 8. Coding Lab Integration (เชื่อมต่อห้องปฏิบัติการเขียนโค้ด)
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label form-label-premium">เลือก Coding Lab เดิมของหลักสูตร</label>
+                    <select class="form-select form-control-premium">
+                        <option selected>[ ค้นหาหรือเลือกแล็บคอมไพเลอร์ในระบบ ]</option>
+                        <option>Lab Assignment 3.1: Fix Scope Bug</option>
+                    </select>
+                </div>
+                <div class="col-md-6 d-flex align-items-end gap-2">
+                    <button type="button" class="btn btn-theme-dark w-50" style="min-height: 46px;" onclick="alert('เพิ่มไอเทมแล็บลงแผนบทเรียนเรียบร้อย')"><i class="bi bi-link-45deg"></i> ผูกมัดเชื่อม Lab ที่เลือก</button>
+                    <button type="button" class="btn btn-outline-info w-50" style="min-height: 46px;" onclick="alert('เปลี่ยนเส้นทางไปโมดูล Lab Builder...')"><i class="bi bi-magic"></i> สร้าง Lab ใหม่เข้าคลัง</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             9. VIRTUAL LAB INTEGRATION
+             ========================================== -->
+        <div class="editor-section-card">
+            <div class="section-title">
+                <i class="bi bi-cloud-haze2-fill text-info"></i> 9. Virtual Lab Integration (ห้องแล็บจำลองระบบ Cloud Sandbox)
+            </div>
+            <p class="theme-text-muted small mt-0">เชื่อมโยงบทเรียนกับสภาพแวดล้อมระบบปฏิบัติการ คอนเทนเนอร์ หรือโครงสร้างเครือข่ายความปลอดภัยสูง</p>
+            <div class="row g-2">
+                <div class="col-6 col-md-4"><div class="p-2 border theme-border rounded theme-bg-dark d-flex align-items-center"><input type="checkbox" class="form-check-input me-2"> Linux Command CLI</div></div>
+                <div class="col-6 col-md-4"><div class="p-2 border theme-border rounded theme-bg-dark d-flex align-items-center"><input type="checkbox" class="form-check-input me-2" checked> Docker Containers</div></div>
+                <div class="col-6 col-md-4"><div class="p-2 border theme-border rounded theme-bg-dark d-flex align-items-center"><input type="checkbox" class="form-check-input me-2"> SQL Server Sandbox</div></div>
+                <div class="col-6 col-md-4"><div class="p-2 border theme-border rounded theme-bg-dark d-flex align-items-center"><input type="checkbox" class="form-check-input me-2"> Network Topology</div></div>
+                <div class="col-6 col-md-4"><div class="p-2 border theme-border rounded theme-bg-dark d-flex align-items-center"><input type="checkbox" class="form-check-input me-2"> Cloud AWS/GCP Provider</div></div>
+                <div class="col-6 col-md-4"><div class="p-2 border theme-border rounded theme-bg-dark d-flex align-items-center"><input type="checkbox" class="form-check-input me-2"> Cybersecurity CTF Capture</div></div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             10. ASSIGNMENT INTEGRATION
+             ========================================== -->
+        <div class="editor-section-card">
+            <div class="section-title">
+                <i class="bi bi-file-earmark-medical-fill text-danger"></i> 10. Assignment Integration (การมอบหมายการบ้านภารกิจใหญ่)
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label form-label-premium">ประเภทการบ้านตรวจรับ</label>
+                    <select class="form-select form-control-premium">
+                        <option>ไม่มีภารกิจการบ้านภายนอก (เน้นทำแล็บอัตโนมัติ)</option>
+                        <option selected>File Upload (นักเรียนอัปโหลดเอกสารหรือโปรเจกต์สรุป)</option>
+                        <option>Coding Project Repo Submission</option>
+                        <option>Mini Project Comprehensive Review</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label form-label-premium">เกณฑ์คะแนนและคำสั่งระบุภารกิจ (Instructions)</label>
+                    <input type="text" class="form-control form-control-premium" placeholder="เช่น ส่งไฟล์ Zip โครงสร้างคลาสใน 7 วัน">
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             ⭐ FEATURE 2 & 11: AI LESSON ASSISTANT & QUALITY CHECKER
+             ========================================== -->
+        <div class="editor-section-card border" style="border-color: rgba(168, 85, 247, 0.4) !important; background-color: color-mix(in srgb, var(--lv-card-bg) 97%, #a855f7); ">
+            <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-25 pb-2 mb-3">
+                <div class="section-title mb-0 border-0 pb-0" style="color:#a855f7;">
+                    <i class="bi bi-cpu-fill"></i> 11. AI Lesson Assistant & ⭐ AI Quality Checker
+                </div>
+                <span class="badge" style="color:#a855f7; background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3);">Copilot Engine Online</span>
+            </div>
             
-            <!-- EDIT MODE CANVAS -->
-            <div id="editCanvas" class="space-y-4">
-                <div id="blocksContainer" class="space-y-4">
-                    <!-- Dynamic Blocks Will Be Rendered Here -->
-                </div>
-
-                <!-- Empty State -->
-                <div id="emptyState" class="hidden border-2 border-dashed border-slate-800 rounded-2xl p-12 text-center">
-                    <div class="w-16 h-16 bg-slate-900 rounded-2xl text-slate-600 flex items-center justify-center mx-auto mb-4 border border-slate-800">
-                        <i class="fa-solid fa-layer-group text-2xl"></i>
+            <div class="row g-3">
+                <!-- 11. AI Lesson Actions Generator Layout Menu -->
+                <div class="col-12 col-lg-8">
+                    <label class="form-label form-label-premium d-block">11. ฟังก์ชันตัวช่วยสร้างสรรค์ด้วยปัญญาประดิษฐ์ (AI Generative Matrix)</label>
+                    <div class="row g-2">
+                        <div class="col-6 col-md-4"><button type="button" class="btn btn-theme-dark w-100 py-2 small"><i class="bi bi-magic me-1 text-warning"></i> ช่วยสร้างเนื้อหา</button></div>
+                        <div class="col-6 col-md-4"><button type="button" class="btn btn-theme-dark w-100 py-2 small"><i class="bi bi-journal-text me-1 text-info"></i> สรุปบทเรียน</button></div>
+                        <div class="col-6 col-md-4"><button type="button" class="btn btn-theme-dark w-100 py-2 small"><i class="bi bi-chat-left-quote me-1 text-success"></i> ปรับภาษาให้อ่านง่าย</button></div>
+                        <div class="col-6 col-md-4"><button type="button" class="btn btn-theme-dark w-100 py-2 small"><i class="bi bi-spellcheck me-1 text-primary"></i> ตรวจคำสะกด</button></div>
+                        <div class="col-6 col-md-4"><button type="button" class="btn btn-theme-dark w-100 py-2 small"><i class="bi bi-patch-question me-1 text-danger"></i> ออกแบบควิซช่วย</button></div>
+                        <div class="col-6 col-md-4"><button type="button" class="btn btn-theme-dark w-100 py-2 small"><i class="bi bi-card-heading me-1 text-purple"></i> สร้าง Flashcards</button></div>
                     </div>
-                    <h3 class="text-base font-medium text-slate-300">ยังไม่มี Block เนื้อหาในบทเรียนนี้</h3>
-                    <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">กดปุ่มในแถบ "เพิ่ม Block เนื้อหา" ด้านซ้ายมือเพื่อเริ่มต้นสร้างบทเรียนของคุณ</p>
-                </div>
-            </div>
-
-            <!-- STUDENT PREVIEW MODE CANVAS -->
-            <div id="previewCanvas" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-8 shadow-2xl">
-                <div class="border-b border-slate-800 pb-6">
-                    <span class="px-2.5 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs rounded-full font-medium mb-3 inline-block">
-                        Student Preview Mode
-                    </span>
-                    <h1 id="previewTitle" class="text-2xl sm:text-3xl font-bold text-white mb-2"></h1>
-                    <p id="previewDesc" class="text-slate-400 text-sm leading-relaxed"></p>
                 </div>
 
-                <!-- Rendered Student Content -->
-                <div id="studentBlocksContent" class="space-y-8"></div>
+                <!-- ⭐ FEATURE 2: AI QUALITY SCORE AUDITOR PANEL -->
+                <div class="col-12 col-lg-4">
+                    <div class="p-3 rounded-3 theme-bg-dark border theme-border h-100 d-flex flex-column justify-content-center">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small theme-text-main fw-bold">Lesson Quality Score</span>
+                            <span class="text-success fw-bold font-monospace">94 / 100 ⭐</span>
+                        </div>
+                        <div class="progress mb-2 theme-bg-card border theme-border" style="height: 8px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 94%"></div>
+                        </div>
+                        <div style="font-size: 0.75rem; line-height: 1.45;" class="theme-text-muted mt-1">
+                            <span class="text-warning fw-bold">[คำแนะนำจาก AI]:</span> โครงสร้างและเวลาศึกษายอดเยี่ยมแล้ว แนะนำให้เพิ่มตัวอย่างบล็อกโค้ดฝั่งภาษา Python เพิ่มเติมเพื่อความครอบคลุมของผู้เรียนระดับต้น
+                        </div>
+                    </div>
+                </div>
             </div>
+        </div>
 
-        </section>
-    </main>
-
-    <!-- JSON Export Modal -->
-    <div id="jsonModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
-                <h3 class="text-base font-semibold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-code text-emerald-400"></i> ข้อมูลบทเรียน JSON
-                </h3>
-                <button onclick="closeJSONModal()" class="text-slate-400 hover:text-white p-1">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
+        <!-- ==========================================
+             12 - 16. SETTINGS & ADVANCED METADATA PARAMS
+             ========================================== -->
+        <div class="editor-section-card">
+            <div class="section-title"><i class="bi bi-sliders2-vertical text-secondary"></i> Advanced Configuration Modules (12 - 16)</div>
+            <div class="row g-3">
+                <!-- 12. Learning Objectives -->
+                <div class="col-md-4">
+                    <label class="form-label form-label-premium">12. Learning Objectives (เป้าหมายแยกบรรทัด)</label>
+                    <textarea class="form-control form-control-premium small" rows="2" placeholder="ตัวอย่าง:&#10;- เข้าใจ Scope Variables&#10;- สามารถเขียน Function ได้"></textarea>
+                </div>
+                <!-- 13. Prerequisite Matrix Links -->
+                <div class="col-md-4">
+                    <label class="form-label form-label-premium">13. Prerequisite (ต้องเรียนบทไหนก่อน)</label>
+                    <select class="form-select form-control-premium small" multiple style="min-height: 80px !important;">
+                        <option selected>Lesson 1: Introduction Variables</option>
+                        <option>Lesson 2: Setup Environment IDE</option>
+                    </select>
+                </div>
+                <!-- 14. Estimated Learning Time Control -->
+                <div class="col-md-4">
+                    <label class="form-label form-label-premium">14. Estimated Learning Time (เวลาเรียนรวม)</label>
+                    <input type="text" class="form-control form-control-premium" value="อ่าน 15 นาที, ดูวิดีโอ 20 นาที, Lab 30 นาที">
+                </div>
+                <!-- 15. Resources Links Setup -->
+                <div class="col-md-6">
+                    <label class="form-label form-label-premium">15. Resources (ลิงก์แนบ GitHub / Docs / ลิงก์ดาวน์โหลด)</label>
+                    <input type="text" class="form-control form-control-premium small" value="GitHub: https://github.com/example/scope-lesson, Docs: https://mdn.io">
+                </div>
+                <!-- 16. SEO & Metadata Center Routing -->
+                <div class="col-md-6">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label form-label-premium">URL Slug</label>
+                            <input type="text" class="form-control form-control-premium small" value="modern-variables-scope-logic">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label form-label-premium">Meta Title</label>
+                            <input type="text" class="form-control form-control-premium small" value="เรียนรู้โครงสร้าง Block Scope ละเอียด">
+                        </div>
+                    </div>
+                </div>
             </div>
-            <p class="text-xs text-slate-400">คุณสามารถคัดลอกโครงสร้างข้อมูล JSON นี้ไปจัดเก็บไว้ใน Database หรือ API ของคุณได้</p>
-            <textarea id="jsonOutput" readonly class="w-full h-64 bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono-code text-xs text-emerald-400 focus:outline-none resize-none"></textarea>
-            <div class="flex justify-end gap-3 pt-2">
-                <button onclick="copyJSON()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-sm font-medium transition flex items-center gap-2">
-                    <i class="fa-regular fa-copy"></i> คัดลอก JSON
-                </button>
-                <button onclick="closeJSONModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition">
-                    ตกลง
-                </button>
+        </div>
+
+        <!-- ==========================================
+             18. VERSION HISTORY MANAGEMENT LOGS
+             ========================================== -->
+        <div class="editor-section-card">
+            <div class="section-title">
+                <i class="bi bi-clock-history text-secondary"></i> 18. Version History (ประวัติและตรรกะกู้คืนเวอร์ชัน)
+            </div>
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 font-monospace" style="font-size: 0.85rem;">
+                <div class="theme-text-muted"><i class="bi bi-arrow-repeat text-success spinner-border spinner-border-sm me-1" style="border-width: 2px;"></i> Auto Save ล่าสุดเมื่อสักครู่...</div>
+                <div class="d-flex gap-3 align-items-center bg-dark bg-opacity-25 px-3 py-1 rounded">
+                    <span class="theme-text-muted">v1.4 (บันทึกแบบร่างก่อนหน้า)</span>
+                    <a href="#" class="text-info text-decoration-none fw-bold" onclick="alert('กู้คืนข้อมูลแบบร่างเสร็จสมบูรณ์!')"><i class="bi bi-arrow-counterclockwise"></i> Restore Version นี้</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             20. PUBLISH CONTROL PANEL BUTTONS
+             ========================================== -->
+        <div class="p-3 rounded-4 theme-bg-dark border theme-border d-flex justify-content-between align-items-center flex-wrap gap-3 sticky-bottom mb-4 shadow-lg">
+            <div>
+                <button type="button" class="btn btn-outline-danger btn-sm py-2" onclick="triggerBottomPublishAction('delete')"><i class="bi bi-trash-fill"></i> Delete Lesson</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm theme-text-muted ms-2 py-2" onclick="triggerBottomPublishAction('unpublish')">Unpublish</button>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-info text-info px-3 py-2 border-info" data-bs-toggle="modal" data-bs-target="#livePreviewModal"><i class="bi bi-eye-fill me-1"></i> 17. Preview Mode</button>
+                <button type="button" class="btn btn-secondary text-white px-3 py-2" onclick="triggerBottomPublishAction('save_draft')"><i class="bi bi-cloud-check-fill me-1"></i> Save Draft</button>
+                <button type="button" class="btn text-dark px-4 py-2 fw-bold" onclick="triggerBottomPublishAction('publish')" style="background-color: var(--lv-cyan); border: none;"><i class="bi bi-rocket-takeoff-fill me-1"></i> Publish Lesson</button>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<!-- =================================================================================
+     17. PREVIEW SIMULATOR FULLSCREEN SCREEN MODAL LAYER
+     ================================================================================= -->
+<div class="modal fade" id="livePreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-fullscreen-lg-down">
+        <div class="modal-content theme-bg-card theme-text-main border theme-border">
+            <div class="modal-header theme-border theme-bg-dark">
+                <h6 class="modal-title fw-bold text-info"><i class="bi bi-display-fill me-2"></i>17. Cross-Platform Preview Layout Device Simulator</h6>
+                <div class="btn-group mx-auto" role="group">
+                    <button type="button" class="btn btn-sm btn-outline-info text-white active" onclick="document.getElementById('preview-viewport-box').style.maxWidth = '100%'">Desktop</button>
+                    <button type="button" class="btn btn-sm btn-outline-info text-white" onclick="document.getElementById('preview-viewport-box').style.maxWidth = '768px'">Tablet</button>
+                    <button type="button" class="btn btn-sm btn-outline-info text-white" onclick="document.getElementById('preview-viewport-box').style.maxWidth = '375px'">Mobile</button>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 theme-bg-dark d-flex justify-content-center">
+                <div id="preview-viewport-box" class="theme-bg-card p-4 rounded-3 shadow w-100 border theme-border overflow-y-auto" style="max-width: 100%; height: 600px; transition: max-width 0.3s ease;">
+                    <h4 class="theme-text-main fw-bold">บทที่ 3: โครงสร้างและสโคปของตัวแปรใน Modern Programming</h4>
+                    <span class="theme-text-muted small">⏱️ เวลาเรียน: อ่าน 15 นาที, วิดีโอ 20 นาที, Lab 30 นาที</span>
+                    <hr class="theme-border my-4">
+                    <div class="p-5 text-center theme-text-muted border border-secondary border-opacity-25 rounded-3" style="border-style: dashed !important;">
+                        <i class="bi bi-laptop fs-1 mb-3 d-block opacity-50"></i>
+                        [หน้าจำลองการเรนเดอร์เนื้อหาจริงที่จะถูกแสดงบนหน้าจอของผู้เรียนแบบ Responsive Screen]
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-6 right-6 bg-emerald-600 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-emerald-500/30 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
-        <i class="fa-solid fa-circle-check text-lg"></i>
-        <span id="toastMsg" class="text-sm font-medium">บันทึกข้อมูลเรียบร้อยแล้ว</span>
-    </div>
+<!-- สคริปต์การทำงานของระบบ UI -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function triggerAIAction(mode) {
+        alert('เรียกใช้โมเดลโครงข่าย AI Assistant ส่วนกลางในการประมวลผล: ' + mode.toUpperCase());
+    }
 
-    <!-- JAVASCRIPT LOGIC -->
-    <script>
-        // State Management
-        let blocks = [
-            {
-                id: 'b-1',
-                type: 'text',
-                title: 'บทนำเกี่ยวกับ Object-Oriented Programming',
-                content: 'การเขียนโปรแกรมเชิงวัตถุ (OOP) เป็นรูปแบบหนึ่งของการเขียนโปรแกรมที่มองทุกสิ่งเป็น "วัตถุ" (Object) โดยรวมเอาคุณลักษณะ (Attribute) และพฤติกรรม (Method) ไว้ด้วยกัน เพื่อให้โค้ดมีความเป็นระเบียบและนำกลับมาใช้ใหม่ได้ง่าย'
-            },
-            {
-                id: 'b-2',
-                type: 'code',
-                title: 'ตัวอย่างการสร้าง Class ใน JavaScript',
-                language: 'javascript',
-                code: 'class Student {\n  constructor(name, major) {\n    this.name = name;\n    this.major = major;\n  }\n\n  introduce() {\n    console.log(`สวัสดีครับ ผมชื่อ ${this.name} เรียนสาขา ${this.major}`);\n  }\n}\n\nconst student1 = new Student("สมชาย", "วิทยาการคอมพิวเตอร์");\nstudent1.introduce();'
-            },
-            {
-                id: 'b-3',
-                type: 'quiz',
-                question: 'คำสั่งใดใช้สำหรับการสร้าง Class ใน ES6 JavaScript?',
-                options: ['function Class()', 'class Person {}', 'create.class()', 'new Class()'],
-                correctIndex: 1,
-                explanation: 'ใน ES6 เราใช้คีย์เวิร์ด `class` ในการประกาศ Class โครงสร้างพื้นฐาน'
-            }
-        ];
+    function triggerBottomPublishAction(type) {
+        alert('เรียกใช้งานโครงสร้างคำสั่งคลาวด์คอร์ส: ' + type.toUpperCase() + ' สำเร็จแล้วครับ!');
+    }
 
-        let isPreviewMode = false;
+    // ฟังก์ชันสร้าง Dynamic Block ที่ถูกแก้ไขให้สมบูรณ์
+    function addNewContentBlock(blockType) {
+        var randomNum = Math.floor(Math.random() * 10000);
+        var blockId = 'dyn-block-' + randomNum;
+        
+        var iconHtml, titleText, contentHtml;
 
-        // Initialize App
-        document.addEventListener('DOMContentLoaded', () => {
-            renderBlocks();
-        });
+        // กำหนด UI ภายในกล่องตามประเภทที่กด
+        switch(blockType) {
+            case 'text':
+                iconHtml = '<i class="bi bi-file-text-fill text-primary"></i>';
+                titleText = 'Text Block (Content)';
+                contentHtml = '<textarea class="form-control form-control-premium mt-3" rows="3" placeholder="พิมพ์เนื้อหาที่นี่..."></textarea>';
+                break;
+            case 'video':
+                iconHtml = '<i class="bi bi-camera-video-fill text-warning"></i>';
+                titleText = 'Video Block (Embed)';
+                contentHtml = '<input type="text" class="form-control form-control-premium mt-3" placeholder="วางลิงก์ YouTube / Vimeo หรือ URL วิดีโอ">';
+                break;
+            case 'code':
+                iconHtml = '<i class="bi bi-code-slash text-info"></i>';
+                titleText = 'Code Snippet Block';
+                contentHtml = '<textarea class="form-control form-control-premium mt-3 font-monospace text-info" rows="3" placeholder="เขียนซอร์สโค้ด..."></textarea>';
+                break;
+            case 'quiz':
+                iconHtml = '<i class="bi bi-patch-question-fill text-danger"></i>';
+                titleText = 'Quiz Integration Block';
+                contentHtml = '<select class="form-select form-control-premium mt-3"><option>เลือกชุดควิซที่มีอยู่...</option><option>Quiz: Basic Scope</option></select>';
+                break;
+            case 'lab':
+                iconHtml = '<i class="bi bi-terminal-fill text-success"></i>';
+                titleText = 'Interactive Lab Block';
+                contentHtml = '<select class="form-select form-control-premium mt-3"><option>เลือกห้องแล็บ...</option><option>Lab 3: Fix Variables</option></select>';
+                break;
+            default:
+                iconHtml = '<i class="bi bi-box-fill text-secondary"></i>';
+                titleText = 'Custom Block';
+                contentHtml = '<div class="p-3 text-muted">เนื้อหาทั่วไป</div>';
+        }
 
-        // Add New Block
-        function addBlock(type) {
-            const id = 'b-' + Date.now();
-            let newBlock = { id, type };
+        // โครงสร้าง HTML ของ Block ใหม่
+        var blockElementHtml = `
+            <div class="block-unit-item theme-bg-dark border theme-border p-3 rounded mb-3 animate-slide-in" id="${blockId}">
+                <div class="d-flex justify-content-between align-items-center border-bottom theme-border pb-2">
+                    <span class="small fw-bold theme-text-main d-flex align-items-center gap-2">
+                        <i class="bi bi-grip-vertical text-muted fs-5 cursor-grab"></i>
+                        ${iconHtml} ${titleText}
+                    </span>
+                    <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2 border-0" onclick="removeContentBlock('${blockId}')" title="ลบบล็อกนี้">
+                        <i class="bi bi-trash3-fill"></i>
+                    </button>
+                </div>
+                ${contentHtml}
+            </div>
+        `;
 
-            switch(type) {
-                case 'text':
-                    newBlock.title = 'หัวข้อเนื้อหาใหม่';
-                    newBlock.content = 'พิมพ์รายละเอียดเนื้อหาที่นี่...';
-                    break;
-                case 'video':
-                    newBlock.title = 'วิดีโอประกอบการเรียนรู้';
-                    newBlock.url = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
-                    break;
-                case 'code':
-                    newBlock.title = 'ตัวอย่าง โค้ดโปรแกรม';
-                    newBlock.language = 'javascript';
-                    newBlock.code = '// เขียนโค้ดตัวอย่างที่นี่\nconsole.log("Hello World");';
-                    break;
-                case 'quiz':
-                    newBlock.question = 'พิมพ์คำถามการทดสอบความเข้าใจที่นี่?';
-                    newBlock.options = ['ตัวเลือกที่ 1', 'ตัวเลือกที่ 2', 'ตัวเลือกที่ 3', 'ตัวเลือกที่ 4'];
-                    newBlock.correctIndex = 0;
-                    newBlock.explanation = 'อธิบายเหตุผลว่าทำไมข้อนี้ถึงถูกต้อง';
-                    break;
-                case 'lab':
-                    newBlock.title = 'ภารกิจ Hands-on Lab';
-                    newBlock.objective = 'เขียนโปรแกรมคำนวณเกรดเฉลี่ยสะสม (GPA)';
-                    newBlock.timeMinutes = 20;
-                    newBlock.instructions = '1. สร้าง ฟังก์ชัน calculateGPA()\n2. รับพารามิเตอร์เป็น Array ของคะแนน\n3. คืนค่าผลลัพธ์เป็นเกรดเฉลี่ยแบบ ทศนิยม 2 ตำแหน่ง';
-                    break;
-            }
+        // นำไปต่อท้ายใน Stage
+        var stage = document.getElementById('block-builder-stage');
+        stage.insertAdjacentHTML('beforeend', blockElementHtml);
+        
+        // เลื่อนหน้าจอลงมาที่บล็อกใหม่
+        var newBlock = document.getElementById(blockId);
+        newBlock.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
 
-            blocks.push(newBlock);
-            renderBlocks();
-            showToast('เพิ่ม Block เนื้อหาใหม่เรียบร้อยแล้ว');
-            
-            // Auto-scroll to bottom block
+    // ฟังก์ชันลบ Block
+    function removeContentBlock(blockId) {
+        var block = document.getElementById(blockId);
+        if(block) {
+            block.style.opacity = '0';
+            block.style.transform = 'translateY(-10px)';
             setTimeout(() => {
-                const el = document.getElementById(id);
-                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 100);
+                block.remove();
+            }, 200);
         }
+    }
+</script>
 
-        // Delete Block
-        function deleteBlock(id) {
-            if (confirm('คุณต้องการลบ Block เนื้อหานี้ใช่หรือไม่?')) {
-                blocks = blocks.filter(b => b.id !== id);
-                renderBlocks();
-                showToast('ลบ Block เรียบร้อยแล้ว');
-            }
-        }
-
-        // Move Block Up/Down
-        function moveBlock(index, direction) {
-            const targetIndex = index + direction;
-            if (targetIndex < 0 || targetIndex >= blocks.length) return;
-            
-            const temp = blocks[index];
-            blocks[index] = blocks[targetIndex];
-            blocks[targetIndex] = temp;
-            
-            renderBlocks();
-        }
-
-        // Duplicate Block
-        function duplicateBlock(index) {
-            const original = blocks[index];
-            const copy = JSON.parse(JSON.stringify(original));
-            copy.id = 'b-' + Date.now();
-            copy.title = (copy.title || 'Block') + ' (สำเนา)';
-            
-            blocks.splice(index + 1, 0, copy);
-            renderBlocks();
-            showToast('คัดลอก Block สำเร็จ');
-        }
-
-        // Update Field Value in State
-        function updateBlockField(id, key, value) {
-            const block = blocks.find(b => b.id === id);
-            if (block) {
-                block[key] = value;
-            }
-        }
-
-        // Update Quiz Options
-        function updateQuizOption(id, optionIndex, value) {
-            const block = blocks.find(b => b.id === id);
-            if (block && block.options) {
-                block.options[optionIndex] = value;
-            }
-        }
-
-        // Render All Blocks
-        function renderBlocks() {
-            const container = document.getElementById('blocksContainer');
-            const emptyState = document.getElementById('emptyState');
-            
-            container.innerHTML = '';
-
-            if (blocks.length === 0) {
-                emptyState.classList.remove('hidden');
-                return;
-            } else {
-                emptyState.classList.add('hidden');
-            }
-
-            blocks.forEach((block, index) => {
-                const blockEl = document.createElement('div');
-                blockEl.id = block.id;
-                blockEl.className = 'bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl transition hover:border-slate-700/80 space-y-4';
-                
-                // Get Type Info (Icon & Color)
-                const meta = getBlockMeta(block.type);
-
-                blockEl.innerHTML = `
-                    <!-- Block Header -->
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                        <div class="flex items-center gap-2.5">
-                            <span class="w-7 h-7 rounded-lg ${meta.badgeBg} ${meta.badgeColor} flex items-center justify-center text-xs">
-                                <i class="${meta.icon}"></i>
-                            </span>
-                            <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider">${meta.label}</span>
-                            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-mono">#${index + 1}</span>
-                        </div>
-
-                        <!-- Action Toolbar -->
-                        <div class="flex items-center gap-1">
-                            <button onclick="moveBlock(${index}, -1)" ${index === 0 ? 'disabled class="opacity-30 cursor-not-allowed text-slate-500 p-1.5"' : 'class="text-slate-400 hover:text-white p-1.5 rounded hover:bg-slate-800 transition"'} title="เลื่อนขึ้น">
-                                <i class="fa-solid fa-arrow-up text-xs"></i>
-                            </button>
-                            <button onclick="moveBlock(${index}, 1)" ${index === blocks.length - 1 ? 'disabled class="opacity-30 cursor-not-allowed text-slate-500 p-1.5"' : 'class="text-slate-400 hover:text-white p-1.5 rounded hover:bg-slate-800 transition"'} title="เลื่อนลง">
-                                <i class="fa-solid fa-arrow-down text-xs"></i>
-                            </button>
-                            <div class="w-px h-3 bg-slate-800 mx-1"></div>
-                            <button onclick="duplicateBlock(${index})" class="text-slate-400 hover:text-indigo-400 p-1.5 rounded hover:bg-slate-800 transition" title="คัดลอก Block">
-                                <i class="fa-regular fa-clone text-xs"></i>
-                            </button>
-                            <button onclick="deleteBlock('${block.id}')" class="text-slate-400 hover:text-red-400 p-1.5 rounded hover:bg-slate-800 transition" title="ลบ Block">
-                                <i class="fa-regular fa-trash-can text-xs"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Dynamic Body Content depending on Type -->
-                    <div class="space-y-3">
-                        ${renderBlockBodyForm(block)}
-                    </div>
-                `;
-
-                container.appendChild(blockEl);
-            });
-        }
-
-        // Return Block Badge Metainfo
-        function getBlockMeta(type) {
-            switch(type) {
-                case 'text': return { label: 'Text Block', icon: 'fa-solid fa-align-left', badgeBg: 'bg-blue-500/10', badgeColor: 'text-blue-400' };
-                case 'video': return { label: 'Video Block', icon: 'fa-solid fa-video', badgeBg: 'bg-red-500/10', badgeColor: 'text-red-400' };
-                case 'code': return { label: 'Code Snippet', icon: 'fa-solid fa-code', badgeBg: 'bg-emerald-500/10', badgeColor: 'text-emerald-400' };
-                case 'quiz': return { label: 'Quiz Block', icon: 'fa-solid fa-circle-question', badgeBg: 'bg-purple-500/10', badgeColor: 'text-purple-400' };
-                case 'lab': return { label: 'Interactive Lab', icon: 'fa-solid fa-flask', badgeBg: 'bg-amber-500/10', badgeColor: 'text-amber-400' };
-            }
-        }
-
-        // Render Form Controls based on Block Type
-        function renderBlockBodyForm(block) {
-            if (block.type === 'text') {
-                return `
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">หัวข้อข้อความ</label>
-                        <input type="text" value="${escapeHtml(block.title || '')}" oninput="updateBlockField('${block.id}', 'title', this.value)" 
-                            class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">เนื้อหาแบบละเอียด</label>
-                        <textarea rows="3" oninput="updateBlockField('${block.id}', 'content', this.value)" 
-                            class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:border-indigo-500 focus:outline-none">${escapeHtml(block.content || '')}</textarea>
-                    </div>
-                `;
-            } else if (block.type === 'video') {
-                return `
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">ชื่อคลิปวิดีโอ</label>
-                        <input type="text" value="${escapeHtml(block.title || '')}" oninput="updateBlockField('${block.id}', 'title', this.value)" 
-                            class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">URL วิดีโอ (YouTube / MP4)</label>
-                        <input type="text" value="${escapeHtml(block.url || '')}" oninput="updateBlockField('${block.id}', 'url', this.value)" 
-                            placeholder="https://www.youtube.com/watch?v=..."
-                            class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none">
-                    </div>
-                `;
-            } else if (block.type === 'code') {
-                return `
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div class="sm:col-span-2">
-                            <label class="block text-xs font-medium text-slate-400 mb-1">ชื่อคำอธิบายโค้ด</label>
-                            <input type="text" value="${escapeHtml(block.title || '')}" oninput="updateBlockField('${block.id}', 'title', this.value)" 
-                                class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">ภาษาโปรแกรม</label>
-                            <select onchange="updateBlockField('${block.id}', 'language', this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-300 focus:border-indigo-500 focus:outline-none">
-                                <option value="javascript" ${block.language === 'javascript' ? 'selected' : ''}>JavaScript</option>
-                                <option value="python" ${block.language === 'python' ? 'selected' : ''}>Python</option>
-                                <option value="html" ${block.language === 'html' ? 'selected' : ''}>HTML/CSS</option>
-                                <option value="sql" ${block.language === 'sql' ? 'selected' : ''}>SQL</option>
-                                <option value="cpp" ${block.language === 'cpp' ? 'selected' : ''}>C++ / C#</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">Source Code</label>
-                        <textarea rows="5" oninput="updateBlockField('${block.id}', 'code', this.value)" 
-                            class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 font-mono-code text-xs text-emerald-400 focus:border-indigo-500 focus:outline-none leading-relaxed">${escapeHtml(block.code || '')}</textarea>
-                    </div>
-                `;
-            } else if (block.type === 'quiz') {
-                return `
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">คำถาม (Quiz Prompt)</label>
-                        <input type="text" value="${escapeHtml(block.question || '')}" oninput="updateBlockField('${block.id}', 'question', this.value)" 
-                            class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="block text-xs font-medium text-slate-400">ตัวเลือกคำตอบ (เลือก Radio หน้ารายการเพื่อระบุข้อที่ถูกต้อง)</label>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            ${(block.options || []).map((opt, optIdx) => `
-                                <div class="flex items-center gap-2 bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5">
-                                    <input type="radio" name="correct_${block.id}" ${block.correctIndex === optIdx ? 'checked' : ''} 
-                                        onchange="updateBlockField('${block.id}', 'correctIndex', ${optIdx})" class="accent-indigo-500">
-                                    <input type="text" value="${escapeHtml(opt)}" oninput="updateQuizOption('${block.id}', ${optIdx}, this.value)" 
-                                        class="w-full bg-transparent text-xs text-slate-200 focus:outline-none">
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">คำอธิบายเฉลยคำตอบ</label>
-                        <input type="text" value="${escapeHtml(block.explanation || '')}" oninput="updateBlockField('${block.id}', 'explanation', this.value)" 
-                            class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-300 focus:border-indigo-500 focus:outline-none">
-                    </div>
-                `;
-            } else if (block.type === 'lab') {
-                return `
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div class="sm:col-span-2">
-                            <label class="block text-xs font-medium text-slate-400 mb-1">ชื่อกิจกรรม Lab</label>
-                            <input type="text" value="${escapeHtml(block.title || '')}" oninput="updateBlockField('${block.id}', 'title', this.value)" 
-                                class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">เวลาที่กำหนด (นาที)</label>
-                            <input type="number" value="${block.timeMinutes || 15}" oninput="updateBlockField('${block.id}', 'timeMinutes', parseInt(this.value))" 
-                                class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-amber-400 font-semibold focus:border-indigo-500 focus:outline-none">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">เป้าหมายของ Lab (Objective)</label>
-                        <input type="text" value="${escapeHtml(block.objective || '')}" oninput="updateBlockField('${block.id}', 'objective', this.value)" 
-                            class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-300 focus:border-indigo-500 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">ขั้นตอน/คำสั่งการทำ Lab</label>
-                        <textarea rows="3" oninput="updateBlockField('${block.id}', 'instructions', this.value)" 
-                            class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-300 focus:border-indigo-500 focus:outline-none leading-relaxed">${escapeHtml(block.instructions || '')}</textarea>
-                    </div>
-                `;
-            }
-        }
-
-        // Toggle Student Preview Mode
-        function toggleViewMode() {
-            isPreviewMode = !isPreviewMode;
-            const editCanvas = document.getElementById('editCanvas');
-            const previewCanvas = document.getElementById('previewCanvas');
-            const btnText = document.getElementById('viewModeText');
-
-            if (isPreviewMode) {
-                editCanvas.classList.add('hidden');
-                previewCanvas.classList.remove('hidden');
-                btnText.textContent = 'กลับสู่มุมมองแก้ไข';
-                renderStudentPreview();
-            } else {
-                previewCanvas.classList.add('hidden');
-                editCanvas.classList.remove('hidden');
-                btnText.textContent = 'ดูมุมมองนักเรียน';
-            }
-        }
-
-        // Render Student View
-        function renderStudentPreview() {
-            const courseTitle = document.getElementById('courseTitle').value;
-            const courseDesc = document.getElementById('courseDesc').value;
-            
-            document.getElementById('previewTitle').textContent = courseTitle || 'ไม่มีชื่อบทเรียน';
-            document.getElementById('previewDesc').textContent = courseDesc || '';
-
-            const container = document.getElementById('studentBlocksContent');
-            container.innerHTML = '';
-
-            blocks.forEach((block, idx) => {
-                const div = document.createElement('div');
-                div.className = 'space-y-3';
-
-                if (block.type === 'text') {
-                    div.innerHTML = `
-                        <h3 class="text-lg font-semibold text-white flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-blue-500"></span> ${escapeHtml(block.title)}
-                        </h3>
-                        <p class="text-slate-300 text-sm leading-relaxed whitespace-pre-line">${escapeHtml(block.content)}</p>
-                    `;
-                } else if (block.type === 'video') {
-                    div.innerHTML = `
-                        <h3 class="text-lg font-semibold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-video text-red-400 text-base"></i> ${escapeHtml(block.title)}
-                        </h3>
-                        <div class="aspect-video bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-center text-slate-500 text-sm overflow-hidden">
-                            <div class="text-center p-4">
-                                <i class="fa-brands fa-youtube text-4xl text-red-500 mb-2 block"></i>
-                                <p class="text-xs text-slate-400">Video Player Framework (${escapeHtml(block.url || 'No URL')})</p>
-                            </div>
-                        </div>
-                    `;
-                } else if (block.type === 'code') {
-                    div.innerHTML = `
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-sm font-semibold text-slate-300 flex items-center gap-2">
-                                <i class="fa-solid fa-code text-emerald-400"></i> ${escapeHtml(block.title)}
-                            </h3>
-                            <span class="text-[10px] bg-slate-800 text-emerald-400 px-2 py-0.5 rounded font-mono uppercase">${block.language}</span>
-                        </div>
-                        <pre class="bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono-code text-xs text-emerald-400 overflow-x-auto leading-relaxed">${escapeHtml(block.code)}</pre>
-                    `;
-                } else if (block.type === 'quiz') {
-                    div.innerHTML = `
-                        <div class="bg-slate-950/60 border border-purple-500/30 rounded-2xl p-5 space-y-4">
-                            <div class="flex items-center gap-2 text-purple-400 text-xs font-semibold">
-                                <i class="fa-solid fa-circle-question"></i> แบบทดสอบความรู้
-                            </div>
-                            <h4 class="text-base font-medium text-white">${escapeHtml(block.question)}</h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                ${(block.options || []).map((opt, i) => `
-                                    <button onclick="checkAnswer(this, ${i === block.correctIndex}, '${escapeHtml(block.explanation)}')" 
-                                        class="quiz-opt-btn p-3 rounded-xl border border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs text-left transition flex items-center gap-2">
-                                        <span class="w-5 h-5 rounded-full bg-slate-800 flex items-center justify-center text-[10px] text-slate-400 font-mono">${String.fromCharCode(65+i)}</span>
-                                        ${escapeHtml(opt)}
-                                    </button>
-                                `).join('')}
-                            </div>
-                            <div class="quiz-feedback hidden p-3 rounded-xl text-xs"></div>
-                        </div>
-                    `;
-                } else if (block.type === 'lab') {
-                    div.innerHTML = `
-                        <div class="bg-gradient-to-br from-slate-900 to-amber-950/20 border border-amber-500/30 rounded-2xl p-5 space-y-3">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-semibold text-amber-400 flex items-center gap-2">
-                                    <i class="fa-solid fa-flask"></i> Interactive Lab Task
-                                </span>
-                                <span class="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2.5 py-0.5 rounded-full">
-                                    <i class="fa-regular fa-clock mr-1"></i> ${block.timeMinutes} นาที
-                                </span>
-                            </div>
-                            <h4 class="text-base font-bold text-white">${escapeHtml(block.title)}</h4>
-                            <p class="text-xs text-slate-300"><strong class="text-amber-400">เป้าหมาย:</strong> ${escapeHtml(block.objective)}</p>
-                            <div class="bg-slate-950/80 rounded-xl p-3 border border-slate-800/80">
-                                <div class="text-[11px] font-semibold text-slate-400 mb-1">ขั้นตอนปฏิบัติ:</div>
-                                <div class="text-xs text-slate-300 whitespace-pre-line leading-relaxed font-mono">${escapeHtml(block.instructions)}</div>
-                            </div>
-                        </div>
-                    `;
-                }
-
-                container.appendChild(div);
-            });
-        }
-
-        // Quiz Click Handler in Preview Mode
-        function checkAnswer(btn, isCorrect, explanation) {
-            const parent = btn.closest('.space-y-4');
-            const allBtns = parent.querySelectorAll('.quiz-opt-btn');
-            const feedback = parent.querySelector('.quiz-feedback');
-
-            allBtns.forEach(b => {
-                b.classList.remove('border-emerald-500', 'bg-emerald-500/10', 'border-red-500', 'bg-red-500/10');
-            });
-
-            feedback.classList.remove('hidden', 'bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/30', 'bg-red-500/10', 'text-red-400', 'border-red-500/30');
-
-            if (isCorrect) {
-                btn.classList.add('border-emerald-500', 'bg-emerald-500/10');
-                feedback.classList.add('bg-emerald-500/10', 'text-emerald-400', 'border', 'border-emerald-500/30');
-                feedback.innerHTML = `<i class="fa-solid fa-circle-check mr-1.5"></i> <strong>ถูกต้อง!</strong> ${explanation}`;
-            } else {
-                btn.classList.add('border-red-500', 'bg-red-500/10');
-                feedback.classList.add('bg-red-500/10', 'text-red-400', 'border', 'border-red-500/30');
-                feedback.innerHTML = `<i class="fa-solid fa-circle-xmark mr-1.5"></i> <strong>ยังไม่ถูกต้อง!</strong> ลองใหม่อีกครั้งนะครับ`;
-            }
-        }
-
-        // Export JSON Modal
-        function exportJSON() {
-            const courseData = {
-                title: document.getElementById('courseTitle').value,
-                description: document.getElementById('courseDesc').value,
-                updatedAt: new Date().toISOString(),
-                blocks: blocks
-            };
-
-            document.getElementById('jsonOutput').value = JSON.stringify(courseData, null, 2);
-            document.getElementById('jsonModal').classList.remove('hidden');
-        }
-
-        function closeJSONModal() {
-            document.getElementById('jsonModal').classList.add('hidden');
-        }
-
-        function copyJSON() {
-            const textarea = document.getElementById('jsonOutput');
-            textarea.select();
-            document.execCommand('copy');
-            showToast('คัดลอกโครงสร้าง JSON เรียบร้อยแล้ว');
-        }
-
-        function saveCourse() {
-            showToast('บันทึกบทเรียนสำเร็จเรียบร้อยแล้ว!');
-        }
-
-        // Helper: Toast Message
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastMsg').textContent = msg;
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            
-            setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 2500);
-        }
-
-        // Helper: Escape HTML to prevent XSS
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/&/g, "&amp;")
-                      .replace(/</g, "&lt;")
-                      .replace(/>/g, "&gt;")
-                      .replace(/"/g, "&quot;")
-                      .replace(/'/g, "&#039;");
-        }
-    </script>
 </body>
 </html>
