@@ -309,21 +309,6 @@ if ($db) {
             gap: 10px !important;
         }
 
-        .custom-filter-dropdown {
-            width: 100% !important;
-        }
-
-        .custom-filter-dropdown .btn-dropdown-trigger {
-            width: 100% !important;
-            justify-content: space-between !important;
-            padding: 12px 16px !important;
-        }
-
-        .custom-filter-dropdown .dropdown-menu {
-            width: 100% !important;
-            min-width: 100% !important;
-        }
-
         .clear-btn-container {
             width: 100% !important;
             text-align: center !important;
