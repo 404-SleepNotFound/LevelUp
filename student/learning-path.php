@@ -445,7 +445,7 @@ include '../includes/header.php';
                             $selectedKey = $plannerData['selected_career'];
                             $selectedItem = $plannerData['career_options'][$selectedKey] ?? reset($plannerData['career_options']);
                         ?>
-                        <div class="custom-dropdown-wrapper" id="customCareerDropdown">
+                        <div class="custom-dropdown-wrapper lu-dropdown--compact" id="customCareerDropdown">
                             <div class="custom-dropdown-btn shadow-sm" id="careerDropdownTrigger">
                                 <div class="d-flex align-items-center gap-2 overflow-hidden">
                                     <i class="bi <?= htmlspecialchars($selectedItem['icon']) ?> fs-5 text-info" id="selectedCareerIcon"></i>
