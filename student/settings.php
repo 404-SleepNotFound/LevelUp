@@ -671,7 +671,12 @@ echo htmlspecialchars($user_data['google_id'] ?? '', ENT_QUOTES); ?>" disabled>
                             title: 'บันทึกข้อมูลสำเร็จ',
                             text: response.message || 'ข้อมูลของคุณถูกบันทึกเรียบร้อยแล้ว',
                             confirmButtonText: 'ตกลง',
-                            confirmButtonColor: '#2e8b57'
+                            confirmButtonColor: '#2e8b57',
+                            customClass: {
+                                popup: 'levelup-swal-popup',
+                                title: 'levelup-swal-title',
+                                htmlContainer: 'levelup-swal-text'
+                            }
                         });
                     } else {
                         Swal.fire({
@@ -679,7 +684,12 @@ echo htmlspecialchars($user_data['google_id'] ?? '', ENT_QUOTES); ?>" disabled>
                             title: 'เกิดข้อผิดพลาด',
                             text: response.message || 'ไม่สามารถบันทึกข้อมูลได้',
                             confirmButtonText: 'ตกลง',
-                            confirmButtonColor: '#d33'
+                            confirmButtonColor: '#d33',
+                            customClass: {
+                                popup: 'levelup-swal-popup',
+                                title: 'levelup-swal-title',
+                                htmlContainer: 'levelup-swal-text'
+                            }
                         });
                     }
                 },
@@ -689,7 +699,12 @@ echo htmlspecialchars($user_data['google_id'] ?? '', ENT_QUOTES); ?>" disabled>
                         title: 'เกิดข้อผิดพลาด',
                         text: 'ไม่สามารถติดต่อเซิร์ฟเวอร์ได้',
                         confirmButtonText: 'ตกลง',
-                        confirmButtonColor: '#d33'
+                        confirmButtonColor: '#d33',
+                        customClass: {
+                            popup: 'levelup-swal-popup',
+                            title: 'levelup-swal-title',
+                            htmlContainer: 'levelup-swal-text'
+                        }
                     });
                 }
             });

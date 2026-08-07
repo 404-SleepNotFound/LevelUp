@@ -53,10 +53,9 @@ $(document).ready(function () {
                         background: theme.background,
                         color: theme.color,
                         customClass: {
-                            popup: 'swal2-border-custom'
-                        },
-                        willOpen: (toast) => {
-                            toast.style.border = theme.border;
+                            popup: 'levelup-swal-popup',
+                            title: 'levelup-swal-title',
+                            htmlContainer: 'levelup-swal-text'
                         }
                     });
                 } else {
@@ -85,8 +84,10 @@ $(document).ready(function () {
                     confirmButtonColor: '#ef4444',
                     background: theme.background,
                     color: theme.color,
-                    willOpen: (toast) => {
-                        toast.style.border = theme.border;
+                    customClass: {
+                        popup: 'levelup-swal-popup',
+                        title: 'levelup-swal-title',
+                        htmlContainer: 'levelup-swal-text'
                     }
                 });
             }

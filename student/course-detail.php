@@ -616,7 +616,7 @@ function getEmbedUrl($url)
                         <?php else: ?>
                             <button class="btn btn-outline-secondary rounded-pill px-3 py-2 btn-sm d-flex align-items-center gap-2"
                                 type="button"
-                                onclick="if(typeof Swal !== 'undefined') { Swal.fire({title: 'ไม่มีวิดีโอตัวอย่าง', text: 'ขออภัย คอร์สนี้ยังไม่มีการอัปโหลดวิดีโอแนะนำ', icon: 'info', confirmButtonColor: '#6366F1'}); } else { alert('ไม่มีวิดีโอตัวอย่าง: ขออภัย คอร์สนี้ยังไม่มีการอัปโหลดวิดีโอแนะนำ'); }">
+                                onclick="if(typeof Swal !== 'undefined') { Swal.fire({title: 'ไม่มีวิดีโอตัวอย่าง', text: 'ขออภัย คอร์สนี้ยังไม่มีการอัปโหลดวิดีโอแนะนำ', icon: 'info', confirmButtonColor: '#6366F1', customClass: { popup: 'levelup-swal-popup', title: 'levelup-swal-title', htmlContainer: 'levelup-swal-text' } }); } else { alert('ไม่มีวิดีโอตัวอย่าง: ขออภัย คอร์สนี้ยังไม่มีการอัปโหลดวิดีโอแนะนำ'); }">
                                 <i class="bi bi-play-circle-fill fs-5 text-secondary"></i> <span>ไม่มีวิดีโอตัวอย่าง</span>
                             </button>
                         <?php endif; ?>

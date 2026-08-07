@@ -796,7 +796,12 @@ if ($db) {
                         confirmButtonColor: '#6366F1',
                         cancelButtonColor: '#64748B',
                         confirmButtonText: 'เข้าสู่เควส',
-                        cancelButtonText: 'ยกเลิก'
+                        cancelButtonText: 'ยกเลิก',
+                        customClass: {
+                            popup: 'levelup-swal-popup',
+                            title: 'levelup-swal-title',
+                            htmlContainer: 'levelup-swal-text'
+                        }
                     }).then((result) => {
                         if (result.isConfirmed) {
                             window.location.href = `course_detail.php?id=${id}`;

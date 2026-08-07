@@ -433,30 +433,52 @@ if (!$isAjax):
                 }
             }
 
-            html[data-theme="dark"] .swal2-popup {
+            html[data-theme="dark"] .swal2-popup,
+            html[data-theme="dark"] .levelup-swal-popup,
+            html[data-theme="dark"] .swal2-border-custom {
                 background-color: #0f172a !important;
                 color: #f8fafc !important;
                 border: 1px solid #1e293b !important;
-                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
+                border-radius: 18px !important;
+                box-shadow: 0 20px 30px rgba(0, 0, 0, 0.55) !important;
             }
 
             html[data-theme="dark"] .swal2-title,
-            html[data-theme="dark"] .swal2-html-container,
-            html[data-theme="dark"] .swal2-content {
+            html[data-theme="dark"] .levelup-swal-title {
                 color: #f8fafc !important;
+                font-weight: 700 !important;
             }
 
-            html[data-theme="light"] .swal2-popup {
+            html[data-theme="dark"] .swal2-html-container,
+            html[data-theme="dark"] .levelup-swal-text {
+                color: #cbd5e1 !important;
+            }
+
+            html[data-theme="dark"] .swal2-icon.swal2-info { border-color: #38bdf8 !important; color: #38bdf8 !important; }
+            html[data-theme="dark"] .swal2-icon.swal2-success { border-color: #22c55e !important; color: #22c55e !important; }
+            html[data-theme="dark"] .swal2-icon.swal2-question { border-color: #8b5cf6 !important; color: #8b5cf6 !important; }
+            html[data-theme="dark"] .swal2-icon.swal2-warning { border-color: #f59e0b !important; color: #f59e0b !important; }
+            html[data-theme="dark"] .swal2-icon.swal2-error { border-color: #ef4444 !important; color: #ef4444 !important; }
+
+            html[data-theme="light"] .swal2-popup,
+            html[data-theme="light"] .levelup-swal-popup,
+            html[data-theme="light"] .swal2-border-custom {
                 background-color: #ffffff !important;
                 color: #0f172a !important;
                 border: 1px solid #e2e8f0 !important;
-                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+                border-radius: 18px !important;
+                box-shadow: 0 20px 30px rgba(15, 23, 42, 0.12) !important;
             }
 
             html[data-theme="light"] .swal2-title,
-            html[data-theme="light"] .swal2-html-container,
-            html[data-theme="light"] .swal2-content {
+            html[data-theme="light"] .levelup-swal-title {
                 color: #0f172a !important;
+                font-weight: 700 !important;
+            }
+
+            html[data-theme="light"] .swal2-html-container,
+            html[data-theme="light"] .levelup-swal-text {
+                color: #475569 !important;
             }
         </style>
 
