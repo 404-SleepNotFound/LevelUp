@@ -5,8 +5,7 @@ This file defines a shared design system for dropdowns and select inputs
 used across the LevelUp platform.
 */
 
-/* STREAMING_CHUNK:Defining Shared Select Styling... /
-/ -----------------------------------------------------------------
+/* -----------------------------------------------------------------
 
 Shared Select Styling
 
@@ -52,11 +51,10 @@ opacity: 0.8;
 cursor: not-allowed;
 }
 
-/* STREAMING_CHUNK:Configuring Shared Dropdown Menu Styling... /
-/ -----------------------------------------------------------------
+/* -----------------------------------------------------------------
 2. Shared Dropdown Menu Styling
 
-/
+*/
 .dropdown-menu,
 .lu-dropdown-menu {
 background-color: rgba(15, 23, 42, 0.96);
@@ -66,7 +64,6 @@ min-width: 260px;
 max-width: 420px;
 box-sizing: border-box;
 max-width: min(420px, calc(100vw - 24px));
-/ Fixed: Adjusted padding to be symmetrical left and right */
 padding: 0.75rem 0.5rem;
 box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
 color: var(--nav-text);
@@ -99,22 +96,22 @@ transform: translateY(0);
 display: flex;
 align-items: center;
 gap: 0.9rem;
-/* Fixed: Adjusted inner padding for symmetry */
 padding: 1rem 1.3rem;
 color: var(--nav-text);
 font-size: 0.95rem;
 border-radius: 16px;
 margin: 0 0.75rem 0.35rem;
+/* Fixed: หักลบ margin ซ้าย(0.75) และขวา(0.75) ออกจากความกว้าง เพื่อไม่ให้ทะลุกรอบ */
+width: calc(100% - 1.5rem);
 transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Keep dropdowns within viewport on small screens and when aligned to end /
+/* Keep dropdowns within viewport on small screens and when aligned to end */
 .dropdown-menu.dropdown-menu-end,
 .lu-dropdown-menu.dropdown-menu-end {
 right: 0;
 left: auto;
 transform: none;
-/ Fixed: Reset padding-right to maintain symmetry when aligned end */
 padding-right: 0.5rem;
 }
 
@@ -125,8 +122,7 @@ max-width: min(460px, calc(100vw - 48px));
 box-sizing: border-box;
 }
 
-/* STREAMING_CHUNK:Setting up Mobile Responsiveness and Modifiers... /
-/ On very small screens, keep the menu centered and inside the viewport */
+/* On very small screens, keep the menu centered and inside the viewport */
 @media (max-width: 576px) {
 .dropdown-menu,
 .lu-dropdown-menu,
@@ -173,16 +169,15 @@ max-width: min(720px, calc(100vw - 48px)) !important;
 box-sizing: border-box !important;
 }
 
-/* Utility to hide internal scrollbar for short dropdowns where scrolling isn't needed /
+/* Utility to hide internal scrollbar for short dropdowns where scrolling isn't needed */
 .lu-dropdown--no-scroll .dropdown-menu,
 .lu-dropdown--no-scroll .lu-dropdown-menu,
 .lu-dropdown--no-scroll .custom-dropdown-menu {
 overflow-y: visible !important;
 max-height: none !important;
-padding-right: 0.5rem !important; / tighten padding when no scrollbar */
+padding-right: 0.5rem !important;
 }
 
-/* STREAMING_CHUNK:Styling Hover States and Dividers... */
 .dropdown-item:last-child,
 .lu-dropdown-item:last-child {
 margin-bottom: 0;
@@ -194,7 +189,6 @@ margin-bottom: 0;
 .lu-dropdown-item:focus {
 background-color: rgba(99, 102, 241, 0.14);
 color: var(--nav-text);
-/* Fixed: Removed transform: translateX(2px) to prevent layout shift */
 }
 
 .dropdown-item.active,
@@ -224,8 +218,7 @@ border-color: rgba(148, 163, 184, 0.18);
 margin: 0.5rem 0;
 }
 
-/* STREAMING_CHUNK:Formatting Button Dropdown Triggers... /
-/ -----------------------------------------------------------------
+/* -----------------------------------------------------------------
 3. Button Dropdown Triggers
 
 */
@@ -265,8 +258,7 @@ background-color: rgba(6, 182, 212, 0.14);
 box-shadow: 0 0 18px rgba(6, 182, 212, 0.18);
 }
 
-/* STREAMING_CHUNK:Applying Theme-specific Overrides... /
-/ -----------------------------------------------------------------
+/* -----------------------------------------------------------------
 4. Theme-specific Overrides
 
 */
@@ -304,8 +296,7 @@ html[data-theme="light"] .btn-dropdown-trigger:focus {
 background-color: rgba(99, 102, 241, 0.08);
 }
 
-/* STREAMING_CHUNK:Customizing Filter Dropdowns... /
-/ -----------------------------------------------------------------
+/* -----------------------------------------------------------------
 5. Custom Filter Dropdowns (Centralized)
 
 */
@@ -335,7 +326,6 @@ background-color: rgba(99, 102, 241, 0.08) !important;
 
 .custom-filter-dropdown .dropdown-menu {
 border-radius: 20px !important;
-/* Fixed: Adjusted padding for custom filter dropdowns for symmetry */
 padding: 0.9rem 0.6rem !important;
 min-width: 340px !important;
 max-width: 460px !important;
@@ -388,11 +378,10 @@ background-color: #06b6d4 !important;
 border-color: #06b6d4 !important;
 }
 
-/* STREAMING_CHUNK:Styling Custom Sort Dropdown Items... /
-/ -----------------------------------------------------------------
+/* -----------------------------------------------------------------
 6. Custom Sort Dropdown Item Styles
 
-*/
+/
 .dropdown-item-custom,
 .lu-dropdown-item {
 color: var(--nav-text) !important;
@@ -405,13 +394,13 @@ display: flex !important;
 align-items: center !important;
 justify-content: space-between !important;
 gap: 0.75rem !important;
-margin: 0 0.7rem 0.35rem;
+margin: 0 0.75rem 0.35rem !important; / จัด margin ให้เท่ากับเมนูหลัก /
+width: calc(100% - 1.5rem) !important; / หักลบ margin เพื่อแก้กล่องทะลุ */
 }
 
 .dropdown-item-custom:hover,
 .lu-dropdown-item:hover {
 background-color: rgba(99, 102, 241, 0.14) !important;
-/* Fixed: Removed transform: translateX(2px) !important; */
 }
 
 .dropdown-item-custom.active,
@@ -423,8 +412,7 @@ border-left: 4px solid var(--lv-cyan) !important;
 padding-left: 1.05rem !important;
 }
 
-/* STREAMING_CHUNK:Implementing Custom Dropdown Builder Styles... /
-/ -----------------------------------------------------------------
+/* -----------------------------------------------------------------
 7. Custom Dropdown Builder Styles
 
 */
@@ -472,8 +460,7 @@ border-color: rgba(99, 102, 241, 0.3) !important;
 color: #f8fafc !important;
 }
 
-/* STREAMING_CHUNK:Finalizing Interactive Dropdown Features... /
-/ -----------------------------------------------------------------
+/* -----------------------------------------------------------------
 8. Custom Interactive Dropdown Builder
 
 */
@@ -517,7 +504,6 @@ opacity: 0;
 visibility: hidden;
 transform: translateY(-12px);
 transition: opacity 0.24s ease, transform 0.24s ease, visibility 0.24s ease;
-/* Fixed: Adjusted padding for custom interactive dropdowns */
 padding: 0.5rem;
 max-height: 420px;
 overflow-y: auto;
@@ -540,6 +526,7 @@ color: var(--body-text);
 cursor: pointer;
 transition: background-color 0.2s ease, box-shadow 0.2s ease;
 margin: 0 0.85rem 0.4rem;
+width: calc(100% - 1.7rem); /* Fixed: หักลบ margin (0.85 * 2) เพื่อไม่ให้ทะลุกรอบ */
 background: rgba(255, 255, 255, 0.02);
 }
 
@@ -549,7 +536,6 @@ margin-bottom: 0;
 
 .custom-dropdown-item:hover {
 background: rgba(99, 102, 241, 0.14);
-/* Fixed: Removed transform: translateX(3px); */
 box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
 }
 
