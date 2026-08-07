@@ -38,19 +38,22 @@ $currentQuest = [
 // ---------------------------------------------------
 // ข้อมูลหมวดหมู่หลัก (Skill Trees - 12 หมวดหมู่)
 // ---------------------------------------------------
+// หมายเหตุ: key 'id' ต้องตรงกับ id ในตาราง `category` ของฐานข้อมูล
+// เพื่อใช้จับคู่นับจำนวนคอร์ส (บทเรียน) จริงจากตาราง `course` (category_id)
+// ค่า count เริ่มต้นเป็น 0 แล้วจะถูกแทนที่ด้วยตัวเลขจริงจาก DB ด้านล่าง
 $category_data = [
-    ['name' => 'Dev', 'icon' => 'bi-code-slash', 'color' => '#10B981', 'count' => 12],
-    ['name' => 'การตลาดดิจิทัล', 'icon' => 'bi-megaphone', 'color' => '#F59E0B', 'count' => 15],
-    ['name' => 'ดีไซน์ & กราฟิก', 'icon' => 'bi-palette', 'color' => '#EC4899', 'count' => 18],
-    ['name' => 'ธุรกิจ & การจัดการ', 'icon' => 'bi-briefcase', 'color' => '#3B82F6', 'count' => 20],
-    ['name' => 'ภาษาต่างประเทศ', 'icon' => 'bi-translate', 'color' => '#06B6D4', 'count' => 10],
-    ['name' => 'ถ่ายภาพ & ตัดต่อวิดีโอ', 'icon' => 'bi-camera-video', 'color' => '#F97316', 'count' => 8],
-    ['name' => 'วิทยาศาสตร์ข้อมูล & AI', 'icon' => 'bi-cpu', 'color' => '#6366F1', 'count' => 14],
-    ['name' => 'การเงิน & การลงทุน', 'icon' => 'bi-graph-up-arrow', 'color' => '#10B981', 'count' => 9],
-    ['name' => 'พัฒนาตนเอง', 'icon' => 'bi-journal-bookmark', 'color' => '#8B5CF6', 'count' => 16],
-    ['name' => 'ดนตรี & เสียง', 'icon' => 'bi-music-note-beamed', 'color' => '#E11D48', 'count' => 7],
-    ['name' => 'เขียนโปรแกรม & พัฒนาเว็บ', 'icon' => 'bi-code-square', 'color' => '#0284C7', 'count' => 22],
-    ['name' => 'เกม & 3D แอนิเมชัน', 'icon' => 'bi-controller', 'color' => '#A855F7', 'count' => 11]
+    ['id' => 1,  'name' => 'Dev', 'icon' => 'bi-code-slash', 'color' => '#10B981', 'count' => 0],
+    ['id' => 2,  'name' => 'การตลาดดิจิทัล', 'icon' => 'bi-megaphone', 'color' => '#F59E0B', 'count' => 0],
+    ['id' => 3,  'name' => 'ดีไซน์ & กราฟิก', 'icon' => 'bi-palette', 'color' => '#EC4899', 'count' => 0],
+    ['id' => 4,  'name' => 'ธุรกิจ & การจัดการ', 'icon' => 'bi-briefcase', 'color' => '#3B82F6', 'count' => 0],
+    ['id' => 5,  'name' => 'ภาษาต่างประเทศ', 'icon' => 'bi-translate', 'color' => '#06B6D4', 'count' => 0],
+    ['id' => 6,  'name' => 'ถ่ายภาพ & ตัดต่อวิดีโอ', 'icon' => 'bi-camera-video', 'color' => '#F97316', 'count' => 0],
+    ['id' => 7,  'name' => 'วิทยาศาสตร์ข้อมูล & AI', 'icon' => 'bi-cpu', 'color' => '#6366F1', 'count' => 0],
+    ['id' => 8,  'name' => 'การเงิน & การลงทุน', 'icon' => 'bi-graph-up-arrow', 'color' => '#10B981', 'count' => 0],
+    ['id' => 9,  'name' => 'พัฒนาตนเอง', 'icon' => 'bi-journal-bookmark', 'color' => '#8B5CF6', 'count' => 0],
+    ['id' => 10, 'name' => 'ดนตรี & เสียง', 'icon' => 'bi-music-note-beamed', 'color' => '#E11D48', 'count' => 0],
+    ['id' => 11, 'name' => 'เขียนโปรแกรม & พัฒนาเว็บ', 'icon' => 'bi-code-square', 'color' => '#0284C7', 'count' => 0],
+    ['id' => 12, 'name' => 'เกม & 3D แอนิเมชัน', 'icon' => 'bi-controller', 'color' => '#A855F7', 'count' => 0]
 ];
 
 // ---------------------------------------------------
@@ -66,6 +69,32 @@ if (file_exists($ROOT_PATH . 'config/db.php')) {
 
 $db = $conn ?? $pdo ?? null;
 $fallbackImg = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=600&auto=format&fit=crop';
+
+// ---------------------------------------------------
+// 2.1 นับจำนวนบทเรียน (คอร์ส) จริงต่อหมวดหมู่ จากตาราง `course`
+// ---------------------------------------------------
+if ($db && $db instanceof PDO) {
+    try {
+        $countSql  = "SELECT `category_id`, COUNT(`category_id`) AS `total_count` FROM `course` GROUP BY `category_id`";
+        $countStmt = $db->prepare($countSql);
+        $countStmt->execute();
+        $countRows = $countStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // สร้าง map [category_id => total_count]
+        $courseCountMap = [];
+        foreach ($countRows as $row) {
+            $courseCountMap[(int)$row['category_id']] = (int)$row['total_count'];
+        }
+
+        // แทนค่า count เดิม (0) ด้วยจำนวนจริงจาก DB โดยจับคู่ตาม id
+        foreach ($category_data as &$cat) {
+            $cat['count'] = $courseCountMap[$cat['id']] ?? 0;
+        }
+        unset($cat);
+    } catch (PDOException $e) {
+        error_log("Error counting courses per category: " . $e->getMessage());
+    }
+}
 
 if ($db && $db instanceof PDO) {
     try {
