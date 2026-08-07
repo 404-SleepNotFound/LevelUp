@@ -5,28 +5,75 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 ?>
 
 <style>
+    /* 🌓 LIGHT / DARK MODE CSS VARIABLES FOR COURSE ANALYTICS */
+    :root, html[data-theme="dark"], [data-bs-theme="dark"] {
+        --ca-bg-main: #0b0f19;
+        --ca-card-bg: rgba(16, 24, 48, 0.65);
+        --ca-card-border: rgba(255, 255, 255, 0.08);
+        --ca-text-main: #f8fafc;
+        --ca-text-muted: #94a3b8;
+        --ca-text-sub: rgba(255, 255, 255, 0.65);
+        --ca-kpi-bg: rgba(30, 41, 59, 0.4);
+        --ca-kpi-hover: rgba(30, 41, 59, 0.6);
+        --ca-kpi-border: rgba(255, 255, 255, 0.06);
+        --ca-table-th: rgba(255, 255, 255, 0.45);
+        --ca-table-border: rgba(255, 255, 255, 0.06);
+        --ca-table-hover: rgba(255, 255, 255, 0.03);
+        --ca-subcard-bg: rgba(0, 0, 0, 0.3);
+        --ca-subcard-border: rgba(255, 255, 255, 0.1);
+        --ca-heatmap-empty: rgba(255, 255, 255, 0.05);
+        --ca-cyan: #06b6d4;
+    }
+
+    html[data-theme="light"], [data-bs-theme="light"] {
+        --ca-bg-main: #f8fafc;
+        --ca-card-bg: #ffffff;
+        --ca-card-border: #e2e8f0;
+        --ca-text-main: #0f172a;
+        --ca-text-muted: #64748b;
+        --ca-text-sub: #475569;
+        --ca-kpi-bg: #f8fafc;
+        --ca-kpi-hover: #f1f5f9;
+        --ca-kpi-border: #cbd5e1;
+        --ca-table-th: #64748b;
+        --ca-table-border: #f1f5f9;
+        --ca-table-hover: rgba(0, 0, 0, 0.02);
+        --ca-subcard-bg: #f1f5f9;
+        --ca-subcard-border: #e2e8f0;
+        --ca-heatmap-empty: #e2e8f0;
+        --ca-cyan: #0891b2;
+    }
+
+    body {
+        background-color: var(--ca-bg-main) !important;
+        color: var(--ca-text-main) !important;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
     /* Scope Course Analytics Styles */
     .analytics-container {
         animation: fadeInAnalytics 0.4s ease-in-out;
         width: 100%;
         overflow-x: hidden;
-        color: #f8fafc;
+        color: var(--ca-text-main);
+        transition: color 0.3s ease;
     }
     
     .analytics-section-card {
-        background: rgba(16, 24, 48, 0.65);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: var(--ca-card-bg);
+        border: 1px solid var(--ca-card-border);
         border-radius: 16px;
         padding: 20px; 
         margin-bottom: 24px;
         backdrop-filter: blur(10px);
+        transition: background 0.3s ease, border-color 0.3s ease;
     }
     
     .section-title {
         font-size: 1.05rem;
         font-weight: 600;
-        color: #f8fafc;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        color: var(--ca-text-main);
+        border-bottom: 1px solid var(--ca-card-border);
         padding-bottom: 14px;
         margin-bottom: 20px;
         display: flex;
@@ -39,35 +86,56 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         gap: 10px;
     }
 
-    .text-muted { color: rgba(255, 255, 255, 0.55) !important; }
-    .text-white-50 { color: rgba(255, 255, 255, 0.65) !important; }
+    .analytics-container .text-muted { color: var(--ca-text-muted) !important; }
+    .analytics-container .text-white-50 { color: var(--ca-text-sub) !important; }
+    .text-cyan { color: var(--ca-cyan) !important; }
+
+    /* ☀️ Overrides for Light Mode */
+    html[data-theme="light"] .analytics-container .text-white,
+    [data-bs-theme="light"] .analytics-container .text-white { 
+        color: var(--ca-text-main) !important; 
+    }
+    html[data-theme="light"] .analytics-container .bg-dark,
+    [data-bs-theme="light"] .analytics-container .bg-dark { 
+        background-color: var(--ca-subcard-bg) !important; 
+    }
+    html[data-theme="light"] .analytics-container .bg-black,
+    [data-bs-theme="light"] .analytics-container .bg-black { 
+        background-color: var(--ca-subcard-bg) !important; 
+    }
+    html[data-theme="light"] .analytics-container .border-secondary,
+    html[data-theme="light"] .analytics-container .border-white,
+    [data-bs-theme="light"] .analytics-container .border-secondary,
+    [data-bs-theme="light"] .analytics-container .border-white { 
+        border-color: var(--ca-subcard-border) !important; 
+    }
 
     /* KPI Cards */
     .kpi-card {
-        background: rgba(30, 41, 59, 0.4);
-        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: var(--ca-kpi-bg);
+        border: 1px solid var(--ca-kpi-border);
         border-radius: 14px;
         padding: 18px;
-        transition: transform 0.2s;
+        transition: transform 0.2s, background 0.3s, border-color 0.3s;
     }
-    .kpi-card:hover { background: rgba(30, 41, 59, 0.6); }
+    .kpi-card:hover { background: var(--ca-kpi-hover); }
 
     /* -------------------------------------
-       [UPDATED] Modern Analytics Table (Transparent & Mobile Card)
+       Modern Analytics Table
        ------------------------------------- */
     .modern-analytics-table {
         width: 100%;
         border-collapse: collapse;
-        color: #f8fafc;
+        color: var(--ca-text-main);
         font-family: monospace;
         font-size: 0.9rem;
     }
     
     .modern-analytics-table th {
         font-weight: 500;
-        color: rgba(255, 255, 255, 0.45);
+        color: var(--ca-table-th);
         padding: 12px 16px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid var(--ca-card-border);
         text-align: left;
     }
     
@@ -78,16 +146,17 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     .modern-analytics-table td {
         padding: 18px 16px;
         vertical-align: middle;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        border-bottom: 1px solid var(--ca-table-border);
         transition: background 0.2s;
+        color: var(--ca-text-main);
     }
     
     .modern-analytics-table tbody tr:hover td {
-        background: rgba(255, 255, 255, 0.03);
+        background: var(--ca-table-hover);
     }
 
     /* -------------------------------------
-       [UPDATED] Thermal Heatmap (Green-Yellow-Red)
+       Thermal Heatmap (Green-Yellow-Red)
        ------------------------------------- */
     .heatmap-grid-container {
         margin-top: 20px;
@@ -101,12 +170,12 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     .heatmap-cell {
         aspect-ratio: 1; 
         border-radius: 4px; 
-        background: rgba(255, 255, 255, 0.05); /* ระดับ 0: ไม่มีคน */
+        background: var(--ca-heatmap-empty); /* ระดับ 0: ไม่มีคน */
         transition: transform 0.1s;
     }
     .heatmap-cell:hover {
         transform: scale(1.1);
-        border: 1px solid rgba(255,255,255,0.5);
+        border: 1px solid var(--ca-text-muted);
     }
     
     /* สี Heatmap โทน เขียว-เหลือง-แดง */
@@ -120,7 +189,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         justify-content: space-between;
         margin-top: 8px;
         padding: 0 2px;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--ca-text-muted);
         font-family: monospace;
         font-size: 0.75rem;
     }
@@ -136,7 +205,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         .heatmap-grid { gap: 2px; }
         .heatmap-cell { border-radius: 2px; }
         
-        /* ปรับตารางเป็น Card Layout ในมือถือ ไม่ให้ชนขอบ */
         .modern-analytics-table, 
         .modern-analytics-table tbody, 
         .modern-analytics-table tr, 
@@ -148,8 +216,8 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             display: none;
         }
         .modern-analytics-table tbody tr {
-            background: rgba(30, 41, 59, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: var(--ca-kpi-bg);
+            border: 1px solid var(--ca-kpi-border);
             border-radius: 12px;
             margin-bottom: 16px;
             padding: 16px;
@@ -168,7 +236,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         .modern-analytics-table td:nth-child(1) {
             font-weight: 600;
             font-size: 1rem;
-            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+            border-bottom: 1px dashed var(--ca-card-border);
             padding-bottom: 12px;
             margin-bottom: 8px;
         }
@@ -237,7 +305,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                     <span><i class="bi bi-cpu-fill text-info"></i> 4, 5, 6, 7. รายละเอียดเจาะลึกระบบย่อยในคอร์ส</span>
                 </div>
                 
-                <!-- ตารางแบบใหม่ (ไม่มีขอบทึบ กลืนไปกับพื้นหลัง) -->
+                <!-- ตารางแบบใหม่ -->
                 <div class="px-md-2">
                     <table class="modern-analytics-table">
                         <thead>
