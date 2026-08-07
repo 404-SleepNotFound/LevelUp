@@ -6,13 +6,15 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 ?>
 
 <style>
-    /* Scope Editor Styles ให้เข้ากับ Premium Dark Theme ของหน้าหลัก */
+    /* Scope Editor Styles ให้เข้ากับ Premium Dark/Light Theme */
     .editor-container {
         animation: fadeInEditor 0.35s ease-in-out;
     }
+    
+    /* ดึงตัวแปร --card-bg และ --card-border มาใช้ รองรับการสลับโหมดอัตโนมัติ */
     .editor-section-card {
-        background: rgba(16, 24, 48, 0.65);
-        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: var(--card-bg, rgba(16, 24, 48, 0.65));
+        border: 1px solid var(--card-border, rgba(255, 255, 255, 0.06));
         border-radius: 16px;
         padding: 24px;
         margin-bottom: 24px;
@@ -21,8 +23,8 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     .section-title {
         font-size: 1.1rem;
         font-weight: 600;
-        color: #f8fafc;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        color: var(--body-text, #f8fafc);
+        border-bottom: 1px solid var(--card-border, rgba(255, 255, 255, 0.08));
         padding-bottom: 12px;
         margin-bottom: 20px;
         display: flex;
@@ -35,17 +37,19 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
     /* 🛠️ ล้างระบบกล่องจม: แก้ไข Input, Select, Textarea ทุกกล่องในหน้าจอ */
     .form-control-premium {
-        background: rgba(15, 23, 42, 0.8) !important;
-        border: 1px solid rgba(255, 255, 255, 0.12) !important;
-        color: #f8fafc !important;
+        background: var(--nav-input-bg, rgba(15, 23, 42, 0.8)) !important;
+        border: 1px solid var(--nav-input-border, rgba(255, 255, 255, 0.12)) !important;
+        color: var(--body-text, #f8fafc) !important;
         border-radius: 10px;
         padding: 10px 14px !important; /* เพิ่มพื้นที่แนวตั้งกันตัวอักษรไทยจม */
         line-height: 1.6 !important; /* เว้นระยะบรรทัดภาษาไทยให้หายใจออก */
         min-height: 46px; /* กำหนดความสูงขั้นต่ำที่ปลอดภัย */
+        transition: all 0.3s ease;
     }
     .form-control-premium:focus {
         border-color: #06b6d4 !important;
         box-shadow: 0 0 0 0.25rem rgba(6, 182, 212, 0.15) !important;
+        background: var(--card-bg, #0f172a) !important;
     }
     
     /* แก้ไข Textarea ดึงพื้นที่แถวให้กว้างและไม่อุดอู้ */
@@ -65,33 +69,66 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
     /* สไตล์สีตัวหนังสือและ Placeholder ให้ลอยเด่นเห็นชัดเจน */
     .form-label-premium {
-        color: #cbd5e1 !important; /* เปลี่ยนจากสีมืดเป็นสีเทาสว่าง */
+        color: var(--nav-text-muted, #cbd5e1) !important; 
         font-weight: 500;
         margin-bottom: 6px;
         font-size: 0.88rem;
     }
     .form-control-premium::placeholder {
-        color: #64748b !important;
+        color: var(--nav-text-muted, #64748b) !important;
     }
 
     .block-unit-item {
-        background: rgba(0, 0, 0, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: var(--nav-dropdown-bg, rgba(0, 0, 0, 0.3));
+        border: 1px solid var(--nav-dropdown-border, rgba(255, 255, 255, 0.1));
         border-radius: 12px;
         padding: 18px;
         margin-bottom: 12px;
         cursor: grab;
     }
     .block-unit-item:active { cursor: grabbing; }
+    
     .rich-editor-toolbar .btn {
-        color: #cbd5e1;
-        border-color: rgba(255, 255, 255, 0.1);
+        color: var(--nav-text-muted, #cbd5e1);
+        border-color: var(--nav-dropdown-border, rgba(255, 255, 255, 0.1));
         padding: 6px 12px;
     }
     .rich-editor-toolbar .btn:hover {
-        color: #fff;
-        background: rgba(255, 255, 255, 0.08);
+        color: var(--nav-dropdown-hover-text, #fff);
+        background: var(--nav-dropdown-hover-bg, rgba(255, 255, 255, 0.08));
     }
+
+    /* =========================================================
+       ☀️ LIGHT MODE OVERRIDES: บังคับเปลี่ยนสีคลาสของ Bootstrap 
+       เฉพาะในหน้า Lesson Editor เมื่อปรับเป็นโหมดสว่าง
+       ========================================================= */
+    html[data-theme="light"] .editor-container .text-white,
+    html[data-theme="light"] .modal .text-white { color: #0f172a !important; }
+    
+    html[data-theme="light"] .editor-container .text-white-50,
+    html[data-theme="light"] .modal .text-white-50 { color: #64748b !important; }
+    
+    html[data-theme="light"] .editor-container .bg-dark { background-color: #f1f5f9 !important; }
+    html[data-theme="light"] .editor-container .bg-black { background-color: #e2e8f0 !important; }
+    
+    html[data-theme="light"] .editor-container .btn-dark { 
+        background-color: #ffffff !important; 
+        color: #0f172a !important; 
+        border-color: #cbd5e1 !important; 
+    }
+    html[data-theme="light"] .editor-container .btn-dark:hover { background-color: #f1f5f9 !important; }
+    html[data-theme="light"] .editor-container .border-secondary { border-color: #cbd5e1 !important; }
+    html[data-theme="light"] .editor-container .text-muted { color: #64748b !important; }
+
+    /* แก้ไข UI ส่วนจำลองจอแสดงผล (Preview Modal) ให้รองรับ Light Mode */
+    html[data-theme="light"] #livePreviewModal .modal-content { background-color: #ffffff !important; color: #0f172a !important; border-color: #e2e8f0 !important; }
+    html[data-theme="light"] #livePreviewModal .modal-header { background-color: #f8fafc !important; border-bottom-color: #e2e8f0 !important; }
+    html[data-theme="light"] #livePreviewModal .modal-body { background-color: #f1f5f9 !important; }
+    html[data-theme="light"] #livePreviewModal .bg-dark { background-color: #ffffff !important; }
+    html[data-theme="light"] #livePreviewModal .bg-black { background-color: #e2e8f0 !important; }
+    html[data-theme="light"] #preview-viewport-box { background-color: #ffffff !important; border-color: #cbd5e1 !important; }
+    html[data-theme="light"] .btn-close-white { filter: invert(1) grayscale(100%) brightness(200%); }
+
     @keyframes fadeInEditor {
         from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }
