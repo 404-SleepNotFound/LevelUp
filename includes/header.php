@@ -538,7 +538,7 @@ if (!$isAjax):
                         <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1 align-items-start align-items-lg-center">
                             <li class="nav-item"><a class="nav-link lu-nav-link ajax-link" href="<?= $ROOT_PATH ?? '' ?>student/courses.php"><i class="bi bi-journal-code me-1"></i> Quests</a></li>
                             <li class="nav-item"><a class="nav-link lu-nav-link ajax-link" href="<?= $ROOT_PATH ?? '' ?>student/learning-path.php"><i class="bi bi-map me-1"></i> Roadmaps</a></li>
-                            <li class="nav-item dropdown">
+                            <li class="nav-item dropdown lu-dropdown--no-scroll">
                                 <a class="nav-link lu-nav-link dropdown-toggle" href="#" id="labsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-flask me-1"></i> Labs</a>
                                 <ul class="dropdown-menu user-dropdown-menu border-0 shadow mt-2" aria-labelledby="labsDropdown">
                                     <li><a class="dropdown-item lu-dropdown-item ajax-link" href="<?= $ROOT_PATH ?? '' ?>student/coding-lab.php"><i class="bi bi-terminal me-2"></i> Coding Lab</a></li>

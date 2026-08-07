@@ -149,6 +149,15 @@
     box-sizing: border-box !important;
 }
 
+/* Utility to hide internal scrollbar for short dropdowns where scrolling isn't needed */
+.lu-dropdown--no-scroll .dropdown-menu,
+.lu-dropdown--no-scroll .lu-dropdown-menu,
+.lu-dropdown--no-scroll .custom-dropdown-menu {
+    overflow-y: visible !important;
+    max-height: none !important;
+    padding-right: 0.5rem !important; /* tighten padding when no scrollbar */
+}
+
 .dropdown-item:last-child,
 .lu-dropdown-item:last-child {
     margin-bottom: 0;
