@@ -41,7 +41,7 @@ $currentQuest = [
 // หมายเหตุ: key 'id' ต้องตรงกับ id ในตาราง `category` ของฐานข้อมูล
 // เพื่อใช้จับคู่นับจำนวนคอร์ส (บทเรียน) จริงจากตาราง `course` (category_id)
 // ค่า count เริ่มต้นเป็น 0 แล้วจะถูกแทนที่ด้วยตัวเลขจริงจาก DB ด้านล่าง
-$category_data = [
+$skilltree_categories = [
     ['id' => 1,  'name' => 'Dev', 'icon' => 'bi-code-slash', 'color' => '#10B981', 'count' => 0],
     ['id' => 2,  'name' => 'การตลาดดิจิทัล', 'icon' => 'bi-megaphone', 'color' => '#F59E0B', 'count' => 0],
     ['id' => 3,  'name' => 'ดีไซน์ & กราฟิก', 'icon' => 'bi-palette', 'color' => '#EC4899', 'count' => 0],
@@ -104,7 +104,7 @@ if ($db instanceof PDO) {
 
 // แทนค่า count เดิม (0) ด้วยจำนวนจริงจาก DB โดยจับคู่ตาม id
 if (!empty($courseCountMap)) {
-    foreach ($category_data as &$cat) {
+    foreach ($skilltree_categories as &$cat) {
         $cat['count'] = $courseCountMap[$cat['id']] ?? 0;
     }
     unset($cat);
@@ -610,12 +610,12 @@ if (file_exists($ROOT_PATH . 'includes/header.php')) {
         </div>
 
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3 justify-content-center" id="category-grid-container">
-            <!-- DEBUG render-time category_data: <?= htmlspecialchars(json_encode($category_data, JSON_UNESCAPED_UNICODE)) ?> -->
+            <!-- DEBUG render-time category_data: <?= htmlspecialchars(json_encode($skilltree_categories, JSON_UNESCAPED_UNICODE)) ?> -->
             <?php
             $rendered_categories = [];
             $seen_names = [];
-            if (!empty($category_data) && is_array($category_data)) {
-                foreach ($category_data as $cat) {
+            if (!empty($skilltree_categories) && is_array($skilltree_categories)) {
+                foreach ($skilltree_categories as $cat) {
                     $catName = trim($cat['name'] ?? '');
                     if (!empty($catName) && !isset($seen_names[$catName])) {
                         $seen_names[$catName] = true;
