@@ -4,6 +4,10 @@ $ROOT_PATH = '../';
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 ?>
 
+<!-- 🎨 External Header CSS Resources -->
+<link rel="stylesheet" href="<?php echo $ROOT_PATH; ?>css/dropdown-select.css">
+<link rel="stylesheet" href="<?php echo $ROOT_PATH; ?>css/custom-scrollbar.css">
+
 <style>
     /* 🎨 CSS Variables Dynamic Theme (Light & Dark Mode) */
     :root, html[data-theme="dark"] {
