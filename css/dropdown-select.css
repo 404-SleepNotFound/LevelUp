@@ -56,6 +56,11 @@ used across the LevelUp platform.
 ----------------------------------------------------------------- */
 .dropdown-menu,
 .lu-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: auto;
+  margin-top: 0.5rem;
   background-color: rgba(15, 23, 42, 0.96);
   border: 1px solid rgba(99, 102, 241, 0.18);
   border-radius: 22px;
@@ -72,6 +77,16 @@ used across the LevelUp platform.
   overflow-x: hidden;
   overscroll-behavior: contain;
 }
+
+/* NOTE: Bootstrap's own CSS only sets top:100%/left:0 via the
+   `.dropdown-menu[data-bs-popper]` selector, and that attribute is added
+   BY Popper itself. Any trigger using data-bs-display="static" (all 3
+   filter dropdowns in courses.php) intentionally disables Popper, so
+   that attribute is never present and the menu was falling back to its
+   default in-flow "static" position inside the flex filter bar - hence
+   it rendering far from its trigger button. Setting position/top/left
+   explicitly here (not gated on [data-bs-popper]) fixes it for both
+   Popper-positioned and static-positioned dropdowns. */
 
 .dropdown-menu.show,
 .lu-dropdown-menu.show {
@@ -316,6 +331,10 @@ html[data-theme="light"] .btn-dropdown-trigger:focus {
 .custom-filter-dropdown .btn-dropdown-trigger:focus {
   border-color: rgba(99, 102, 241, 0.45) !important;
   background-color: rgba(99, 102, 241, 0.08) !important;
+}
+
+.dropdown.custom-filter-dropdown {
+  position: relative;
 }
 
 .custom-filter-dropdown .dropdown-menu {
