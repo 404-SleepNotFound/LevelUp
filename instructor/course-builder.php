@@ -96,9 +96,6 @@ if (!$current_user_id) {
 <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css">
 
 <!-- SweetAlert2 Library & Handler -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="js/sweetalert_instructor.js"></script>
-
 <style>
     :root, html[data-theme="dark"] {
         --cb-bg: #0f172a;

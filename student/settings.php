@@ -1,27 +1,27 @@
-﻿<?php
+<?php
 $ROOT_PATH = '../';
 $pageTitle = "Settings | LevelUp";
-// เริ่มต้น Session เพื่อความปลอดภัย (หากยังไม่เริ่ม)
+// ������� Session ���ͤ�����ʹ��� (�ҡ�ѧ��������)
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// 💡 เทคนิค Output Buffering: ดักจับการเรนเดอร์ของ header.php ชั่วคราว
+// ?? ෤�Ԥ Output Buffering: �ѡ�Ѻ����ù����ͧ header.php ���Ǥ���
 ob_start();
 include '../includes/header.php';
 $header_html = ob_get_clean();
 
-// 💡 เตรียม Script และ Style ทั้งหมดเพื่อยัดเข้าไปใน <head>
+// ?? ����� Script ��� Style �����������Ѵ����� <head>
 $head_injection = <<<'EOT'
-<!-- สคริปต์บังคับโหลดธีมสีดำ (Dark Mode) และป้องกัน White Flash 100% -->
+<!-- ʤ�Ի��ѧ�Ѻ��Ŵ����մ� (Dark Mode) ��л�ͧ�ѹ White Flash 100% -->
 <script>
     (function() {
-        // 1. เซ็ต Theme ทันทีที่สคริปต์รัน
+        // 1. �� Theme �ѹ�շ��ʤ�Ի���ѹ
         const savedTheme = localStorage.getItem('theme');
         const currentTheme = savedTheme ? savedTheme : 'dark';
         document.documentElement.setAttribute('data-theme', currentTheme);
         
-        // 2. รอให้โหลดหน้าเสร็จก่อน ค่อยเปิดการทำงานของ Transition 
+        // 2. �������Ŵ˹�����稡�͹ �����Դ��÷ӧҹ�ͧ Transition 
         window.addEventListener('DOMContentLoaded', function() {
             setTimeout(function() {
                 document.body.classList.add('theme-loaded');
@@ -30,17 +30,17 @@ $head_injection = <<<'EOT'
     })();
 </script>
 
-<!-- เก็บ Link เดิมไว้เผื่อมีสไตล์พื้นฐาน -->
+<!-- �� Link �����������������鹰ҹ -->
 <link rel="stylesheet" href="../assets/css/settings.css">
 
 <style>
     /* ===================================================
-       DESIGN SYSTEM OVERRIDES (อ้างอิงจากระบบ Light Mode หลัก)
+       DESIGN SYSTEM OVERRIDES (��ҧ�ԧ�ҡ�к� Light Mode ��ѡ)
        =================================================== */
     
-    /* 🌙 ตั้งค่าสีดำ (Dark Mode) เป็นค่าเริ่มต้นหลักของระบบ (:root) */
+    /* ?? ��駤���մ� (Dark Mode) �繤�����������ѡ�ͧ�к� (:root) */
     :root, html[data-theme="dark"] {
-        /* ชุดตัวแปรจาก Light Mode.txt */
+        /* �ش����èҡ Light Mode.txt */
         --lv-bg-dark: #0b0f19;
         --lv-card-bg: rgba(17, 24, 39, 0.7);
         --lv-border-glow: rgba(99, 102, 241, 0.2);
@@ -49,7 +49,7 @@ $head_injection = <<<'EOT'
         --lv-text-main: #f1f5f9;
         --lv-text-muted: #94a3b8;
 
-        /* ตัวแปรสีเพิ่มเติมเฉพาะหน้า Settings */
+        /* ��������������੾��˹�� Settings */
         --neon-indigo: #4F46E5;
         --neon-purple: #9333EA;
         --cyber-green: #10B981;
@@ -58,16 +58,16 @@ $head_injection = <<<'EOT'
         --input-bg: rgba(0, 0, 0, 0.2);
     }
 
-    /* ☀️ เพิ่ม CSS สำหรับหน้า Settings ตอนเปลี่ยนเป็นโหมดสว่าง */
+    /* ?? ���� CSS ����Ѻ˹�� Settings �͹����¹���������ҧ */
     html[data-theme="light"] {
-        /* ชุดตัวแปรจาก Light Mode.txt */
+        /* �ش����èҡ Light Mode.txt */
         --lv-bg-dark: #f8fafc;
         --lv-card-bg: rgba(255, 255, 255, 0.85);
         --lv-border-glow: rgba(99, 102, 241, 0.15);
         --lv-text-main: #0f172a;
         --lv-text-muted: #64748b;
 
-        /* ตัวแปรสีเพิ่มเติมเฉพาะหน้า Settings (ปรับให้เข้ากับโหมดสว่าง) */
+        /* ��������������੾��˹�� Settings (��Ѻ�����ҡѺ�������ҧ) */
         --neon-indigo: #4F46E5;
         --neon-purple: #9333EA;
         --cyber-green: #059669;
@@ -76,7 +76,7 @@ $head_injection = <<<'EOT'
         --input-bg: #ffffff;
     }
 
-    /* 🛠️ บังคับให้คลาส text-white และคลาสอื่นๆ กลับสีอัตโนมัติเมื่ออยู่ในโหมดสว่าง */
+    /* ??? �ѧ�Ѻ������ text-white ��Ф������� ��Ѻ���ѵ��ѵ������������������ҧ */
     html[data-theme="light"] .text-white {
         color: var(--lv-text-main) !important;
     }
@@ -98,7 +98,7 @@ $head_injection = <<<'EOT'
         filter: invert(1) grayscale(100%) brightness(0);
     }
 
-    /* อ้างอิงโครงสร้างจาก Light Mode.txt และ Settings เดิม */
+    /* ��ҧ�ԧ�ç���ҧ�ҡ Light Mode.txt ��� Settings ��� */
     body {
         background-color: var(--lv-bg-dark) !important;
         color: var(--lv-text-main) !important;
@@ -110,12 +110,12 @@ $head_injection = <<<'EOT'
         overflow-wrap: break-word;
     }
 
-    /* คลาสนี้จะถูกเติมเข้ามาผ่าน JavaScript หลังจากโหลดหน้าเสร็จแล้วเท่านั้น */
+    /* ���ʹ��ж١�������Ҽ�ҹ JavaScript ��ѧ�ҡ��Ŵ˹������������ҹ�� */
     body.theme-loaded {
         transition: background-color 0.3s ease, color 0.3s ease;
     }
 
-    /* Glassmorphism Card นำไปเชื่อมกับตัวแปรหลัก */
+    /* Glassmorphism Card ���������Ѻ�������ѡ */
     .glass-card {
         background: var(--lv-card-bg);
         backdrop-filter: blur(16px);
@@ -163,8 +163,8 @@ $head_injection = <<<'EOT'
 
     .form-control:focus,
     .form-select:focus {
-        background-color: var(--input-bg) !important; /* บังคับให้ใช้สีเดิมตอนกำลังพิมพ์/Focus */
-        color: var(--lv-text-main) !important;         /* บังคับสีข้อความให้คงเดิม */
+        background-color: var(--input-bg) !important; /* �ѧ�Ѻ�����������͹���ѧ�����/Focus */
+        color: var(--lv-text-main) !important;         /* �ѧ�Ѻ�բ�ͤ�����餧��� */
         border-color: var(--neon-indigo) !important;
         box-shadow: 0 0 15px rgba(79, 70, 229, 0.3) !important;
     }
@@ -175,7 +175,7 @@ $head_injection = <<<'EOT'
         padding: 10px;
     }
 
-    /* ป้องกันเบราว์เซอร์เปลี่ยนสีพื้นหลังเป็นสีสว่างเมื่อ Autofill หรือพิมพ์ด่วน */
+    /* ��ͧ�ѹ�������������¹�վ����ѧ�������ҧ����� Autofill ���;�����ǹ */
     input:-webkit-autofill,
     input:-webkit-autofill:hover, 
     input:-webkit-autofill:focus,
@@ -253,14 +253,14 @@ $head_injection = <<<'EOT'
 </style>
 EOT;
 
-// 💡 ทำการแทรก Script และ Style เข้าไปก่อนปิดแท็ก </head> แล้วค่อยวาดหน้าจอออกมา
+// ?? �ӡ���á Script ��� Style ���仡�͹�Դ�� </head> ���Ǥ����Ҵ˹�Ҩ��͡��
 if (strpos($header_html, '</head>') !== false) {
     echo str_replace('</head>', $head_injection . "\n</head>", $header_html);
 } else {
     echo $header_html . $head_injection;
 }
 
-// ดึงข้อมูลผู้ใช้งานตามปกติ
+// �֧�����ż����ҹ�������
 $sql = "SELECT * FROM `users` WHERE `id` = ?";
 $stmt = $conn->prepare($sql);
 $stmt->execute([$_SESSION['user_login']['user_id']]);
@@ -277,7 +277,7 @@ $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
             </div>
             <div>
                 <h2 class="fw-bold text-white mb-1" style="font-family: 'Outfit', sans-serif;">Command Center</h2>
-                <p class="text-white fs-sm mb-0">ปรับแต่งตัวละคร, ระบบ AI ส่วนตัว และตั้งค่าความปลอดภัยของบัญชี</p>
+                <p class="text-white fs-sm mb-0">��Ѻ�觵���Ф�, �к� AI ��ǹ��� ��е�駤�Ҥ�����ʹ��¢ͧ�ѭ��</p>
             </div>
         </div>
 
@@ -285,12 +285,12 @@ $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
             <!-- Left Sidebar Navigation -->
             <div class="col-12 col-md-3">
                 <div class="nav flex-column nav-pills settings-nav sticky-md-top glass-card p-3 rounded-4" id="v-pills-tab" role="tablist" aria-orientation="vertical" style="top: 80px; z-index: 10;">
-                    <button class="nav-link active text-start rounded-3 mb-2 py-2" id="v-pills-account-tab" data-bs-toggle="pill" data-bs-target="#v-pills-account" type="button" role="tab"><i class="bi bi-person-badge me-2"></i> บัญชีผู้เล่น</button>
-                    <button class="nav-link text-start rounded-3 mb-2 py-2" id="v-pills-ai-tab" data-bs-toggle="pill" data-bs-target="#v-pills-ai" type="button" role="tab"><i class="bi bi-robot me-2"></i> ระบบ AI & การเรียน</button>
-                    <button class="nav-link text-start rounded-3 mb-2 py-2" id="v-pills-security-tab" data-bs-toggle="pill" data-bs-target="#v-pills-security" type="button" role="tab"><i class="bi bi-shield-lock me-2"></i> ความปลอดภัย</button>
-                    <button class="nav-link text-start rounded-3 mb-2 py-2" id="v-pills-notifications-tab" data-bs-toggle="pill" data-bs-target="#v-pills-notifications" type="button" role="tab"><i class="bi bi-bell me-2"></i> การแจ้งเตือน</button>
-                    <button class="nav-link text-start rounded-3 mb-2 py-2" id="v-pills-integrations-tab" data-bs-toggle="pill" data-bs-target="#v-pills-integrations" type="button" role="tab"><i class="bi bi-plug me-2"></i> การเชื่อมต่อ</button>
-                    <button class="nav-link text-start rounded-3 py-2 text-white" id="v-pills-data-tab" data-bs-toggle="pill" data-bs-target="#v-pills-data" type="button" role="tab"><i class="bi bi-database-exclamation me-2 text-danger"></i> ข้อมูล & ขั้นสูง</button>
+                    <button class="nav-link active text-start rounded-3 mb-2 py-2" id="v-pills-account-tab" data-bs-toggle="pill" data-bs-target="#v-pills-account" type="button" role="tab"><i class="bi bi-person-badge me-2"></i> �ѭ�ռ�����</button>
+                    <button class="nav-link text-start rounded-3 mb-2 py-2" id="v-pills-ai-tab" data-bs-toggle="pill" data-bs-target="#v-pills-ai" type="button" role="tab"><i class="bi bi-robot me-2"></i> �к� AI & ������¹</button>
+                    <button class="nav-link text-start rounded-3 mb-2 py-2" id="v-pills-security-tab" data-bs-toggle="pill" data-bs-target="#v-pills-security" type="button" role="tab"><i class="bi bi-shield-lock me-2"></i> ������ʹ���</button>
+                    <button class="nav-link text-start rounded-3 mb-2 py-2" id="v-pills-notifications-tab" data-bs-toggle="pill" data-bs-target="#v-pills-notifications" type="button" role="tab"><i class="bi bi-bell me-2"></i> �������͹</button>
+                    <button class="nav-link text-start rounded-3 mb-2 py-2" id="v-pills-integrations-tab" data-bs-toggle="pill" data-bs-target="#v-pills-integrations" type="button" role="tab"><i class="bi bi-plug me-2"></i> �����������</button>
+                    <button class="nav-link text-start rounded-3 py-2 text-white" id="v-pills-data-tab" data-bs-toggle="pill" data-bs-target="#v-pills-data" type="button" role="tab"><i class="bi bi-database-exclamation me-2 text-danger"></i> ������ & ����٧</button>
                 </div>
             </div>
 
@@ -301,31 +301,31 @@ $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
                     <!-- 1. Account Settings -->
                     <div class="tab-pane fade show active" id="v-pills-account" role="tabpanel">
                         <div class="glass-card rounded-4 mb-4 p-4 p-md-5">
-                            <h5 class="text-white fw-bold mb-4 ai-text-gradient"><i class="bi bi-person-bounding-box me-2"></i>Player Profile (โปรไฟล์สาธารณะ)</h5>
+                            <h5 class="text-white fw-bold mb-4 ai-text-gradient"><i class="bi bi-person-bounding-box me-2"></i>Player Profile (������Ҹ�ó�)</h5>
 
                             <form id="profileForm" data-user-id="<?php
 $ROOT_PATH = '../';
 echo $user_data['id'] ?? ''; ?>">
                                 <div class="row g-4">
                                     <div class="col-md-6">
-                                        <label class="form-label text-white fs-sm fw-medium">ชื่อตัวละคร (Full Name)</label>
+                                        <label class="form-label text-white fs-sm fw-medium">���͵���Ф� (Full Name)</label>
                                         <input type="text" class="form-control shadow-none rounded-3 py-2" name="name" value="<?php
 $ROOT_PATH = '../';
 echo htmlspecialchars($user_data['name'] ?? '', ENT_QUOTES); ?>" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label text-white fs-sm fw-medium">ไอดีประจำตัว (Google ID)</label>
+                                        <label class="form-label text-white fs-sm fw-medium">�ʹջ�Шӵ�� (Google ID)</label>
                                         <input type="text" class="form-control shadow-none rounded-3 py-2" name="google_id" value="<?php
 $ROOT_PATH = '../';
 echo htmlspecialchars($user_data['google_id'] ?? '', ENT_QUOTES); ?>" disabled>
                                     </div>
                                     <div class="col-12">
-                                        <label class="form-label text-white fs-sm fw-medium">ประวัติย่อ (Bio / Status)</label>
+                                        <label class="form-label text-white fs-sm fw-medium">����ѵ���� (Bio / Status)</label>
                                         <textarea class="form-control shadow-none rounded-3 py-2" name="bio" rows="3">Frontend Developer & AI Enthusiast.</textarea>
                                     </div>
                                     <div class="col-12 text-end mt-5 border-top border-secondary border-opacity-25 pt-4">
                                         <button type="submit" class="btn btn-premium rounded-pill px-5 fw-bold fs-sm w-100 w-md-auto" id="btnSaveProfile">
-                                            <i class="bi bi-save2 me-2"></i> บันทึกข้อมูล
+                                            <i class="bi bi-save2 me-2"></i> �ѹ�֡������
                                         </button>
                                     </div>
                                 </div>
@@ -336,8 +336,8 @@ echo htmlspecialchars($user_data['google_id'] ?? '', ENT_QUOTES); ?>" disabled>
                     <!-- 2. AI & Learning Settings -->
                     <div class="tab-pane fade" id="v-pills-ai" role="tabpanel">
                         <div class="glass-card rounded-4 mb-4 p-4 p-md-5">
-                            <h5 class="text-white fw-bold mb-2 ai-text-gradient"><i class="bi bi-cpu me-2"></i>AI Companion Setup 🤖</h5>
-                            <p class="text-white fs-sm mb-4">เลือกคลาส (Class) ให้กับ AI ของคุณ เพื่อปรับสไตล์การสอนและการวิเคราะห์โค้ด</p>
+                            <h5 class="text-white fw-bold mb-2 ai-text-gradient"><i class="bi bi-cpu me-2"></i>AI Companion Setup ??</h5>
+                            <p class="text-white fs-sm mb-4">���͡���� (Class) ���Ѻ AI �ͧ�س ���ͻ�Ѻ�������͹��С������������</p>
 
                             <div class="row g-3 mb-5">
                                 <div class="col-12 col-md-6">
@@ -348,9 +348,9 @@ echo htmlspecialchars($user_data['google_id'] ?? '', ENT_QUOTES); ?>" disabled>
                                                 <div class="bg-primary bg-opacity-25 rounded-circle text-primary flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
                                                     <i class="bi bi-book-half fs-4"></i>
                                                 </div>
-                                                <h6 class="mb-0 fw-bold">The Teacher (สายวิชาการ)</h6>
+                                                <h6 class="mb-0 fw-bold">The Teacher (����Ԫҡ��)</h6>
                                             </div>
-                                            <p class="fs-sm text-white mb-0">อธิบายละเอียด เน้นทฤษฎีปูพื้นฐาน และแนะนำ Step-by-step อย่างใจเย็น</p>
+                                            <p class="fs-sm text-white mb-0">͸Ժ�������´ �鹷�ɮջپ�鹰ҹ ����й� Step-by-step ���ҧ����</p>
                                         </div>
                                     </label>
                                 </div>
@@ -362,9 +362,9 @@ echo htmlspecialchars($user_data['google_id'] ?? '', ENT_QUOTES); ?>" disabled>
                                                 <div class="bg-warning bg-opacity-25 rounded-circle text-warning flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
                                                     <i class="bi bi-terminal fs-4"></i>
                                                 </div>
-                                                <h6 class="mb-0 fw-bold">Senior Dev (สายปฏิบัติจริง)</h6>
+                                                <h6 class="mb-0 fw-bold">Senior Dev (��»�ԺѵԨ�ԧ)</h6>
                                             </div>
-                                            <p class="fs-sm text-white mb-0">พูดตรงไปตรงมา ใช้ศัพท์เทคนิค เน้น Best Practice และโค้ดที่พร้อมใช้งานบนโปรดักชัน</p>
+                                            <p class="fs-sm text-white mb-0">�ٴ�ç仵ç�� ���Ѿ��෤�Ԥ �� Best Practice ����鴷��������ҹ���ôѡ�ѹ</p>
                                         </div>
                                     </label>
                                 </div>
@@ -376,9 +376,9 @@ echo htmlspecialchars($user_data['google_id'] ?? '', ENT_QUOTES); ?>" disabled>
                                                 <div class="bg-success bg-opacity-25 rounded-circle text-success flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
                                                     <i class="bi bi-compass fs-4"></i>
                                                 </div>
-                                                <h6 class="mb-0 fw-bold">The Mentor (สายโค้ชชิ่ง)</h6>
+                                                <h6 class="mb-0 fw-bold">The Mentor (����骪��)</h6>
                                             </div>
-                                            <p class="fs-sm text-white mb-0">ไม่บอกคำตอบตรงๆ แต่เน้นให้คำใบ้ (Hints) เพื่อให้คุณคิดและแก้ไขปัญหาด้วยตัวเอง</p>
+                                            <p class="fs-sm text-white mb-0">���͡�ӵͺ�ç� ���������� (Hints) �������س�Դ�����䢻ѭ�Ҵ��µ���ͧ</p>
                                         </div>
                                     </label>
                                 </div>
@@ -390,9 +390,9 @@ echo htmlspecialchars($user_data['google_id'] ?? '', ENT_QUOTES); ?>" disabled>
                                                 <div class="bg-danger bg-opacity-25 rounded-circle text-danger flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
                                                     <i class="bi bi-shield-shaded fs-4"></i>
                                                 </div>
-                                                <h6 class="mb-0 fw-bold">Interview Coach (สายฮาร์ดคอร์)</h6>
+                                                <h6 class="mb-0 fw-bold">Interview Coach (������촤���)</h6>
                                             </div>
-                                            <p class="fs-sm text-white mb-0">จำลองการสัมภาษณ์งานสุดโหด ท้าทายโค้ดของคุณ และถามเจาะลึกถึง Big O Notation</p>
+                                            <p class="fs-sm text-white mb-0">���ͧ��������ɳ�ҹ�ش�˴ ��ҷ���鴢ͧ�س ��ж������֡�֧ Big O Notation</p>
                                         </div>
                                     </label>
                                 </div>
@@ -400,24 +400,24 @@ echo htmlspecialchars($user_data['google_id'] ?? '', ENT_QUOTES); ?>" disabled>
 
                             <hr class="border-secondary opacity-25 my-5">
 
-                            <h5 class="text-white fw-bold mb-4">Learning Preferences (เป้าหมายการเรียน)</h5>
+                            <h5 class="text-white fw-bold mb-4">Learning Preferences (������¡�����¹)</h5>
 
                             <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 p-3 border border-secondary border-opacity-25 rounded-3">
                                 <div class="flex-grow-1">
-                                    <h6 class="text-white mb-1"><i class="bi bi-crosshair text-info me-2"></i>Daily Quest Goal (เป้าหมายรายวัน)</h6>
-                                    <p class="text-white fs-sm mb-0">กำหนดเวลาขั้นต่ำที่ต้องการอัปเวลในแต่ละวัน</p>
+                                    <h6 class="text-white mb-1"><i class="bi bi-crosshair text-info me-2"></i>Daily Quest Goal (�����������ѹ)</h6>
+                                    <p class="text-white fs-sm mb-0">��˹����Ң�鹵�ӷ���ͧ����ѻ���������ѹ</p>
                                 </div>
                                 <select class="form-select w-auto shadow-none flex-shrink-0">
-                                    <option>30 นาที (Casual)</option>
-                                    <option selected>1 ชั่วโมง (Standard)</option>
-                                    <option>2 ชั่วโมง (Hardcore)</option>
+                                    <option>30 �ҷ� (Casual)</option>
+                                    <option selected>1 ������� (Standard)</option>
+                                    <option>2 ������� (Hardcore)</option>
                                 </select>
                             </div>
 
                             <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 p-3 border border-secondary border-opacity-25 rounded-3">
                                 <div class="flex-grow-1">
                                     <h6 class="text-white mb-1">Auto Debugging Assistant</h6>
-                                    <p class="text-white fs-sm mb-0">ให้ AI เสนอวิธีแก้บั๊กอัตโนมัติเมื่อโค้ดพังใน Labs</p>
+                                    <p class="text-white fs-sm mb-0">��� AI �ʹ��Ը������ѵ��ѵ�������鴾ѧ� Labs</p>
                                 </div>
                                 <div class="form-check form-switch custom-switch fs-4 m-0 flex-shrink-0">
                                     <input class="form-check-input ajax-toggle" type="checkbox" role="switch" data-setting="auto_debug" checked>
@@ -426,7 +426,7 @@ echo htmlspecialchars($user_data['google_id'] ?? '', ENT_QUOTES); ?>" disabled>
                             <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 p-3 border border-secondary border-opacity-25 rounded-3">
                                 <div class="flex-grow-1">
                                     <h6 class="text-white mb-1">Spaced Repetition System (SRS)</h6>
-                                    <p class="text-white fs-sm mb-0">ระบบจัดตารางทบทวนเควสต์เก่าอัตโนมัติ เพื่อป้องกันการลืม</p>
+                                    <p class="text-white fs-sm mb-0">�к��Ѵ���ҧ���ǹ��ʵ�����ѵ��ѵ� ���ͻ�ͧ�ѹ������</p>
                                 </div>
                                 <div class="form-check form-switch custom-switch fs-4 m-0 flex-shrink-0">
                                     <input class="form-check-input ajax-toggle" type="checkbox" role="switch" data-setting="srs_system" checked>
@@ -438,49 +438,49 @@ echo htmlspecialchars($user_data['google_id'] ?? '', ENT_QUOTES); ?>" disabled>
                     <!-- 3. Security Settings -->
                     <div class="tab-pane fade" id="v-pills-security" role="tabpanel">
                         <div class="glass-card rounded-4 mb-4 p-4 p-md-5">
-                            <h5 class="text-white fw-bold mb-4"><i class="bi bi-key-fill me-2 text-warning"></i>เปลี่ยนรหัสผ่านการเข้าถึง (Change Password)</h5>
+                            <h5 class="text-white fw-bold mb-4"><i class="bi bi-key-fill me-2 text-warning"></i>����¹���ʼ�ҹ�����Ҷ֧ (Change Password)</h5>
                             <form id="passwordForm" onsubmit="return false;">
                                 <div class="row g-4">
                                     <div class="col-12">
-                                        <label class="form-label text-white fs-sm fw-medium">รหัสผ่านปัจจุบัน</label>
+                                        <label class="form-label text-white fs-sm fw-medium">���ʼ�ҹ�Ѩ�غѹ</label>
                                         <input type="password" class="form-control shadow-none rounded-3 py-2" name="current_pwd" required autocomplete="current-password">
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label text-white fs-sm fw-medium">รหัสผ่านใหม่ (New Password)</label>
+                                        <label class="form-label text-white fs-sm fw-medium">���ʼ�ҹ���� (New Password)</label>
                                         <input type="password" class="form-control shadow-none rounded-3 py-2" name="new_pwd" id="new_pwd" required autocomplete="new-password">
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label text-white fs-sm fw-medium">ยืนยันรหัสผ่านใหม่ (Confirm Password)</label>
+                                        <label class="form-label text-white fs-sm fw-medium">�׹�ѹ���ʼ�ҹ���� (Confirm Password)</label>
                                         <input type="password" class="form-control shadow-none rounded-3 py-2" name="confirm_pwd" required autocomplete="new-password">
                                     </div>
                                     <div class="col-12 text-end mt-4">
-                                        <button type="submit" class="btn btn-outline-light rounded-pill w-100 w-md-auto px-4 fw-bold fs-sm">อัปเดตรหัสผ่าน</button>
+                                        <button type="submit" class="btn btn-outline-light rounded-pill w-100 w-md-auto px-4 fw-bold fs-sm">�ѻവ���ʼ�ҹ</button>
                                     </div>
                                 </div>
                             </form>
                         </div>
 
                         <div class="glass-card rounded-4 mb-4 p-4 p-md-5">
-                            <h5 class="text-white fw-bold mb-4"><i class="bi bi-shield-check me-2 text-success"></i>Security Center (ศูนย์ความปลอดภัย)</h5>
+                            <h5 class="text-white fw-bold mb-4"><i class="bi bi-shield-check me-2 text-success"></i>Security Center (�ٹ�������ʹ���)</h5>
 
                             <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4 p-3 bg-success bg-opacity-10 border border-success border-opacity-25 rounded-3">
                                 <div>
                                     <h6 class="text-white mb-1">Two-Factor Authentication (2FA)</h6>
-                                    <p class="text-white fs-sm mb-0">เพิ่มเกราะป้องกันอีกชั้นให้บัญชีของคุณ</p>
+                                    <p class="text-white fs-sm mb-0">�������л�ͧ�ѹ�ա������ѭ�բͧ�س</p>
                                 </div>
-                                <button class="btn btn-success btn-sm rounded-pill px-4 fw-bold text-white w-100 w-md-auto">เปิดใช้งาน</button>
+                                <button class="btn btn-success btn-sm rounded-pill px-4 fw-bold text-white w-100 w-md-auto">�Դ��ҹ</button>
                             </div>
 
                             <hr class="border-secondary opacity-25 my-4">
 
-                            <h6 class="text-white fw-bold mb-3">เซสชันที่ออนไลน์อยู่ (Active Sessions)</h6>
+                            <h6 class="text-white fw-bold mb-3">�ʪѹ����͹�Ź����� (Active Sessions)</h6>
                             <ul class="list-group list-group-flush bg-transparent gap-2">
                                 <li class="list-group-item bg-transparent px-3 py-3 border border-secondary border-opacity-25 rounded-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                                     <div class="d-flex align-items-center gap-3">
                                         <i class="bi bi-laptop fs-2 text-white flex-shrink-0"></i>
                                         <div>
-                                            <h6 class="text-white mb-0 fs-sm fw-bold">Mac OS · Chrome</h6>
-                                            <p class="text-white fs-xs mb-0"><i class="bi bi-circle-fill text-success me-1" style="font-size: 8px;"></i>Online now · Bangkok, TH</p>
+                                            <h6 class="text-white mb-0 fs-sm fw-bold">Mac OS ? Chrome</h6>
+                                            <p class="text-white fs-xs mb-0"><i class="bi bi-circle-fill text-success me-1" style="font-size: 8px;"></i>Online now ? Bangkok, TH</p>
                                         </div>
                                     </div>
                                 </li>
@@ -488,7 +488,7 @@ echo htmlspecialchars($user_data['google_id'] ?? '', ENT_QUOTES); ?>" disabled>
                                     <div class="d-flex align-items-center gap-3">
                                         <i class="bi bi-phone fs-2 text-white flex-shrink-0"></i>
                                         <div>
-                                            <h6 class="text-white mb-0 fs-sm fw-bold">iOS 16 · Safari</h6>
+                                            <h6 class="text-white mb-0 fs-sm fw-bold">iOS 16 ? Safari</h6>
                                             <p class="text-white fs-xs mb-0">Last active: 2 hrs ago</p>
                                         </div>
                                     </div>
@@ -496,7 +496,7 @@ echo htmlspecialchars($user_data['google_id'] ?? '', ENT_QUOTES); ?>" disabled>
                                 </li>
                             </ul>
                             <div class="mt-4 text-end">
-                                <button class="btn btn-link text-white fs-sm p-0 text-decoration-none fw-medium"><i class="bi bi-box-arrow-right me-1 text-danger"></i>ออกจากระบบทุกอุปกรณ์</button>
+                                <button class="btn btn-link text-white fs-sm p-0 text-decoration-none fw-medium"><i class="bi bi-box-arrow-right me-1 text-danger"></i>�͡�ҡ�к��ء�ػ�ó�</button>
                             </div>
                         </div>
                     </div>
@@ -504,25 +504,25 @@ echo htmlspecialchars($user_data['google_id'] ?? '', ENT_QUOTES); ?>" disabled>
                     <!-- 4. Notifications -->
                     <div class="tab-pane fade" id="v-pills-notifications" role="tabpanel">
                         <div class="glass-card rounded-4 mb-4 p-4 p-md-5">
-                            <h5 class="text-white fw-bold mb-5"><i class="bi bi-broadcast me-2 text-info"></i>ระบบสื่อสาร (Notification Preferences)</h5>
+                            <h5 class="text-white fw-bold mb-5"><i class="bi bi-broadcast me-2 text-info"></i>�к�������� (Notification Preferences)</h5>
 
-                            <h6 class="ai-text-gradient fs-xs fw-bold text-uppercase tracking-wide mb-3">Learning Activities (กิจกรรมการเรียน)</h6>
+                            <h6 class="ai-text-gradient fs-xs fw-bold text-uppercase tracking-wide mb-3">Learning Activities (�Ԩ����������¹)</h6>
                             <div class="p-3 border border-secondary border-opacity-25 rounded-3 mb-4">
                                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
-                                    <span class="text-white fs-sm flex-grow-1">แจ้งเตือนเควสต์และควิซใหม่ (New Assignments & Quizzes)</span>
+                                    <span class="text-white fs-sm flex-grow-1">����͹��ʵ���Ф�ԫ���� (New Assignments & Quizzes)</span>
                                     <div class="form-check form-switch custom-switch fs-5 m-0 flex-shrink-0"><input class="form-check-input ajax-toggle" type="checkbox" role="switch" checked></div>
                                 </div>
                                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3 border-top border-secondary border-opacity-25 pt-3">
-                                    <span class="text-white fs-sm flex-grow-1">ย้ำเตือนความคืบหน้า (Course Progress Reminders)</span>
+                                    <span class="text-white fs-sm flex-grow-1">�����͹�����׺˹�� (Course Progress Reminders)</span>
                                     <div class="form-check form-switch custom-switch fs-5 m-0 flex-shrink-0"><input class="form-check-input ajax-toggle" type="checkbox" role="switch" checked></div>
                                 </div>
                                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 border-top border-secondary border-opacity-25 pt-3">
-                                    <span class="text-white fs-sm flex-grow-1">คำแนะนำจากโค้ช AI (AI Coach Recommendations)</span>
+                                    <span class="text-white fs-sm flex-grow-1">���йӨҡ�� AI (AI Coach Recommendations)</span>
                                     <div class="form-check form-switch custom-switch fs-5 m-0 flex-shrink-0"><input class="form-check-input ajax-toggle" type="checkbox" role="switch" checked></div>
                                 </div>
                             </div>
 
-                            <h6 class="ai-text-gradient fs-xs fw-bold text-uppercase tracking-wide mb-3">Delivery Methods (ช่องทางการรับสาร)</h6>
+                            <h6 class="ai-text-gradient fs-xs fw-bold text-uppercase tracking-wide mb-3">Delivery Methods (��ͧ�ҧ����Ѻ���)</h6>
                             <div class="p-3 border border-secondary border-opacity-25 rounded-3">
                                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
                                     <div class="d-flex gap-2 align-items-center text-white fs-sm flex-grow-1"><i class="bi bi-envelope text-primary fs-5"></i> Email Notifications</div>
@@ -539,7 +539,7 @@ echo htmlspecialchars($user_data['google_id'] ?? '', ENT_QUOTES); ?>" disabled>
                     <!-- 5. Integrations -->
                     <div class="tab-pane fade" id="v-pills-integrations" role="tabpanel">
                         <div class="glass-card rounded-4 mb-4 p-4 p-md-5">
-                            <h5 class="text-white fw-bold mb-4"><i class="bi bi-link-45deg me-2 text-primary"></i>เชื่อมโยงระบบ (Connected Accounts)</h5>
+                            <h5 class="text-white fw-bold mb-4"><i class="bi bi-link-45deg me-2 text-primary"></i>������§�к� (Connected Accounts)</h5>
 
                             <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-3 bg-dark bg-opacity-50 p-3 rounded-4 border border-secondary border-opacity-25 transition-all">
                                 <div class="d-flex align-items-center gap-3">
@@ -557,7 +557,7 @@ echo htmlspecialchars($user_data['google_id'] ?? '', ENT_QUOTES); ?>" disabled>
                                     <i class="bi bi-google fs-1 text-white flex-shrink-0"></i>
                                     <div>
                                         <h6 class="text-white mb-0 fw-bold">Google Account</h6>
-                                        <p class="text-white fs-xs mb-0">ซิงค์ปฏิทินและแบคอัพงานเข้า Drive</p>
+                                        <p class="text-white fs-xs mb-0">�ԧ�컯ԷԹ���Ấ�Ѿ�ҹ��� Drive</p>
                                     </div>
                                 </div>
                                 <button class="btn btn-premium btn-sm rounded-pill px-4 fw-bold fs-sm w-100 w-md-auto">Connect</button>
@@ -566,7 +566,7 @@ echo htmlspecialchars($user_data['google_id'] ?? '', ENT_QUOTES); ?>" disabled>
                             <hr class="border-secondary opacity-25 my-5">
 
                             <h5 class="text-white fw-bold mb-3"><i class="bi bi-terminal-dash me-2"></i>API & Developer Keys</h5>
-                            <p class="text-white fs-sm mb-4">สร้าง API Key สำหรับเชื่อมต่อแพลตฟอร์ม LevelUp เข้ากับโปรเจกต์ส่วนตัวของคุณ</p>
+                            <p class="text-white fs-sm mb-4">���ҧ API Key ����Ѻ���������ŵ����� LevelUp ��ҡѺ��ਡ����ǹ��Ǣͧ�س</p>
                             <button class="btn btn-outline-light rounded-pill fs-sm px-4 w-100 w-md-auto"><i class="bi bi-plus-lg me-2"></i> Generate New Key</button>
                         </div>
                     </div>
@@ -574,23 +574,23 @@ echo htmlspecialchars($user_data['google_id'] ?? '', ENT_QUOTES); ?>" disabled>
                     <!-- 6. Data & Advanced -->
                     <div class="tab-pane fade" id="v-pills-data" role="tabpanel">
                         <div class="glass-card rounded-4 mb-4 p-4 p-md-5">
-                            <h5 class="text-white fw-bold mb-4"><i class="bi bi-hdd-network me-2 text-info"></i>จัดการข้อมูล (Data Management)</h5>
+                            <h5 class="text-white fw-bold mb-4"><i class="bi bi-hdd-network me-2 text-info"></i>�Ѵ��â����� (Data Management)</h5>
 
                             <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4 p-3 border border-secondary border-opacity-25 rounded-3">
                                 <div>
-                                    <h6 class="text-white mb-1">ดาวน์โหลดข้อมูล (Export Data)</h6>
-                                    <p class="text-white fs-sm mb-0">ดึงประวัติการเรียน, โค้ดที่เคยเขียน, และเกียรติบัตรทั้งหมด</p>
+                                    <h6 class="text-white mb-1">��ǹ���Ŵ������ (Export Data)</h6>
+                                    <p class="text-white fs-sm mb-0">�֧����ѵԡ�����¹, �鴷������¹, ������õԺѵ÷�����</p>
                                 </div>
                                 <button class="btn btn-outline-info rounded-pill px-4 fs-sm fw-medium text-white w-100 w-md-auto"><i class="bi bi-download me-2"></i> Export JSON</button>
                             </div>
 
                             <hr class="border-secondary opacity-25 my-5">
 
-                            <h5 class="text-white fw-bold mb-3"><i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i>Danger Zone (พื้นที่อันตราย)</h5>
+                            <h5 class="text-white fw-bold mb-3"><i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i>Danger Zone (��鹷���ѹ����)</h5>
                             <div class="border border-danger border-opacity-50 bg-danger bg-opacity-10 rounded-4 p-4">
-                                <h6 class="text-white mb-2 fw-bold">ลบบัญชีผู้ใช้ (Delete Account)</h6>
-                                <p class="text-white fs-sm mb-4">การลบบัญชีจะเป็นการทำลายข้อมูลความคืบหน้า เควสต์ และประวัติแชท AI ทั้งหมดอย่างถาวร ไม่สามารถกู้คืนได้</p>
-                                <button class="btn btn-danger rounded-pill px-4 fw-bold fs-sm w-100 w-md-auto" id="btnDeleteAccount">Initiate Deletion (ลบบัญชี)</button>
+                                <h6 class="text-white mb-2 fw-bold">ź�ѭ�ռ���� (Delete Account)</h6>
+                                <p class="text-white fs-sm mb-4">���ź�ѭ�ը��繡�÷���¢����Ť����׺˹�� ��ʵ� ��л���ѵ�᪷ AI ���������ҧ���� �������ö���׹��</p>
+                                <button class="btn btn-danger rounded-pill px-4 fw-bold fs-sm w-100 w-md-auto" id="btnDeleteAccount">Initiate Deletion (ź�ѭ��)</button>
                             </div>
                         </div>
                     </div>
@@ -618,29 +618,28 @@ echo htmlspecialchars($user_data['google_id'] ?? '', ENT_QUOTES); ?>" disabled>
     <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
         <div class="modal-content glass-card border-danger border-opacity-50 text-white rounded-4 shadow-lg">
             <div class="modal-header border-bottom border-danger border-opacity-25 p-4">
-                <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-octagon-fill me-2"></i> ยืนยันการทำลายข้อมูล?</h5>
+                <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-octagon-fill me-2"></i> �׹�ѹ��÷���¢�����?</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
-                <p class="fs-sm mb-4 text-white">นี่คือคำเตือนครั้งสุดท้าย การกระทำนี้ไม่สามารถย้อนกลับได้ ข้อมูลทั้งหมดจะถูกลบออกจากฐานข้อมูลทันที</p>
-                <p class="fs-sm mb-2 fw-medium text-white">กรุณาพิมพ์คำว่า <strong class="text-danger">DELETE</strong> เพื่อยืนยัน</p>
+                <p class="fs-sm mb-4 text-white">����ͤ���͹�����ش���� ��á�зӹ���������ö��͹��Ѻ�� �����ŷ������ж١ź�͡�ҡ�ҹ�����ŷѹ��</p>
+                <p class="fs-sm mb-2 fw-medium text-white">��سҾ�������� <strong class="text-danger">DELETE</strong> �����׹�ѹ</p>
                 <input type="text" class="form-control bg-dark bg-opacity-50 border-danger border-opacity-50 text-white shadow-none mb-2 py-2" id="deleteConfirmInput" autocomplete="off" placeholder="DELETE">
             </div>
             <div class="modal-footer border-top border-danger border-opacity-25 p-3 flex-column flex-md-row">
-                <button type="button" class="btn btn-outline-secondary rounded-pill w-100 w-md-auto px-4 fs-sm text-white mb-2 mb-md-0" data-bs-dismiss="modal">ยกเลิก</button>
-                <button type="button" class="btn btn-danger rounded-pill w-100 w-md-auto px-4 fw-bold fs-sm" id="confirmDeleteBtn" disabled>ทำลายบัญชีถาวร</button>
+                <button type="button" class="btn btn-outline-secondary rounded-pill w-100 w-md-auto px-4 fs-sm text-white mb-2 mb-md-0" data-bs-dismiss="modal">¡��ԡ</button>
+                <button type="button" class="btn btn-danger rounded-pill w-100 w-md-auto px-4 fw-bold fs-sm" id="confirmDeleteBtn" disabled>����ºѭ�ն���</button>
             </div>
         </div>
     </div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> 
 <script src="../assets/js/settings.js"></script>
 
 <script>
     $(document).ready(function () {
-        // จัดการการส่งฟอร์ม Profile
+        // �Ѵ��á���觿���� Profile
         $('#profileForm').on('submit', function (e) {
             e.preventDefault();
 
@@ -649,7 +648,7 @@ echo htmlspecialchars($user_data['google_id'] ?? '', ENT_QUOTES); ?>" disabled>
                 formData[item.name] = item.value;
             });
 
-            // ดึงค่า user_id จาก Attribute data-user-id ของ Form
+            // �֧��� user_id �ҡ Attribute data-user-id �ͧ Form
             var userId = $(this).data('user-id');
 
             var requestData = {
@@ -668,9 +667,9 @@ echo htmlspecialchars($user_data['google_id'] ?? '', ENT_QUOTES); ?>" disabled>
                     if (response.status === 'success') {
                         Swal.fire({
                             icon: 'success',
-                            title: 'บันทึกข้อมูลสำเร็จ',
-                            text: response.message || 'ข้อมูลของคุณถูกบันทึกเรียบร้อยแล้ว',
-                            confirmButtonText: 'ตกลง',
+                            title: '�ѹ�֡�����������',
+                            text: response.message || '�����Ţͧ�س�١�ѹ�֡���º��������',
+                            confirmButtonText: '��ŧ',
                             confirmButtonColor: '#2e8b57',
                             customClass: {
                                 popup: 'levelup-swal-popup',
@@ -681,9 +680,9 @@ echo htmlspecialchars($user_data['google_id'] ?? '', ENT_QUOTES); ?>" disabled>
                     } else {
                         Swal.fire({
                             icon: 'error',
-                            title: 'เกิดข้อผิดพลาด',
-                            text: response.message || 'ไม่สามารถบันทึกข้อมูลได้',
-                            confirmButtonText: 'ตกลง',
+                            title: '�Դ��ͼԴ��Ҵ',
+                            text: response.message || '�������ö�ѹ�֡��������',
+                            confirmButtonText: '��ŧ',
                             confirmButtonColor: '#d33',
                             customClass: {
                                 popup: 'levelup-swal-popup',
@@ -696,9 +695,9 @@ echo htmlspecialchars($user_data['google_id'] ?? '', ENT_QUOTES); ?>" disabled>
                 error: function (error) {
                     Swal.fire({
                         icon: 'error',
-                        title: 'เกิดข้อผิดพลาด',
-                        text: 'ไม่สามารถติดต่อเซิร์ฟเวอร์ได้',
-                        confirmButtonText: 'ตกลง',
+                        title: '�Դ��ͼԴ��Ҵ',
+                        text: '�������ö�Դ��������������',
+                        confirmButtonText: '��ŧ',
                         confirmButtonColor: '#d33',
                         customClass: {
                             popup: 'levelup-swal-popup',

@@ -505,9 +505,6 @@ if ($db) {
 <!-- JavaScript Integration -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="../js/sweetalert_courses.js"></script>
-
 <script>
     <?php
     $mapped_courses = array_map(function ($item) use ($fallbackImg) {

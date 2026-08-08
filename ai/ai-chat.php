@@ -13,9 +13,6 @@ include '../includes/header.php';
 <!-- Include Markdown Parser, Diagram Renderer, SweetAlert2 & Custom LevelUp Alert -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="../js/levelup-sweetalert.js"></script>
-
 <!-- Custom Styles for AI Chat Companion -->
 <style>
     :root, html[data-theme="dark"] {
