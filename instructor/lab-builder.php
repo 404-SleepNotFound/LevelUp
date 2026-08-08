@@ -148,6 +148,39 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         padding-right: 42px !important;
     }
 
+    /* Custom Dropdown Fixes */
+    .custom-dropdown-menu {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        right: 0;                /* ให้ยืดซ้าย-ขวาอัตโนมัติ (ตัด width: 100% ออกเพื่อป้องกันคำนวณซ้ำซ้อน) */
+        box-sizing: border-box;
+        padding: 6px;            /* ระยะห่างรอบกล่องแบบพอดี */
+        margin: 0;               /* เคลียร์ margin เผื่อใช้ tag <ul> */
+        list-style: none;        /* เคลียร์จุดสัญลักษณ์เผื่อใช้ tag <ul> */
+        background: var(--card-bg-premium, #0f172a);
+        border: 1px solid var(--cc-box-border, rgba(255, 255, 255, 0.1));
+        border-radius: 10px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        z-index: 1050;
+        display: none;
+        max-height: 250px;
+        overflow-y: auto;        /* เลื่อนแนวตั้งเฉพาะเมื่อรายการยาวเกิน */
+        overflow-x: hidden;      /* 🔒 ปิดแถบเลื่อนแนวนอนเด็ดขาด */
+    }
+
+    .custom-dropdown-item {
+        width: auto;             /* 💡 แก้จาก 100% เป็น auto เพื่อให้ปรับขนาดตามขอบ Padding ซ้าย-ขวา อย่างสมดุล */
+        box-sizing: border-box;
+        padding: 10px 14px;
+        border-radius: 6px;
+        color: var(--cc-text-main, #f8fafc);
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: background 0.2s ease, color 0.2s ease;
+        word-break: break-word;  
+    }
+
     .input-group .form-control-premium {
         border-top-left-radius: 0 !important;
         border-bottom-left-radius: 0 !important;
