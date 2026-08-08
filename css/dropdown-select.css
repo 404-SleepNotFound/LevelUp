@@ -455,7 +455,7 @@ html[data-theme="dark"] .form-select-custom,
 }
 
 /* -----------------------------------------------------------------
-8. Custom Interactive Dropdown Builder
+8. Custom Interactive Dropdown Builder (Smooth Transition Fix)
 ----------------------------------------------------------------- */
 .custom-dropdown-wrapper {
   position: relative;
@@ -584,8 +584,9 @@ select option {
 .custom-cursor,
 .rocket-cursor,
 #rocket-cursor,
-.custom-rocket-cursor {
-  z-index: 9999 !important;
+.custom-rocket-cursor,
+#custom-cursor {
+  z-index: 999999 !important;
   pointer-events: none !important;
   opacity: 1 !important;
   visibility: visible !important;
