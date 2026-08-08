@@ -1,34 +1,35 @@
 <?php
 session_start();
+header('Content-Type: text/html; charset=utf-8');
 
 // =========================================================================
-// 1. DATA PREPARATION (¢ÈÕ¡Ÿ≈®”≈Õß√Õß√—∫°“√‡™◊ËÕ¡µËÕ∞“π¢ÈÕ¡Ÿ≈)
+// 1. DATA PREPARATION (‡∏Ç‡πâ‡∏≠‡∏°‡∏π‡∏•‡∏à‡∏≥‡∏•‡∏≠‡∏á‡∏£‡∏≠‡∏á‡∏£‡∏±‡∏ö‡∏Å‡∏≤‡∏£‡πÄ‡∏ä‡∏∑‡πà‡∏≠‡∏°‡∏ï‡πà‡∏≠‡∏ê‡∏≤‡∏ô‡∏Ç‡πâ‡∏≠‡∏°‡∏π‡∏•)
 // =========================================================================
 
-// ¢ÈÕ¡Ÿ≈ AI Learning Planner & Career Goals
+// ‡∏Ç‡πâ‡∏≠‡∏°‡∏π‡∏• AI Learning Planner & Career Goals
 $plannerData = [
     'selected_career' => 'backend',
     'hours_per_day' => 2,
     'estimated_months' => 5,
     'overall_progress' => 65,
     'career_options' => [
-        'backend'   => ['title' => 'Backend Developer (Class)', 'icon' => 'bi-server', 'desc' => '‡πÈπ Architecture, API & Database'],
-        'frontend'  => ['title' => 'Frontend Developer (Class)', 'icon' => 'bi-layout-text-window-reverse', 'desc' => '‡πÈπ UI/UX, Web Design & React'],
-        'fullstack' => ['title' => 'Full Stack Developer (Class)', 'icon' => 'bi-layers-half', 'desc' => '§√∫«ß®√∑—Èß Frontend & Backend'],
-        'data'      => ['title' => 'Data Scientist (Class)', 'icon' => 'bi-graph-up-arrow', 'desc' => '‡πÈπ Data Analysis & AI Model'],
-        'cyber'     => ['title' => 'Cybersecurity Analyst (Class)', 'icon' => 'bi-shield-lock', 'desc' => '‡πÈπ Security & Defense System']
+        'backend'   => ['title' => 'Backend Developer (Class)', 'icon' => 'bi-server', 'desc' => '‡πÄ‡∏ô‡πâ‡∏ô Architecture, API & Database'],
+        'frontend'  => ['title' => 'Frontend Developer (Class)', 'icon' => 'bi-layout-text-window-reverse', 'desc' => '‡πÄ‡∏ô‡πâ‡∏ô UI/UX, Web Design & React'],
+        'fullstack' => ['title' => 'Full Stack Developer (Class)', 'icon' => 'bi-layers-half', 'desc' => '‡∏Ñ‡∏£‡∏ö‡∏ß‡∏á‡∏à‡∏£‡∏ó‡∏±‡πâ‡∏á Frontend & Backend'],
+        'data'      => ['title' => 'Data Scientist (Class)', 'icon' => 'bi-graph-up-arrow', 'desc' => '‡πÄ‡∏ô‡πâ‡∏ô Data Analysis & AI Model'],
+        'cyber'     => ['title' => 'Cybersecurity Analyst (Class)', 'icon' => 'bi-shield-lock', 'desc' => '‡πÄ‡∏ô‡πâ‡∏ô Security & Defense System']
     ]
 ];
 
-// ¢ÈÕ¡Ÿ≈ ·π–π”∫∑‡√’¬π∂—¥‰ª (AI Recommendation)
+// ‡∏Ç‡πâ‡∏≠‡∏°‡∏π‡∏• ‡πÅ‡∏ô‡∏∞‡∏ô‡∏≥‡∏ö‡∏ó‡πÄ‡∏£‡∏µ‡∏¢‡∏ô‡∏ñ‡∏±‡∏î‡πÑ‡∏õ (AI Recommendation)
 $recommendedNextStep = [
     'badge'       => 'AI Recommendation (Next Step)',
-    'title'       => '‡√’¬π SQL JOIN & Subqueries',
-    'description' => '®“°ª√–«—µ‘ §ÿ≥ºË“π Basic SQL ·≈È« °“√∑”§«“¡‡¢È“„® JOIN ®–™Ë«¬„ÀÈ§ÿ≥æ√ÈÕ¡∑” Project µËÕ‰ª',
+    'title'       => '‡πÄ‡∏£‡∏µ‡∏¢‡∏ô SQL JOIN & Subqueries',
+    'description' => '‡∏à‡∏≤‡∏Å‡∏õ‡∏£‡∏∞‡∏ß‡∏±‡∏ï‡∏¥ ‡∏Ñ‡∏∏‡∏ì‡∏ú‡πà‡∏≤‡∏ô Basic SQL ‡πÅ‡∏•‡πâ‡∏ß ‡∏Å‡∏≤‡∏£‡∏ó‡∏≥‡∏Ñ‡∏ß‡∏≤‡∏°‡πÄ‡∏Ç‡πâ‡∏≤‡πÉ‡∏à JOIN ‡∏à‡∏∞‡∏ä‡πà‡∏ß‡∏¢‡πÉ‡∏´‡πâ‡∏Ñ‡∏∏‡∏ì‡∏û‡∏£‡πâ‡∏≠‡∏°‡∏ó‡∏≥ Project ‡∏ï‡πà‡∏≠‡πÑ‡∏õ',
     'link'        => 'lesson.php?id=sql-join'
 ];
 
-// ¢ÈÕ¡Ÿ≈  ∂“π–°“√‡√’¬π√ŸÈ¢ÕßºŸÈ„™È
+// ‡∏Ç‡πâ‡∏≠‡∏°‡∏π‡∏• ‡∏™‡∏ñ‡∏≤‡∏ô‡∏∞‡∏Å‡∏≤‡∏£‡πÄ‡∏£‡∏µ‡∏¢‡∏ô‡∏£‡∏π‡πâ‡∏Ç‡∏≠‡∏á‡∏ú‡∏π‡πâ‡πÉ‡∏ä‡πâ
 $userStats = [
     'projects_cleared'    => 4,
     'total_projects'      => 6,
@@ -37,7 +38,7 @@ $userStats = [
     'class_match_percent' => 72
 ];
 
-// ¢ÈÕ¡Ÿ≈ Skill Gap Analysis
+// ‡∏Ç‡πâ‡∏≠‡∏°‡∏π‡∏• Skill Gap Analysis
 $skillGapList = [
     [
         'skill'   => 'Python',
@@ -65,29 +66,29 @@ $skillGapList = [
     ]
 ];
 
-// ¢ÈÕ¡Ÿ≈ Milestones
+// ‡∏Ç‡πâ‡∏≠‡∏°‡∏π‡∏• Milestones
 $milestonesList = [
     [
         'title'       => 'Milestone 1',
-        'description' => 'æ◊Èπ∞“π Programming ·πËπ',
+        'description' => '‡∏û‡∏∑‡πâ‡∏ô‡∏ê‡∏≤‡∏ô Programming ‡πÅ‡∏ô‡πà‡∏ô',
         'status'      => 'completed', // completed, active, locked
         'icon'        => 'bi-check-circle-fill text-success'
     ],
     [
         'title'       => 'Milestone 2',
-        'description' => 'ºË“π√–∫∫ Database (SQL)',
+        'description' => '‡∏ú‡πà‡∏≤‡∏ô‡∏£‡∏∞‡∏ö‡∏ö Database (SQL)',
         'status'      => 'active',
         'icon'        => 'bi-hourglass-split text-info'
     ],
     [
         'title'       => 'Milestone 3',
-        'description' => ' √È“ß REST API Project',
+        'description' => '‡∏™‡∏£‡πâ‡∏≤‡∏á REST API Project',
         'status'      => 'locked',
         'icon'        => 'bi-lock-fill text-muted-custom'
     ]
 ];
 
-// ¢ÈÕ¡Ÿ≈ Roadmap Skill Tree Nodes
+// ‡∏Ç‡πâ‡∏≠‡∏°‡∏π‡∏• Roadmap Skill Tree Nodes
 $roadmapNodes = [
     [
         'id'          => 1,
@@ -95,8 +96,8 @@ $roadmapNodes = [
         'progress'    => 100,
         'badge'       => 'QUEST CLEARED',
         'title'       => 'Python Basics',
-        'description' => '‡√’¬π√ŸÈæ◊Èπ∞“πµ—«·ª√, Loop ·≈– Function',
-        'footer_text' => '‰¡Ë¡’ Prerequisite',
+        'description' => '‡πÄ‡∏£‡∏µ‡∏¢‡∏ô‡∏£‡∏π‡πâ‡∏û‡∏∑‡πâ‡∏ô‡∏ê‡∏≤‡∏ô‡∏ï‡∏±‡∏ß‡πÅ‡∏õ‡∏£, Loop ‡πÅ‡∏•‡∏∞ Function',
+        'footer_text' => '‡πÑ‡∏°‡πà‡∏°‡∏µ Prerequisite',
         'footer_icon' => 'bi-info-circle text-info',
         'link'        => '',
         'has_line'    => true
@@ -107,8 +108,8 @@ $roadmapNodes = [
         'progress'    => 100,
         'badge'       => 'QUEST CLEARED',
         'title'       => 'Python OOP & Data Structure',
-        'description' => '°“√‡¢’¬π‚ª√·°√¡‡™‘ß«—µ∂ÿ·≈–‚§√ß √È“ß¢ÈÕ¡Ÿ≈',
-        'footer_text' => 'ºË“π: Python Basics',
+        'description' => '‡∏Å‡∏≤‡∏£‡πÄ‡∏Ç‡∏µ‡∏¢‡∏ô‡πÇ‡∏õ‡∏£‡πÅ‡∏Å‡∏£‡∏°‡πÄ‡∏ä‡∏¥‡∏á‡∏ß‡∏±‡∏ï‡∏ñ‡∏∏‡πÅ‡∏•‡∏∞‡πÇ‡∏Ñ‡∏£‡∏á‡∏™‡∏£‡πâ‡∏≤‡∏á‡∏Ç‡πâ‡∏≠‡∏°‡∏π‡∏•',
+        'footer_text' => '‡∏ú‡πà‡∏≤‡∏ô: Python Basics',
         'footer_icon' => 'bi-check-circle-fill text-success',
         'link'        => '',
         'has_line'    => true
@@ -119,8 +120,8 @@ $roadmapNodes = [
         'progress'    => 60,
         'badge'       => 'CURRENT ACTIVE QUEST',
         'title'       => 'SQL & Relational Database',
-        'description' => '°“√ÕÕ°·∫∫∞“π¢ÈÕ¡Ÿ≈·≈–°“√ Query ¢ÈÕ¡Ÿ≈‡™‘ß≈÷°',
-        'footer_text' => 'ºË“π: Data Structure',
+        'description' => '‡∏Å‡∏≤‡∏£‡∏≠‡∏≠‡∏Å‡πÅ‡∏ö‡∏ö‡∏ê‡∏≤‡∏ô‡∏Ç‡πâ‡∏≠‡∏°‡∏π‡∏•‡πÅ‡∏•‡∏∞‡∏Å‡∏≤‡∏£ Query ‡∏Ç‡πâ‡∏≠‡∏°‡∏π‡∏•‡πÄ‡∏ä‡∏¥‡∏á‡∏•‡∏∂‡∏Å',
+        'footer_text' => '‡∏ú‡πà‡∏≤‡∏ô: Data Structure',
         'footer_icon' => 'bi-check-circle-fill text-success',
         'link'        => 'lesson.php',
         'has_line'    => true
@@ -131,8 +132,8 @@ $roadmapNodes = [
         'progress'       => 0,
         'badge'          => 'LOCKED LEVEL',
         'title'          => 'REST API with Flask',
-        'description'    => '°“√ √È“ß API  ”À√—∫‡™◊ËÕ¡µËÕ√–∫∫ Frontend ·≈– Backend',
-        'prereq_warning' => ['µÈÕßºË“π: SQL & Database (¢“¥Õ’° 40%)'],
+        'description'    => '‡∏Å‡∏≤‡∏£‡∏™‡∏£‡πâ‡∏≤‡∏á API ‡∏™‡∏≥‡∏´‡∏£‡∏±‡∏ö‡πÄ‡∏ä‡∏∑‡πà‡∏≠‡∏°‡∏ï‡πà‡∏≠‡∏£‡∏∞‡∏ö‡∏ö Frontend ‡πÅ‡∏•‡∏∞ Backend',
+        'prereq_warning' => ['‡∏ï‡πâ‡∏≠‡∏á‡∏ú‡πà‡∏≤‡∏ô: SQL & Database (‡∏Ç‡∏≤‡∏î‡∏≠‡∏µ‡∏Å 40%)'],
         'has_line'       => true
     ],
     [
@@ -141,10 +142,10 @@ $roadmapNodes = [
         'progress'       => 0,
         'badge'          => 'LOCKED LEVEL',
         'title'          => 'Docker & Deployment',
-        'description'    => '°“√∫√√®ÿ·Õªæ≈‘‡§™—π·≈–π”¢÷Èπ Server ®√‘ß',
+        'description'    => '‡∏Å‡∏≤‡∏£‡∏ö‡∏£‡∏£‡∏à‡∏∏‡πÅ‡∏≠‡∏õ‡∏û‡∏•‡∏¥‡πÄ‡∏Ñ‡∏ä‡∏±‡∏ô‡πÅ‡∏•‡∏∞‡∏ô‡∏≥‡∏Ç‡∏∂‡πâ‡∏ô Server ‡∏à‡∏£‡∏¥‡∏á',
         'prereq_warning' => [
-            'µÈÕßºË“π: REST API with Flask',
-            'µÈÕßºË“π: Linux Command Line (¬È“¬¡“®“°À¡«¥Õ◊Ëπ)'
+            '‡∏ï‡πâ‡∏≠‡∏á‡∏ú‡πà‡∏≤‡∏ô: REST API with Flask',
+            '‡∏ï‡πâ‡∏≠‡∏á‡∏ú‡πà‡∏≤‡∏ô: Linux Command Line (‡∏¢‡πâ‡∏≤‡∏¢‡∏°‡∏≤‡∏à‡∏≤‡∏Å‡∏´‡∏°‡∏ß‡∏î‡∏≠‡∏∑‡πà‡∏ô)'
         ],
         'has_line'       => false
     ]
@@ -155,7 +156,7 @@ include '../includes/header.php';
 
 <!-- Custom Embedded Styles for Learning Path (LevelUp Design System - Dual Theme) -->
 <style>
-    /* ?? Dark Mode Theme Variables (Default) */
+    /* Dark Mode Theme Variables (Default) */
     :root, html[data-theme="dark"] {
         --lv-bg-dark: #090d1a;
         --lv-card-bg: rgba(20, 27, 45, 0.85);
@@ -174,7 +175,7 @@ include '../includes/header.php';
         --lv-progress-track: #1e293b;
     }
 
-    /* ?? Light Mode Theme Variables */
+    /* Light Mode Theme Variables */
     html[data-theme="light"] {
         --lv-bg-dark: #f8fafc;
         --lv-card-bg: #ffffff;
@@ -261,8 +262,6 @@ include '../includes/header.php';
         gap: 0.35rem !important;
     }
 
-    /* Shared dropdown/select styling is centralized in css/dropdown-select.css */
-
     /* Custom Gamified Buttons */
     .btn-premium {
         background: linear-gradient(135deg, var(--lv-cyan) 0%, var(--lv-indigo) 100%) !important;
@@ -301,7 +300,6 @@ include '../includes/header.php';
         position: relative;
     }
 
-    /* locked node interaction indicator */
     .roadmap-node.locked {
         cursor: pointer;
         transition: transform 0.2s ease;
@@ -338,7 +336,6 @@ include '../includes/header.php';
         margin: 4px 0;
     }
 
-    /* Active Quest Ring Glow Animation */
     .pulse-ring-active {
         position: relative;
     }
@@ -361,20 +358,17 @@ include '../includes/header.php';
         100% { transform: scale(0.95); opacity: 0; }
     }
 
-    /* Text Gradients */
     .text-gradient-cyan {
         background: linear-gradient(135deg, var(--lv-cyan) 0%, #3b82f6 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
 
-    /* Table Styling */
     .table-skill-gap th, .table-skill-gap td {
         background: transparent !important;
         color: var(--lv-text-main) !important;
     }
 
-    /* SweetAlert2 LevelUp Custom Theme Adaptation */
     .levelup-swal-popup {
         background: var(--lv-card-bg) !important;
         border: 1px solid var(--lv-card-border) !important;
@@ -395,12 +389,6 @@ include '../includes/header.php';
         color: var(--lv-text-muted) !important;
         font-size: 0.95rem !important;
     }
-
-    .swal2-icon.swal2-info { border-color: var(--lv-cyan) !important; color: var(--lv-cyan) !important; }
-    .swal2-icon.swal2-success { border-color: var(--lv-success) !important; color: var(--lv-success) !important; }
-    .swal2-icon.swal2-question { border-color: var(--lv-indigo) !important; color: var(--lv-indigo) !important; }
-    .swal2-icon.swal2-warning { border-color: var(--lv-warning) !important; color: var(--lv-warning) !important; }
-    .swal2-icon.swal2-error { border-color: var(--lv-danger) !important; color: var(--lv-danger) !important; }
 
     @media (max-width: 768px) {
         .roadmap-tree { padding-left: 0; }
@@ -430,17 +418,15 @@ include '../includes/header.php';
                         <i class="bi bi-cpu-fill me-1"></i> AI Learning Planner v2.5
                     </span>
                 </div>
-                <h1 class="fw-bold display-5 mb-3 text-main">‡ Èπ∑“ß°“√‡√’¬π¢Õß§ÿ≥</h1>
-                <p class="text-muted-custom fs-5 mb-4 fw-light">ª√—∫‡ª≈’Ë¬π‡ªÈ“À¡“¬·≈–‡«≈“«Ë“ß¢Õß§ÿ≥ AI ®–§”π«≥·≈–®—¥‚§√ß √È“ßÀ≈—° Ÿµ√∑’Ë‡À¡“– ¡∑’Ë ÿ¥„ÀÈ∑—π∑’</p>
+                <h1 class="fw-bold display-5 mb-3 text-main">‡πÄ‡∏™‡πâ‡∏ô‡∏ó‡∏≤‡∏á‡∏Å‡∏≤‡∏£‡πÄ‡∏£‡∏µ‡∏¢‡∏ô‡∏Ç‡∏≠‡∏á‡∏Ñ‡∏∏‡∏ì</h1>
+                <p class="text-muted-custom fs-5 mb-4 fw-light">‡∏õ‡∏£‡∏±‡∏ö‡πÄ‡∏õ‡∏•‡∏µ‡πà‡∏¢‡∏ô‡πÄ‡∏õ‡πâ‡∏≤‡∏´‡∏°‡∏≤‡∏¢‡πÅ‡∏•‡∏∞‡πÄ‡∏ß‡∏•‡∏≤‡∏ß‡πà‡∏≤‡∏á‡∏Ç‡∏≠‡∏á‡∏Ñ‡∏∏‡∏ì AI ‡∏à‡∏∞‡∏Ñ‡∏≥‡∏ô‡∏ß‡∏ì‡πÅ‡∏•‡∏∞‡∏à‡∏±‡∏î‡πÇ‡∏Ñ‡∏£‡∏á‡∏™‡∏£‡πâ‡∏≤‡∏á‡∏´‡∏•‡∏±‡∏Å‡∏™‡∏π‡∏ï‡∏£‡∏ó‡∏µ‡πà‡πÄ‡∏´‡∏°‡∏≤‡∏∞‡∏™‡∏°‡∏ó‡∏µ‡πà‡∏™‡∏∏‡∏î‡πÉ‡∏´‡πâ‡∏ó‡∏±‡∏ô‡∏ó‡∏µ</p>
                 
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label fs-sm fw-medium text-muted-custom">‡ªÈ“À¡“¬Õ“™’æ (Career Goal)</label>
+                        <label class="form-label fs-sm fw-medium text-muted-custom">‡πÄ‡∏õ‡πâ‡∏≤‡∏´‡∏°‡∏≤‡∏¢‡∏≠‡∏≤‡∏ä‡∏µ‡∏û (Career Goal)</label>
                         
-                        <!-- Hidden input for backward compatibility with JS/Backend -->
                         <input type="hidden" id="careerSelector" value="<?= htmlspecialchars($plannerData['selected_career']) ?>">
 
-                        <!-- Custom Futuristic Dropdown Selector -->
                         <?php 
                             $selectedKey = $plannerData['selected_career'];
                             $selectedItem = $plannerData['career_options'][$selectedKey] ?? reset($plannerData['career_options']);
@@ -475,8 +461,8 @@ include '../includes/header.php';
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fs-sm fw-medium text-muted-custom d-flex justify-content-between">
-                            <span>‡«≈“‡√’¬πµËÕ«—π</span>
-                            <span class="text-info fw-bold"><span id="timeDisplay"><?= (int)$plannerData['hours_per_day'] ?></span> ™—Ë«‚¡ß</span>
+                            <span>‡πÄ‡∏ß‡∏•‡∏≤‡πÄ‡∏£‡∏µ‡∏¢‡∏ô‡∏ï‡πà‡∏≠‡∏ß‡∏±‡∏ô</span>
+                            <span class="text-info fw-bold"><span id="timeDisplay"><?= (int)$plannerData['hours_per_day'] ?></span> ‡∏ä‡∏±‡πà‡∏ß‡πÇ‡∏°‡∏á</span>
                         </label>
                         <div class="pt-2">
                             <input type="range" class="form-range custom-range-slider" min="1" max="8" step="1" id="timeSlider" value="<?= (int)$plannerData['hours_per_day'] ?>">
@@ -485,7 +471,7 @@ include '../includes/header.php';
                 </div>
                 <div class="mt-4 d-flex flex-wrap gap-2">
                     <button class="btn btn-outline-surface shadow-sm rounded-pill px-4" id="btnShareRoadmap" type="button">
-                        <i class="bi bi-share me-1 text-info"></i> ·™√Ï Roadmap
+                        <i class="bi bi-share me-1 text-info"></i> ‡πÅ‡∏ä‡∏£‡πå Roadmap
                     </button>
                     <button class="btn btn-outline-surface shadow-sm rounded-pill px-4" id="btnExportPdf" type="button">
                         <i class="bi bi-download me-1 text-info"></i> Export PDF
@@ -496,11 +482,11 @@ include '../includes/header.php';
             <div class="col-12 col-lg-4 offset-lg-1">
                 <div class="dashboard-card rounded-4 p-4 text-center position-relative overflow-hidden h-100 d-flex flex-column justify-content-center">
                     <div class="position-absolute top-0 end-0 p-3 text-info opacity-10"><i class="bi bi-cpu fs-1"></i></div>
-                    <p class="fs-sm text-muted-custom fw-medium mb-1"><i class="bi bi-hourglass-split me-1 text-info"></i> §“¥«Ë“®–‡√’¬π®∫„π</p>
-                    <h2 class="display-4 fw-bold text-gradient-cyan mb-3" id="estimatedTime"><?= (int)$plannerData['estimated_months'] ?> ‡¥◊Õπ</h2>
+                    <p class="fs-sm text-muted-custom fw-medium mb-1"><i class="bi bi-hourglass-split me-1 text-info"></i> ‡∏Ñ‡∏≤‡∏î‡∏ß‡πà‡∏≤‡∏à‡∏∞‡πÄ‡∏£‡∏µ‡∏¢‡∏ô‡∏à‡∏ö‡πÉ‡∏ô</p>
+                    <h2 class="display-4 fw-bold text-gradient-cyan mb-3" id="estimatedTime"><?= (int)$plannerData['estimated_months'] ?> ‡πÄ‡∏î‡∏∑‡∏≠‡∏ô</h2>
                     
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="fs-sm fw-medium text-muted-custom">¿“æ√«¡§«“¡§◊∫ÀπÈ“</span>
+                        <span class="fs-sm fw-medium text-muted-custom">‡∏†‡∏≤‡∏û‡∏£‡∏ß‡∏°‡∏Ñ‡∏ß‡∏≤‡∏°‡∏Ñ‡∏∑‡∏ö‡∏´‡∏ô‡πâ‡∏≤</span>
                         <span class="fs-sm fw-bold text-info"><?= (int)$plannerData['overall_progress'] ?>%</span>
                     </div>
                     <div class="progress rounded-pill border border-color" style="height: 10px; background-color: var(--lv-progress-track);">
@@ -532,7 +518,7 @@ include '../includes/header.php';
                 </div>
             </div>
             <div class="position-relative z-1">
-                <a href="<?= htmlspecialchars($recommendedNextStep['link']) ?>" class="btn btn-premium px-5 py-2.5 rounded-pill shadow-lg fw-bold text-nowrap">‡√‘Ë¡‡√’¬π‡≈¬ <i class="bi bi-arrow-right ms-1"></i></a>
+                <a href="<?= htmlspecialchars($recommendedNextStep['link']) ?>" class="btn btn-premium px-5 py-2.5 rounded-pill shadow-lg fw-bold text-nowrap">‡πÄ‡∏£‡∏¥‡πà‡∏°‡πÄ‡∏£‡∏µ‡∏¢‡∏ô‡πÄ‡∏•‡∏¢ <i class="bi bi-arrow-right ms-1"></i></a>
             </div>
         </div>
 
@@ -540,9 +526,8 @@ include '../includes/header.php';
             <!-- Left Column: Skill Gap & Progress HUD -->
             <div class="col-12 col-lg-4 order-2 order-lg-1">
                 
-                <h5 class="fw-bold mb-4 text-main d-flex align-items-center fs-5"><i class="bi bi-trophy-fill text-warning me-2"></i>  ∂“π–°“√‡√’¬π√ŸÈ</h5>
+                <h5 class="fw-bold mb-4 text-main d-flex align-items-center fs-5"><i class="bi bi-trophy-fill text-warning me-2"></i> ‡∏™‡∏ñ‡∏≤‡∏ô‡∏∞‡∏Å‡∏≤‡∏£‡πÄ‡∏£‡∏µ‡∏¢‡∏ô‡∏£‡∏π‡πâ</h5>
                 
-                <!-- °“√Ï¥§ŸË ∂“π–°“√‡√’¬π√ŸÈ -->
                 <div class="row g-3 mb-4 align-items-stretch">
                     <div class="col-6">
                         <div class="dashboard-card rounded-4 stat-card-box h-100">
@@ -572,9 +557,9 @@ include '../includes/header.php';
                         <table class="table table-borderless table-skill-gap mb-0 align-middle">
                             <thead class="bg-secondary bg-opacity-10 border-bottom border-color">
                                 <tr>
-                                    <th class="fs-sm fw-medium text-muted-custom py-3 ps-4">∑—°…–</th>
-                                    <th class="fs-sm fw-medium text-muted-custom py-3 text-center">§ÿ≥¡’</th>
-                                    <th class="fs-sm fw-medium text-muted-custom py-3 text-center pe-4">‡ªÈ“À¡“¬</th>
+                                    <th class="fs-sm fw-medium text-muted-custom py-3 ps-4">‡∏ó‡∏±‡∏Å‡∏©‡∏∞</th>
+                                    <th class="fs-sm fw-medium text-muted-custom py-3 text-center">‡∏Ñ‡∏∏‡∏ì‡∏°‡∏µ</th>
+                                    <th class="fs-sm fw-medium text-muted-custom py-3 text-center pe-4">‡πÄ‡∏õ‡πâ‡∏≤‡∏´‡∏°‡∏≤‡∏¢</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -620,15 +605,13 @@ include '../includes/header.php';
             <!-- Right Column: Roadmap Visualizer (RPG Skill Tree) -->
             <div class="col-12 col-lg-8 order-1 order-lg-2">
                 
-                <h5 class="fw-bold mb-4 text-main d-flex align-items-center fs-5"><i class="bi bi-diagram-3-fill text-info me-2"></i> Roadmap (‡ Èπ∑“ß°“√‡√’¬π)</h5>
+                <h5 class="fw-bold mb-4 text-main d-flex align-items-center fs-5"><i class="bi bi-diagram-3-fill text-info me-2"></i> Roadmap (‡πÄ‡∏™‡πâ‡∏ô‡∏ó‡∏≤‡∏á‡∏Å‡∏≤‡∏£‡πÄ‡∏£‡∏µ‡∏¢‡∏ô)</h5>
 
-                <!-- Roadmap Container -->
                 <div class="dashboard-card rounded-4 p-4 p-md-5 border-color overflow-hidden" id="roadmapContainer" style="min-height: 600px;">
                     
                     <div class="roadmap-tree position-relative">
                         
                         <?php foreach ($roadmapNodes as $node): ?>
-                            <!-- Node Item -->
                             <div class="roadmap-node <?= htmlspecialchars($node['status']) ?> d-flex">
                                 <div class="node-indicator">
                                     <?php if ($node['status'] === 'completed'): ?>
@@ -672,7 +655,7 @@ include '../includes/header.php';
                                         <div class="d-flex justify-content-between align-items-center position-relative z-1 mt-3 pt-3 border-top border-color">
                                             <div class="fs-xs text-muted-custom"><i class="bi <?= htmlspecialchars($node['footer_icon']) ?> me-1"></i> <?= htmlspecialchars($node['footer_text']) ?></div>
                                             <?php if (!empty($node['link'])): ?>
-                                                <a href="<?= htmlspecialchars($node['link']) ?>" class="btn btn-sm btn-premium rounded-pill px-4 py-1.5 fw-bold">‡√’¬πµËÕ <i class="bi bi-arrow-right ms-1"></i></a>
+                                                <a href="<?= htmlspecialchars($node['link']) ?>" class="btn btn-sm btn-premium rounded-pill px-4 py-1.5 fw-bold">‡πÄ‡∏£‡∏µ‡∏¢‡∏ô‡∏ï‡πà‡∏≠ <i class="bi bi-arrow-right ms-1"></i></a>
                                             <?php endif; ?>
                                         </div>
                                     </div>
@@ -720,7 +703,7 @@ include '../includes/header.php';
                 timeDisplay.textContent = hours;
 
                 const months = Math.max(2, Math.round(10 / hours));
-                estimatedTime.textContent = months + ' ‡¥◊Õπ';
+                estimatedTime.textContent = months + ' ‡πÄ‡∏î‡∏∑‡∏≠‡∏ô';
             });
         }
     }
@@ -732,30 +715,25 @@ include '../includes/header.php';
         const items = document.querySelectorAll('.custom-dropdown-item');
 
         if (wrapper && trigger) {
-            // Toggle dropdown open/close
             trigger.addEventListener('click', function(e) {
                 e.stopPropagation();
                 wrapper.classList.toggle('active');
             });
 
-            // Item selection
             items.forEach(item => {
                 item.addEventListener('click', function() {
                     const val = this.dataset.value;
                     const title = this.dataset.title;
                     const icon = this.dataset.icon;
 
-                    // Update UI Display
                     const selectedTitle = document.getElementById('selectedCareerTitle');
                     const selectedIcon = document.getElementById('selectedCareerIcon');
                     if (selectedTitle) selectedTitle.textContent = title;
                     if (selectedIcon) selectedIcon.className = 'bi ' + icon + ' fs-5 text-info';
 
-                    // Update active selected class
                     items.forEach(i => i.classList.remove('selected'));
                     this.classList.add('selected');
 
-                    // Update hidden input & trigger change event
                     if (hiddenInput) {
                         hiddenInput.value = val;
                         hiddenInput.dispatchEvent(new Event('change'));
@@ -765,7 +743,6 @@ include '../includes/header.php';
                 });
             });
 
-            // Close when clicking outside
             document.addEventListener('click', function(e) {
                 if (!wrapper.contains(e.target)) {
                     wrapper.classList.remove('active');
@@ -785,8 +762,6 @@ include '../includes/header.php';
     }
 </script>
 
-<!-- SweetAlert2 Library CDN -->
-<!-- Custom SweetAlert Controller -->
 <script src="../js/sweetalert_learning-path.js?v=<?= time() ?>"></script>
 
 <?php include '../includes/footer.php'; ?>
