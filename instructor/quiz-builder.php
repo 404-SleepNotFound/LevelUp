@@ -43,11 +43,27 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         --lv-placeholder: #94a3b8;
     }
 
-    /* 🎯 Embedded Custom Interactive Dropdown CSS */
+    /* 🚀 Custom Interactive Dropdown CSS (แก้ไขเรื่อง Cursor แล้ว) */
+    .custom-dropdown-wrapper,
+    .custom-dropdown-btn,
+    .custom-dropdown-menu,
+    .custom-dropdown-item {
+        /* ป้องกันไม่ให้เบราว์เซอร์เรียกเมาส์ OS มาแทนที่เมาส์จรวด */
+        cursor: inherit !important; 
+        user-select: none !important;
+        -webkit-user-select: none !important;
+    }
+
+    /* หากใช้เมาส์จรวดแบบ JS Element บินตาม (Floating Rocket) ให้ปลดล็อกคอมเมนต์บรรทัดล่างนี้ครับ: */
+    /*
+    .custom-dropdown-wrapper, .custom-dropdown-btn, .custom-dropdown-menu, .custom-dropdown-item {
+        cursor: none !important;
+    }
+    */
+
     .custom-dropdown-wrapper {
         position: relative;
         width: 100%;
-        user-select: none;
     }
 
     .custom-dropdown-btn {
@@ -59,7 +75,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         display: flex;
         align-items: center;
         justify-content: space-between;
-        cursor: pointer;
         min-height: 52px;
         transition: all 0.2s ease;
         font-size: 0.95rem;
@@ -89,7 +104,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         border: 1px solid var(--lv-input-border);
         border-radius: 10px;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-        z-index: 9999 !important;
+        z-index: 999 !important; /* ปรับ z-index เพื่อไม่ให้บัง Element จรวดลอย */
         max-height: 240px;
         overflow-y: auto;
         backdrop-filter: blur(16px);
@@ -103,7 +118,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     .custom-dropdown-item {
         padding: 10px 14px;
         border-radius: 6px;
-        cursor: pointer;
         color: var(--lv-input-text);
         transition: background 0.15s ease;
         font-size: 0.9rem;
@@ -242,9 +256,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     @media (min-width: 768px) {
         .question-build-item {
             padding: 20px;
-            cursor: grab;
         }
-        .question-build-item:active { cursor: grabbing; }
     }
 
     .analytics-grid {
@@ -629,10 +641,9 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     </form>
 </div>
 
-<!-- 🚀 Global Dynamic Dropdown Handler (ใช้ Event Delegation กดติด 100% แม้โหลดผ่าน AJAX) -->
+<!-- 🚀 Global Dynamic Dropdown Handler -->
 <script>
     (function() {
-        // ใช้ Global Listener เพื่อให้รองรับ Dynamic Page Load / AJAX
         document.removeEventListener('click', handleCustomDropdownClick);
         document.addEventListener('click', handleCustomDropdownClick);
 
@@ -640,25 +651,21 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             const btn = e.target.closest('.custom-dropdown-btn');
             const item = e.target.closest('.custom-dropdown-item');
 
-            // 1. กดที่ปุ่มเปิด/ปิด Dropdown
             if (btn) {
                 e.stopPropagation();
                 const wrapper = btn.closest('.custom-dropdown-wrapper');
                 const isOpen = wrapper.classList.contains('active');
 
-                // ปิดอันอื่นทั้งหมดก่อน
                 document.querySelectorAll('.custom-dropdown-wrapper.active').forEach(w => {
                     w.classList.remove('active');
                 });
 
-                // เปิดเฉพาะอันที่กด (ถ้ายังไม่เปิด)
                 if (!isOpen) {
                     wrapper.classList.add('active');
                 }
                 return;
             }
 
-            // 2. กดเลือกตัวเลือกใน Menu
             if (item) {
                 const wrapper = item.closest('.custom-dropdown-wrapper');
                 if (wrapper) {
@@ -667,17 +674,14 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                         textSpan.textContent = item.textContent.trim();
                     }
 
-                    // อัปเดตคลาส selected
                     wrapper.querySelectorAll('.custom-dropdown-item').forEach(i => i.classList.remove('selected'));
                     item.classList.add('selected');
 
-                    // หุบเมนูลง
                     wrapper.classList.remove('active');
                 }
                 return;
             }
 
-            // 3. คลิกพื้นที่ภายนอก -> หุบเมนูทั้งหมด
             document.querySelectorAll('.custom-dropdown-wrapper.active').forEach(w => {
                 w.classList.remove('active');
             });
