@@ -1,13 +1,10 @@
 ﻿<?php
 $ROOT_PATH = '../';
-// [Security Framework & Session Verification]
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 ?>
 
 <style>
-    /* ----------------------------------------------------
-       🎨 Theme Variables Setup (Light / Dark Mode Support)
-       ---------------------------------------------------- */
+    /* Theme Variables Setup */
     :root, 
     html[data-theme="dark"], 
     [data-bs-theme="dark"] {
@@ -103,14 +100,13 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         }
     }
     .section-title i {
-        color: #3b82f6; /* สีน้ำเงินแล็บคอร์ส */
+        color: #3b82f6;
         margin-top: 2px;
     }
     @media (min-width: 768px) {
         .section-title i { margin-top: 0; }
     }
 
-    /* Dynamic Dynamic Text Classes */
     .text-muted {
         color: var(--lab-muted-color) !important;
     }
@@ -124,12 +120,10 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         border: 1px solid var(--lab-input-border) !important;
         color: var(--lab-input-text) !important;
         border-radius: 10px;
-        
         padding-top: 13px !important;
         padding-bottom: 13px !important;
         padding-left: 16px !important;
         padding-right: 16px !important;
-        
         line-height: 1.7 !important;
         height: auto !important; 
         min-height: 52px !important;
@@ -157,71 +151,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         background-position: right 16px center !important;
         background-size: 12px 12px !important;
         padding-right: 42px !important;
-    }
-
-    /* ======================================================
-       🎨 GLOBAL CUSTOM DROPDOWN STYLES
-       ====================================================== */
-
-    .custom-dropdown-wrapper {
-        position: relative;
-        display: inline-block;
-        width: 100%;
-    }
-
-    .custom-dropdown-menu {
-        position: absolute;
-        top: calc(100% + 6px);
-        left: 0;
-        right: 0;
-        box-sizing: border-box;
-        padding: 6px;
-        margin: 0;
-        list-style: none;
-        background: var(--card-bg-premium, #0f172a);
-        border: 1px solid var(--cc-box-border, rgba(255, 255, 255, 0.1));
-        border-radius: 10px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-        z-index: 1050;
-        display: none;
-        max-height: 250px;
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
-
-    .custom-dropdown-menu.show {
-        display: block !important;
-    }
-
-    .custom-dropdown-item {
-        width: auto;
-        box-sizing: border-box;
-        padding: 10px 14px;
-        border-radius: 6px;
-        color: var(--cc-text-main, #f8fafc);
-        cursor: pointer;
-        font-size: 0.9rem;
-        transition: background 0.2s ease, color 0.2s ease;
-        word-break: break-word;  
-    }
-
-    .custom-dropdown-item:hover {
-        background: rgba(255, 255, 255, 0.08);
-        color: #3b82f6;
-    }
-
-    .input-group .form-control-premium {
-        border-top-left-radius: 0 !important;
-        border-bottom-left-radius: 0 !important;
-    }
-    .input-group-text {
-        background: var(--lab-sub-box-bg) !important;
-        border: 1px solid var(--lab-input-border) !important;
-        color: var(--lab-muted-color) !important;
-        padding: 0 16px !important;
-        display: flex;
-        align-items: center;
-        justify-content: center;
     }
 
     .form-label-premium {
@@ -410,7 +339,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         </div>
 
         <!-- ==========================================
-             ⭐ FEATURE 2: AI ENVIRONMENT GENERATOR
+             FEATURE 2: AI ENVIRONMENT GENERATOR
              ========================================== -->
         <div class="lab-section-card bg-purple border-purple">
             <div class="section-title text-purple">
@@ -474,10 +403,10 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         </div>
 
         <!-- ==========================================
-             ⭐ FEATURE 1: VISUAL LAB BUILDER (DRAG & DROP BLOCK)
+             FEATURE 1: VISUAL LAB BUILDER (DRAG & DROP BLOCK)
              ========================================== -->
         <div class="lab-section-card border border-info border-opacity-20">
-            <div class="section-title text-cyan">
+            <div class="section-title text-info">
                 <i class="bi bi-ui-checks-grid"></i> ⭐ ฟีเจอร์เด่น: Visual Lab Builder Layout
             </div>
             <p class="text-muted small mt-0 mb-3">ลากจัดวางบล็อกหน้าต่างการแสดงผลตามลำดับความคุ้นเคย เพื่อปรับแต่งหน้าการทำแล็บของผู้เรียนได้อย่างอิสระ</p>
@@ -486,11 +415,11 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 <div class="col-12 col-md-4">
                     <div class="lab-sub-box">
                         <span class="small fw-bold lab-main-title mb-2 d-block">กล่องเครื่องมือบล็อกชิ้นส่วน</span>
-                        <div class="vlb-block-item p-2 mb-1 w-100 text-start" draggable="true">📝 Instruction Block</div>
-                        <div class="vlb-block-item p-2 mb-1 w-100 text-start" draggable="true">💻 Code Editor Block</div>
-                        <div class="vlb-block-item p-2 mb-1 w-100 text-start" draggable="true">🖥️ Terminal Block</div>
-                        <div class="vlb-block-item p-2 mb-1 w-100 text-start" draggable="true">🗄️ Database Block</div>
-                        <div class="vlb-block-item p-2 mb-1 w-100 text-start" draggable="true">🌐 Browser Preview Block</div>
+                        <div class="vlb-block-item p-2 mb-1 w-100 text-start" draggable="true" data-type="instruction">📝 Instruction Block</div>
+                        <div class="vlb-block-item p-2 mb-1 w-100 text-start" draggable="true" data-type="editor">💻 Code Editor Block</div>
+                        <div class="vlb-block-item p-2 mb-1 w-100 text-start" draggable="true" data-type="terminal">🖥️ Terminal Block</div>
+                        <div class="vlb-block-item p-2 mb-1 w-100 text-start" draggable="true" data-type="database">🗄️ Database Block</div>
+                        <div class="vlb-block-item p-2 mb-1 w-100 text-start" draggable="true" data-type="browser">🌐 Browser Preview Block</div>
                     </div>
                 </div>
                 <div class="col-12 col-md-8">
@@ -673,7 +602,9 @@ services:
     </form>
 </div>
 
-<!-- 17. PREVIEW LAB SIMULATOR MODAL -->
+<!-- ==========================================
+     17. PREVIEW LAB SIMULATOR MODAL
+     ========================================== -->
 <div class="modal fade" id="labSimulatorModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content lab-modal shadow-lg">
@@ -706,15 +637,13 @@ services:
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // ---------------------------------------------------
-    // 🔀 Visual Lab Builder Drag & Drop Functionality
-    // ---------------------------------------------------
+    // Visual Lab Builder Drag & Drop Functionality
     const vlbStage = document.getElementById('vlbStage');
     
     if (vlbStage) {
         let draggedItem = null;
 
-        document.querySelectorAll('.vlb-block-item').forEach(item => {
+        function attachDragListeners(item) {
             item.addEventListener('dragstart', function(e) {
                 draggedItem = this;
                 this.classList.add('dragging');
@@ -725,7 +654,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.classList.remove('dragging');
                 draggedItem = null;
             });
-        });
+        }
+
+        document.querySelectorAll('.vlb-block-item').forEach(attachDragListeners);
 
         vlbStage.addEventListener('dragover', function(e) {
             e.preventDefault();
