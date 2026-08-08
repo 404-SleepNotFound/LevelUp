@@ -34,7 +34,7 @@ html[data-theme="dark"] ::-webkit-scrollbar-thumb,
 :root:not([data-theme="light"]) ::-webkit-scrollbar-thumb {
     background: linear-gradient(180deg, #6366f1 0%, #06b6d4 100%) !important;
     border-radius: 10px !important;
-    border: 2px solid #090d1a !important; /* เว้นระยะห่างให้ดูมีมิติ */
+    border: 2px solid #090d1a !important;
 }
 
 html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover,
@@ -61,8 +61,7 @@ html[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
 }
 
 /* ------------------------------------------------------
-   Dropdown-specific scrollbar (larger, more visible)
-   Scoped to dropdown menus so other scrollbars remain subtle
+   Dropdown-specific scrollbar
    ------------------------------------------------------ */
 .dropdown-menu::-webkit-scrollbar,
 .custom-dropdown-menu::-webkit-scrollbar,
