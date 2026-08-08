@@ -218,7 +218,17 @@ if ($db) {
         background: var(--lv-surface) !important;
         border: 1px solid var(--lv-border-glow) !important;
         box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
-        backdrop-filter: blur(20px);
+        /* NOTE: backdrop-filter removed intentionally. Any filter/backdrop-filter/
+           transform on an ancestor turns it into the containing block for
+           position:fixed descendants (per CSS spec). header.php's dropdown
+           repositioning script sets the filter dropdown menus to
+           position:fixed with viewport-relative top/left - with blur() here,
+           those coordinates were being measured from THIS bar's box instead
+           of the viewport, throwing the menu far from its trigger button.
+           If you want the glass-blur look back, apply it on a separate
+           ::before/backdrop layer behind the content instead of on this
+           element directly, so it no longer sits in the dropdown's ancestor
+           chain, or move the dropdown-menu to <body> before positioning it. */
         border-radius: 16px !important;
         position: relative;
         z-index: 1000 !important;
