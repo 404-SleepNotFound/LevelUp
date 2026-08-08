@@ -228,33 +228,76 @@ if (isset($conn)) {
         outline: none;
     }
 
-    .form-dark-input option {
-        background-color: var(--cc-step-bg) !important;
-        color: var(--cc-input-text) !important;
-        padding: 10px;
-    }
-
     .form-dark-input::placeholder {
         color: var(--cc-input-ph) !important;
         opacity: 1;
     }
 
-    /* 🛠️ Custom Arrow UI สำหรับ select */
-    select.form-dark-input,
-    .form-select.form-dark-input {
-        -webkit-appearance: none !important;
-        -moz-appearance: none !important;
-        appearance: none !important;
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2306b6d4' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
-        background-repeat: no-repeat !important;
-        background-position: right 1rem center !important;
-        background-size: 14px 10px !important;
-        padding-right: 2.5rem !important;
+    /* 🔻 Custom Dropdown Styles 🔻 */
+    .custom-dropdown-wrapper {
+        position: relative;
+        width: 100%;
+        user-select: none;
     }
 
-    html[data-theme="light"] select.form-dark-input,
-    html[data-theme="light"] .form-select.form-dark-input {
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%230284c7' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+    .custom-dropdown-btn {
+        background: var(--cc-input-bg);
+        border: 1px solid var(--cc-input-border);
+        color: var(--cc-input-text);
+        border-radius: 10px;
+        padding: 12px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        transition: all 0.25s ease;
+    }
+
+    .custom-dropdown-btn:hover,
+    .custom-dropdown-wrapper.active .custom-dropdown-btn {
+        border-color: #06b6d4;
+        box-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
+    }
+
+    .custom-dropdown-menu {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        right: 0;
+        background: var(--card-bg-premium);
+        border: 1px solid var(--cc-box-border);
+        border-radius: 10px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        z-index: 1050;
+        display: none;
+        max-height: 250px;
+        overflow-y: auto;
+        padding: 6px;
+    }
+
+    .custom-dropdown-wrapper.active .custom-dropdown-menu {
+        display: block;
+        animation: fadeIn 0.2s ease-in-out;
+    }
+
+    .custom-dropdown-item {
+        padding: 10px 14px;
+        border-radius: 6px;
+        color: var(--cc-text-main);
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .custom-dropdown-item:hover {
+        background: rgba(6, 182, 212, 0.15);
+        color: #06b6d4;
+    }
+
+    .custom-dropdown-item.selected {
+        background: #06b6d4;
+        color: #ffffff !important;
+        font-weight: 600;
     }
 
     /* ซ่อนลูกศรในช่อง Number Input */
@@ -467,13 +510,23 @@ if (isset($conn)) {
                         <label class="form-label form-label-custom">ชื่อรอง (Subtitle)</label>
                         <input type="text" class="form-control form-dark-input" id="course_subtitle" name="course_subtitle" placeholder="คำโปรยหัวสั้นๆ กระตุ้นผู้เรียน">
                     </div>
+
+                    <!-- 🔻 Dropdown 1: ภาษาในคอร์ส 🔻 -->
                     <div class="col-12 col-md-6">
                         <label class="form-label form-label-custom">ภาษาในคอร์ส</label>
-                        <select class="form-select form-dark-input" id="course_language" name="course_language">
-                            <option value="th">ภาษาไทย (Thai)</option>
-                            <option value="en">ภาษาอังกฤษ (English)</option>
-                        </select>
+                        <div class="custom-dropdown-wrapper">
+                            <input type="hidden" name="course_language" id="course_language" value="th">
+                            <div class="custom-dropdown-btn">
+                                <span class="selected-text">ภาษาไทย (Thai)</span>
+                                <i class="bi bi-chevron-down"></i>
+                            </div>
+                            <div class="custom-dropdown-menu">
+                                <div class="custom-dropdown-item selected" data-value="th">ภาษาไทย (Thai)</div>
+                                <div class="custom-dropdown-item" data-value="en">ภาษาอังกฤษ (English)</div>
+                            </div>
+                        </div>
                     </div>
+
                     <div class="col-12">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <label class="form-label form-label-custom mb-0">คำอธิบายสั้น</label>
@@ -545,30 +598,46 @@ if (isset($conn)) {
                     <div class="col-12 col-md-6">
                         <h5 class="fw-bold text-white mb-3"><i class="bi bi-tags text-info me-2"></i> 3 & 4. หมวดหมู่และระดับความยาก</h5>
 
+                        <!-- 🔻 Dropdown 2: หมวดหมู่หลักคอร์ส 🔻 -->
                         <div class="mb-3">
                             <label class="form-label form-label-custom">หมวดหมู่หลักคอร์ส <span class="text-danger">*</span></label>
-                            <select class="form-select form-dark-input required-field" id="course_category" name="course_category">
-                                <option value="">-- กรุณาเลือกหมวดหมู่หลัก --</option>
-                                <?php if (!empty($category_data)): ?>
-                                    <?php foreach ($category_data as $category): ?>
-                                        <option value="<?= htmlspecialchars($category['id'] ?? ''); ?>">
-                                            <?= htmlspecialchars($category['name'] ?? ''); ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <option value="">ไม่มีข้อมูลหมวดหมู่</option>
-                                <?php endif; ?>
-                            </select>
+                            <div class="custom-dropdown-wrapper">
+                                <input type="hidden" name="course_category" id="course_category" class="required-field" value="">
+                                <div class="custom-dropdown-btn">
+                                    <span class="selected-text">-- กรุณาเลือกหมวดหมู่หลัก --</span>
+                                    <i class="bi bi-chevron-down"></i>
+                                </div>
+                                <div class="custom-dropdown-menu">
+                                    <div class="custom-dropdown-item selected" data-value="">-- กรุณาเลือกหมวดหมู่หลัก --</div>
+                                    <?php if (!empty($category_data)): ?>
+                                        <?php foreach ($category_data as $category): ?>
+                                            <div class="custom-dropdown-item" data-value="<?= htmlspecialchars($category['id'] ?? ''); ?>">
+                                                <?= htmlspecialchars($category['name'] ?? ''); ?>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <div class="custom-dropdown-item" data-value="">ไม่มีข้อมูลหมวดหมู่</div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
                         </div>
 
+                        <!-- 🔻 Dropdown 3: ระดับความยากผู้เรียน 🔻 -->
                         <div class="mb-3">
                             <label class="form-label form-label-custom">ระดับความยากผู้เรียน (Difficulty Level)</label>
-                            <select class="form-select form-dark-input" id="course_difficulty" onchange="updateDifficultyHelp()" name="course_difficulty">
-                                <option value="Beginner">Beginner (เหมาะสำหรับผู้เริ่มต้น ไม่มีพื้นฐานเลย)</option>
-                                <option value="Intermediate">Intermediate (มีพื้นฐานภาษาคอมพิวเตอร์มาบ้างแล้ว)</option>
-                                <option value="Advanced">Advanced (เจาะลึกโปรเจกต์ใหญ่ ลอจิกซับซ้อน)</option>
-                                <option value="Expert">Expert (ระดับสถาปัตยกรรมระบบขั้นสูงและ Security)</option>
-                            </select>
+                            <div class="custom-dropdown-wrapper">
+                                <input type="hidden" name="course_difficulty" id="course_difficulty" value="Beginner" onchange="updateDifficultyHelp()">
+                                <div class="custom-dropdown-btn">
+                                    <span class="selected-text">Beginner (เหมาะสำหรับผู้เริ่มต้น ไม่มีพื้นฐานเลย)</span>
+                                    <i class="bi bi-chevron-down"></i>
+                                </div>
+                                <div class="custom-dropdown-menu">
+                                    <div class="custom-dropdown-item selected" data-value="Beginner">Beginner (เหมาะสำหรับผู้เริ่มต้น ไม่มีพื้นฐานเลย)</div>
+                                    <div class="custom-dropdown-item" data-value="Intermediate">Intermediate (มีพื้นฐานภาษาคอมพิวเตอร์มาบ้างแล้ว)</div>
+                                    <div class="custom-dropdown-item" data-value="Advanced">Advanced (เจาะลึกโปรเจกต์ใหญ่ ลอจิกซับซ้อน)</div>
+                                    <div class="custom-dropdown-item" data-value="Expert">Expert (ระดับสถาปัตยกรรมระบบขั้นสูงและ Security)</div>
+                                </div>
+                            </div>
                             <div id="difficulty_help" class="small text-info mt-2 fw-medium">💡 ปูพื้นฐานจากศูนย์ ไม่จำเป็นต้องมีประสบการณ์เขียนโค้ดมาก่อน</div>
                         </div>
 
@@ -618,24 +687,41 @@ if (isset($conn)) {
                     <div class="col-12">
                         <hr style="border-color: var(--cc-box-border);">
                         <div class="row g-3">
+                            <!-- 🔻 Dropdown 4: กลุ่มเป้าหมาย 🔻 -->
                             <div class="col-12 col-md-6">
                                 <label class="form-label form-label-custom">เหมาะสำหรับกลุ่มเป้าหมายใด (Target Audience)</label>
-                                <select class="form-select form-dark-input" id="course_target" name="course_target">
-                                    <option value="ผู้เริ่มต้น / นักเรียน นักศึกษา">ผู้เริ่มต้น / นักเรียน นักศึกษา</option>
-                                    <option value="โปรแกรมเมอร์ที่ต้องการย้ายหรือเปลี่ยนสายงาน">โปรแกรมเมอร์ที่ต้องการย้ายหรือเปลี่ยนสายงาน</option>
-                                    <option value="ผู้ทำงานสายตรงที่ต้องการอัปสกิลเทคโนโลยีใหม่">ผู้ทำงานสายตรงที่ต้องการอัปสกิลเทคโนโลยีใหม่</option>
-                                </select>
+                                <div class="custom-dropdown-wrapper">
+                                    <input type="hidden" name="course_target" id="course_target" value="ผู้เริ่มต้น / นักเรียน นักศึกษา">
+                                    <div class="custom-dropdown-btn">
+                                        <span class="selected-text">ผู้เริ่มต้น / นักเรียน นักศึกษา</span>
+                                        <i class="bi bi-chevron-down"></i>
+                                    </div>
+                                    <div class="custom-dropdown-menu">
+                                        <div class="custom-dropdown-item selected" data-value="ผู้เริ่มต้น / นักเรียน นักศึกษา">ผู้เริ่มต้น / นักเรียน นักศึกษา</div>
+                                        <div class="custom-dropdown-item" data-value="โปรแกรมเมอร์ที่ต้องการย้ายหรือเปลี่ยนสายงาน">โปรแกรมเมอร์ที่ต้องการย้ายหรือเปลี่ยนสายงาน</div>
+                                        <div class="custom-dropdown-item" data-value="ผู้ทำงานสายตรงที่ต้องการอัปสกิลเทคโนโลยีใหม่">ผู้ทำงานสายตรงที่ต้องการอัปสกิลเทคโนโลยีใหม่</div>
+                                    </div>
+                                </div>
                             </div>
+
+                            <!-- 🔻 Dropdown 5: แผนอาชีพ 🔻 -->
                             <div class="col-12 col-md-6">
                                 <label class="form-label form-label-custom">เชื่อมโยงกับแผนอาชีพ (Career Path)</label>
-                                <select class="form-select form-dark-input" id="course_career" name="course_career">
-                                    <option value="Full Stack Developer">Full Stack Developer</option>
-                                    <option value="Front-end Developer">Front-end Developer</option>
-                                    <option value="Back-end Developer">Back-end Developer</option>
-                                    <option value="Data Scientist / AI Engineer">Data Scientist / AI Engineer</option>
-                                    <option value="Cloud & DevOps Engineer">Cloud & DevOps Engineer</option>
-                                    <option value="Cybersecurity Analyst">Cybersecurity Analyst</option>
-                                </select>
+                                <div class="custom-dropdown-wrapper">
+                                    <input type="hidden" name="course_career" id="course_career" value="Full Stack Developer">
+                                    <div class="custom-dropdown-btn">
+                                        <span class="selected-text">Full Stack Developer</span>
+                                        <i class="bi bi-chevron-down"></i>
+                                    </div>
+                                    <div class="custom-dropdown-menu">
+                                        <div class="custom-dropdown-item selected" data-value="Full Stack Developer">Full Stack Developer</div>
+                                        <div class="custom-dropdown-item" data-value="Front-end Developer">Front-end Developer</div>
+                                        <div class="custom-dropdown-item" data-value="Back-end Developer">Back-end Developer</div>
+                                        <div class="custom-dropdown-item" data-value="Data Scientist / AI Engineer">Data Scientist / AI Engineer</div>
+                                        <div class="custom-dropdown-item" data-value="Cloud & DevOps Engineer">Cloud & DevOps Engineer</div>
+                                        <div class="custom-dropdown-item" data-value="Cybersecurity Analyst">Cybersecurity Analyst</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -650,23 +736,41 @@ if (isset($conn)) {
                 <h5 class="fw-bold text-white mb-3"><i class="bi bi-cash-stack text-cyan me-2"></i> ประเภทคอร์ส การตั้งค่าราคา และระบบ</h5>
                 
                 <div class="row g-3">
+                    <!-- 🔻 Dropdown 6: ประเภทคอร์สและการคิดเงิน 🔻 -->
                     <div class="col-12 col-md-4">
                         <label class="form-label form-label-custom">ประเภทคอร์สและการคิดเงิน</label>
-                        <select class="form-select form-dark-input" id="course_type" name="course_type" onchange="togglePriceFields(this.value)">
-                            <option value="Paid" selected>เสียเงินซื้อขาดรายคอร์ส (Paid)</option>
-                            <option value="Free">เปิดให้เข้าเรียนฟรี (Free)</option>
-                            <option value="Premium">Premium รวมในแพ็กเกจสมาชิก</option>
-                            <option value="Private">ส่วนบุคคลเฉพาะกลุ่ม (Private / Internal)</option>
-                        </select>
+                        <div class="custom-dropdown-wrapper">
+                            <input type="hidden" name="course_type" id="course_type" value="Paid" onchange="togglePriceFields(this.value)">
+                            <div class="custom-dropdown-btn">
+                                <span class="selected-text">เสียเงินซื้อขาดรายคอร์ส (Paid)</span>
+                                <i class="bi bi-chevron-down"></i>
+                            </div>
+                            <div class="custom-dropdown-menu">
+                                <div class="custom-dropdown-item selected" data-value="Paid">เสียเงินซื้อขาดรายคอร์ส (Paid)</div>
+                                <div class="custom-dropdown-item" data-value="Free">เปิดให้เข้าเรียนฟรี (Free)</div>
+                                <div class="custom-dropdown-item" data-value="Premium">Premium รวมในแพ็กเกจสมาชิก</div>
+                                <div class="custom-dropdown-item" data-value="Private">ส่วนบุคคลเฉพาะกลุ่ม (Private / Internal)</div>
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- 🔻 Dropdown 7: สถานะเปิดรับชม 🔻 -->
                     <div class="col-12 col-md-4">
                         <label class="form-label form-label-custom">สถานะเปิดรับชม (Visibility)</label>
-                        <select class="form-select form-dark-input" id="course_visibility" name="course_visibility">
-                            <option value="Draft" selected>Draft (บันทึกร่างภายในสตูดิโอผู้สอน)</option>
-                            <option value="Public">Public (เปิดสาธารณะ ค้นหาเจอบนหน้าเว็บ)</option>
-                            <option value="Unlisted">Unlisted (เข้าเรียนได้ผ่านลิงก์ตรงเท่านั้น)</option>
-                        </select>
+                        <div class="custom-dropdown-wrapper">
+                            <input type="hidden" name="course_visibility" id="course_visibility" value="Draft">
+                            <div class="custom-dropdown-btn">
+                                <span class="selected-text">Draft (บันทึกร่างภายในสตูดิโอผู้สอน)</span>
+                                <i class="bi bi-chevron-down"></i>
+                            </div>
+                            <div class="custom-dropdown-menu">
+                                <div class="custom-dropdown-item selected" data-value="Draft">Draft (บันทึกร่างภายในสตูดิโอผู้สอน)</div>
+                                <div class="custom-dropdown-item" data-value="Public">Public (เปิดสาธารณะ ค้นหาเจอบนหน้าเว็บ)</div>
+                                <div class="custom-dropdown-item" data-value="Unlisted">Unlisted (เข้าเรียนได้ผ่านลิงก์ตรงเท่านั้น)</div>
+                            </div>
+                        </div>
                     </div>
+
                     <div class="col-12 col-md-4">
                         <label class="form-label form-label-custom">เชิญอาจารย์ร่วมสอน (Collaboration)</label>
                         <input type="email" class="form-control form-dark-input" id="collab_email" placeholder="ระบุอีเมลผู้ช่วยสอนหรือผู้ตรวจคอร์ส" name="collab_email">
@@ -810,7 +914,7 @@ if (isset($conn)) {
 </div>
 
 <script>
-    // 🛡️ Fallback สำหรับ InstructorAlerts เผื่อเรียกใช้เปิดหน้านี้ตรงๆ โดยไม่ผ่าน instructor.php
+    // 🛡️ Fallback สำหรับ InstructorAlerts
     var Alerts = window.InstructorAlerts || {
         toast: function(type, msg) { alert('[' + type.toUpperCase() + '] ' + msg); },
         saveDraft: function() { alert('ทำการบันทึกร่างเรียบร้อยแล้ว'); },
@@ -819,6 +923,35 @@ if (isset($conn)) {
 
     var currentStep = 1;
     var tagsArray = [];
+
+    // ⚡ ระบบการทำงานของ Custom Dropdown ⚡
+    $(document).on('click', '.custom-dropdown-btn', function(e) {
+        e.stopPropagation();
+        var $wrapper = $(this).closest('.custom-dropdown-wrapper');
+        $('.custom-dropdown-wrapper').not($wrapper).removeClass('active');
+        $wrapper.toggleClass('active');
+    });
+
+    $(document).on('click', '.custom-dropdown-item', function(e) {
+        e.stopPropagation();
+        var $item = $(this);
+        var $wrapper = $item.closest('.custom-dropdown-wrapper');
+        var val = $item.data('value');
+        var text = $item.text();
+
+        $wrapper.find('.selected-text').text(text);
+        var $hiddenInput = $wrapper.find('input[type="hidden"]');
+        $hiddenInput.val(val).trigger('change');
+
+        $wrapper.find('.custom-dropdown-item').removeClass('selected');
+        $item.addClass('selected');
+
+        $wrapper.removeClass('active');
+    });
+
+    $(document).on('click', function() {
+        $('.custom-dropdown-wrapper').removeClass('active');
+    });
 
     // 💡 ซ่อน/แสดงช่องใส่ราคา ตามประเภทคอร์ส
     function togglePriceFields(type) {
@@ -930,8 +1063,10 @@ if (isset($conn)) {
             $('.required-field').each(function() {
                 if ($(this).val().trim() === "") {
                     isValid = false;
+                    $(this).closest('.custom-dropdown-wrapper').find('.custom-dropdown-btn').addClass('border-danger');
                     $(this).addClass('is-invalid');
                 } else {
+                    $(this).closest('.custom-dropdown-wrapper').find('.custom-dropdown-btn').removeClass('border-danger');
                     $(this).removeClass('is-invalid');
                 }
             });
@@ -946,14 +1081,14 @@ if (isset($conn)) {
             formData.append('action', 'save');
             formData.append('user_id', '<?= $user_id ?>');
 
-            // 🛠️ ส่งค่าราคาครอบคลุมทุกตัวแปร (รองรับทั้ง pice, price, course_price, sale_price) ป้องกัน DB รับค่า NULL
+            // ส่งค่าราคาครอบคลุมทุกตัวแปร ป้องกัน DB รับค่า NULL
             var priceVal = $('#course_price').val() || '0';
             var salePriceVal = $('#course_sale_price').val() || '0';
 
-            formData.append('pice', priceVal);            // เผื่อ DB ใช้ชื่อคอลัมน์ pice
-            formData.append('price', priceVal);           // ชื่อมาตรฐาน price
-            formData.append('course_price', priceVal);    // ชื่อ input ในฟอร์ม
-            formData.append('sale_price', salePriceVal);   // ชื่อมาตรฐาน sale_price
+            formData.append('pice', priceVal);
+            formData.append('price', priceVal);
+            formData.append('course_price', priceVal);
+            formData.append('sale_price', salePriceVal);
             formData.append('course_sale_price', salePriceVal);
 
             // จัดการข้อมูล Outcomes และ Prereq
