@@ -47,6 +47,17 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         --lab-modal-bg: #ffffff;
     }
 
+    /* Helper Utilities */
+    .bg-purple {
+        background-color: rgba(168, 85, 247, 0.12) !important;
+    }
+    .text-purple {
+        color: #a855f7 !important;
+    }
+    .border-purple {
+        border-color: rgba(168, 85, 247, 0.35) !important;
+    }
+
     /* Scope Lab Builder Styles */
     .lab-container {
         animation: fadeInLab 0.35s ease-in-out;
@@ -152,14 +163,12 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
        🎨 GLOBAL CUSTOM DROPDOWN STYLES
        ====================================================== */
 
-    /* 1. ตัวหุ้มรอบ Dropdown (ช่วยเรื่อง Position) */
     .custom-dropdown-wrapper {
         position: relative;
         display: inline-block;
         width: 100%;
     }
 
-    /* 2. กล่องเมนู Dropdown */
     .custom-dropdown-menu {
         position: absolute;
         top: calc(100% + 6px);
@@ -174,18 +183,16 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         border-radius: 10px;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
         z-index: 1050;
-        display: none; /* ซ่อนไว้เป็นค่าเริ่มต้น */
+        display: none;
         max-height: 250px;
         overflow-y: auto;
         overflow-x: hidden;
     }
 
-    /* 3. สภาพตอนเปิดแสดงผล */
     .custom-dropdown-menu.show {
         display: block !important;
     }
 
-    /* 4. รายการตัวเลือกแต่ละอัน (Item) */
     .custom-dropdown-item {
         width: auto;
         box-sizing: border-box;
@@ -267,8 +274,15 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         align-items: center;
         justify-content: space-between;
         box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        user-select: none;
+        transition: transform 0.15s ease, opacity 0.15s ease;
     }
-    .vlb-block-item:active { cursor: grabbing; }
+    .vlb-block-item:active { 
+        cursor: grabbing; 
+    }
+    .vlb-block-item.dragging {
+        opacity: 0.4;
+    }
 
     /* Analytics Summary Grid */
     .analytics-grid {
@@ -305,6 +319,15 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         background-color: var(--lab-modal-bg);
         color: var(--lab-title-color);
         border: 1px solid var(--lab-sub-box-border);
+    }
+
+    /* Terminal Cursor Animation */
+    .animate-blink {
+        animation: cursorBlink 1s infinite;
+    }
+    @keyframes cursorBlink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
     }
 
     @keyframes fadeInLab {
@@ -389,8 +412,8 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         <!-- ==========================================
              ⭐ FEATURE 2: AI ENVIRONMENT GENERATOR
              ========================================== -->
-        <div class="lab-section-card bg-purple bg-opacity-10" style="border: 1px solid rgba(168, 85, 247, 0.35);">
-            <div class="section-title text-purple" style="color: #a855f7 !important;">
+        <div class="lab-section-card bg-purple border-purple">
+            <div class="section-title text-purple">
                 <i class="bi bi-cpu-fill"></i> ⭐ AI Environment Generator (ตัวช่วยติดตั้งระบบอัตโนมัติ)
             </div>
             <p class="text-muted small mt-0 mb-3">พิมพ์เป้าหมายของ Lab ที่ต้องการเพื่อให้ AI ช่วยร่างชุดสภาพแวดล้อม โจทย์ ซอร์สโค้ดเริ่มต้น และ Test Cases ทันที</p>
@@ -463,19 +486,19 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 <div class="col-12 col-md-4">
                     <div class="lab-sub-box">
                         <span class="small fw-bold lab-main-title mb-2 d-block">กล่องเครื่องมือบล็อกชิ้นส่วน</span>
-                        <div class="vlb-block-item p-2 mb-1 w-100 text-start">📝 Instruction Block</div>
-                        <div class="vlb-block-item p-2 mb-1 w-100 text-start">💻 Code Editor Block</div>
-                        <div class="vlb-block-item p-2 mb-1 w-100 text-start">🖥️ Terminal Block</div>
-                        <div class="vlb-block-item p-2 mb-1 w-100 text-start">🗄️ Database Block</div>
-                        <div class="vlb-block-item p-2 mb-1 w-100 text-start">🌐 Browser Preview Block</div>
+                        <div class="vlb-block-item p-2 mb-1 w-100 text-start" draggable="true">📝 Instruction Block</div>
+                        <div class="vlb-block-item p-2 mb-1 w-100 text-start" draggable="true">💻 Code Editor Block</div>
+                        <div class="vlb-block-item p-2 mb-1 w-100 text-start" draggable="true">🖥️ Terminal Block</div>
+                        <div class="vlb-block-item p-2 mb-1 w-100 text-start" draggable="true">🗄️ Database Block</div>
+                        <div class="vlb-block-item p-2 mb-1 w-100 text-start" draggable="true">🌐 Browser Preview Block</div>
                     </div>
                 </div>
                 <div class="col-12 col-md-8">
-                    <div class="vlb-stage">
+                    <div class="vlb-stage" id="vlbStage">
                         <span class="small text-muted d-block mb-2 font-monospace"><i class="bi bi-grid-1x2"></i> วางโครงสร้าง Layout เรียงลำดับลงที่นี่:</span>
-                        <div class="vlb-block-item"><span><i class="bi bi-text-left text-info me-2"></i> 1. Instruction Block (แถบแสดงโจทย์สั่งงาน)</span> <i class="bi bi-list text-muted"></i></div>
-                        <div class="vlb-block-item"><span><i class="bi bi-terminal text-success me-2"></i> 2. Terminal Block (หน้าจอรับคำสั่งคอมพิวเตอร์)</span> <i class="bi bi-list text-muted"></i></div>
-                        <div class="vlb-block-item"><span><i class="bi bi-check-all text-warning me-2"></i> 3. Test Case & Result Block (ตรวจคำตอบ)</span> <i class="bi bi-list text-muted"></i></div>
+                        <div class="vlb-block-item" draggable="true"><span><i class="bi bi-text-left text-info me-2"></i> 1. Instruction Block (แถบแสดงโจทย์สั่งงาน)</span> <i class="bi bi-list text-muted"></i></div>
+                        <div class="vlb-block-item" draggable="true"><span><i class="bi bi-terminal text-success me-2"></i> 2. Terminal Block (หน้าจอรับคำสั่งคอมพิวเตอร์)</span> <i class="bi bi-list text-muted"></i></div>
+                        <div class="vlb-block-item" draggable="true"><span><i class="bi bi-check-all text-warning me-2"></i> 3. Test Case & Result Block (ตรวจคำตอบ)</span> <i class="bi bi-list text-muted"></i></div>
                     </div>
                 </div>
             </div>
@@ -489,7 +512,11 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <div class="row g-3">
                 <div class="col-12 col-md-6">
                     <label class="form-label form-label-premium">4. Starter Files (โครงสร้างไฟล์เริ่มต้นเขียนโค้ด)</label>
-                    <textarea class="form-control form-control-premium font-monospace text-info small" rows="3" placeholder="ตัวอย่างโครงไฟล์ เช่น docker-compose.yml หรือ README.md"># Lab Configuration File&#10;version: '3.8'&#10;services:&#10;  web_node:&#10;    image: nginx:alpine</textarea>
+                    <textarea class="form-control form-control-premium font-monospace text-info small" rows="3" placeholder="ตัวอย่างโครงไฟล์ เช่น docker-compose.yml หรือ README.md"># Lab Configuration File
+version: '3.8'
+services:
+  web_node:
+    image: nginx:alpine</textarea>
                 </div>
                 <div class="col-12 col-md-6">
                     <label class="form-label form-label-premium">5. สเปกค่าเบื้องต้นของหน้าต่าง Code Editor</label>
@@ -511,7 +538,8 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <div class="row g-3">
                 <div class="col-12 col-lg-8">
                     <label class="form-label form-label-premium">คำแนะนำขั้นตอนการทำแล็บ (รองรับตาราง, ภาพ, วิดีโอ หรือ Markdown)</label>
-                    <textarea class="form-control form-control-premium font-monospace small" rows="3">1. รันคอนเทนเนอร์ตัวแรกชื่อ `web-app` บนน็ตเวิร์กบริดจ์ทั่วไป&#10;2. ตรวจสอบการ Ping ค้นหาชื่อโฮสต์ปลายทางภายในกลุ่มจำลอง</textarea>
+                    <textarea class="form-control form-control-premium font-monospace small" rows="3">1. รันคอนเทนเนอร์ตัวแรกชื่อ `web-app` บนน็ตเวิร์กบริดจ์ทั่วไป
+2. ตรวจสอบการ Ping ค้นหาชื่อโฮสต์ปลายทางภายในกลุ่มจำลอง</textarea>
                 </div>
                 <div class="col-12 col-lg-4">
                     <label class="form-label form-label-premium">10. AI Lab Copilot Actions</label>
@@ -591,7 +619,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 </div>
                 <div class="col-12 col-md-3">
                     <label class="form-label form-label-premium">15. Resource Files แนบเอกสารเพิ่ม</label>
-                    <button type="button" class="btn btn-outline-secondary lab-main-title border w-100 py-2.5 small" onclick="alert('เปิดหน้าต่างไฟล์แนบ')"><i class="bi bi-paperclip"></i> แนบ PDF / API doc</button>
+                    <button type="button" class="btn btn-outline-secondary lab-main-title border w-100 py-2 small" onclick="alert('เปิดหน้าต่างไฟล์แนบ')"><i class="bi bi-paperclip"></i> แนบ PDF / API doc</button>
                 </div>
                 <div class="col-12 col-md-3">
                     <label class="form-label form-label-premium">16. Skill Mapping</label>
@@ -675,3 +703,55 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ---------------------------------------------------
+    // 🔀 Visual Lab Builder Drag & Drop Functionality
+    // ---------------------------------------------------
+    const vlbStage = document.getElementById('vlbStage');
+    
+    if (vlbStage) {
+        let draggedItem = null;
+
+        document.querySelectorAll('.vlb-block-item').forEach(item => {
+            item.addEventListener('dragstart', function(e) {
+                draggedItem = this;
+                this.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+            });
+
+            item.addEventListener('dragend', function() {
+                this.classList.remove('dragging');
+                draggedItem = null;
+            });
+        });
+
+        vlbStage.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            const afterElement = getDragAfterElement(vlbStage, e.clientY);
+            if (draggedItem) {
+                if (afterElement == null) {
+                    vlbStage.appendChild(draggedItem);
+                } else {
+                    vlbStage.insertBefore(draggedItem, afterElement);
+                }
+            }
+        });
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.vlb-block-item:not(.dragging)')];
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+    }
+});
+</script>
