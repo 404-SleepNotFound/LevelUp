@@ -1499,3 +1499,54 @@ document.addEventListener('DOMContentLoaded', () => {
     // Run on load
     initTheme();
 });
+
+// ==========================================
+// Custom Dropdown Event Listener (Rocket Cursor Friendly)
+// ==========================================
+document.addEventListener('DOMContentLoaded', function () {
+    
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.custom-dropdown-btn');
+        const item = e.target.closest('.custom-dropdown-item');
+
+        // กรณีที่ 1: คลิกเปิด-ปิด ปุ่ม Dropdown
+        if (btn) {
+            e.stopPropagation();
+            const wrapper = btn.closest('.custom-dropdown-wrapper');
+            const isOpen = wrapper.classList.contains('active');
+
+            // ปิด Dropdown ตัวอื่นที่เปิดค้างอยู่
+            document.querySelectorAll('.custom-dropdown-wrapper.active').forEach(w => {
+                if (w !== wrapper) w.classList.remove('active');
+            });
+
+            wrapper.classList.toggle('active', !isOpen);
+            return;
+        }
+
+        // กรณีที่ 2: คลิกเลือกตัวเลือกใน Dropdown
+        if (item) {
+            const wrapper = item.closest('.custom-dropdown-wrapper');
+            if (wrapper) {
+                const textSpan = wrapper.querySelector('.selected-text');
+                const hiddenInput = wrapper.querySelector('input[type="hidden"]');
+                const val = item.getAttribute('data-value') || item.textContent.trim();
+
+                if (textSpan) textSpan.textContent = item.textContent.trim();
+                if (hiddenInput) hiddenInput.value = val;
+
+                wrapper.querySelectorAll('.custom-dropdown-item').forEach(i => i.classList.remove('selected'));
+                item.classList.add('selected');
+
+                wrapper.classList.remove('active');
+            }
+            return;
+        }
+
+        // กรณีที่ 3: คลิกพื้นที่ภายนอก ให้ปิด Dropdown ทั้งหมด
+        document.querySelectorAll('.custom-dropdown-wrapper.active').forEach(w => {
+            w.classList.remove('active');
+        });
+    });
+
+});
