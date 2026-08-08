@@ -233,7 +233,7 @@ if (isset($conn)) {
         opacity: 1;
     }
 
-    /* 🔻 Custom Dropdown Styles (อัปเดตให้แสดงผลเต็ม 100% สมบูรณ์) 🔻 */
+    /* 🔻 Custom Dropdown Styles (อัปเดตแก้ไขไม่ให้มีตัวเลื่อนด้านล่าง) 🔻 */
     .custom-dropdown-wrapper {
         position: relative;
         width: 100%;
@@ -267,8 +267,8 @@ if (isset($conn)) {
         top: calc(100% + 6px);
         left: 0;
         right: 0;
-        width: 100%;
-        box-sizing: border-box;
+        width: 100%;               /* บังคับกว้าง 100% เท่าปุ่มกด */
+        box-sizing: border-box;   /* นับรวม Padding และ Border */
         padding: 6px;
         background: var(--card-bg-premium);
         border: 1px solid var(--cc-box-border);
@@ -277,7 +277,8 @@ if (isset($conn)) {
         z-index: 1050;
         display: none;
         max-height: 250px;
-        overflow-y: auto;
+        overflow-y: auto;        /* เลื่อนแนวตั้งเมื่อรายการยาวเกิน */
+        overflow-x: hidden;      /* 🔒 ปิดแถบเลื่อนแนวนอนด้านล่างออกเด็ดขาด */
     }
 
     .custom-dropdown-wrapper.active .custom-dropdown-menu {
@@ -286,7 +287,7 @@ if (isset($conn)) {
     }
 
     .custom-dropdown-item {
-        width: 100%;
+        width: 100%;               /* ขยายรายการให้เต็มความกว้างกล่อง */
         box-sizing: border-box;
         padding: 10px 14px;
         border-radius: 6px;
@@ -294,6 +295,7 @@ if (isset($conn)) {
         cursor: pointer;
         font-size: 0.9rem;
         transition: background 0.2s ease, color 0.2s ease;
+        word-break: break-word;   /* ป้องกันข้อความยาวดันขอบกล่อง */
     }
 
     .custom-dropdown-item:hover {
