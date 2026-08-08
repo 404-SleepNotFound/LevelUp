@@ -233,7 +233,7 @@ if (isset($conn)) {
         opacity: 1;
     }
 
-    /* 🔻 Custom Dropdown Styles (อัปเดตแก้ไขไม่ให้มีตัวเลื่อนด้านล่าง) 🔻 */
+    /* 🔻 Custom Dropdown Styles (อัปเดตปรับขนาดกว้างและป้องการล้น) 🔻 */
     .custom-dropdown-wrapper {
         position: relative;
         width: 100%;
@@ -262,23 +262,25 @@ if (isset($conn)) {
         box-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
     }
 
+    /* 3. กล่องรายการเมนู (Dropdown Menu) */
     .custom-dropdown-menu {
         position: absolute;
         top: calc(100% + 6px);
         left: 0;
-        right: 0;
-        width: 100%;               /* บังคับกว้าง 100% เท่าปุ่มกด */
-        box-sizing: border-box;   /* นับรวม Padding และ Border */
-        padding: 6px;
-        background: var(--card-bg-premium);
-        border: 1px solid var(--cc-box-border);
+        right: 0;                /* ให้ยืดซ้าย-ขวาอัตโนมัติ (ตัด width: 100% ออกเพื่อป้องกันคำนวณซ้ำซ้อน) */
+        box-sizing: border-box;
+        padding: 6px;            /* ระยะห่างรอบกล่องแบบพอดี */
+        margin: 0;               /* เคลียร์ margin เผื่อใช้ tag <ul> */
+        list-style: none;        /* เคลียร์จุดสัญลักษณ์เผื่อใช้ tag <ul> */
+        background: var(--card-bg-premium, #0f172a);
+        border: 1px solid var(--cc-box-border, rgba(255, 255, 255, 0.1));
         border-radius: 10px;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
         z-index: 1050;
         display: none;
         max-height: 250px;
-        overflow-y: auto;        /* เลื่อนแนวตั้งเมื่อรายการยาวเกิน */
-        overflow-x: hidden;      /* 🔒 ปิดแถบเลื่อนแนวนอนด้านล่างออกเด็ดขาด */
+        overflow-y: auto;        /* เลื่อนแนวตั้งเฉพาะเมื่อรายการยาวเกิน */
+        overflow-x: hidden;      /* 🔒 ปิดแถบเลื่อนแนวนอนเด็ดขาด */
     }
 
     .custom-dropdown-wrapper.active .custom-dropdown-menu {
@@ -286,16 +288,17 @@ if (isset($conn)) {
         animation: fadeIn 0.2s ease-in-out;
     }
 
+    /* 4. ตัวเลือกแต่ละรายการ (Dropdown Item) */
     .custom-dropdown-item {
-        width: 100%;               /* ขยายรายการให้เต็มความกว้างกล่อง */
+        width: auto;             /* 💡 แก้จาก 100% เป็น auto เพื่อให้ปรับขนาดตามขอบ Padding ซ้าย-ขวา อย่างสมดุล */
         box-sizing: border-box;
         padding: 10px 14px;
         border-radius: 6px;
-        color: var(--cc-text-main);
+        color: var(--cc-text-main, #f8fafc);
         cursor: pointer;
         font-size: 0.9rem;
         transition: background 0.2s ease, color 0.2s ease;
-        word-break: break-word;   /* ป้องกันข้อความยาวดันขอบกล่อง */
+        word-break: break-word;  
     }
 
     .custom-dropdown-item:hover {
