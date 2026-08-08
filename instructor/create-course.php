@@ -12,7 +12,7 @@ $user_id = $_SESSION['user_login']['user_id'] ?? ($_SESSION['user_id'] ?? 0);
 $category_data = [];
 if (isset($conn)) {
     try {
-        $sql = "SELECT * FROM `category`";
+        $sql = "SELECT * FROM `category` ORDER BY `id` ASC";
         $result = $conn->query($sql);
         if ($result) {
             $category_data = $result->fetchAll(PDO::FETCH_ASSOC);
@@ -21,7 +21,6 @@ if (isset($conn)) {
         error_log("DB Error: " . $e->getMessage());
     }
 }
-// ⚠️ โหลดผ่านระบบ AJAX ของหน้าหลัก ไม่ต้อง include header.php หรือ footer.php ซ้ำซ้อน
 ?>
 
 <style>
@@ -232,11 +231,7 @@ if (isset($conn)) {
         opacity: 1;
     }
 
-    /* ======================================================
-       🎨 GLOBAL & FORM CUSTOM DROPDOWN STYLES
-       ====================================================== */
-
-    /* 1. ตัวหุ้มรอบ Dropdown (ช่วยเรื่อง Position) */
+    /* Custom Dropdown Styling */
     .custom-dropdown-wrapper {
         position: relative;
         display: inline-block;
@@ -266,37 +261,34 @@ if (isset($conn)) {
         box-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
     }
 
-    /* 2. กล่องเมนู Dropdown */
     .custom-dropdown-menu {
         position: absolute;
         top: calc(100% + 6px);
         left: 0;
-        right: 0;                /* ให้ยืดซ้าย-ขวาอัตโนมัติ */
+        right: 0;
         box-sizing: border-box;
-        padding: 6px;            /* ระยะห่างรอบกล่องแบบพอดี */
-        margin: 0;               /* เคลียร์ margin */
-        list-style: none;        /* เคลียร์จุดสัญลักษณ์ */
+        padding: 6px;
+        margin: 0;
+        list-style: none;
         background: var(--card-bg-premium, #0f172a);
         border: 1px solid var(--cc-box-border, rgba(255, 255, 255, 0.1));
         border-radius: 10px;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
         z-index: 1050;
-        display: none;           /* ซ่อนไว้เป็นค่าเริ่มต้น */
+        display: none;
         max-height: 250px;
-        overflow-y: auto;        /* เลื่อนแนวตั้งเฉพาะเมื่อรายการยาวเกิน */
-        overflow-x: hidden;      /* 🔒 ปิดแถบเลื่อนแนวนอนเด็ดขาด */
+        overflow-y: auto;
+        overflow-x: hidden;
     }
 
-    /* 3. สภาพตอนเปิดแสดงผล */
     .custom-dropdown-menu.show,
     .custom-dropdown-wrapper.active .custom-dropdown-menu {
         display: block !important;
         animation: fadeIn 0.2s ease-in-out;
     }
 
-    /* 4. รายการตัวเลือกแต่ละอัน (Item) */
     .custom-dropdown-item {
-        width: auto;             /* ปรับขนาดตามขอบ Padding ซ้าย-ขวา */
+        width: auto;
         box-sizing: border-box;
         padding: 10px 14px;
         border-radius: 6px;
@@ -318,7 +310,7 @@ if (isset($conn)) {
         font-weight: 600;
     }
 
-    /* ซ่อนลูกศรในช่อง Number Input */
+    /* Spin button hides */
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button {
         -webkit-appearance: none !important;
@@ -494,7 +486,7 @@ if (isset($conn)) {
     <!-- Step Timeline Bar -->
     <div class="step-timeline px-4">
         <div class="d-flex flex-column align-items-center">
-            <div class="step-node active" onclick="switchStep(1)">1</div>
+            <div class="step-node active" id="node-step-1" onclick="switchStep(1)">1</div>
             <span class="step-label">ข้อมูลทั่วไป</span>
         </div>
         <div class="d-flex flex-column align-items-center">
@@ -529,7 +521,7 @@ if (isset($conn)) {
                         <input type="text" class="form-control form-dark-input" id="course_subtitle" name="course_subtitle" placeholder="คำโปรยหัวสั้นๆ กระตุ้นผู้เรียน">
                     </div>
 
-                    <!-- 🔻 Dropdown 1: ภาษาในคอร์ส 🔻 -->
+                    <!-- Dropdown 1: ภาษาในคอร์ส -->
                     <div class="col-12 col-md-6">
                         <label class="form-label form-label-custom">ภาษาในคอร์ส</label>
                         <div class="custom-dropdown-wrapper">
@@ -592,7 +584,7 @@ if (isset($conn)) {
                                 <input type="file" id="cover_file" name="cover_file" class="d-none" accept="image/*" onchange="previewMedia(this, 'image')">
                                 <img id="cover_preview" src="" class="d-none" alt="Preview Image">
                                 <div class="upload-placeholder text-center">
-                                    <i class="bi bi-cloud-arrow-up fs-2 text-cyan mb-2 d-block"></i>
+                                    <i class="bi bi-cloud-arrow-up fs-2 text-info mb-2 d-block"></i>
                                     <span>คลิกหรือลากไฟล์ <b>รูปภาพ</b> มาวางที่นี่</span>
                                 </div>
                             </div>
@@ -616,7 +608,7 @@ if (isset($conn)) {
                     <div class="col-12 col-md-6">
                         <h5 class="fw-bold text-white mb-3"><i class="bi bi-tags text-info me-2"></i> 3 & 4. หมวดหมู่และระดับความยาก</h5>
 
-                        <!-- 🔻 Dropdown 2: หมวดหมู่หลักคอร์ส 🔻 -->
+                        <!-- Dropdown 2: หมวดหมู่หลักคอร์ส -->
                         <div class="mb-3">
                             <label class="form-label form-label-custom">หมวดหมู่หลักคอร์ส <span class="text-danger">*</span></label>
                             <div class="custom-dropdown-wrapper">
@@ -640,7 +632,7 @@ if (isset($conn)) {
                             </div>
                         </div>
 
-                        <!-- 🔻 Dropdown 3: ระดับความยากผู้เรียน 🔻 -->
+                        <!-- Dropdown 3: ระดับความยากผู้เรียน -->
                         <div class="mb-3">
                             <label class="form-label form-label-custom">ระดับความยากผู้เรียน (Difficulty Level)</label>
                             <div class="custom-dropdown-wrapper">
@@ -705,7 +697,7 @@ if (isset($conn)) {
                     <div class="col-12">
                         <hr style="border-color: var(--cc-box-border);">
                         <div class="row g-3">
-                            <!-- 🔻 Dropdown 4: กลุ่มเป้าหมาย 🔻 -->
+                            <!-- Dropdown 4: กลุ่มเป้าหมาย -->
                             <div class="col-12 col-md-6">
                                 <label class="form-label form-label-custom">เหมาะสำหรับกลุ่มเป้าหมายใด (Target Audience)</label>
                                 <div class="custom-dropdown-wrapper">
@@ -722,7 +714,7 @@ if (isset($conn)) {
                                 </div>
                             </div>
 
-                            <!-- 🔻 Dropdown 5: แผนอาชีพ 🔻 -->
+                            <!-- Dropdown 5: แผนอาชีพ -->
                             <div class="col-12 col-md-6">
                                 <label class="form-label form-label-custom">เชื่อมโยงกับแผนอาชีพ (Career Path)</label>
                                 <div class="custom-dropdown-wrapper">
@@ -751,10 +743,10 @@ if (isset($conn)) {
         <div class="course-step-section d-none" id="step-section-4">
             <div class="p-4 rounded-4 mb-4" style="background: var(--card-bg-premium); border: 1px solid var(--cc-box-border);">
                 
-                <h5 class="fw-bold text-white mb-3"><i class="bi bi-cash-stack text-cyan me-2"></i> ประเภทคอร์ส การตั้งค่าราคา และระบบ</h5>
+                <h5 class="fw-bold text-white mb-3"><i class="bi bi-cash-stack text-info me-2"></i> ประเภทคอร์ส การตั้งค่าราคา และระบบ</h5>
                 
                 <div class="row g-3">
-                    <!-- 🔻 Dropdown 6: ประเภทคอร์สและการคิดเงิน 🔻 -->
+                    <!-- Dropdown 6: ประเภทคอร์สและการคิดเงิน -->
                     <div class="col-12 col-md-4">
                         <label class="form-label form-label-custom">ประเภทคอร์สและการคิดเงิน</label>
                         <div class="custom-dropdown-wrapper">
@@ -772,7 +764,7 @@ if (isset($conn)) {
                         </div>
                     </div>
 
-                    <!-- 🔻 Dropdown 7: สถานะเปิดรับชม 🔻 -->
+                    <!-- Dropdown 7: สถานะเปิดรับชม -->
                     <div class="col-12 col-md-4">
                         <label class="form-label form-label-custom">สถานะเปิดรับชม (Visibility)</label>
                         <div class="custom-dropdown-wrapper">
@@ -794,7 +786,7 @@ if (isset($conn)) {
                         <input type="email" class="form-control form-dark-input" id="collab_email" placeholder="ระบุอีเมลผู้ช่วยสอนหรือผู้ตรวจคอร์ส" name="collab_email">
                     </div>
 
-                    <!-- 💵 ช่องกรอกจำนวนเงิน/ราคาคอร์ส -->
+                    <!-- ช่องกรอกจำนวนเงิน/ราคาคอร์ส -->
                     <div class="col-12 col-md-6 price-field-group">
                         <label class="form-label form-label-custom">ราคาปกติ (บาท) <span class="text-danger">*</span></label>
                         <div class="input-group">
@@ -828,7 +820,7 @@ if (isset($conn)) {
 
                     <!-- SEO Settings -->
                     <div class="col-12">
-                        <h5 class="fw-bold text-white mb-2 mt-3"><i class="bi bi-search text-cyan me-2"></i> การตั้งค่าค้นหาทางการตลาด (SEO Settings)</h5>
+                        <h5 class="fw-bold text-white mb-2 mt-3"><i class="bi bi-search text-info me-2"></i> การตั้งค่าค้นหาทางการตลาด (SEO Settings)</h5>
                         <div class="row g-3">
                             <div class="col-12 col-md-6">
                                 <label class="form-label form-label-custom">Friendly URL Slug</label>
@@ -932,7 +924,7 @@ if (isset($conn)) {
 </div>
 
 <script>
-    // 🛡️ Fallback สำหรับ InstructorAlerts
+    // Fallback สำหรับ InstructorAlerts
     var Alerts = window.InstructorAlerts || {
         toast: function(type, msg) { alert('[' + type.toUpperCase() + '] ' + msg); },
         saveDraft: function() { alert('ทำการบันทึกร่างเรียบร้อยแล้ว'); },
@@ -942,15 +934,11 @@ if (isset($conn)) {
     var currentStep = 1;
     var tagsArray = [];
 
-    // ⚡ ระบบการทำงานของ Custom Dropdown (แก้ไขปัญหา Event Conflict คลิกไม่ติดเรียบร้อยแล้ว) ⚡
+    // ระบบจัดการ Custom Dropdown
     $(document).off('click', '.custom-dropdown-btn').on('click', '.custom-dropdown-btn', function(e) {
         e.stopPropagation();
         var $wrapper = $(this).closest('.custom-dropdown-wrapper');
-        
-        // ปิด Dropdown ตัวอื่นที่เปิดค้างอยู่
         $('.custom-dropdown-wrapper').not($wrapper).removeClass('active');
-        
-        // สลับสถานะเปิด/ปิด ตัวที่ถูกคลิก
         $wrapper.toggleClass('active');
     });
 
@@ -967,18 +955,16 @@ if (isset($conn)) {
 
         $wrapper.find('.custom-dropdown-item').removeClass('selected');
         $item.addClass('selected');
-
         $wrapper.removeClass('active');
     });
 
-    // 💡 ปิด Dropdown เฉพาะตอนที่คลิก "ข้างนอก" กล่อง Dropdown เท่านั้น
     $(document).off('click.dropdownClose').on('click.dropdownClose', function(e) {
         if (!$(e.target).closest('.custom-dropdown-wrapper').length) {
             $('.custom-dropdown-wrapper').removeClass('active');
         }
     });
 
-    // 💡 ซ่อน/แสดงช่องใส่ราคา ตามประเภทคอร์ส
+    // ซ่อน/แสดงช่องใส่ราคา ตามประเภทคอร์ส
     function togglePriceFields(type) {
         if (type === 'Free') {
             $('.price-field-group').fadeOut(200);
@@ -1067,7 +1053,7 @@ if (isset($conn)) {
             }
         });
 
-        // Tags
+        // Tags Handler
         $('#tag_input').on('keypress', function(e) {
             if (e.which === 13) {
                 e.preventDefault();
@@ -1109,7 +1095,6 @@ if (isset($conn)) {
             var priceVal = $('#course_price').val() || '0';
             var salePriceVal = $('#course_sale_price').val() || '0';
 
-            formData.append('pice', priceVal);
             formData.append('price', priceVal);
             formData.append('course_price', priceVal);
             formData.append('sale_price', salePriceVal);
@@ -1120,10 +1105,10 @@ if (isset($conn)) {
             formData.delete('prereq');
             formData.delete('prereq[]');
 
-            $('input[name="outcomes"], input[name="outcomes[]"]').each(function() {
+            $('input[name="outcomes[]"]').each(function() {
                 if ($(this).val().trim() !== "") formData.append('outcomes[]', $(this).val().trim());
             });
-            $('input[name="prereq"], input[name="prereq[]"]').each(function() {
+            $('input[name="prereq[]"]').each(function() {
                 if ($(this).val().trim() !== "") formData.append('prereq[]', $(this).val().trim());
             });
 
