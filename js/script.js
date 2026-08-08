@@ -1,65 +1,97 @@
 /* =========================================
-   LevelUp Frontend - script.js
+   LevelUp Frontend - script.js (Fixed & Optimized)
    Combines: global site behaviour, auth/register wizard,
    dashboard, course detail, lesson page, AI chat widgets,
-   course creation form handler, and auto select-to-custom dropdown converter.
+   course creation form handler, Monaco Editor, Course Explorer,
+   and custom dropdown converter.
 
-   Every section below is guarded (it checks the elements it
-   needs exist before doing anything), so this single file can
-   safely be included on any page without throwing errors for
-   markup that isn't present on that page.
+   Every section below is guarded (checks element existence),
+   so this single file can safely be included on any page.
    ========================================= */
 'use strict';
 
+// Global Theme Management Helper
+const ThemeManager = {
+    init: function () {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        this.applyTheme(savedTheme);
+
+        // Bind click events to all theme togglers
+        $(document).on('click', '#themeToggleBtn, #theme-toggle', (e) => {
+            e.preventDefault();
+            const currentTheme = $('html').attr('data-theme') || 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            this.applyTheme(newTheme);
+        });
+
+        $(document).on('click', '.theme-toggle', (e) => {
+            e.preventDefault();
+            const theme = $(e.currentTarget).data('themeValue');
+            if (theme === 'auto') {
+                const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                this.applyTheme(systemTheme, true);
+            } else {
+                this.applyTheme(theme);
+            }
+        });
+    },
+
+    applyTheme: function (theme, isAuto = false) {
+        $('html').attr('data-theme', theme);
+        if (!isAuto) {
+            localStorage.setItem('theme', theme);
+        } else {
+            localStorage.removeItem('theme');
+        }
+
+        // Update UI Icons
+        const $globalBtn = $('#themeToggleBtn');
+        if ($globalBtn.length) {
+            const $icon = $globalBtn.find('i');
+            if (theme === 'dark') {
+                $icon.removeClass('bi-moon-stars-fill').addClass('bi-sun-fill text-warning');
+            } else {
+                $icon.removeClass('bi-sun-fill text-warning').addClass('bi-moon-stars-fill');
+            }
+        }
+
+        const $lessonBtn = $('#theme-toggle');
+        if ($lessonBtn.length) {
+            const iconClass = theme === 'dark' ? 'fa-moon' : 'fa-sun';
+            $lessonBtn.html(`<i class="fa-solid ${iconClass}"></i>`);
+        }
+
+        $('.theme-toggle').each(function () {
+            const $el = $(this);
+            $el.toggleClass('active text-primary', $el.data('themeValue') === theme);
+        });
+    }
+};
+
 $(document).ready(function () {
-    initThemeToggleGlobal();
+    // 1. Core Global Inits
+    ThemeManager.init();
     initNavbarScrollEffect();
     initStatsCounterAnimation();
     initAiSearchAutocomplete();
+    
+    // 2. Page Specific Inits (Guarded)
     initRegisterWizard();
     initDashboard();
     initCourseDetail();
     initLessonPage();
     initLearningPathSimulator();
     initAiMentorChat();
-    initCourseCreateForm(); // เพิ่มการทำงานของฟอร์มสร้างคอร์สเรียน
-    initAutoCustomDropdowns(); // แปลง <select> ปกติเป็น Custom Dropdown เพื่อรองรับ Rocket Cursor
+    initCourseCreateForm();
+    initAutoCustomDropdowns();
+    
+    // 3. Module & Complex Tools
+    CourseExplorer.init();
+    initMonacoEditorLab();
 });
 
 /* =========================================
-   1. Global Theme Toggle (persisted via localStorage)
-   ========================================= */
-function initThemeToggleGlobal() {
-    const $themeToggleBtn = $('#themeToggleBtn');
-    if (!$themeToggleBtn.length) return;
-
-    const $html = $('html');
-    const $icon = $themeToggleBtn.find('i');
-
-    function updateIcon(theme) {
-        if (theme === 'dark') {
-            $icon.removeClass('bi-moon-stars-fill').addClass('bi-sun-fill text-warning');
-        } else {
-            $icon.removeClass('bi-sun-fill text-warning').addClass('bi-moon-stars-fill');
-        }
-    }
-
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    $html.attr('data-theme', savedTheme);
-    updateIcon(savedTheme);
-
-    $themeToggleBtn.on('click', function () {
-        const currentTheme = $html.attr('data-theme');
-        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-
-        $html.attr('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-        updateIcon(newTheme);
-    });
-}
-
-/* =========================================
-   2. Navbar Scroll Effect
+   1. Navbar Scroll Effect
    ========================================= */
 function initNavbarScrollEffect() {
     const $navbar = $('.custom-navbar');
@@ -71,7 +103,7 @@ function initNavbarScrollEffect() {
 }
 
 /* =========================================
-   3. Counter Animation (Statistics section)
+   2. Counter Animation (Statistics section)
    ========================================= */
 function initStatsCounterAnimation() {
     const $statsSection = $('.stats-section');
@@ -104,7 +136,7 @@ function initStatsCounterAnimation() {
 }
 
 /* =========================================
-   4. AJAX AI Search Autocomplete
+   3. AJAX AI Search Autocomplete
    ========================================= */
 function initAiSearchAutocomplete() {
     const $searchInput = $('#aiSearchInput');
@@ -154,7 +186,6 @@ function initAiSearchAutocomplete() {
         }, 300); // Debounce 300ms
     });
 
-    // Close dropdown when clicking elsewhere
     $(document).on('click', function (e) {
         if (!$(e.target).closest('.search-box-wrapper').length) {
             $dropdown.addClass('d-none');
@@ -163,13 +194,12 @@ function initAiSearchAutocomplete() {
 }
 
 /* =========================================
-   5. Register Wizard
+   4. Register Wizard
    ========================================= */
 function initRegisterWizard() {
     const $form = $('#registerForm');
     if (!$form.length) return;
 
-    // 5.1 Step Navigation
     $('.btn-next').on('click', function () {
         const nextStep = $(this).data('next');
         const currentStep = nextStep - 1;
@@ -178,7 +208,7 @@ function initRegisterWizard() {
             $('#step' + currentStep).addClass('d-none');
             $('#step' + nextStep).removeClass('d-none');
             updateProgress(nextStep);
-            if (nextStep === 3) $('#loginLinkContainer').addClass('d-none'); // hide login link on last step
+            if (nextStep === 3) $('#loginLinkContainer').addClass('d-none');
         }
     });
 
@@ -199,7 +229,6 @@ function initRegisterWizard() {
         $(`.step-indicator[data-step="${step}"]`).addClass('active');
     }
 
-    // 5.2 Password Strength Scoring (shared by validation + the strength meter UI)
     function scorePassword(pass) {
         let score = 0;
         const hasLen = pass.length >= 8;
@@ -209,12 +238,11 @@ function initRegisterWizard() {
         if (hasLen) score++;
         if (hasUpLow) score++;
         if (hasNumSpec) score++;
-        if (pass.length > 10 && hasUpLow && /\d/.test(pass) && /[^a-zA-Z0-9]/.test(pass)) score = 4; // Max score
+        if (pass.length > 10 && hasUpLow && /\d/.test(pass) && /[^a-zA-Z0-9]/.test(pass)) score = 4;
 
         return score;
     }
 
-    // 5.3 Step Validation
     function validateStep(step) {
         let isValid = true;
 
@@ -226,7 +254,7 @@ function initRegisterWizard() {
 
             if (!emailPattern.test($email.val())) { $email.addClass('is-invalid'); isValid = false; }
             if ($user.val().length < 4) { $user.addClass('is-invalid'); isValid = false; }
-            if (scorePassword($pass.val()) < 2) { $pass.addClass('is-invalid'); isValid = false; } // require at least level 2
+            if (scorePassword($pass.val()) < 2) { $pass.addClass('is-invalid'); isValid = false; }
         } else if (step === 2) {
             $('#step2 input, #step2 select').each(function () {
                 if (!$(this).val()) {
@@ -238,12 +266,10 @@ function initRegisterWizard() {
         return isValid;
     }
 
-    // Remove invalid state as soon as the user edits a field
     $('#registerForm input, #registerForm select').on('input change', function () {
         $(this).removeClass('is-invalid');
     });
 
-    // 5.4 Password Strength Meter UI
     $('#password').on('input', function () {
         const pass = $(this).val();
         const score = scorePassword(pass);
@@ -257,11 +283,11 @@ function initRegisterWizard() {
         $('#rule-num').toggleClass('valid', hasNumSpec);
 
         $('.meter-bar').css('background-color', 'var(--border-color)');
-        let color = '#EF4444'; // Red
+        let color = '#EF4444';
         let text = 'อ่อนแอ';
 
-        if (score === 2) { color = '#F59E0B'; text = 'ปานกลาง'; } // Yellow
-        if (score >= 3) { color = '#10B981'; text = 'ปลอดภัย'; } // Green
+        if (score === 2) { color = '#F59E0B'; text = 'ปานกลาง'; }
+        if (score >= 3) { color = '#10B981'; text = 'ปลอดภัย'; }
 
         for (let i = 1; i <= score; i++) {
             $(`.meter-bar[data-index="${i}"]`).css('background-color', color);
@@ -272,7 +298,6 @@ function initRegisterWizard() {
             .css('color', pass.length > 0 ? color : 'var(--text-muted)');
     });
 
-    // 5.5 Selectable Badges (Multiple)
     $('.selection-group .selection-badge').on('click', function () {
         $(this).toggleClass('active');
         const $parent = $(this).closest('.selection-group');
@@ -287,7 +312,6 @@ function initRegisterWizard() {
         $('#error-' + inputId).addClass('d-none');
     });
 
-    // 5.6 Selectable Cards (Single/Radio)
     $('.selection-group-radio .selection-card').on('click', function () {
         const $parent = $(this).closest('.selection-group-radio');
         $parent.find('.selection-card').removeClass('active');
@@ -298,7 +322,6 @@ function initRegisterWizard() {
         $('#error-' + inputId).addClass('d-none');
     });
 
-    // 5.7 Final Form Submission
     $form.on('submit', function (e) {
         e.preventDefault();
 
@@ -341,20 +364,18 @@ function initRegisterWizard() {
 }
 
 /* =========================================
-   6. Dashboard
+   5. Dashboard
    ========================================= */
 function initDashboard() {
     const $missionCheckboxes = $('.mission-checkbox');
     if (!$missionCheckboxes.length && !$('.course-continue-card').length) return;
 
-    // 6.1 Mission Checkbox Toggle & AJAX
     $missionCheckboxes.on('change', function () {
         const $checkbox = $(this);
         const missionId = $checkbox.data('id');
         const isChecked = $checkbox.is(':checked');
         const $textSpan = $checkbox.next('span');
 
-        // Optimistic UI update
         $textSpan.toggleClass('text-decoration-line-through text-muted', isChecked);
         $checkbox.prop('disabled', true);
 
@@ -377,7 +398,6 @@ function initDashboard() {
                 }
             },
             error: function () {
-                // Revert UI on error
                 $checkbox.prop('checked', !isChecked).prop('disabled', false);
                 $textSpan.toggleClass('text-decoration-line-through text-muted', !isChecked);
                 showToast('เกิดข้อผิดพลาด กรุณาลองใหม่');
@@ -385,7 +405,6 @@ function initDashboard() {
         });
     });
 
-    // 6.2 Play Success Sound
     function playSuccessSound() {
         const audio = document.getElementById('successSound');
         if (audio) {
@@ -395,7 +414,6 @@ function initDashboard() {
         }
     }
 
-    // 6.3 Simple Toast Notification
     function showToast(message) {
         const $toast = $(`
             <div class="toast-notification position-fixed bottom-0 end-0 m-4 p-3 bg-surface border border-color shadow-lg rounded-3 d-flex align-items-center gap-3" style="z-index: 1050; transform: translateY(100px); opacity: 0; transition: all 0.3s ease;">
@@ -412,7 +430,6 @@ function initDashboard() {
         }, 3000);
     }
 
-    // 6.4 Continue-Learning Card: click anywhere on the card (not just the button)
     $('.course-continue-card').on('click', function (e) {
         if (!$(e.target).closest('button').length) {
             window.location.href = 'lesson.php';
@@ -421,7 +438,7 @@ function initDashboard() {
 }
 
 /* =========================================
-   7. Course Detail
+   6. Course Detail
    ========================================= */
 function initCourseDetail() {
     const $expandAllBtn = $('#btnExpandAll');
@@ -429,7 +446,6 @@ function initCourseDetail() {
     const $qaForm = $('#courseQaForm');
     if (!$expandAllBtn.length && !$bookmarkBtn.length && !$qaForm.length) return;
 
-    // 7.1 Expand/Collapse All Accordions
     $expandAllBtn.on('click', function () {
         const isExpanded = $(this).data('expanded');
         if (isExpanded) {
@@ -441,7 +457,6 @@ function initCourseDetail() {
         }
     });
 
-    // 7.2 Bookmark Toggle (AJAX)
     $bookmarkBtn.on('click', function () {
         const $btn = $(this);
         const courseId = $btn.data('id');
@@ -470,7 +485,6 @@ function initCourseDetail() {
         });
     });
 
-    // 7.3 AI Course Q&A Widget
     const $chatBody = $('#aiChatBody');
     const $qaInput = $('#qaInput');
 
@@ -521,7 +535,7 @@ function initCourseDetail() {
         $.ajax({
             url: 'api/ai-course-qa.php',
             type: 'POST',
-            data: { question: questionText, course_id: '101' }, // sample course id
+            data: { question: questionText, course_id: '101' },
             dataType: 'json',
             success: function (res) {
                 if (res.status === 'success') {
@@ -542,33 +556,21 @@ function initCourseDetail() {
     $(document).on('click', '.qa-quick-btn', function (e) {
         e.preventDefault();
         askAI($(this).text());
-        $(this).hide(); // hide the quick-prompt button once it's been used
+        $(this).hide();
     });
 }
 
 /* =========================================
-   8. Lesson Page (video player, AI context chat,
-      text highlighting, mini lab)
+   7. Lesson Page
    ========================================= */
 function initLessonPage() {
     const video = document.getElementById('lesson-video');
     if (!video) return;
 
-    // 8.1 Theme Toggle (lesson-page specific button)
-    $('#theme-toggle').on('click', function () {
-        const currentTheme = $('html').attr('data-theme');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        $('html').attr('data-theme', newTheme);
-        const icon = newTheme === 'dark' ? 'fa-moon' : 'fa-sun';
-        $(this).html(`<i class="fa-solid ${icon}"></i>`);
-    });
-
-    // 8.2 Toggle Left Sidebar
     $('.toggle-sidebar-btn').on('click', function () {
         $('#lesson-sidebar').toggleClass('collapsed');
     });
 
-    // 8.3 Custom Video Player
     const playBtn = document.getElementById('play-pause');
     const progressBar = document.getElementById('video-progress');
     const progressFilled = document.getElementById('video-progress-filled');
@@ -611,10 +613,9 @@ function initLessonPage() {
         video.currentTime = time;
     });
 
-    // 8.4 AI Context-Aware Chat (video timestamp aware)
     function scrollAiChatToBottom() {
         const chatbox = document.getElementById('chat-messages');
-        chatbox.scrollTop = chatbox.scrollHeight;
+        if (chatbox) chatbox.scrollTop = chatbox.scrollHeight;
     }
 
     function sendAIMessage() {
@@ -631,8 +632,6 @@ function initLessonPage() {
         $('#ai-input').val('');
         scrollAiChatToBottom();
 
-        // Simulated AJAX request. In production this posts to ajax_lesson.php
-        // with { action: 'chat', message: text, context: contextTime }.
         setTimeout(() => {
             const aiHtml = `
             <div class="chat-message ai text-sm mb-3">
@@ -661,7 +660,6 @@ function initLessonPage() {
         sendAIMessage();
     });
 
-    // 8.5 Kindle-like Text Highlighting
     const readingArea = document.getElementById('reading-area');
     const highlightMenu = document.getElementById('highlight-menu');
     let savedRange = null;
@@ -694,26 +692,21 @@ function initLessonPage() {
                 savedRange.surroundContents(span);
                 window.getSelection().removeAllRanges();
                 highlightMenu.style.display = 'none';
-
-                // AJAX: persist the highlight, e.g.
-                // $.post('ajax_lesson.php', { action: 'save_highlight', text: span.innerText, color: color });
             }
         });
     }
 
-    // 8.6 Mini Lab Execution
     $('#btn-run-lab').on('click', function () {
         const code = $('#lab-editor').val();
         const $btn = $(this);
         $btn.html('<i class="fa-solid fa-spinner fa-spin me-2"></i>Running...');
 
-        // Simulated execution
         setTimeout(() => {
             $btn.html('<i class="fa-solid fa-play me-2"></i>Run & Submit');
             const $resBox = $('#lab-result');
             $resBox.removeClass('d-none');
 
-            if (code.includes('print')) {
+            if (code && code.includes('print')) {
                 $resBox.removeClass('bg-danger bg-opacity-10 text-danger border-danger').addClass('bg-success bg-opacity-10 text-success border border-success');
                 $resBox.html('<i class="fa-solid fa-check-circle me-2"></i> <strong>Passed!</strong> คุณได้ 10 คะแนน<br><small>Output: 5 4 3 2 1 0</small>');
             } else {
@@ -725,7 +718,7 @@ function initLessonPage() {
 }
 
 /* =========================================
-   9. Learning Path & AI Simulator
+   8. Learning Path & AI Simulator
    ========================================= */
 function initLearningPathSimulator() {
     const $timeSlider = $('#timeSlider');
@@ -737,7 +730,6 @@ function initLearningPathSimulator() {
     const $btnRebuildPath = $('#btnRebuildPath');
     const $roadmapContainer = $('#roadmapContainer');
 
-    // Client-side estimate, updated instantly while dragging the slider
     function updateSimulatedTime() {
         const hours = parseInt($timeSlider.val(), 10);
         $timeDisplay.text(hours);
@@ -752,7 +744,6 @@ function initLearningPathSimulator() {
     }
     $timeSlider.on('input', updateSimulatedTime);
 
-    // Ask the server to rebuild the roadmap (AJAX)
     function rebuildLearningPath() {
         const originalBtnText = $btnRebuildPath.html();
         $btnRebuildPath.html('<span class="spinner-border spinner-border-sm me-2"></span>AI กำลังคำนวณ...').prop('disabled', true);
@@ -792,7 +783,6 @@ function initLearningPathSimulator() {
     $careerSelector.on('change', rebuildLearningPath);
     $btnRebuildPath.on('click', rebuildLearningPath);
 
-    // Roadmap zoom controls
     let zoomLevel = 1;
     $('button[title="ซูมเข้า"]').on('click', function () {
         if (zoomLevel < 1.5) { zoomLevel += 0.1; }
@@ -805,7 +795,7 @@ function initLearningPathSimulator() {
 }
 
 /* =========================================
-   10. AI Mentor Chat Widget (Markdown + Mermaid)
+   9. AI Mentor Chat Widget (Markdown + Mermaid)
    ========================================= */
 function initAiMentorChat() {
     const $chatInput = $('#chatInput');
@@ -813,9 +803,9 @@ function initAiMentorChat() {
 
     if (typeof marked !== 'undefined') {
         marked.setOptions({
-            breaks: true, // support line breaks
+            breaks: true,
             gfm: true,
-            sanitize: false // handled separately / left to the rendering framework
+            sanitize: false
         });
     }
 
@@ -823,7 +813,6 @@ function initAiMentorChat() {
     const $chatTimeline = $('#chatTimeline');
     const $mentorSwitch = $('#mentorModeSwitch');
 
-    // Auto-resize textarea
     $chatInput.on('input', function () {
         this.style.height = 'auto';
         this.style.height = (this.scrollHeight) + 'px';
@@ -832,7 +821,6 @@ function initAiMentorChat() {
         }
     });
 
-    // Enter to send, Shift+Enter for a new line
     $chatInput.on('keydown', function (e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -842,7 +830,6 @@ function initAiMentorChat() {
 
     $btnSend.on('click', sendMessage);
 
-    // Quick prompt buttons send immediately on click
     $(document).on('click', '.btn-quick-prompt', function () {
         const promptText = $(this).text();
         $chatInput.val(promptText);
@@ -888,7 +875,7 @@ function initAiMentorChat() {
     }
 
     function appendUserMessage(text) {
-        const safeText = $('<div>').text(text).html(); // basic escaping
+        const safeText = $('<div>').text(text).html();
         const html = `
             <div class="chat-message user-message max-w-chat w-100">
                 <div class="message-content shadow-sm">
@@ -921,7 +908,7 @@ function initAiMentorChat() {
     }
 
     function appendAiMessage(markdownText) {
-        const htmlContent = marked.parse(markdownText);
+        const htmlContent = typeof marked !== 'undefined' ? marked.parse(markdownText) : markdownText;
 
         const html = `
             <div class="chat-message ai-message">
@@ -938,7 +925,6 @@ function initAiMentorChat() {
 
         $chatTimeline.append(html);
 
-        // Render any Mermaid diagrams in the reply
         if (typeof mermaid !== 'undefined') {
             mermaid.init(undefined, $('.markdown-body .language-mermaid'));
             $('.language-mermaid').removeClass('language-mermaid').addClass('mermaid');
@@ -956,7 +942,7 @@ function initAiMentorChat() {
 }
 
 /* =========================================
-   11. Instructor Course Creation Form Handler
+   10. Instructor Course Creation Form Handler
    ========================================= */
 function initCourseCreateForm() {
     const $form = $('#form-create-course');
@@ -965,22 +951,19 @@ function initCourseCreateForm() {
     $form.on('submit', function (e) {
         e.preventDefault();
 
-        // 1. สร้าง FormData จากฟอร์ม
         var formData = new FormData(this);
-        
-        // 2. ระบุ action ให้ตรงกับที่ Backend รอรับ
         formData.append('action', 'save');
 
         var $submitBtn = $(this).find('button[type="submit"]');
         $submitBtn.prop('disabled', true);
 
         $.ajax({
-            // ✅ ถอยออกไป 1 โฟลเดอร์เพื่อเข้า services/course.php
-            url: '../services/course.php',
+            // ✅ ใช้ Absolute/Standard relative path สอดคล้องกับโปรเจกต์
+            url: 'services/course.php',
             type: 'POST',
             data: formData,
-            contentType: false, // จำเป็นสำหรับ FormData
-            processData: false, // จำเป็นสำหรับ FormData
+            contentType: false,
+            processData: false,
             dataType: 'json',
             success: function (response) {
                 if (response.status === 'success') {
@@ -1001,30 +984,25 @@ function initCourseCreateForm() {
 }
 
 /* =========================================
-   12. Auto Custom Dropdown Converter (For Custom Cursors)
+   11. Single Source Custom Dropdown Converter
    ========================================= */
 function initAutoCustomDropdowns() {
-    // 1. ค้นหาแท็ก <select> ปกติทุกตัวในหน้าเว็บที่ยังไม่ได้แปลง
     function convertSelects() {
         $('select:not([data-customized="true"])').each(function () {
             const $select = $(this);
             
-            // ข้าม select ที่ซ่อนอยู่หรือถูกระบุว่าไม่ต้องแปลง
             if ($select.is(':hidden') || $select.hasClass('no-custom')) return;
 
-            $select.attr('data-customized', 'true').hide(); // ซ่อน <select> ตัวจริงไว้หลังบ้าน
+            $select.attr('data-customized', 'true').hide();
 
-            // สร้าง Custom Wrapper
             const $wrapper = $('<div class="custom-dropdown-wrapper"></div>');
             if ($select.attr('class')) {
-                // คัดลอก Class ดั้งเดิมมาใส่เพื่อคงเลย์เอาต์เดิมไว้
                 $wrapper.addClass($select.attr('class')).removeClass('form-select lu-select form-select-custom');
             }
 
             const $selectedOpt = $select.find('option:selected').length ? $select.find('option:selected') : $select.find('option').first();
             const selectedText = $selectedOpt.text().trim() || 'เลือกรายการ';
 
-            // สร้างรายการตัวเลือก HTML ย่อย
             let menuHtml = '';
             $select.find('option').each(function () {
                 const $opt = $(this);
@@ -1047,70 +1025,73 @@ function initAutoCustomDropdowns() {
             `);
 
             $select.after($wrapper);
-
-            // เมื่อคลิกเลือกไอเทมย่อย
-            $wrapper.on('click', '.custom-dropdown-item', function (e) {
-                e.stopPropagation();
-                const $item = $(this);
-                const val = $item.data('value');
-
-                // ส่งค่ากลับไปหา <select> ดั้งเดิมและแจ้ง Event Change
-                $select.val(val).trigger('change');
-
-                // อัปเดตการแสดงผลฝั่ง Custom UI
-                $wrapper.find('.selected-text').text($item.text().trim());
-                $wrapper.find('.custom-dropdown-item').removeClass('selected');
-                $item.addClass('selected');
-                $wrapper.removeClass('active');
-            });
-
-            // เมื่อคลิกปุ่มเปิด-ปิด Dropdown
-            $wrapper.on('click', '.custom-dropdown-btn', function (e) {
-                e.stopPropagation();
-                const isOpen = $wrapper.hasClass('active');
-                $('.custom-dropdown-wrapper.active').not($wrapper).removeClass('active');
-                $wrapper.toggleClass('active', !isOpen);
-            });
         });
     }
 
-    // เรียกฟังก์ชันแปลง Select ทันทีเมื่อสคริปต์ทำงาน
     convertSelects();
 
-    // คลิกพื้นที่อื่นนอก Dropdown เพื่อปิดรายการ
-    $(document).on('click', function () {
+    // Consolidated Event Delegation
+    $(document).off('click.customDropdown').on('click.customDropdown', function (e) {
+        const $target = $(e.target);
+        const $btn = $target.closest('.custom-dropdown-btn');
+        const $item = $target.closest('.custom-dropdown-item');
+
+        if ($btn.length) {
+            e.stopPropagation();
+            const $wrapper = $btn.closest('.custom-dropdown-wrapper');
+            const isOpen = $wrapper.hasClass('active');
+
+            $('.custom-dropdown-wrapper.active').not($wrapper).removeClass('active');
+            $wrapper.toggleClass('active', !isOpen);
+            return;
+        }
+
+        if ($item.length) {
+            e.stopPropagation();
+            const $wrapper = $item.closest('.custom-dropdown-wrapper');
+            const $select = $wrapper.prev('select[data-customized="true"]');
+            const val = $item.data('value');
+
+            if ($select.length) {
+                $select.val(val).trigger('change');
+            }
+
+            $wrapper.find('.selected-text').text($item.text().trim());
+            $wrapper.find('.custom-dropdown-item').removeClass('selected');
+            $item.addClass('selected');
+            $wrapper.removeClass('active');
+            return;
+        }
+
         $('.custom-dropdown-wrapper.active').removeClass('active');
     });
 }
 
 /* =========================================
-   Global helper (called from inline HTML, e.g. a "New Chat" button)
+   Global helper
    ========================================= */
 function startNewChat() {
     $('#chatTimeline').html('<div class="text-center text-muted my-5"><i class="bi bi-chat-square-dots fs-1"></i><p class="mt-2">เริ่มการสนทนาใหม่...</p></div>');
 }
 
-// script.js - LevelUp E-Learning JS
+/* =========================================
+   12. Course Explorer Module
+   ========================================= */
 const CourseExplorer = (function($) {
-    
     let compareList = [];
-    
-    // ตั้งค่าเริ่มต้น
+
     const init = () => {
-        // โหลดคอร์สครั้งแรก
+        if (!$('#course-grid').length) return;
         loadCourses();
         
-        // ผูก Event Listener
         $('.filter-checkbox').on('change', debounce(loadCourses, 300));
         $('#sort-select').on('change', loadCourses);
         
-        // Enter เพื่อค้นหา AI
         $('#ai-search-input').on('keypress', function(e) {
-            if(e.which == 13) { aiSearch(); }
+            if(e.which === 13) { aiSearch(); }
         });
     };
 
-    // ฟังก์ชันหน่วงเวลาลดการยิง Request ซ้ำซ้อน
     const debounce = (func, delay) => {
         let timer;
         return function() {
@@ -1119,12 +1100,10 @@ const CourseExplorer = (function($) {
         };
     };
 
-    // ฟังก์ชันโหลดข้อมูลผ่าน AJAX (Filter & Sort)
     const loadCourses = () => {
         const grid = $('#course-grid');
         grid.html('<div class="col-12 text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>');
         
-        // เก็บค่าตัวกรอง
         let categories = [];
         $('input[data-filter="categories"]:checked').each(function() { categories.push($(this).val()); });
         
@@ -1156,7 +1135,6 @@ const CourseExplorer = (function($) {
         });
     };
 
-    // AI Natural Language Search
     const aiSearch = () => {
         const query = $('#ai-search-input').val().trim();
         if(!query) return;
@@ -1164,7 +1142,6 @@ const CourseExplorer = (function($) {
         const grid = $('#course-grid');
         grid.html('<div class="col-12 text-center py-5"><i class="fas fa-robot fa-spin fa-3x text-primary mb-3"></i><p>AI กำลังวิเคราะห์และจัดหลักสูตรให้คุณ...</p></div>');
         
-        // ล้างตัวกรองเดิมออกก่อน
         $('.filter-checkbox').prop('checked', false);
 
         $.ajax({
@@ -1180,18 +1157,15 @@ const CourseExplorer = (function($) {
                     grid.html(res.html);
                     $('#course-count').text(res.count);
                     
-                    // แสดง AI Alert
                     $('#ai-recommendation-msg').html(res.ai_message);
                     $('#ai-recommendation-alert').removeClass('d-none').addClass('d-flex');
                     
-                    // เลื่อนหน้าจอลงมาที่ผลลัพธ์
                     $('html, body').animate({ scrollTop: $('#course-grid').offset().top - 150 }, 500);
                 }
             }
         });
     };
 
-    // ล้างตัวกรองทั้งหมด
     const resetFilters = () => {
         $('.filter-checkbox').prop('checked', false);
         $('#sort-select').val('popular');
@@ -1199,14 +1173,12 @@ const CourseExplorer = (function($) {
         loadCourses();
     };
 
-    // Bookmark Toggle (จำลองการทำงาน)
     const toggleBookmark = (btn, id) => {
         const icon = $(btn).find('i');
         $(btn).toggleClass('active');
         
         if($(btn).hasClass('active')) {
             icon.removeClass('far').addClass('fas');
-            // TODO: $.post('toggle-bookmark.php', {id: id, state: 1})
             showToast('บันทึกคอร์สใน Wishlist แล้ว');
         } else {
             icon.removeClass('fas').addClass('far');
@@ -1214,7 +1186,6 @@ const CourseExplorer = (function($) {
         }
     };
 
-    // จัดการ Compare
     const toggleCompare = (btn, id, title) => {
         const index = compareList.findIndex(c => c.id === id);
         
@@ -1266,7 +1237,6 @@ const CourseExplorer = (function($) {
             return;
         }
         
-        // Mockup ตารางเปรียบเทียบ
         let th = '<th>คุณสมบัติ</th>';
         let tdLevel = '<td>ระดับ</td>';
         let tdPrice = '<td>ราคา</td>';
@@ -1289,10 +1259,8 @@ const CourseExplorer = (function($) {
         modal.show();
     };
 
-    // UI Helper: Toast Notification
-    const showToast = (message, type = 'success') => {
-        // ใช้ Toast ของ Bootstrap หรือสามารถใส่ Custom HTML ไว้ที่มุมขวาล่าง
-        alert(message); // สำหรับ Demo ให้ใช้ Alert แทน แต่ใน Production ควรใช้ Bootstrap Toast
+    const showToast = (message) => {
+        alert(message);
     };
 
     return {
@@ -1307,246 +1275,142 @@ const CourseExplorer = (function($) {
 
 })(jQuery);
 
-// เริ่มการทำงานเมื่อ DOM พร้อม
-$(document).ready(function() {
-    CourseExplorer.init();
-});
-
-$(document).ready(function() {
+/* =========================================
+   13. Coding Lab & Monaco Editor Logic
+   ========================================= */
+function initMonacoEditorLab() {
+    if (!$('#monaco-editor').length) return;
     
-    // ==========================================
-    // 10. Coding Lab & Monaco Editor Logic
-    // ==========================================
-    if ($('#monaco-editor').length) {
+    let editor;
+    const defaultCode = `def twoSum(nums, target):\n    # Write your code here\n    for i in range(len(nums)):\n        for j in range(i + 1, len(nums)):\n            if nums[i] + nums[j] == target:\n                return [i, j]\n\n    return []`;
+
+    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' }});
+    require(['vs/editor/editor.main'], function() {
+        $('#editorLoading').remove();
         
-        let editor; // ตัวแปรเก็บ Instance ของ Monaco
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         
-        // Initial Code Template
-        const defaultCode = `def twoSum(nums, target):\n    # Write your code here\n    for i in range(len(nums)):\n        for j in range(i + 1, len(nums)):\n            if nums[i] + nums[j] == target:\n                return [i, j]\n\n    return []`;
-
-        // 1. Initialize Monaco (ต้องใช้ require syntax ของ AMD)
-        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' }});
-        require(['vs/editor/editor.main'], function() {
-            $('#editorLoading').remove();
-            
-            // เช็ค Theme ปัจจุบันของเว็บ
-            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-            
-            editor = monaco.editor.create(document.getElementById('monaco-editor'), {
-                value: defaultCode,
-                language: 'python',
-                theme: isDark ? 'vs-dark' : 'vs-light',
-                automaticLayout: true,
-                minimap: { enabled: true },
-                fontSize: 14,
-                fontFamily: "'Fira Code', 'Consolas', monospace",
-                lineHeight: 24,
-                roundedSelection: false,
-                scrollBeyondLastLine: false,
-                cursorBlinking: "smooth"
-            });
-
-            // Listen Theme Change to update Editor Theme
-            const observer = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
-                    if (mutation.attributeName === "data-theme") {
-                        const currentTheme = document.documentElement.getAttribute('data-theme');
-                        monaco.editor.setTheme(currentTheme === 'dark' ? 'vs-dark' : 'vs-light');
-                    }
-                });
-            });
-            observer.observe(document.documentElement, { attributes: true });
-
-            // Auto-Save Simulator
-            editor.onDidChangeModelContent(() => {
-                $('#saveStatus').removeClass('bi-cloud-check text-success').addClass('bi-cloud-arrow-up text-warning');
-                clearTimeout(window.saveTimer);
-                window.saveTimer = setTimeout(() => {
-                    // จำลองว่าเซฟแล้ว
-                    $('#saveStatus').removeClass('bi-cloud-arrow-up text-warning').addClass('bi-cloud-check text-success');
-                }, 1500);
-            });
+        editor = monaco.editor.create(document.getElementById('monaco-editor'), {
+            value: defaultCode,
+            language: 'python',
+            theme: isDark ? 'vs-dark' : 'vs-light',
+            automaticLayout: true,
+            minimap: { enabled: true },
+            fontSize: 14,
+            fontFamily: "'Fira Code', 'Consolas', monospace",
+            lineHeight: 24,
+            roundedSelection: false,
+            scrollBeyondLastLine: false,
+            cursorBlinking: "smooth"
         });
 
-        // 2. Language Change
-        $('#languageSelect').on('change', function() {
-            const lang = $(this).val();
-            if(editor) monaco.editor.setModelLanguage(editor.getModel(), lang);
-        });
-
-        // 3. Panel Toggles
-        $('#toggleLeftPanel').on('click', () => $('#leftPanel').toggleClass('collapsed'));
-        $('#closeAiPanel').on('click', () => $('#rightPanel').addClass('collapsed'));
-        $('#toggleAiPanel').on('click', () => $('#rightPanel').toggleClass('collapsed'));
-
-        // 4. Run Code Button
-        $('#btnRun').on('click', function() {
-            const code = editor.getValue();
-            const btn = $(this);
-            const originalHtml = btn.html();
-            
-            btn.html('<span class="spinner-border spinner-border-sm me-1"></span> Running...').prop('disabled', true);
-            $('[data-bs-target="#tab-terminal"]').tab('show'); // สลับไปหน้า Console
-            $('#consoleOutput').html('Compiling & Running...\n<span class="spinner-grow spinner-grow-sm text-success" role="status"></span>');
-
-            $.ajax({
-                url: 'api/ajax_coding_lab.php', type: 'POST',
-                data: { action: 'run', code: code, language: $('#languageSelect').val() },
-                success: (res) => { $('#consoleOutput').html(res.console); },
-                complete: () => { btn.html(originalHtml).prop('disabled', false); }
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.attributeName === "data-theme") {
+                    const currentTheme = document.documentElement.getAttribute('data-theme');
+                    monaco.editor.setTheme(currentTheme === 'dark' ? 'vs-dark' : 'vs-light');
+                }
             });
         });
+        observer.observe(document.documentElement, { attributes: true });
 
-        // 5. Submit Button (Test Cases)
-        $('#btnSubmit').on('click', function() {
-            const code = editor.getValue();
-            const btn = $(this);
-            const originalHtml = btn.html();
-            
-            btn.html('<span class="spinner-border spinner-border-sm me-1"></span> Testing...').prop('disabled', true);
-            $('[data-bs-target="#tab-tests"]').tab('show');
-            $('#testResults').html('<div class="text-center mt-4"><div class="spinner-border text-primary"></div><div class="mt-2 text-muted">Running Test Cases...</div></div>');
-
-            $.ajax({
-                url: 'api/ajax_coding_lab.php', type: 'POST',
-                data: { action: 'submit', code: code },
-                success: (res) => { $('#testResults').html(res.test_html); },
-                complete: () => { btn.html(originalHtml).prop('disabled', false); }
-            });
+        editor.onDidChangeModelContent(() => {
+            $('#saveStatus').removeClass('bi-cloud-check text-success').addClass('bi-cloud-arrow-up text-warning');
+            clearTimeout(window.saveTimer);
+            window.saveTimer = setTimeout(() => {
+                $('#saveStatus').removeClass('bi-cloud-arrow-up text-warning').addClass('bi-cloud-check text-success');
+            }, 1500);
         });
+    });
 
-        // 6. AI Actions (Review, Explain, Optimize)
-        $('.ai-action-btn').on('click', function() {
-            const action = $(this).data('action'); // review หรือ explain
-            const code = editor.getValue();
-            const $aiArea = $('#aiFeedbackArea');
-            
-            $('#rightPanel').removeClass('collapsed'); // เปิด Panel
-            $aiArea.html('<div class="text-center mt-4"><div class="spinner-border text-primary mb-2"></div><div>AI is analyzing...</div></div>');
+    $('#languageSelect').on('change', function() {
+        const lang = $(this).val();
+        if(editor) monaco.editor.setModelLanguage(editor.getModel(), lang);
+    });
 
-            $.ajax({
-                url: 'api/ajax_coding_lab.php', type: 'POST',
-                data: { action: 'ai_' + action, code: code },
-                success: (res) => {
-                    // ใช้ Marked.js Render Markdown
+    $('#toggleLeftPanel').on('click', () => $('#leftPanel').toggleClass('collapsed'));
+    $('#closeAiPanel').on('click', () => $('#rightPanel').addClass('collapsed'));
+    $('#toggleAiPanel').on('click', () => $('#rightPanel').toggleClass('collapsed'));
+
+    $('#btnRun').on('click', function() {
+        if(!editor) return;
+        const code = editor.getValue();
+        const btn = $(this);
+        const originalHtml = btn.html();
+        
+        btn.html('<span class="spinner-border spinner-border-sm me-1"></span> Running...').prop('disabled', true);
+        $('[data-bs-target="#tab-terminal"]').tab('show');
+        $('#consoleOutput').html('Compiling & Running...\n<span class="spinner-grow spinner-grow-sm text-success" role="status"></span>');
+
+        $.ajax({
+            url: 'api/ajax_coding_lab.php', 
+            type: 'POST',
+            data: { action: 'run', code: code, language: $('#languageSelect').val() },
+            success: (res) => { $('#consoleOutput').html(res.console); },
+            complete: () => { btn.html(originalHtml).prop('disabled', false); }
+        });
+    });
+
+    $('#btnSubmit').on('click', function() {
+        if(!editor) return;
+        const code = editor.getValue();
+        const btn = $(this);
+        const originalHtml = btn.html();
+        
+        btn.html('<span class="spinner-border spinner-border-sm me-1"></span> Testing...').prop('disabled', true);
+        $('[data-bs-target="#tab-tests"]').tab('show');
+        $('#testResults').html('<div class="text-center mt-4"><div class="spinner-border text-primary"></div><div class="mt-2 text-muted">Running Test Cases...</div></div>');
+
+        $.ajax({
+            url: 'api/ajax_coding_lab.php', 
+            type: 'POST',
+            data: { action: 'submit', code: code },
+            success: (res) => { $('#testResults').html(res.test_html); },
+            complete: () => { btn.html(originalHtml).prop('disabled', false); }
+        });
+    });
+
+    $('.ai-action-btn').on('click', function() {
+        if(!editor) return;
+        const action = $(this).data('action');
+        const code = editor.getValue();
+        const $aiArea = $('#aiFeedbackArea');
+        
+        $('#rightPanel').removeClass('collapsed');
+        $aiArea.html('<div class="text-center mt-4"><div class="spinner-border text-primary mb-2"></div><div>AI is analyzing...</div></div>');
+
+        $.ajax({
+            url: 'api/ajax_coding_lab.php', 
+            type: 'POST',
+            data: { action: 'ai_' + action, code: code },
+            success: (res) => {
+                if (typeof marked !== 'undefined') {
                     $aiArea.html(`<div class="markdown-body fs-sm">${marked.parse(res.markdown)}</div>`);
+                } else {
+                    $aiArea.html(`<div class="fs-sm">${res.markdown}</div>`);
                 }
-            });
-        });
-
-        // 7. AI Hint Request
-        let hintLevel = 1;
-        $('#btnRequestHint').on('click', function() {
-            const btn = $(this);
-            btn.html('<span class="spinner-border spinner-border-sm"></span> Analyzing...');
-            
-            $.ajax({
-                url: 'api/ajax_coding_lab.php', type: 'POST',
-                data: { action: 'ai_hint', level: hintLevel },
-                success: (res) => {
-                    $('#hintContainer').removeClass('d-none').html(res.html);
-                    hintLevel++;
-                    if (hintLevel > 2) {
-                        btn.hide(); // ซ่อนปุ่มถ้าให้ Hint ครบแล้ว
-                    } else {
-                        btn.html('ขอคำใบ้ระดับ ' + hintLevel + ' (โครงสร้าง Loop)');
-                    }
-                }
-            });
-        });
-
-    }
-});
-
-/**
- * Global Scripts - LevelUp
- */
-document.addEventListener('DOMContentLoaded', () => {
-    // Theme Initialization
-    const initTheme = () => {
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        updateThemeUI(savedTheme);
-    };
-
-    const updateThemeUI = (theme) => {
-        document.querySelectorAll('.theme-toggle').forEach(el => {
-            el.classList.remove('active', 'text-primary');
-            if (el.dataset.themeValue === theme) {
-                el.classList.add('active', 'text-primary');
             }
-        });
-    };
-
-    // Theme Switcher Event
-    document.querySelectorAll('.theme-toggle').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const theme = e.currentTarget.dataset.themeValue;
-            
-            if (theme === 'auto') {
-                const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-                document.documentElement.setAttribute('data-theme', systemTheme);
-                localStorage.removeItem('theme');
-            } else {
-                document.documentElement.setAttribute('data-theme', theme);
-                localStorage.setItem('theme', theme);
-            }
-            updateThemeUI(theme);
         });
     });
 
-    // Run on load
-    initTheme();
-});
-
-// ==========================================
-// Custom Dropdown Event Listener (Rocket Cursor Friendly)
-// ==========================================
-document.addEventListener('DOMContentLoaded', function () {
-    
-    document.addEventListener('click', function (e) {
-        const btn = e.target.closest('.custom-dropdown-btn');
-        const item = e.target.closest('.custom-dropdown-item');
-
-        // กรณีที่ 1: คลิกเปิด-ปิด ปุ่ม Dropdown
-        if (btn) {
-            e.stopPropagation();
-            const wrapper = btn.closest('.custom-dropdown-wrapper');
-            const isOpen = wrapper.classList.contains('active');
-
-            // ปิด Dropdown ตัวอื่นที่เปิดค้างอยู่
-            document.querySelectorAll('.custom-dropdown-wrapper.active').forEach(w => {
-                if (w !== wrapper) w.classList.remove('active');
-            });
-
-            wrapper.classList.toggle('active', !isOpen);
-            return;
-        }
-
-        // กรณีที่ 2: คลิกเลือกตัวเลือกใน Dropdown
-        if (item) {
-            const wrapper = item.closest('.custom-dropdown-wrapper');
-            if (wrapper) {
-                const textSpan = wrapper.querySelector('.selected-text');
-                const hiddenInput = wrapper.querySelector('input[type="hidden"]');
-                const val = item.getAttribute('data-value') || item.textContent.trim();
-
-                if (textSpan) textSpan.textContent = item.textContent.trim();
-                if (hiddenInput) hiddenInput.value = val;
-
-                wrapper.querySelectorAll('.custom-dropdown-item').forEach(i => i.classList.remove('selected'));
-                item.classList.add('selected');
-
-                wrapper.classList.remove('active');
+    let hintLevel = 1;
+    $('#btnRequestHint').on('click', function() {
+        const btn = $(this);
+        btn.html('<span class="spinner-border spinner-border-sm"></span> Analyzing...');
+        
+        $.ajax({
+            url: 'api/ajax_coding_lab.php', 
+            type: 'POST',
+            data: { action: 'ai_hint', level: hintLevel },
+            success: (res) => {
+                $('#hintContainer').removeClass('d-none').html(res.html);
+                hintLevel++;
+                if (hintLevel > 2) {
+                    btn.hide();
+                } else {
+                    btn.html('ขอคำใบ้ระดับ ' + hintLevel + ' (โครงสร้าง Loop)');
+                }
             }
-            return;
-        }
-
-        // กรณีที่ 3: คลิกพื้นที่ภายนอก ให้ปิด Dropdown ทั้งหมด
-        document.querySelectorAll('.custom-dropdown-wrapper.active').forEach(w => {
-            w.classList.remove('active');
         });
     });
-
-});
+}
