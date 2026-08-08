@@ -942,11 +942,15 @@ if (isset($conn)) {
     var currentStep = 1;
     var tagsArray = [];
 
-    // ⚡ ระบบการทำงานของ Custom Dropdown (รองรับ AJAX Dynamic Binding) ⚡
+    // ⚡ ระบบการทำงานของ Custom Dropdown (แก้ไขปัญหา Event Conflict คลิกไม่ติดเรียบร้อยแล้ว) ⚡
     $(document).off('click', '.custom-dropdown-btn').on('click', '.custom-dropdown-btn', function(e) {
         e.stopPropagation();
         var $wrapper = $(this).closest('.custom-dropdown-wrapper');
+        
+        // ปิด Dropdown ตัวอื่นที่เปิดค้างอยู่
         $('.custom-dropdown-wrapper').not($wrapper).removeClass('active');
+        
+        // สลับสถานะเปิด/ปิด ตัวที่ถูกคลิก
         $wrapper.toggleClass('active');
     });
 
@@ -967,8 +971,11 @@ if (isset($conn)) {
         $wrapper.removeClass('active');
     });
 
-    $(document).off('click.dropdownClose').on('click.dropdownClose', function() {
-        $('.custom-dropdown-wrapper').removeClass('active');
+    // 💡 ปิด Dropdown เฉพาะตอนที่คลิก "ข้างนอก" กล่อง Dropdown เท่านั้น
+    $(document).off('click.dropdownClose').on('click.dropdownClose', function(e) {
+        if (!$(e.target).closest('.custom-dropdown-wrapper').length) {
+            $('.custom-dropdown-wrapper').removeClass('active');
+        }
     });
 
     // 💡 ซ่อน/แสดงช่องใส่ราคา ตามประเภทคอร์ส
