@@ -70,28 +70,73 @@ html[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
     width: 12px;
 }
 
-.dropdown-menu::-webkit-scrollbar-track,
-.custom-dropdown-menu::-webkit-scrollbar-track,
-.custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-track {
+/* 🌙 Dark Mode Dropdown Scrollbar */
+html[data-theme="dark"] .dropdown-menu::-webkit-scrollbar-track,
+html[data-theme="dark"] .custom-dropdown-menu::-webkit-scrollbar-track,
+html[data-theme="dark"] .custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-track,
+:root:not([data-theme="light"]) .dropdown-menu::-webkit-scrollbar-track,
+:root:not([data-theme="light"]) .custom-dropdown-menu::-webkit-scrollbar-track,
+:root:not([data-theme="light"]) .custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-track {
     background: linear-gradient(180deg, rgba(15,23,42,0.9), rgba(15,23,42,0.75));
     border-radius: 999px;
 }
 
-.dropdown-menu::-webkit-scrollbar-thumb,
-.custom-dropdown-menu::-webkit-scrollbar-thumb,
-.custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-thumb {
+html[data-theme="dark"] .dropdown-menu::-webkit-scrollbar-thumb,
+html[data-theme="dark"] .custom-dropdown-menu::-webkit-scrollbar-thumb,
+html[data-theme="dark"] .custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-thumb,
+:root:not([data-theme="light"]) .dropdown-menu::-webkit-scrollbar-thumb,
+:root:not([data-theme="light"]) .custom-dropdown-menu::-webkit-scrollbar-thumb,
+:root:not([data-theme="light"]) .custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-thumb {
     background: linear-gradient(180deg, #06b6d4 0%, #6366f1 100%);
     border-radius: 999px;
     border: 2px solid rgba(15,23,42,0.65);
 }
 
-.dropdown-menu::-webkit-scrollbar-thumb:hover,
-.custom-dropdown-menu::-webkit-scrollbar-thumb:hover,
-.custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-thumb:hover {
+html[data-theme="dark"] .dropdown-menu::-webkit-scrollbar-thumb:hover,
+html[data-theme="dark"] .custom-dropdown-menu::-webkit-scrollbar-thumb:hover,
+html[data-theme="dark"] .custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-thumb:hover,
+:root:not([data-theme="light"]) .dropdown-menu::-webkit-scrollbar-thumb:hover,
+:root:not([data-theme="light"]) .custom-dropdown-menu::-webkit-scrollbar-thumb:hover,
+:root:not([data-theme="light"]) .custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-thumb:hover {
     filter: brightness(1.06);
 }
 
+/* ☀️ Light Mode Dropdown Scrollbar Fix */
+html[data-theme="light"] .dropdown-menu::-webkit-scrollbar-track,
+html[data-theme="light"] .custom-dropdown-menu::-webkit-scrollbar-track,
+html[data-theme="light"] .custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-track {
+    background: #f1f5f9 !important;
+    border-radius: 999px;
+}
+
+html[data-theme="light"] .dropdown-menu::-webkit-scrollbar-thumb,
+html[data-theme="light"] .custom-dropdown-menu::-webkit-scrollbar-thumb,
+html[data-theme="light"] .custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-thumb {
+    background: #cbd5e1 !important;
+    border-radius: 999px;
+    border: 2px solid #f1f5f9 !important;
+}
+
+html[data-theme="light"] .dropdown-menu::-webkit-scrollbar-thumb:hover,
+html[data-theme="light"] .custom-dropdown-menu::-webkit-scrollbar-thumb:hover,
+html[data-theme="light"] .custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8 !important;
+}
+
 /* Firefox: scoped rules */
-.dropdown-menu,
-.custom-dropdown-menu,
-.custom-filter-dropdown .dropdown-menu { scrollbar-width: thin; scrollbar-color: #06b6d4 rgba(15,23,42,0.75); }
+html[data-theme="dark"] .dropdown-menu,
+html[data-theme="dark"] .custom-dropdown-menu,
+html[data-theme="dark"] .custom-filter-dropdown .dropdown-menu,
+:root:not([data-theme="light"]) .dropdown-menu,
+:root:not([data-theme="light"]) .custom-dropdown-menu,
+:root:not([data-theme="light"]) .custom-filter-dropdown .dropdown-menu { 
+    scrollbar-width: thin; 
+    scrollbar-color: #06b6d4 rgba(15,23,42,0.75); 
+}
+
+html[data-theme="light"] .dropdown-menu,
+html[data-theme="light"] .custom-dropdown-menu,
+html[data-theme="light"] .custom-filter-dropdown .dropdown-menu {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
+}
