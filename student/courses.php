@@ -224,9 +224,6 @@ if ($db) {
         z-index: 1000 !important;
     }
 
-
-    /* Page-specific custom dropdown styles are now centralized in css/dropdown-select.css */
-
     /* Card Layout */
     .course-gamified-card {
         background: var(--lv-card-bg) !important;
@@ -616,39 +613,20 @@ if ($db) {
                 }
             });
 
+            // 🚀 เรียกใช้ LevelUpAlert.confirm เมื่อกดปุ่ม "เริ่มเควส"
             $(document).on('click', '.btn-start-quest', function() {
                 let id = $(this).data('id');
                 let title = $(this).data('title');
                 let xp = $(this).data('xp');
-                let price = $(this).data('price');
 
-                if (window.CourseAlerts && typeof window.CourseAlerts.confirmStartQuest === 'function') {
-                    window.CourseAlerts.confirmStartQuest(id, title, xp, price);
-                } else if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        title: 'ยืนยันการเริ่มเควส?',
-                        text: `คุณต้องการเข้าสู่บทเรียน "${title}" (+${xp} XP) หรือไม่?`,
-                        icon: 'question',
-                        showCancelButton: true,
-                        confirmButtonColor: '#6366F1',
-                        cancelButtonColor: '#64748B',
-                        confirmButtonText: 'เข้าสู่เควส',
-                        cancelButtonText: 'ยกเลิก',
-                        customClass: {
-                            popup: 'levelup-swal-popup',
-                            title: 'levelup-swal-title',
-                            htmlContainer: 'levelup-swal-text'
-                        }
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            window.location.href = `course_detail.php?id=${id}`;
-                        }
-                    });
-                } else {
-                    if (confirm(`คุณต้องการเริ่มเรียนคอร์ส "${title}" หรือไม่?`)) {
+                LevelUpAlert.confirm(
+                    'ยืนยันการเริ่มเควส?',
+                    `คุณต้องการเข้าสู่บทเรียน "${title}" (+${xp} XP) หรือไม่?`
+                ).then((isConfirmed) => {
+                    if (isConfirmed) {
                         window.location.href = `course_detail.php?id=${id}`;
                     }
-                }
+                });
             });
         },
 
@@ -736,39 +714,41 @@ if ($db) {
             $('#course-grid').html(html);
         },
 
+        // 🚀 เรียกใช้ LevelUpAlert.toast เมื่อล้างตัวกรอง
         resetFilters: function() {
-            const self = this;
-            let performReset = function() {
-                $('.filter-checkbox').prop('checked', false);
-                $('#cat_all').prop('checked', true);
-                $('#lvl_all').prop('checked', true);
-                $('#ai-search-input').val('');
-                
-                $('#sort-select').val('popular');
-                $('#selected-sort-text').text('คอร์สยอดนิยมสูงสุด');
-                $('.sort-item').removeClass('active');
-                $('.sort-item[data-value="popular"]').addClass('active');
-                $('.sort-item .check-icon').addClass('d-none');
-                $('.sort-item[data-value="popular"] .check-icon').removeClass('d-none');
+            $('.filter-checkbox').prop('checked', false);
+            $('#cat_all').prop('checked', true);
+            $('#lvl_all').prop('checked', true);
+            $('#ai-search-input').val('');
+            
+            $('#sort-select').val('popular');
+            $('#selected-sort-text').text('คอร์สยอดนิยมสูงสุด');
+            $('.sort-item').removeClass('active');
+            $('.sort-item[data-value="popular"]').addClass('active');
+            $('.sort-item .check-icon').addClass('d-none');
+            $('.sort-item[data-value="popular"] .check-icon').removeClass('d-none');
 
-                self.updateDropdownGlows();
-                self.fetchCourses();
-            };
+            this.updateDropdownGlows();
+            this.fetchCourses();
 
-            if (window.CourseAlerts && typeof window.CourseAlerts.confirmResetFilters === 'function') {
-                window.CourseAlerts.confirmResetFilters(performReset);
-            } else {
-                performReset();
-            }
+            LevelUpAlert.toast('ล้างตัวกรองทั้งหมดเรียบร้อยแล้ว', 'info');
         },
 
+        // 🚀 เรียกใช้ LevelUpAlert.warning / loading / toast ร่วมกับ AI Search
         aiSearch: function() {
-            let val = $('#ai-search-input').val();
-            if (window.CourseAlerts && typeof window.CourseAlerts.aiSearch === 'function') {
-                window.CourseAlerts.aiSearch(val);
-            } else {
-                this.fetchCourses();
+            let val = $('#ai-search-input').val().trim();
+            if (!val) {
+                LevelUpAlert.warning('กรุณากรอกข้อมูล', 'โปรดระบุเป้าหมายอาชีพหรือทักษะที่ต้องการค้นหา');
+                return;
             }
+
+            LevelUpAlert.loading('AI กำลังวิเคราะห์เควส...');
+
+            setTimeout(() => {
+                LevelUpAlert.close();
+                this.fetchCourses();
+                LevelUpAlert.toast('วิเคราะห์และจัดสรรคอร์สเรียนเรียบร้อย', 'success');
+            }, 500);
         }
     };
 
