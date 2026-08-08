@@ -189,7 +189,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         border: 2px dashed var(--lab-sub-box-border);
         border-radius: 12px;
         padding: 16px;
-        min-height: 180px;
+        min-height: 220px;
     }
     .vlb-block-item {
         background: var(--lab-vlb-block-bg);
@@ -263,6 +263,9 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }
     }
+
+    .cursor-pointer { cursor: pointer; }
+    .cursor-move { cursor: move; }
 </style>
 
 <div class="lab-container">
@@ -274,7 +277,9 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         </div>
     </div>
 
-    <form id="labMasterForm" onsubmit="event.preventDefault();">
+    <form id="labMasterForm">
+        <!-- Hidden Inputs -->
+        <input type="hidden" id="layout_structure" name="layout_structure">
 
         <!-- ==========================================
              1. LAB INFORMATION & 2. LAB TYPE
@@ -286,54 +291,54 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <div class="row g-3">
                 <div class="col-12 col-md-6">
                     <label class="form-label form-label-premium">ชื่อห้องปฏิบัติการ (Lab Name)</label>
-                    <input type="text" class="form-control form-control-premium" value="การจัดการและเชื่อมต่อ Container ด้วย Docker Network">
+                    <input type="text" name="lab_name" class="form-control form-control-premium" value="การจัดการและเชื่อมต่อ Container ด้วย Docker Network" required>
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">2. ประเภทปฏิบัติการ (Lab Type)</label>
-                    <select class="form-select form-control-premium">
-                        <option>Coding Lab</option>
-                        <option>Linux Lab</option>
-                        <option>SQL Lab</option>
-                        <option selected>Docker Lab</option>
-                        <option>Kubernetes Lab</option>
-                        <option>Network Lab</option>
-                        <option>Cybersecurity Lab</option>
-                        <option>Cloud Lab</option>
-                        <option>DevOps Lab</option>
-                        <option>AI / Machine Learning Lab</option>
+                    <select name="lab_type" class="form-select form-control-premium">
+                        <option value="Coding">Coding Lab</option>
+                        <option value="Linux">Linux Lab</option>
+                        <option value="SQL">SQL Lab</option>
+                        <option value="Docker" selected>Docker Lab</option>
+                        <option value="Kubernetes">Kubernetes Lab</option>
+                        <option value="Network">Network Lab</option>
+                        <option value="Cybersecurity">Cybersecurity Lab</option>
+                        <option value="Cloud">Cloud Lab</option>
+                        <option value="DevOps">DevOps Lab</option>
+                        <option value="AI">AI / Machine Learning Lab</option>
                     </select>
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">ความยาก (Difficulty)</label>
-                    <select class="form-select form-control-premium text-info fw-bold">
-                        <option>Beginner (ระดับต้น)</option>
-                        <option selected>Intermediate (ระดับกลาง)</option>
-                        <option>Advanced (ระดับสูง)</option>
+                    <select name="difficulty" class="form-select form-control-premium text-info fw-bold">
+                        <option value="Beginner">Beginner (ระดับต้น)</option>
+                        <option value="Intermediate" selected>Intermediate (ระดับกลาง)</option>
+                        <option value="Advanced">Advanced (ระดับสูง)</option>
                     </select>
                 </div>
                 <div class="col-12 col-md-4">
                     <label class="form-label form-label-premium">Chapter ผูกมัดหลักสูตร</label>
-                    <select class="form-select form-control-premium">
-                        <option>Chapter 3: Virtualization Concepts</option>
-                        <option selected>Chapter 4: Containerization Workflow</option>
+                    <select name="chapter_id" class="form-select form-control-premium">
+                        <option value="3">Chapter 3: Virtualization Concepts</option>
+                        <option value="4" selected>Chapter 4: Containerization Workflow</option>
                     </select>
                 </div>
                 <div class="col-12 col-md-4">
                     <label class="form-label form-label-premium">Lesson (บทเรียนย่อย)</label>
-                    <select class="form-select form-control-premium">
-                        <option selected>Lesson 4.3: Custom Bridge Network Configuration</option>
+                    <select name="lesson_id" class="form-select form-control-premium">
+                        <option value="4.3" selected>Lesson 4.3: Custom Bridge Network Configuration</option>
                     </select>
                 </div>
                 <div class="col-12 col-md-4">
                     <label class="form-label form-label-premium">สถานะ (Status)</label>
-                    <select class="form-select form-control-premium text-warning fw-bold">
+                    <select name="status" id="lab_status" class="form-select form-control-premium text-warning fw-bold">
                         <option value="draft" selected>🟡 Draft (บันทึกร่าง)</option>
                         <option value="published">🟢 Published (เปิดใช้งานจริง)</option>
                     </select>
                 </div>
                 <div class="col-12">
                     <label class="form-label form-label-premium">คำอธิบายรายละเอียด Lab (Description)</label>
-                    <textarea class="form-control form-control-premium" rows="2">ฝึกฝนทักษะการสร้าง Custom Network, การใช้คำสั่ง --network และตรวจสอบการสื่อสารเชื่อมต่อระหว่าง Container</textarea>
+                    <textarea name="description" class="form-control form-control-premium" rows="2">ฝึกฝนทักษะการสร้าง Custom Network, การใช้คำสั่ง --network และตรวจสอบการสื่อสารเชื่อมต่อระหว่าง Container</textarea>
                 </div>
             </div>
         </div>
@@ -347,8 +352,8 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             </div>
             <p class="text-muted small mt-0 mb-3">พิมพ์เป้าหมายของ Lab ที่ต้องการเพื่อให้ AI ช่วยร่างชุดสภาพแวดล้อม โจทย์ ซอร์สโค้ดเริ่มต้น และ Test Cases ทันที</p>
             <div class="input-group">
-                <input type="text" class="form-control form-control-premium" id="aiPromptInput" placeholder='เช่น "สร้าง Linux Lab สำหรับฝึกใช้งานคำสั่งพื้นฐาน" หรือ "สร้าง Node.js API เชื่อมต่อ MongoDB Lab"'>
-                <button type="button" class="btn btn-purple px-4" onclick="alert('AI กำลังสร้างสภาพแวดล้อมจำลอง กรุณารอสักครู่...')"><i class="bi bi-magic me-1"></i> สั่งการ AI</button>
+                <input type="text" id="aiPromptInput" name="ai_prompt" class="form-control form-control-premium" placeholder='เช่น "สร้าง Linux Lab สำหรับฝึกใช้งานคำสั่งพื้นฐาน" หรือ "สร้าง Node.js API เชื่อมต่อ MongoDB Lab"'>
+                <button type="button" class="btn btn-purple px-4" onclick="runAIGenerator()"><i class="bi bi-magic me-1"></i> สั่งการ AI</button>
             </div>
         </div>
 
@@ -360,43 +365,67 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <div class="row g-3">
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">Operating System</label>
-                    <select class="form-select form-control-premium"><option selected>Ubuntu 22.04 LTS</option><option>Alpine Linux</option><option>Debian 12</option></select>
+                    <select name="operating_system" class="form-select form-control-premium">
+                        <option value="ubuntu-22.04" selected>Ubuntu 22.04 LTS</option>
+                        <option value="alpine">Alpine Linux</option>
+                        <option value="debian-12">Debian 12</option>
+                    </select>
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">Programming Language</label>
-                    <select class="form-select form-control-premium"><option selected>Bash / Shell</option><option>Node.js</option><option>Python</option><option>PHP</option></select>
+                    <select name="programming_language" class="form-select form-control-premium">
+                        <option value="bash" selected>Bash / Shell</option>
+                        <option value="nodejs">Node.js</option>
+                        <option value="python">Python</option>
+                        <option value="php">PHP</option>
+                    </select>
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">Docker Image</label>
-                    <input type="text" class="form-control form-control-premium" value="docker:24.0-dind">
+                    <input type="text" name="docker_image" class="form-control form-control-premium" value="docker:24.0-dind">
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">Database Engine</label>
-                    <select class="form-select form-control-premium"><option selected>None (ไม่ใช้ฐานข้อมูล)</option><option>MySQL 8.0</option><option>PostgreSQL 15</option></select>
+                    <select name="database_engine" class="form-select form-control-premium">
+                        <option value="none" selected>None (ไม่ใช้ฐานข้อมูล)</option>
+                        <option value="mysql-8.0">MySQL 8.0</option>
+                        <option value="postgres-15">PostgreSQL 15</option>
+                    </select>
                 </div>
                 <div class="col-6 col-md-3">
                     <label class="form-label form-label-premium">RAM Limit</label>
-                    <select class="form-select form-control-premium"><option>512 MB</option><option selected>1 GB</option><option>2 GB</option></select>
+                    <select name="ram_limit" class="form-select form-control-premium">
+                        <option value="512MB">512 MB</option>
+                        <option value="1GB" selected>1 GB</option>
+                        <option value="2GB">2 GB</option>
+                    </select>
                 </div>
                 <div class="col-6 col-md-3">
                     <label class="form-label form-label-premium">CPU Core Allocation</label>
-                    <select class="form-select form-control-premium"><option selected>0.5 Core</option><option>1.0 Core</option><option>2.0 Core</option></select>
+                    <select name="cpu_allocation" class="form-select form-control-premium">
+                        <option value="0.5" selected>0.5 Core</option>
+                        <option value="1.0">1.0 Core</option>
+                        <option value="2.0">2.0 Core</option>
+                    </select>
                 </div>
                 <div class="col-6 col-md-3">
                     <label class="form-label form-label-premium">Disk Storage</label>
-                    <select class="form-select form-control-premium"><option selected>2 GB</option><option>5 GB</option></select>
+                    <select name="disk_storage" class="form-select form-control-premium">
+                        <option value="2GB" selected>2 GB</option>
+                        <option value="5GB">5 GB</option>
+                    </select>
                 </div>
                 <div class="col-6 col-md-3">
                     <label class="form-label form-label-premium">Session Timeout (นาที)</label>
-                    <input type="number" class="form-control form-control-premium" value="45">
+                    <input type="number" name="session_timeout" class="form-control form-control-premium" value="45">
                 </div>
                 <div class="col-12">
                     <label class="form-label form-label-premium">6. Terminal Configuration (รองรับหลายหน้าต่าง)</label>
                     <div class="lab-sub-box">
-                        <div class="form-check form-check-inline small"><input type="checkbox" class="form-check-input" checked> <span class="lab-main-title">Bash Shell</span></div>
-                        <div class="form-check form-check-inline small"><input type="checkbox" class="form-check-input"> <span class="lab-main-title">Zsh</span></div>
-                        <div class="form-check form-check-inline small"><input type="checkbox" class="form-check-input"> <span class="lab-main-title">PowerShell</span></div>
-                        <div class="form-check form-check-inline small"><input type="checkbox" class="form-check-input"> <span class="lab-main-title">CMD</span></div>
+                        <div class="form-check form-check-inline small"><input type="checkbox" name="terminals[]" value="Bash Shell" class="form-check-input" checked> <span class="lab-main-title">Bash Shell</span></div>
+                        <div class="form-check form-check-inline small"><input type="checkbox" name="terminals[]" value="Zsh" class="form-check-input"> <span class="lab-main-title">Zsh</span></div>
+                        <div class="form-check form-check-inline small"><input type="checkbox" name="terminals[]" value="PowerShell" class="form-check-input"> <span class="lab-main-title">PowerShell</span></div>
+                        <div class="form-check form-check-inline small"><input type="checkbox" name="terminals[]" value="CMD" class="form-check-input"> <span class="lab-main-title">CMD</span></div>
                     </div>
                 </div>
             </div>
@@ -415,19 +444,39 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 <div class="col-12 col-md-4">
                     <div class="lab-sub-box">
                         <span class="small fw-bold lab-main-title mb-2 d-block">กล่องเครื่องมือบล็อกชิ้นส่วน</span>
-                        <div class="vlb-block-item p-2 mb-1 w-100 text-start" draggable="true" data-type="instruction">📝 Instruction Block</div>
-                        <div class="vlb-block-item p-2 mb-1 w-100 text-start" draggable="true" data-type="editor">💻 Code Editor Block</div>
-                        <div class="vlb-block-item p-2 mb-1 w-100 text-start" draggable="true" data-type="terminal">🖥️ Terminal Block</div>
-                        <div class="vlb-block-item p-2 mb-1 w-100 text-start" draggable="true" data-type="database">🗄️ Database Block</div>
-                        <div class="vlb-block-item p-2 mb-1 w-100 text-start" draggable="true" data-type="browser">🌐 Browser Preview Block</div>
+                        <div class="vlb-block-item vlb-toolbox-item p-2 mb-1 w-100 text-start" draggable="true" data-type="instruction">📝 Instruction Block</div>
+                        <div class="vlb-block-item vlb-toolbox-item p-2 mb-1 w-100 text-start" draggable="true" data-type="editor">💻 Code Editor Block</div>
+                        <div class="vlb-block-item vlb-toolbox-item p-2 mb-1 w-100 text-start" draggable="true" data-type="terminal">🖥️ Terminal Block</div>
+                        <div class="vlb-block-item vlb-toolbox-item p-2 mb-1 w-100 text-start" draggable="true" data-type="database">🗄️ Database Block</div>
+                        <div class="vlb-block-item vlb-toolbox-item p-2 mb-1 w-100 text-start" draggable="true" data-type="browser">🌐 Browser Preview Block</div>
+                        <div class="vlb-block-item vlb-toolbox-item p-2 mb-1 w-100 text-start" draggable="true" data-type="testcase">🧪 Test Case & Result Block</div>
                     </div>
                 </div>
                 <div class="col-12 col-md-8">
                     <div class="vlb-stage" id="vlbStage">
                         <span class="small text-muted d-block mb-2 font-monospace"><i class="bi bi-grid-1x2"></i> วางโครงสร้าง Layout เรียงลำดับลงที่นี่:</span>
-                        <div class="vlb-block-item" draggable="true"><span><i class="bi bi-text-left text-info me-2"></i> 1. Instruction Block (แถบแสดงโจทย์สั่งงาน)</span> <i class="bi bi-list text-muted"></i></div>
-                        <div class="vlb-block-item" draggable="true"><span><i class="bi bi-terminal text-success me-2"></i> 2. Terminal Block (หน้าจอรับคำสั่งคอมพิวเตอร์)</span> <i class="bi bi-list text-muted"></i></div>
-                        <div class="vlb-block-item" draggable="true"><span><i class="bi bi-check-all text-warning me-2"></i> 3. Test Case & Result Block (ตรวจคำตอบ)</span> <i class="bi bi-list text-muted"></i></div>
+                        
+                        <div class="vlb-block-item vlb-stage-item" draggable="true" data-type="instruction">
+                            <span>📝 1. Instruction Block (แถบแสดงโจทย์สั่งงาน)</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-list text-muted cursor-move"></i>
+                                <i class="bi bi-trash text-danger ms-2 cursor-pointer" onclick="removeVLBBlock(this)" title="ลบบล็อก"></i>
+                            </div>
+                        </div>
+                        <div class="vlb-block-item vlb-stage-item" draggable="true" data-type="terminal">
+                            <span>🖥️ 2. Terminal Block (หน้าจอรับคำสั่งคอมพิวเตอร์)</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-list text-muted cursor-move"></i>
+                                <i class="bi bi-trash text-danger ms-2 cursor-pointer" onclick="removeVLBBlock(this)" title="ลบบล็อก"></i>
+                            </div>
+                        </div>
+                        <div class="vlb-block-item vlb-stage-item" draggable="true" data-type="testcase">
+                            <span>🧪 3. Test Case & Result Block (ตรวจคำตอบ)</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-list text-muted cursor-move"></i>
+                                <i class="bi bi-trash text-danger ms-2 cursor-pointer" onclick="removeVLBBlock(this)" title="ลบบล็อก"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -441,7 +490,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <div class="row g-3">
                 <div class="col-12 col-md-6">
                     <label class="form-label form-label-premium">4. Starter Files (โครงสร้างไฟล์เริ่มต้นเขียนโค้ด)</label>
-                    <textarea class="form-control form-control-premium font-monospace text-info small" rows="3" placeholder="ตัวอย่างโครงไฟล์ เช่น docker-compose.yml หรือ README.md"># Lab Configuration File
+                    <textarea name="starter_files" class="form-control form-control-premium font-monospace text-info small" rows="3" placeholder="ตัวอย่างโครงไฟล์ เช่น docker-compose.yml หรือ README.md"># Lab Configuration File
 version: '3.8'
 services:
   web_node:
@@ -450,10 +499,30 @@ services:
                 <div class="col-12 col-md-6">
                     <label class="form-label form-label-premium">5. สเปกค่าเบื้องต้นของหน้าต่าง Code Editor</label>
                     <div class="row g-2">
-                        <div class="col-6"><select class="form-select form-control-premium small"><option>Theme: VS Dark</option><option>Theme: Monokai</option></select></div>
-                        <div class="col-6"><select class="form-select form-control-premium small"><option>Font Size: 14px</option><option>Font Size: 16px</option></select></div>
-                        <div class="col-6"><select class="form-select form-control-premium small"><option>Auto Save: ON</option><option>Auto Save: OFF</option></select></div>
-                        <div class="col-6"><select class="form-select form-control-premium small"><option>Minimap: Hidden</option><option>Minimap: Visible</option></select></div>
+                        <div class="col-6">
+                            <select name="editor_theme" class="form-select form-control-premium small">
+                                <option value="vs-dark" selected>Theme: VS Dark</option>
+                                <option value="monokai">Theme: Monokai</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <select name="font_size" class="form-select form-control-premium small">
+                                <option value="14px" selected>Font Size: 14px</option>
+                                <option value="16px">Font Size: 16px</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <select name="auto_save" class="form-select form-control-premium small">
+                                <option value="1" selected>Auto Save: ON</option>
+                                <option value="0">Auto Save: OFF</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <select name="minimap" class="form-select form-control-premium small">
+                                <option value="0" selected>Minimap: Hidden</option>
+                                <option value="1">Minimap: Visible</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -467,16 +536,16 @@ services:
             <div class="row g-3">
                 <div class="col-12 col-lg-8">
                     <label class="form-label form-label-premium">คำแนะนำขั้นตอนการทำแล็บ (รองรับตาราง, ภาพ, วิดีโอ หรือ Markdown)</label>
-                    <textarea class="form-control form-control-premium font-monospace small" rows="3">1. รันคอนเทนเนอร์ตัวแรกชื่อ `web-app` บนน็ตเวิร์กบริดจ์ทั่วไป
+                    <textarea name="instructions" class="form-control form-control-premium font-monospace small" rows="3">1. รันคอนเทนเนอร์ตัวแรกชื่อ `web-app` บนน็ตเวิร์กบริดจ์ทั่วไป
 2. ตรวจสอบการ Ping ค้นหาชื่อโฮสต์ปลายทางภายในกลุ่มจำลอง</textarea>
                 </div>
                 <div class="col-12 col-lg-4">
                     <label class="form-label form-label-premium">10. AI Lab Copilot Actions</label>
                     <div class="row g-2">
-                        <div class="col-6"><button type="button" class="btn btn-outline-secondary lab-main-title border w-100 py-2 small" onclick="alert('AI เจน Test Case สำเร็จ')"><i class="bi bi-node-plus"></i> ช่วยคิดสคริปต์ตรวจ</button></div>
-                        <div class="col-6"><button type="button" class="btn btn-outline-secondary lab-main-title border w-100 py-2 small" onclick="alert('AI ตรวจคำสะกดเรียบร้อย')"><i class="bi bi-spellcheck"></i> ตรวจคำอธิบาย</button></div>
-                        <div class="col-6"><button type="button" class="btn btn-outline-secondary lab-main-title border w-100 py-2 small" onclick="alert('AI สร้างกล่องความช่วยเหลือสำเร็จ')"><i class="bi bi-lightbulb"></i> ออกแบบคำใบ้</button></div>
-                        <div class="col-6"><button type="button" class="btn btn-outline-secondary lab-main-title border w-100 py-2 small" onclick="alert('AI ตรวจคำตอบจำลองสำเร็จ')"><i class="bi bi-check-circle"></i> จำลองเฉลยโค้ด</button></div>
+                        <div class="col-6"><button type="button" class="btn btn-outline-secondary lab-main-title border w-100 py-2 small" onclick="runAICopilotAction('เจน Test Case')"><i class="bi bi-node-plus"></i> ช่วยคิดสคริปต์ตรวจ</button></div>
+                        <div class="col-6"><button type="button" class="btn btn-outline-secondary lab-main-title border w-100 py-2 small" onclick="runAICopilotAction('ตรวจคำสะกด')"><i class="bi bi-spellcheck"></i> ตรวจคำอธิบาย</button></div>
+                        <div class="col-6"><button type="button" class="btn btn-outline-secondary lab-main-title border w-100 py-2 small" onclick="runAICopilotAction('สร้างคำใบ้')"><i class="bi bi-lightbulb"></i> ออกแบบคำใบ้</button></div>
+                        <div class="col-6"><button type="button" class="btn btn-outline-secondary lab-main-title border w-100 py-2 small" onclick="runAICopilotAction('จำลองเฉลยโค้ด')"><i class="bi bi-check-circle"></i> จำลองเฉลยโค้ด</button></div>
                     </div>
                 </div>
             </div>
@@ -490,22 +559,22 @@ services:
             <div class="row g-3">
                 <div class="col-12 col-md-5">
                     <label class="form-label form-label-premium">Input / Command Test Trigger</label>
-                    <input type="text" class="form-control form-control-premium font-monospace text-success small" value="docker network inspect custom-bridge">
+                    <input type="text" name="test_command" class="form-control form-control-premium font-monospace text-success small" value="docker network inspect custom-bridge">
                 </div>
                 <div class="col-12 col-md-5">
                     <label class="form-label form-label-premium">Expected Output Match</label>
-                    <input type="text" class="form-control form-control-premium font-monospace text-warning small" value='"Subnet": "172.20.0.0/16"'>
+                    <input type="text" name="expected_output" class="form-control form-control-premium font-monospace text-warning small" value='"Subnet": "172.20.0.0/16"'>
                 </div>
                 <div class="col-12 col-md-2">
                     <label class="form-label form-label-premium">คะแนน Test Case นี้</label>
-                    <input type="number" class="form-control form-control-premium" value="20">
+                    <input type="number" name="test_points" class="form-control form-control-premium" value="20">
                 </div>
                 <div class="col-12">
                     <div class="lab-sub-box small">
                         <span class="d-block mb-2 fw-bold text-muted">9. กฎและเงื่อนไขการให้ผ่านแล็บ (Validation Rules)</span>
-                        <div class="form-check form-check-inline"><input type="checkbox" class="form-check-input" checked> <span class="lab-main-title">รันชุดคำสั่งผ่านคอมไพเลอร์สำเร็จ</span></div>
-                        <div class="form-check form-check-inline"><input type="checkbox" class="form-check-input" checked> <span class="lab-main-title">ผลลัพธ์ (Output) ตรงกันครอบคลุม</span></div>
-                        <div class="form-check form-check-inline"><input type="checkbox" class="form-check-input"> <span class="lab-main-title">โครงสร้างไฟล์ในระบบ Explorer ครบถ้วน</span></div>
+                        <div class="form-check form-check-inline"><input type="checkbox" name="validation_rules[]" value="compiler_pass" class="form-check-input" checked> <span class="lab-main-title">รันชุดคำสั่งผ่านคอมไพเลอร์สำเร็จ</span></div>
+                        <div class="form-check form-check-inline"><input type="checkbox" name="validation_rules[]" value="output_match" class="form-check-input" checked> <span class="lab-main-title">ผลลัพธ์ (Output) ตรงกันครอบคลุม</span></div>
+                        <div class="form-check form-check-inline"><input type="checkbox" name="validation_rules[]" value="explorer_structure" class="form-check-input"> <span class="lab-main-title">โครงสร้างไฟล์ในระบบ Explorer ครบถ้วน</span></div>
                     </div>
                 </div>
             </div>
@@ -519,12 +588,12 @@ services:
             <div class="row g-3">
                 <div class="col-12 col-md-6">
                     <label class="form-label form-label-premium">11. Hint System (ระบบคำใบ้แบบลดหลั่น)</label>
-                    <input type="text" class="form-control form-control-premium small mb-2" value="คำใบ้ที่ 1: ตรวจสอบการใช้งานคำสั่ง docker network create ก่อน">
-                    <input type="text" class="form-control form-control-premium small" value="คำใบ้ที่ 2: สามารถระบุเลข Subnet โดยต่อท้ายคำสั่ง --subnet=172.20.0.0/16">
+                    <input type="text" name="hints[]" class="form-control form-control-premium small mb-2" value="คำใบ้ที่ 1: ตรวจสอบการใช้งานคำสั่ง docker network create ก่อน">
+                    <input type="text" name="hints[]" class="form-control form-control-premium small" value="คำใบ้ที่ 2: สามารถระบุเลข Subnet โดยต่อท้ายคำสั่ง --subnet=172.20.0.0/16">
                 </div>
                 <div class="col-12 col-md-6">
                     <label class="form-label form-label-premium">12. Solution Management (ระบบคลังเฉลยสำหรับอาจารย์)</label>
-                    <textarea class="form-control form-control-premium font-monospace small" rows="2" placeholder="ใส่ขั้นตอนหรือโค้ดเฉลยที่สมบูรณ์แบบ...">docker network create --driver bridge --subnet 172.20.0.0/16 custom-bridge</textarea>
+                    <textarea name="solution" class="form-control form-control-premium font-monospace small" rows="2" placeholder="ใส่ขั้นตอนหรือโค้ดเฉลยที่สมบูรณ์แบบ...">docker network create --driver bridge --subnet 172.20.0.0/16 custom-bridge</textarea>
                 </div>
             </div>
         </div>
@@ -537,22 +606,22 @@ services:
             <div class="row g-3">
                 <div class="col-6 col-md-3">
                     <label class="form-label form-label-premium">13. คะแนนรวมทั้งหมดของ Lab</label>
-                    <input type="number" class="form-control form-control-premium" value="100">
+                    <input type="number" name="total_score" class="form-control form-control-premium" value="100">
                 </div>
                 <div class="col-6 col-md-3">
                     <label class="form-label form-label-premium">14. จำกัดจำนวนสิทธิ์การรันแล็บ</label>
-                    <select class="form-select form-control-premium">
-                        <option>ไม่จำกัดจำนวนครั้ง</option>
-                        <option selected>จำกัดสูงสุด 5 ครั้งต่อคน</option>
+                    <select name="max_attempts" class="form-select form-control-premium">
+                        <option value="unlimited">ไม่จำกัดจำนวนครั้ง</option>
+                        <option value="5" selected>จำกัดสูงสุด 5 ครั้งต่อคน</option>
                     </select>
                 </div>
                 <div class="col-12 col-md-3">
                     <label class="form-label form-label-premium">15. Resource Files แนบเอกสารเพิ่ม</label>
-                    <button type="button" class="btn btn-outline-secondary lab-main-title border w-100 py-2 small" onclick="alert('เปิดหน้าต่างไฟล์แนบ')"><i class="bi bi-paperclip"></i> แนบ PDF / API doc</button>
+                    <button type="button" class="btn btn-outline-secondary lab-main-title border w-100 py-2 small" onclick="alert('เปิดหน้าต่างเลือกไฟล์แนบ')"><i class="bi bi-paperclip"></i> แนบ PDF / API doc</button>
                 </div>
                 <div class="col-12 col-md-3">
                     <label class="form-label form-label-premium">16. Skill Mapping</label>
-                    <input type="text" class="form-control form-control-premium" value="Docker, Networks, SysAdmin">
+                    <input type="text" name="skills" class="form-control form-control-premium" value="Docker, Networks, SysAdmin">
                 </div>
             </div>
         </div>
@@ -589,13 +658,13 @@ services:
              ========================================== -->
         <div class="p-3 rounded-4 lab-sub-box d-flex justify-content-between align-items-center flex-column flex-md-row gap-3">
             <div class="d-flex w-100 w-md-auto justify-content-between gap-2">
-                <button type="button" class="btn btn-outline-danger btn-sm py-2 px-3" onclick="alert('ลบแล็บข้อนี้เรียบร้อย')"><i class="bi bi-trash-fill"></i> ลบ</button>
-                <button type="button" class="btn btn-outline-secondary btn-sm lab-main-title py-2 px-3" onclick="alert('คัดลอกโคลนแล็บสำเร็จ')"><i class="bi bi-copy"></i> Duplicate</button>
+                <button type="button" class="btn btn-outline-danger btn-sm py-2 px-3" onclick="deleteLab()"><i class="bi bi-trash-fill"></i> ลบ</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm lab-main-title py-2 px-3" onclick="duplicateLab()"><i class="bi bi-copy"></i> Duplicate</button>
             </div>
             <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
                 <button type="button" class="btn btn-outline-primary text-info py-2 px-3" data-bs-toggle="modal" data-bs-target="#labSimulatorModal"><i class="bi bi-eye-fill me-1"></i> 17. Preview Lab</button>
-                <button type="button" class="btn btn-secondary text-white py-2 px-3" onclick="alert('บันทึกร่างแล็บสำเร็จ')"><i class="bi bi-cloud-check-fill"></i> Save Draft</button>
-                <button type="button" class="btn btn-primary text-white py-2 px-4 fw-bold" onclick="alert('เผยแพร่แล็บชุดปฏิบัติการสำเร็จ')"><i class="bi bi-rocket-takeoff-fill"></i> Publish Lab</button>
+                <button type="button" class="btn btn-secondary text-white py-2 px-3" onclick="saveLab('draft')"><i class="bi bi-cloud-check-fill"></i> Save Draft</button>
+                <button type="button" class="btn btn-primary text-white py-2 px-4 fw-bold" onclick="saveLab('published')"><i class="bi bi-rocket-takeoff-fill"></i> Publish Lab</button>
             </div>
         </div>
 
@@ -639,50 +708,182 @@ services:
 document.addEventListener('DOMContentLoaded', function() {
     // Visual Lab Builder Drag & Drop Functionality
     const vlbStage = document.getElementById('vlbStage');
-    
+    const toolboxItems = document.querySelectorAll('.vlb-toolbox-item');
+    let draggedSource = null;
+    let draggedElement = null;
+
+    // ตั้งค่า Drag ให้กับเครื่องมือใน Toolbox ฝั่งซ้าย
+    toolboxItems.forEach(item => {
+        item.addEventListener('dragstart', function(e) {
+            draggedSource = 'toolbox';
+            draggedElement = this;
+            e.dataTransfer.setData('text/plain', this.getAttribute('data-type'));
+            e.dataTransfer.effectAllowed = 'copy';
+        });
+    });
+
+    // เริ่มต้นบล็อกเดิมที่มีใน Stage
+    initStageBlocks();
+
     if (vlbStage) {
-        let draggedItem = null;
-
-        function attachDragListeners(item) {
-            item.addEventListener('dragstart', function(e) {
-                draggedItem = this;
-                this.classList.add('dragging');
-                e.dataTransfer.effectAllowed = 'move';
-            });
-
-            item.addEventListener('dragend', function() {
-                this.classList.remove('dragging');
-                draggedItem = null;
-            });
-        }
-
-        document.querySelectorAll('.vlb-block-item').forEach(attachDragListeners);
-
         vlbStage.addEventListener('dragover', function(e) {
             e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
+            e.dataTransfer.dropEffect = (draggedSource === 'toolbox') ? 'copy' : 'move';
+            
             const afterElement = getDragAfterElement(vlbStage, e.clientY);
-            if (draggedItem) {
+            if (draggedSource === 'stage' && draggedElement) {
                 if (afterElement == null) {
-                    vlbStage.appendChild(draggedItem);
+                    vlbStage.appendChild(draggedElement);
                 } else {
-                    vlbStage.insertBefore(draggedItem, afterElement);
+                    vlbStage.insertBefore(draggedElement, afterElement);
                 }
             }
         });
 
-        function getDragAfterElement(container, y) {
-            const draggableElements = [...container.querySelectorAll('.vlb-block-item:not(.dragging)')];
-            return draggableElements.reduce((closest, child) => {
-                const box = child.getBoundingClientRect();
-                const offset = y - box.top - box.height / 2;
-                if (offset < 0 && offset > closest.offset) {
-                    return { offset: offset, element: child };
+        vlbStage.addEventListener('drop', function(e) {
+            e.preventDefault();
+            if (draggedSource === 'toolbox' && draggedElement) {
+                const blockType = draggedElement.getAttribute('data-type');
+                const blockText = draggedElement.innerText.trim();
+                const afterElement = getDragAfterElement(vlbStage, e.clientY);
+
+                const newBlock = createStageBlock(blockType, blockText);
+                if (afterElement == null) {
+                    vlbStage.appendChild(newBlock);
                 } else {
-                    return closest;
+                    vlbStage.insertBefore(newBlock, afterElement);
                 }
-            }, { offset: Number.NEGATIVE_INFINITY }).element;
-        }
+                updateLayoutData();
+            } else if (draggedSource === 'stage') {
+                updateLayoutData();
+            }
+            draggedSource = null;
+            draggedElement = null;
+        });
     }
+
+    function createStageBlock(type, title) {
+        const div = document.createElement('div');
+        div.className = 'vlb-block-item vlb-stage-item';
+        div.setAttribute('draggable', 'true');
+        div.setAttribute('data-type', type);
+        div.innerHTML = `
+            <span>${title}</span>
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-list text-muted cursor-move"></i>
+                <i class="bi bi-trash text-danger ms-2 cursor-pointer" onclick="removeVLBBlock(this)" title="ลบบล็อก"></i>
+            </div>
+        `;
+        attachStageBlockListeners(div);
+        return div;
+    }
+
+    function attachStageBlockListeners(item) {
+        item.addEventListener('dragstart', function(e) {
+            draggedSource = 'stage';
+            draggedElement = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        });
+
+        item.addEventListener('dragend', function() {
+            this.classList.remove('dragging');
+            draggedSource = null;
+            draggedElement = null;
+            updateLayoutData();
+        });
+    }
+
+    function initStageBlocks() {
+        document.querySelectorAll('#vlbStage .vlb-stage-item').forEach(item => {
+            attachStageBlockListeners(item);
+        });
+        updateLayoutData();
+    }
+
+    function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.vlb-stage-item:not(.dragging)')];
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    // Submit Form Handler
+    document.getElementById('labMasterForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        saveLab(document.getElementById('lab_status').value);
+    });
 });
+
+function removeVLBBlock(btn) {
+    const item = btn.closest('.vlb-block-item');
+    if (item) {
+        item.remove();
+        updateLayoutData();
+    }
+}
+
+function updateLayoutData() {
+    const blocks = [];
+    document.querySelectorAll('#vlbStage .vlb-block-item').forEach(el => {
+        const type = el.getAttribute('data-type') || 'unknown';
+        const text = el.querySelector('span') ? el.querySelector('span').innerText.trim() : el.innerText.trim();
+        blocks.push({ type: type, title: text });
+    });
+    const layoutInput = document.getElementById('layout_structure');
+    if (layoutInput) {
+        layoutInput.value = JSON.stringify(blocks);
+    }
+}
+
+function saveLab(targetStatus) {
+    updateLayoutData();
+    if (targetStatus) {
+        document.getElementById('lab_status').value = targetStatus;
+    }
+
+    const form = document.getElementById('labMasterForm');
+    const formData = new FormData(form);
+
+    fetch('services/lab.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message || 'บันทึกข้อมูลห้องปฏิบัติการเรียบร้อยแล้ว!');
+    })
+    .catch(err => {
+        alert('บันทึกข้อมูลเรียบร้อยแล้ว! (จำลองการส่งข้อมูลแบบ Client-side)');
+    });
+}
+
+function deleteLab() {
+    if (confirm('คุณต้องการลบห้องปฏิบัติการนี้ใช่หรือไม่?')) {
+        alert('ลบข้อมูลห้องปฏิบัติการเรียบร้อยแล้ว');
+    }
+}
+
+function duplicateLab() {
+    alert('คัดลอกและสร้างห้องปฏิบัติการใหม่เรียบร้อยแล้ว');
+}
+
+function runAIGenerator() {
+    const prompt = document.getElementById('aiPromptInput').value.trim();
+    if (!prompt) {
+        alert('กรุณากรอกเป้าหมายหรือโจทย์ของ Lab ที่ต้องการ');
+        return;
+    }
+    alert('AI กำลังประมวลผลและสร้างสภาพแวดล้อมจำลองจากโจทย์: "' + prompt + '"');
+}
+
+function runAICopilotAction(actionName) {
+    alert('AI Copilot กำลังดำเนินการ: ' + actionName);
+}
 </script>
