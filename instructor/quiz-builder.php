@@ -4,8 +4,7 @@ $ROOT_PATH = '../';
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 ?>
 
-<!-- 🎨 External Header CSS Resources -->
-<link rel="stylesheet" href="<?php echo $ROOT_PATH; ?>css/dropdown-select.css">
+<!-- 🎨 External Custom Scrollbar (If needed) -->
 <link rel="stylesheet" href="<?php echo $ROOT_PATH; ?>css/custom-scrollbar.css">
 
 <style>
@@ -42,6 +41,82 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         --lv-box-bg: #f8fafc;
         --lv-label: #334155;
         --lv-placeholder: #94a3b8;
+    }
+
+    /* 🎯 Embedded Custom Interactive Dropdown CSS */
+    .custom-dropdown-wrapper {
+        position: relative;
+        width: 100%;
+        user-select: none;
+    }
+
+    .custom-dropdown-btn {
+        background: var(--lv-input-bg);
+        border: 1px solid var(--lv-input-border);
+        color: var(--lv-input-text);
+        border-radius: 10px;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        min-height: 52px;
+        transition: all 0.2s ease;
+        font-size: 0.95rem;
+    }
+
+    .custom-dropdown-btn:hover {
+        border-color: var(--lv-cyan);
+    }
+
+    .custom-dropdown-btn i {
+        transition: transform 0.2s ease;
+        font-size: 0.8rem;
+        opacity: 0.7;
+    }
+
+    .custom-dropdown-wrapper.active .custom-dropdown-btn i {
+        transform: rotate(180deg);
+    }
+
+    .custom-dropdown-menu {
+        display: none !important;
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        right: 0;
+        background: var(--lv-card-bg);
+        border: 1px solid var(--lv-input-border);
+        border-radius: 10px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        z-index: 9999 !important;
+        max-height: 240px;
+        overflow-y: auto;
+        backdrop-filter: blur(16px);
+        padding: 6px;
+    }
+
+    .custom-dropdown-wrapper.active .custom-dropdown-menu {
+        display: block !important;
+    }
+
+    .custom-dropdown-item {
+        padding: 10px 14px;
+        border-radius: 6px;
+        cursor: pointer;
+        color: var(--lv-input-text);
+        transition: background 0.15s ease;
+        font-size: 0.9rem;
+    }
+
+    .custom-dropdown-item:hover {
+        background: rgba(6, 182, 212, 0.15);
+        color: var(--lv-cyan);
+    }
+
+    .custom-dropdown-item.selected {
+        background: rgba(99, 102, 241, 0.2);
+        font-weight: 600;
     }
 
     /* Scope Quiz Builder Styles */
@@ -91,7 +166,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         .section-title i { margin-top: 0; }
     }
 
-    /* Override Text Colors dynamically for both themes */
     .quiz-container .text-muted,
     .text-muted {
         color: var(--lv-text-muted) !important;
@@ -104,18 +178,15 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         color: var(--lv-cyan) !important;
     }
 
-    /* Form Controls & Inputs */
     .form-control-premium {
         background: var(--lv-input-bg) !important;
         border: 1px solid var(--lv-input-border) !important;
         color: var(--lv-input-text) !important;
         border-radius: 10px;
-        
         padding-top: 13px !important;
         padding-bottom: 13px !important;
         padding-left: 16px !important;
         padding-right: 16px !important;
-        
         line-height: 1.7 !important;
         height: auto !important; 
         min-height: 52px !important;
@@ -136,7 +207,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         padding-bottom: 14px !important;
     }
 
-    /* Input Group Component */
     .input-group .form-control-premium {
         border-top-left-radius: 0 !important;
         border-bottom-left-radius: 0 !important;
@@ -162,7 +232,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         color: var(--lv-placeholder) !important;
     }
 
-    /* Question Item Box Layout */
     .question-build-item {
         background: var(--lv-box-bg);
         border: 1px solid var(--lv-card-border);
@@ -178,7 +247,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         .question-build-item:active { cursor: grabbing; }
     }
 
-    /* Analytics Responsive Grid */
     .analytics-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -215,7 +283,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         line-height: 1.4;
     }
 
-    /* ☀️ Light Mode Theme Overrides */
     html[data-theme="light"] .quiz-container .text-white,
     html[data-theme="light"] #quizSimulatorModal .text-white {
         color: var(--lv-text-main) !important;
@@ -256,13 +323,11 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 </style>
 
 <div class="quiz-container">
-    <!-- Top Action Info Bar -->
     <div class="d-flex justify-content-between align-items-start mb-4 flex-column flex-md-row gap-3">
         <div class="w-100">
             <h3 class="text-white fw-bold mb-1 fs-4"><i class="bi bi-patch-question-fill text-cyan me-2"></i>ระบบสร้างและจัดการแบบทดสอบ</h3>
             <p class="text-muted small mb-0">ออกแบบชุดข้อสอบทั่วไป โค้ดดิ้งชาเลนจ์ สุ่มตัวเลือก และใช้ระบบ AI ช่วยประเมินความชัดเจนของคำถาม</p>
         </div>
-        <!-- 15. Validation Indicator Badge -->
         <div id="quiz-validation-alert" class="alert-badge-premium badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-20 p-2 font-monospace w-100 w-md-auto">
             <i class="bi bi-exclamation-triangle-fill me-1"></i> 15. Validation: ตรวจพบตัวเลือกข้อสอบบางข้อยังไม่มีคำตอบเฉลยที่ถูก
         </div>
@@ -270,9 +335,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
     <form id="quizMasterForm" onsubmit="event.preventDefault();">
 
-        <!-- ==========================================
-             1. QUIZ INFORMATION & 2. QUIZ TYPE
-             ========================================== -->
+        <!-- 1 & 2. QUIZ CONFIGURATION -->
         <div class="quiz-section-card">
             <div class="section-title">
                 <i class="bi bi-info-circle-fill"></i> 1 & 2. Quiz Configuration (ตั้งค่าข้อมูลทั่วไปหลักสูตร)
@@ -283,7 +346,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                     <input type="text" class="form-control form-control-premium" value="แบบทดสอบย่อยบทที่ 3: โครงสร้างและการประยุกต์ใช้งาน Array ในภาษาคอมพิวเตอร์">
                 </div>
                 
-                <!-- 2. ประเภท Quiz (Custom Dropdown) -->
+                <!-- 2. ประเภท Quiz -->
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">2. ประเภท Quiz (Quiz Type)</label>
                     <div class="custom-dropdown-wrapper">
@@ -307,7 +370,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                     <input type="number" class="form-control form-control-premium" value="50">
                 </div>
 
-                <!-- Chapter หลักที่ผูกมัด (Custom Dropdown) -->
+                <!-- Chapter หลักที่ผูกมัด -->
                 <div class="col-12 col-md-4">
                     <label class="form-label form-label-premium">Chapter หลักที่ผูกมัด</label>
                     <div class="custom-dropdown-wrapper">
@@ -322,7 +385,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                     </div>
                 </div>
 
-                <!-- Lesson บทเรียนย่อย (Custom Dropdown) -->
+                <!-- Lesson บทเรียนย่อย -->
                 <div class="col-12 col-md-4">
                     <label class="form-label form-label-premium">Lesson (บทเรียนย่อยต้นทาง)</label>
                     <div class="custom-dropdown-wrapper">
@@ -337,7 +400,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                     </div>
                 </div>
 
-                <!-- สถานะการแสดงผล (Custom Dropdown) -->
+                <!-- สถานะการแสดงผล -->
                 <div class="col-12 col-md-4">
                     <label class="form-label form-label-premium">สถานะการแสดงผล (Status)</label>
                     <div class="custom-dropdown-wrapper">
@@ -359,9 +422,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             </div>
         </div>
 
-        <!-- ==========================================
-             ⭐ FEATURE 2: VISUAL QUESTION EDITOR & 3. QUESTION BUILDER
-             ========================================== -->
+        <!-- ⭐ FEATURE 2 & 3. QUESTION BUILDER -->
         <div class="quiz-section-card border border-info border-opacity-20">
             <div class="section-title text-cyan">
                 <i class="bi bi-layout-text-sidebar-reverse"></i> ⭐ Visual Question Editor & 3. Question Type Builder
@@ -377,10 +438,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 <button type="button" class="btn btn-sm btn-dark border border-secondary text-white py-2 px-2.5" onclick="appendQuestionType('coding_question')">💻 Coding Question</button>
             </div>
 
-            <!-- 4. QUESTION MANAGEMENT STAGE TARGET -->
             <div id="questions-stage-container">
-                
-                <!-- ตัวอย่างข้อสอบข้อที่ 1 -->
                 <div class="question-build-item" id="q_sample_1">
                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                         <span class="small fw-bold text-white-50"><i class="bi bi-grid-3x2-gap-fill text-cyan me-2"></i>ข้อที่ 1 [ประเภท: Multiple Choice (ปรนัย)]</span>
@@ -392,11 +450,10 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
                     <div class="row g-3">
                         <div class="col-12">
-                            <label class="form-label form-label-premium">โจทย์คำถาม (รองรับแทรกตาราง/สมการ เช่น $$\sum X_n$$ หรือ Code Block)</label>
+                            <label class="form-label form-label-premium">โจทย์คำถาม</label>
                             <textarea class="form-control form-control-premium font-monospace text-info small" rows="2">จากข้อมูล Array สองมิติที่กำหนดให้ จงคำนวณหาค่า Element ในตำแหน่ง index [1][0] ว่ามีค่าเท่ากับเท่าใด?</textarea>
                         </div>
                         
-                        <!-- 5. Answer Management & ตัวเลือกย่อย -->
                         <div class="col-12 col-md-6">
                             <div class="input-group mb-2">
                                 <span class="input-group-text"><input type="radio" name="correct_q1" checked></span>
@@ -428,7 +485,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                         </div>
                     </div>
                 </div>
-
             </div>
 
             <div class="text-end">
@@ -436,9 +492,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             </div>
         </div>
 
-        <!-- ==========================================
-             7. RANDOMIZATION & 8. QUIZ SETTINGS
-             ========================================== -->
+        <!-- 7 & 8. QUIZ SETTINGS -->
         <div class="quiz-section-card">
             <div class="section-title">
                 <i class="bi bi-gear-fill text-warning"></i> 7 & 8. Quiz Settings & Randomization Control
@@ -453,7 +507,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                     <input type="number" class="form-control form-control-premium" value="60">
                 </div>
                 
-                <!-- จำนวนครั้งที่อนุญาตให้สอบ (Custom Dropdown) -->
+                <!-- จำนวนครั้งที่อนุญาตให้สอบ -->
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">จำนวนครั้งที่อนุญาตให้สอบ</label>
                     <div class="custom-dropdown-wrapper">
@@ -476,27 +530,15 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                         <div class="form-check form-check-inline small"><input type="checkbox" class="form-check-input" checked> สุ่มตัวเลือก</div>
                     </div>
                 </div>
-                <div class="col-12 col-md-4">
-                    <div class="p-2.5 border border-secondary border-opacity-30 rounded bg-dark bg-opacity-30 small"><input type="checkbox" class="form-check-input me-2" checked> แสดงคะแนนหลังส่งคำตอบทันที</div>
-                </div>
-                <div class="col-12 col-md-4">
-                    <div class="p-2.5 border border-secondary border-opacity-30 rounded bg-dark bg-opacity-30 small"><input type="checkbox" class="form-check-input me-2" checked> แสดงคำอธิบายเฉลยคำตอบในหน้าสรุป</div>
-                </div>
-                <div class="col-12 col-md-4">
-                    <div class="p-2.5 border border-secondary border-opacity-30 rounded bg-dark bg-opacity-30 small"><input type="checkbox" class="form-check-input me-2"> อนุญาตให้กดปุ่มย้อนกลับไปทำข้อเดิม</div>
-                </div>
             </div>
         </div>
 
-        <!-- ==========================================
-             9. CODING QUIZ PLATFORM ENGINE
-             ========================================== -->
+        <!-- 9. CODING QUIZ ENGINE -->
         <div class="quiz-section-card">
             <div class="section-title">
-                <i class="bi bi-terminal-fill text-success"></i> 9. Coding Quiz Engine (ห้องส่งงานและคอมไพเลอร์โค้ด)
+                <i class="bi bi-terminal-fill text-success"></i> 9. Coding Quiz Engine
             </div>
             <div class="row g-3">
-                <!-- ภาษาโปรแกรมมิ่ง (Custom Dropdown) -->
                 <div class="col-12 col-sm-6 col-md-4">
                     <label class="form-label form-label-premium">ภาษาโปรแกรมมิ่งที่รองรับ</label>
                     <div class="custom-dropdown-wrapper">
@@ -509,77 +551,25 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                             <div class="custom-dropdown-item">Python</div>
                             <div class="custom-dropdown-item">Java</div>
                             <div class="custom-dropdown-item selected">JavaScript</div>
-                            <div class="custom-dropdown-item">C</div>
                             <div class="custom-dropdown-item">C++</div>
-                            <div class="custom-dropdown-item">SQL</div>
                         </div>
                     </div>
                 </div>
-                
                 <div class="col-12 col-sm-6 col-md-4">
                     <label class="form-label form-label-premium">Time Limit (วินาที)</label>
                     <input type="number" class="form-control form-control-premium" value="2">
                 </div>
                 <div class="col-12 col-md-4">
-                    <label class="form-label form-label-premium">Memory Limit (MB สูงสุด)</label>
+                    <label class="form-label form-label-premium">Memory Limit (MB)</label>
                     <input type="number" class="form-control form-control-premium" value="256">
                 </div>
-                <div class="col-12 col-md-6">
-                    <label class="form-label form-label-premium">Starter Code (โครงโค้ดตั้งต้น)</label>
-                    <textarea class="form-control form-control-premium font-monospace text-cyan small" rows="3">function solution(matrix) {&#10;    // เขียนโค้ดส่งคำตอบที่นี่&#10;    return;&#10;}</textarea>
-                </div>
-                <div class="col-12 col-md-6">
-                    <label class="form-label form-label-premium">Test Cases & Expected Output</label>
-                    <textarea class="form-control form-control-premium font-monospace text-warning small" rows="3">[&#10;  { "input": "[[1,2],[3,4]]", "output": "3" }&#10;]</textarea>
-                </div>
             </div>
         </div>
 
-        <!-- ==========================================
-             ⭐ FEATURE 1 & 10: AI QUIZ ASSISTANT & ADAPTIVE BUILDER
-             ========================================== -->
-        <div class="quiz-section-card border border-purple bg-purple bg-opacity-5" style="border: 1px solid rgba(168, 85, 247, 0.25);">
-            <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-20 pb-2 mb-3">
-                <div class="section-title mb-0 border-0 pb-0" style="color:#a855f7;">
-                    <i class="bi bi-cpu-fill"></i> 10. AI Quiz Assistant & ⭐ 1. Adaptive Quiz Builder
-                </div>
-                <span class="badge bg-purple bg-opacity-20 text-purple border border-purple border-opacity-30 d-none d-sm-inline-block">Generative Copilot Mode</span>
-            </div>
-            <div class="row g-3">
-                <div class="col-12 col-lg-8">
-                    <label class="form-label form-label-premium d-block">10. ฟังก์ชันสั่งการระบบปัญญาประดิษฐ์</label>
-                    <div class="row g-2">
-                        <div class="col-6 col-sm-4"><button type="button" class="btn btn-dark border border-secondary text-white w-100 py-2.5 small" onclick="triggerAIQuizAction('generate_question')"><i class="bi bi-magic me-1"></i> ช่วยสร้างข้อสอบ</button></div>
-                        <div class="col-6 col-sm-4"><button type="button" class="btn btn-dark border border-secondary text-white w-100 py-2.5 small" onclick="triggerAIQuizAction('choices')"><i class="bi bi-list-stars me-1"></i> คิดตัวเลือกหลอก</button></div>
-                        <div class="col-6 col-sm-4"><button type="button" class="btn btn-dark border border-secondary text-white w-100 py-2.5 small" onclick="triggerAIQuizAction('explain')"><i class="bi bi-chat-square-text me-1"></i> สร้างคำเฉลย</button></div>
-                        <div class="col-6 col-sm-4"><button type="button" class="btn btn-dark border border-secondary text-white w-100 py-2.5 small" onclick="triggerAIQuizAction('translate')"><i class="bi bi-translate me-1"></i> แปลภาษา</button></div>
-                        <div class="col-6 col-sm-4"><button type="button" class="btn btn-dark border border-secondary text-white w-100 py-2.5 small" onclick="triggerAIQuizAction('spell')"><i class="bi bi-spellcheck me-1"></i> ตรวจคำสะกด</button></div>
-                        <div class="col-6 col-sm-4"><button type="button" class="btn btn-dark border border-purple text-purple w-100 py-2.5 small" onclick="triggerAIQuizAction('adaptive')"><i class="bi bi-layers-half me-1"></i> ⭐ แยกข้อสอบ 3 ระดับ</button></div>
-                    </div>
-                </div>
-
-                <!-- 18. AI Quality Checker -->
-                <div class="col-12 col-lg-4">
-                    <div class="p-3 rounded-3 bg-dark bg-opacity-60 border border-secondary border-opacity-40">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="small text-white fw-bold">18. AI Quality Checker</span>
-                            <span class="text-info fw-bold font-monospace">89 / 100</span>
-                        </div>
-                        <div style="font-size: 0.75rem; line-height: 1.45;" class="text-white-50">
-                            <i class="bi bi-robot text-purple"></i> <strong>[ผลวิเคราะห์]:</strong> คำถามมีความชัดเจนดี แนะนำเปลี่ยนตัวเลือก ง. เป็นชอยส์ลวงเชิงคำนวณเพื่อความท้าทายเพิ่มขึ้น
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ==========================================
-             11 - 12 & 16 - 17. METADATA & ACCESS CONTROL
-             ========================================== -->
+        <!-- 11 & 17. ADVANCED PARAMETERS -->
         <div class="quiz-section-card">
             <div class="section-title"><i class="bi bi-sliders"></i> Advanced Parameters Matrix</div>
             <div class="row g-3">
-                <!-- ความยากเฉลี่ย (Custom Dropdown) -->
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">11. ความยากเฉลี่ย</label>
                     <div class="custom-dropdown-wrapper">
@@ -596,18 +586,18 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 </div>
 
                 <div class="col-12 col-sm-6 col-md-3">
-                    <label class="form-label form-label-premium">12. Tags & Skills Mapping</label>
+                    <label class="form-label form-label-premium">12. Tags & Skills</label>
                     <input type="text" class="form-control form-control-premium" value="DataStructure, Arrays">
                 </div>
+
                 <div class="col-12 col-sm-6 col-md-3">
-                    <label class="form-label form-label-premium">16. โอนย้ายไฟล์ชุดข้อสอบ</label>
+                    <label class="form-label form-label-premium">16. โอนย้ายไฟล์</label>
                     <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-dark border border-secondary w-50 py-2.5 small" onclick="alert('Import System')">Import</button>
-                        <button type="button" class="btn btn-dark border border-secondary w-50 py-2.5 small" onclick="alert('Export System')">Export</button>
+                        <button type="button" class="btn btn-dark border border-secondary w-50 py-2.5 small" onclick="alert('Import')">Import</button>
+                        <button type="button" class="btn btn-dark border border-secondary w-50 py-2.5 small" onclick="alert('Export')">Export</button>
                     </div>
                 </div>
 
-                <!-- สิทธิ์การเข้าถึง (Custom Dropdown) -->
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">17. สิทธิ์การเข้าถึง</label>
                     <div class="custom-dropdown-wrapper">
@@ -624,120 +614,75 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             </div>
         </div>
 
-        <!-- ==========================================
-             14. QUIZ ANALYTICS
-             ========================================== -->
-        <div class="quiz-section-card bg-dark bg-opacity-20 border border-secondary border-opacity-40">
-            <div class="section-title text-white-50">
-                <i class="bi bi-bar-chart-line-fill"></i> 14. Quiz Analytics Module (สถิติวิเคราะห์ระบบ)
-            </div>
-            <div class="analytics-grid font-monospace text-center">
-                <div class="analytics-card"><div class="text-muted small">ผู้สอบสะสม</div><h5 class="fw-bold text-white mb-0 fs-6 mt-1">142 คน</h5></div>
-                <div class="analytics-card"><div class="text-muted small">คะแนนเฉลี่ย</div><h5 class="fw-bold text-cyan mb-0 fs-6 mt-1">34.5 / 50</h5></div>
-                <div class="analytics-card"><div class="text-muted small">อัตราการผ่าน</div><h5 class="fw-bold text-success mb-0 fs-6 mt-1">78.2%</h5></div>
-                <div class="analytics-card"><div class="text-muted small">เวลาเฉลี่ย</div><h5 class="fw-bold text-warning mb-0 fs-6 mt-1">18 นาที</h5></div>
-                <div class="analytics-card"><div class="text-muted small">ข้อที่ผิดมากสุด</div><h5 class="fw-bold text-danger mb-0 fs-6 mt-1">ข้อ 3 (62%)</h5></div>
-            </div>
-        </div>
-
-        <!-- ==========================================
-             19. VERSION HISTORY TRACKING
-             ========================================== -->
-        <div class="quiz-section-card">
-            <div class="section-title">
-                <i class="bi bi-history"></i> 19. Version History Logs
-            </div>
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 font-monospace text-white-50 small">
-                <div><i class="bi bi-check2-circle text-success"></i> Auto Save สำรองข้อมูลชุดข้อสอบเรียบร้อย</div>
-                <div>เวอร์ชันล่าสุด: <span class="text-info">v2.1 (Draft)</span></div>
-            </div>
-        </div>
-
-        <!-- ==========================================
-             20. PUBLISH HUB BAR CONTROL BUTTONS
-             ========================================== -->
+        <!-- PUBLISH CONTROL BUTTONS -->
         <div class="p-3 rounded-4 bg-dark bg-opacity-50 border border-secondary border-opacity-30 d-flex justify-content-between align-items-center flex-column flex-md-row gap-3">
             <div class="d-flex w-100 w-md-auto justify-content-between gap-2">
-                <button type="button" class="btn btn-outline-danger btn-sm py-2 px-3" onclick="triggerBottomQuizHubAction('delete')"><i class="bi bi-trash-fill"></i> ลบ</button>
-                <button type="button" class="btn btn-outline-secondary btn-sm text-white-50 py-2 px-3" onclick="triggerBottomQuizHubAction('duplicate')"><i class="bi bi-copy"></i> Duplicate</button>
+                <button type="button" class="btn btn-outline-danger btn-sm py-2 px-3"><i class="bi bi-trash-fill"></i> ลบ</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm text-white-50 py-2 px-3"><i class="bi bi-copy"></i> Duplicate</button>
             </div>
             <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
-                <button type="button" class="btn btn-outline-info text-cyan py-2 px-3" data-bs-toggle="modal" data-bs-target="#quizSimulatorModal"><i class="bi bi-eye-fill me-1"></i> 13. Preview</button>
-                <button type="button" class="btn btn-secondary text-white py-2 px-3" onclick="triggerBottomQuizHubAction('save_draft')"><i class="bi bi-cloud-check-fill"></i> Save Draft</button>
-                <button type="button" class="btn btn-cyan text-white py-2 px-4 fw-bold" onclick="triggerBottomQuizHubAction('publish')"><i class="bi bi-rocket-takeoff-fill"></i> Publish Quiz</button>
+                <button type="button" class="btn btn-secondary text-white py-2 px-3"><i class="bi bi-cloud-check-fill"></i> Save Draft</button>
+                <button type="button" class="btn btn-cyan text-white py-2 px-4 fw-bold"><i class="bi bi-rocket-takeoff-fill"></i> Publish Quiz</button>
             </div>
         </div>
 
     </form>
 </div>
 
-<!-- 13. PREVIEW SIMULATOR MODAL -->
-<div class="modal fade" id="quizSimulatorModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content bg-dark text-white border border-secondary border-opacity-20">
-            <div class="modal-header border-secondary border-opacity-20 bg-black bg-opacity-30">
-                <h6 class="modal-title fw-bold text-cyan"><i class="bi bi-laptop me-2"></i>13. Preview Mode</h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-3 bg-black bg-opacity-10">
-                <div class="p-3 rounded bg-dark border border-secondary border-opacity-30">
-                    <h6 class="fw-bold text-white mb-3">คำถามข้อที่ 1: จากข้อมูล Array สองมิติที่กำหนดให้ จงคำนวณหาค่า Element ในตำแหน่ง index [1][0]?</h6>
-                    <div>
-                        <div class="p-2 border border-secondary border-opacity-20 rounded mb-2 bg-dark bg-opacity-50 text-white-50 small"><input type="radio" disabled> ก. 24</div>
-                        <div class="p-2 border border-secondary border-opacity-20 rounded mb-2 bg-dark bg-opacity-50 text-white-50 small"><input type="radio" disabled> ข. 12</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
+<!-- 🚀 Global Dynamic Dropdown Handler (ใช้ Event Delegation กดติด 100% แม้โหลดผ่าน AJAX) -->
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // 🚀 สคริปต์ควบคุมการทำงานของ Custom Interactive Dropdown ทั้งหมดในหน้า
-        const dropdownWrappers = document.querySelectorAll('.custom-dropdown-wrapper');
+    (function() {
+        // ใช้ Global Listener เพื่อให้รองรับ Dynamic Page Load / AJAX
+        document.removeEventListener('click', handleCustomDropdownClick);
+        document.addEventListener('click', handleCustomDropdownClick);
 
-        dropdownWrappers.forEach(wrapper => {
-            const btn = wrapper.querySelector('.custom-dropdown-btn');
-            const items = wrapper.querySelectorAll('.custom-dropdown-item');
-            const selectedText = wrapper.querySelector('.selected-text');
+        function handleCustomDropdownClick(e) {
+            const btn = e.target.closest('.custom-dropdown-btn');
+            const item = e.target.closest('.custom-dropdown-item');
 
+            // 1. กดที่ปุ่มเปิด/ปิด Dropdown
             if (btn) {
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    // ปิดอันอื่นก่อนเปิดอันใหม่
-                    dropdownWrappers.forEach(other => {
-                        if (other !== wrapper) other.classList.remove('active');
-                    });
-                    wrapper.classList.toggle('active');
+                e.stopPropagation();
+                const wrapper = btn.closest('.custom-dropdown-wrapper');
+                const isOpen = wrapper.classList.contains('active');
+
+                // ปิดอันอื่นทั้งหมดก่อน
+                document.querySelectorAll('.custom-dropdown-wrapper.active').forEach(w => {
+                    w.classList.remove('active');
                 });
+
+                // เปิดเฉพาะอันที่กด (ถ้ายังไม่เปิด)
+                if (!isOpen) {
+                    wrapper.classList.add('active');
+                }
+                return;
             }
 
-            items.forEach(item => {
-                item.addEventListener('click', function() {
-                    items.forEach(i => i.classList.remove('selected'));
-                    this.classList.add('selected');
-                    if (selectedText) {
-                        selectedText.textContent = this.textContent;
+            // 2. กดเลือกตัวเลือกใน Menu
+            if (item) {
+                const wrapper = item.closest('.custom-dropdown-wrapper');
+                if (wrapper) {
+                    const textSpan = wrapper.querySelector('.selected-text');
+                    if (textSpan) {
+                        textSpan.textContent = item.textContent.trim();
                     }
+
+                    // อัปเดตคลาส selected
+                    wrapper.querySelectorAll('.custom-dropdown-item').forEach(i => i.classList.remove('selected'));
+                    item.classList.add('selected');
+
+                    // หุบเมนูลง
                     wrapper.classList.remove('active');
-                });
+                }
+                return;
+            }
+
+            // 3. คลิกพื้นที่ภายนอก -> หุบเมนูทั้งหมด
+            document.querySelectorAll('.custom-dropdown-wrapper.active').forEach(w => {
+                w.classList.remove('active');
             });
-        });
-
-        // คลิกพื้นที่อื่นเพื่อปิด Dropdown
-        document.addEventListener('click', function() {
-            dropdownWrappers.forEach(wrapper => wrapper.classList.remove('active'));
-        });
-    });
-
-    function triggerAIQuizAction(actionType) {
-        alert('เรียกใช้งานโครงข่าย AI Co-Pilot: ' + actionType.toUpperCase());
-    }
-
-    function triggerBottomQuizHubAction(operation) {
-        alert('ส่งสัญญาณคำสั่งระบบ: ' + operation.toUpperCase());
-    }
+        }
+    })();
 
     function appendQuestionType(type) {
         var uniqId = Math.floor(Math.random() * 99999);
