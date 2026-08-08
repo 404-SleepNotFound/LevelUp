@@ -924,7 +924,6 @@ if (isset($conn)) {
 </div>
 
 <script>
-    // Fallback สำหรับ InstructorAlerts
     var Alerts = window.InstructorAlerts || {
         toast: function(type, msg) { alert('[' + type.toUpperCase() + '] ' + msg); },
         saveDraft: function() { alert('ทำการบันทึกร่างเรียบร้อยแล้ว'); },
@@ -934,7 +933,7 @@ if (isset($conn)) {
     var currentStep = 1;
     var tagsArray = [];
 
-    // ระบบจัดการ Custom Dropdown
+    // Custom Dropdown Handler
     $(document).off('click', '.custom-dropdown-btn').on('click', '.custom-dropdown-btn', function(e) {
         e.stopPropagation();
         var $wrapper = $(this).closest('.custom-dropdown-wrapper');
@@ -964,18 +963,16 @@ if (isset($conn)) {
         }
     });
 
-    // ซ่อน/แสดงช่องใส่ราคา ตามประเภทคอร์ส
     function togglePriceFields(type) {
         if (type === 'Free') {
-            $('.price-field-group').fadeOut(200);
+            $('.price-field-group').hide();
             $('#course_price').val(0);
             $('#course_sale_price').val(0);
         } else {
-            $('.price-field-group').fadeIn(200);
+            $('.price-field-group').show();
         }
     }
 
-    // 1. สลับแท็บรูป/วิดีโอ
     function toggleMediaTab(type) {
         if (type === 'image') {
             $("#btn-tab-image").removeClass('btn-outline-info').addClass('btn-info');
@@ -990,12 +987,9 @@ if (isset($conn)) {
         }
     }
 
-    // 2. Preview ไฟล์
     function previewMedia(input, type) {
         if (input.files && input.files[0]) {
             var reader = new FileReader();
-            var file = input.files[0];
-
             reader.onload = function(e) {
                 if (type === 'image') {
                     $('#cover_preview').attr('src', e.target.result).removeClass('d-none');
@@ -1005,55 +999,61 @@ if (isset($conn)) {
                     $('#dropzone-video .upload-placeholder').addClass('d-none');
                 }
             }
-            reader.readAsDataURL(file);
+            reader.readAsDataURL(input.files[0]);
         }
+    }
+
+    // ตรวจสอบความถูกต้องของแต่ละ Step ก่อนไปต่อ
+    function validateCurrentStep(step) {
+        var isValid = true;
+        $(`#step-section-${step} .required-field`).each(function() {
+            if ($(this).val().trim() === "") {
+                isValid = false;
+                $(this).addClass('is-invalid');
+                $(this).closest('.custom-dropdown-wrapper').find('.custom-dropdown-btn').addClass('border-danger');
+            } else {
+                $(this).removeClass('is-invalid');
+                $(this).closest('.custom-dropdown-wrapper').find('.custom-dropdown-btn').removeClass('border-danger');
+            }
+        });
+        return isValid;
+    }
+
+    function switchStep(stepNum) {
+        if (stepNum < 1 || stepNum > 4 || currentStep === stepNum) return;
+
+        $('.course-step-section').addClass('d-none');
+        $(`#step-section-${stepNum}`).removeClass('d-none');
+        currentStep = stepNum;
+
+        $('.step-node').removeClass('active completed');
+        $('.step-node').each(function(index) {
+            var nodeIdx = index + 1;
+            if (nodeIdx === currentStep) $(this).addClass('active');
+            else if (nodeIdx < currentStep) $(this).addClass('completed');
+        });
+
+        $('#btn-prev-step').prop('disabled', currentStep === 1);
+        if (currentStep === 4) {
+            $('#btn-next-step').addClass('d-none');
+            $('#btn-submit-course').removeClass('d-none');
+        } else {
+            $('#btn-next-step').removeClass('d-none');
+            $('#btn-submit-course').addClass('d-none');
+        }
+    }
+
+    function changeStep(direction) {
+        if (direction > 0 && !validateCurrentStep(currentStep)) {
+            Alerts.toast('warning', 'กรุณากรอกข้อมูลสำคัญในขั้นตอนปัจจุบันให้ครบถ้วน');
+            return;
+        }
+        switchStep(currentStep + direction);
     }
 
     $(document).ready(function() {
         togglePriceFields($('#course_type').val());
 
-        $(document).on('dragenter dragover dragleave drop', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        });
-
-        $('#dropzone-image').on('click', function(e) {
-            if (e.target.id !== 'cover_file') {
-                $('#cover_file').click();
-            }
-        });
-
-        $('#dropzone-video').on('click', function(e) {
-            if (e.target.id !== 'video_file' && e.target.tagName !== 'VIDEO') {
-                $('#video_file').click();
-            }
-        });
-
-        $('.media-dropzone').on('dragover', function() {
-            $(this).addClass('border-primary').css('background', 'rgba(6, 182, 212, 0.2)');
-        });
-
-        $('.media-dropzone').on('dragleave drop', function() {
-            $(this).removeClass('border-primary').css('background', '');
-        });
-
-        $('#dropzone-image').on('drop', function(e) {
-            var files = e.originalEvent.dataTransfer.files;
-            if (files.length > 0) {
-                $('#cover_file')[0].files = files;
-                previewMedia($('#cover_file')[0], 'image');
-            }
-        });
-
-        $('#dropzone-video').on('drop', function(e) {
-            var files = e.originalEvent.dataTransfer.files;
-            if (files.length > 0) {
-                $('#video_file')[0].files = files;
-                previewMedia($('#video_file')[0], 'video');
-            }
-        });
-
-        // Tags Handler
         $('#tag_input').on('keypress', function(e) {
             if (e.which === 13) {
                 e.preventDefault();
@@ -1066,51 +1066,32 @@ if (isset($conn)) {
             }
         });
 
-        // Submit Form via AJAX
         $('#createCourseForm').on('submit', function(e) {
             e.preventDefault();
 
-            var isValid = true;
+            var firstErrorStep = null;
             $('.required-field').each(function() {
                 if ($(this).val().trim() === "") {
-                    isValid = false;
-                    $(this).closest('.custom-dropdown-wrapper').find('.custom-dropdown-btn').addClass('border-danger');
                     $(this).addClass('is-invalid');
+                    $(this).closest('.custom-dropdown-wrapper').find('.custom-dropdown-btn').addClass('border-danger');
+                    if (!firstErrorStep) {
+                        firstErrorStep = $(this).closest('.course-step-section').attr('id').replace('step-section-', '');
+                    }
                 } else {
-                    $(this).closest('.custom-dropdown-wrapper').find('.custom-dropdown-btn').removeClass('border-danger');
                     $(this).removeClass('is-invalid');
+                    $(this).closest('.custom-dropdown-wrapper').find('.custom-dropdown-btn').removeClass('border-danger');
                 }
             });
 
-            if (!isValid) {
+            if (firstErrorStep) {
                 Alerts.toast('warning', 'กรุณากรอกข้อมูลสำคัญที่มีเครื่องหมาย (*) ให้ครบถ้วน');
-                switchStep(1);
+                switchStep(parseInt(firstErrorStep));
                 return false;
             }
 
             var formData = new FormData(this);
             formData.append('action', 'save');
             formData.append('user_id', '<?= $user_id ?>');
-
-            var priceVal = $('#course_price').val() || '0';
-            var salePriceVal = $('#course_sale_price').val() || '0';
-
-            formData.append('price', priceVal);
-            formData.append('course_price', priceVal);
-            formData.append('sale_price', salePriceVal);
-            formData.append('course_sale_price', salePriceVal);
-
-            formData.delete('outcomes');
-            formData.delete('outcomes[]');
-            formData.delete('prereq');
-            formData.delete('prereq[]');
-
-            $('input[name="outcomes[]"]').each(function() {
-                if ($(this).val().trim() !== "") formData.append('outcomes[]', $(this).val().trim());
-            });
-            $('input[name="prereq[]"]').each(function() {
-                if ($(this).val().trim() !== "") formData.append('prereq[]', $(this).val().trim());
-            });
 
             $.ajax({
                 url: 'services/course.php',
@@ -1126,7 +1107,7 @@ if (isset($conn)) {
                         Alerts.toast('error', response.message || 'เกิดข้อผิดพลาดในการบันทึก');
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function(xhr) {
                     Alerts.toast('error', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ (Status: ' + xhr.status + ')');
                 }
             });
@@ -1147,43 +1128,6 @@ if (isset($conn)) {
         renderTags();
     }
 
-    function switchStep(stepNum) {
-        if (stepNum < 1 || stepNum > 4) return;
-        if (currentStep === stepNum) return;
-
-        var prevStep = currentStep;
-        currentStep = stepNum;
-
-        $(`#step-section-${prevStep}`).fadeOut(150, function() {
-            $(this).addClass('d-none').css('display', '');
-            $(`#step-section-${currentStep}`).removeClass('d-none').hide().fadeIn(150);
-        });
-
-        $('.step-node').removeClass('active completed');
-        $('.step-node').each(function(index) {
-            var nodeIdx = index + 1;
-            if (nodeIdx === currentStep) {
-                $(this).addClass('active');
-            } else if (nodeIdx < currentStep) {
-                $(this).addClass('completed');
-            }
-        });
-
-        $('#btn-prev-step').prop('disabled', currentStep === 1);
-
-        if (currentStep === 4) {
-            $('#btn-next-step').addClass('d-none');
-            $('#btn-submit-course').removeClass('d-none');
-        } else {
-            $('#btn-next-step').removeClass('d-none');
-            $('#btn-submit-course').addClass('d-none');
-        }
-    }
-
-    function changeStep(direction) {
-        switchStep(currentStep + direction);
-    }
-
     function addDynamicRow(containerId, placeholderText, inputName) {
         $(`#${containerId}`).append(`
             <div class="input-group input-group-sm mt-2">
@@ -1202,17 +1146,10 @@ if (isset($conn)) {
         $('#difficulty_help').text(txt);
     }
 
-    function saveCourseDraft() {
-        Alerts.saveDraft();
-    }
-
+    function saveCourseDraft() { Alerts.saveDraft(); }
     function generateAICourseDesc() {
         var title = $('#course_title').val();
-        if (!title) {
-            Alerts.toast('warning', 'กรุณาระบุชื่อคอร์สตรงช่องด้านบนก่อน');
-            return;
-        }
-
+        if (!title) return Alerts.toast('warning', 'กรุณาระบุชื่อคอร์สตรงช่องด้านบนก่อน');
         Alerts.aiProcess('สร้างคำอธิบายคอร์สสั้นอัตโนมัติ', 1500, function() {
             $('#course_short_desc').val(`คอร์สเร่งรัดและเจาะลึกวิชา ${title} มุ่งเน้นการลงมือปฏิบัติจริงเพื่อเสริมทักษะระดับมืออาชีพ`);
         });
@@ -1220,11 +1157,7 @@ if (isset($conn)) {
 
     function runAIBlueprint() {
         var topic = $('#ai_blueprint_topic').val();
-        if (!topic) {
-            Alerts.toast('warning', 'กรุณากรอกชื่อเรื่องหรือคีย์เวิร์ด');
-            return;
-        }
-
+        if (!topic) return Alerts.toast('warning', 'กรุณากรอกชื่อเรื่องหรือคีย์เวิร์ด');
         Alerts.aiProcess('คำนวณและประมวลผลพิมพ์เขียวโครงสร้างคอร์ส', 1800, function() {
             $('#ai_blueprint_result').removeClass('d-none');
             $('#ai_blueprint_text').html(`✨ [วิเคราะห์และวางรากฐานสำเร็จสำหรับวิชา: ${topic}]
@@ -1245,13 +1178,9 @@ if (isset($conn)) {
     }
 
     function selectTemplate(type) {
-        if (type === 'Programming') {
-            $('#course_title').val('Core Programming Architecture Mastery');
-        } else if (type === 'DataScience') {
-            $('#course_title').val('Data Intelligence & Advanced Applied AI Insights');
-        } else {
-            $('#course_title').val('Enterprise Cybersecurity Architect & DevOps Security');
-        }
+        if (type === 'Programming') $('#course_title').val('Core Programming Architecture Mastery');
+        else if (type === 'DataScience') $('#course_title').val('Data Intelligence & Advanced Applied AI Insights');
+        else $('#course_title').val('Enterprise Cybersecurity Architect & DevOps Security');
         $('#templateModal').modal('hide');
         switchStep(1);
         Alerts.toast('info', 'เลือกใช้งาน Template เรียบร้อย');
@@ -1260,7 +1189,6 @@ if (isset($conn)) {
     function previewCourseModal() {
         var title = $('#course_title').val() || '[ยังไม่ได้ระบุชื่อคอร์ส]';
         var price = $('#course_price').val() || 0;
-        
         Alerts.toast('info', `ตัวอย่างคอร์ส: ${title} (ราคา ฿${price})`);
     }
 </script>
