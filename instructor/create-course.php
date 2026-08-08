@@ -18,7 +18,6 @@ if (isset($conn)) {
             $category_data = $result->fetchAll(PDO::FETCH_ASSOC);
         }
     } catch (PDOException $e) {
-        // Handle exception silently to not break the UI, or log it
         error_log("DB Error: " . $e->getMessage());
     }
 }
@@ -233,9 +232,14 @@ if (isset($conn)) {
         opacity: 1;
     }
 
-    /* 🔻 Custom Dropdown Styles (อัปเดตปรับขนาดกว้างและป้องการล้น) 🔻 */
+    /* ======================================================
+       🎨 GLOBAL & FORM CUSTOM DROPDOWN STYLES
+       ====================================================== */
+
+    /* 1. ตัวหุ้มรอบ Dropdown (ช่วยเรื่อง Position) */
     .custom-dropdown-wrapper {
         position: relative;
+        display: inline-block;
         width: 100%;
         box-sizing: border-box;
         user-select: none;
@@ -262,35 +266,37 @@ if (isset($conn)) {
         box-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
     }
 
-    /* 3. กล่องรายการเมนู (Dropdown Menu) */
+    /* 2. กล่องเมนู Dropdown */
     .custom-dropdown-menu {
         position: absolute;
         top: calc(100% + 6px);
         left: 0;
-        right: 0;                /* ให้ยืดซ้าย-ขวาอัตโนมัติ (ตัด width: 100% ออกเพื่อป้องกันคำนวณซ้ำซ้อน) */
+        right: 0;                /* ให้ยืดซ้าย-ขวาอัตโนมัติ */
         box-sizing: border-box;
         padding: 6px;            /* ระยะห่างรอบกล่องแบบพอดี */
-        margin: 0;               /* เคลียร์ margin เผื่อใช้ tag <ul> */
-        list-style: none;        /* เคลียร์จุดสัญลักษณ์เผื่อใช้ tag <ul> */
+        margin: 0;               /* เคลียร์ margin */
+        list-style: none;        /* เคลียร์จุดสัญลักษณ์ */
         background: var(--card-bg-premium, #0f172a);
         border: 1px solid var(--cc-box-border, rgba(255, 255, 255, 0.1));
         border-radius: 10px;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
         z-index: 1050;
-        display: none;
+        display: none;           /* ซ่อนไว้เป็นค่าเริ่มต้น */
         max-height: 250px;
         overflow-y: auto;        /* เลื่อนแนวตั้งเฉพาะเมื่อรายการยาวเกิน */
         overflow-x: hidden;      /* 🔒 ปิดแถบเลื่อนแนวนอนเด็ดขาด */
     }
 
+    /* 3. สภาพตอนเปิดแสดงผล */
+    .custom-dropdown-menu.show,
     .custom-dropdown-wrapper.active .custom-dropdown-menu {
-        display: block;
+        display: block !important;
         animation: fadeIn 0.2s ease-in-out;
     }
 
-    /* 4. ตัวเลือกแต่ละรายการ (Dropdown Item) */
+    /* 4. รายการตัวเลือกแต่ละอัน (Item) */
     .custom-dropdown-item {
-        width: auto;             /* 💡 แก้จาก 100% เป็น auto เพื่อให้ปรับขนาดตามขอบ Padding ซ้าย-ขวา อย่างสมดุล */
+        width: auto;             /* ปรับขนาดตามขอบ Padding ซ้าย-ขวา */
         box-sizing: border-box;
         padding: 10px 14px;
         border-radius: 6px;
@@ -528,7 +534,7 @@ if (isset($conn)) {
                         <label class="form-label form-label-custom">ภาษาในคอร์ส</label>
                         <div class="custom-dropdown-wrapper">
                             <input type="hidden" name="course_language" id="course_language" value="th">
-                            <div class="custom-dropdown-btn">
+                            <div class="custom-dropdown-btn custom-dropdown-toggle">
                                 <span class="selected-text">ภาษาไทย (Thai)</span>
                                 <i class="bi bi-chevron-down"></i>
                             </div>
@@ -615,7 +621,7 @@ if (isset($conn)) {
                             <label class="form-label form-label-custom">หมวดหมู่หลักคอร์ส <span class="text-danger">*</span></label>
                             <div class="custom-dropdown-wrapper">
                                 <input type="hidden" name="course_category" id="course_category" class="required-field" value="">
-                                <div class="custom-dropdown-btn">
+                                <div class="custom-dropdown-btn custom-dropdown-toggle">
                                     <span class="selected-text">-- กรุณาเลือกหมวดหมู่หลัก --</span>
                                     <i class="bi bi-chevron-down"></i>
                                 </div>
@@ -639,7 +645,7 @@ if (isset($conn)) {
                             <label class="form-label form-label-custom">ระดับความยากผู้เรียน (Difficulty Level)</label>
                             <div class="custom-dropdown-wrapper">
                                 <input type="hidden" name="course_difficulty" id="course_difficulty" value="Beginner" onchange="updateDifficultyHelp()">
-                                <div class="custom-dropdown-btn">
+                                <div class="custom-dropdown-btn custom-dropdown-toggle">
                                     <span class="selected-text">Beginner (เหมาะสำหรับผู้เริ่มต้น ไม่มีพื้นฐานเลย)</span>
                                     <i class="bi bi-chevron-down"></i>
                                 </div>
@@ -704,7 +710,7 @@ if (isset($conn)) {
                                 <label class="form-label form-label-custom">เหมาะสำหรับกลุ่มเป้าหมายใด (Target Audience)</label>
                                 <div class="custom-dropdown-wrapper">
                                     <input type="hidden" name="course_target" id="course_target" value="ผู้เริ่มต้น / นักเรียน นักศึกษา">
-                                    <div class="custom-dropdown-btn">
+                                    <div class="custom-dropdown-btn custom-dropdown-toggle">
                                         <span class="selected-text">ผู้เริ่มต้น / นักเรียน นักศึกษา</span>
                                         <i class="bi bi-chevron-down"></i>
                                     </div>
@@ -721,7 +727,7 @@ if (isset($conn)) {
                                 <label class="form-label form-label-custom">เชื่อมโยงกับแผนอาชีพ (Career Path)</label>
                                 <div class="custom-dropdown-wrapper">
                                     <input type="hidden" name="course_career" id="course_career" value="Full Stack Developer">
-                                    <div class="custom-dropdown-btn">
+                                    <div class="custom-dropdown-btn custom-dropdown-toggle">
                                         <span class="selected-text">Full Stack Developer</span>
                                         <i class="bi bi-chevron-down"></i>
                                     </div>
@@ -753,7 +759,7 @@ if (isset($conn)) {
                         <label class="form-label form-label-custom">ประเภทคอร์สและการคิดเงิน</label>
                         <div class="custom-dropdown-wrapper">
                             <input type="hidden" name="course_type" id="course_type" value="Paid" onchange="togglePriceFields(this.value)">
-                            <div class="custom-dropdown-btn">
+                            <div class="custom-dropdown-btn custom-dropdown-toggle">
                                 <span class="selected-text">เสียเงินซื้อขาดรายคอร์ส (Paid)</span>
                                 <i class="bi bi-chevron-down"></i>
                             </div>
@@ -771,7 +777,7 @@ if (isset($conn)) {
                         <label class="form-label form-label-custom">สถานะเปิดรับชม (Visibility)</label>
                         <div class="custom-dropdown-wrapper">
                             <input type="hidden" name="course_visibility" id="course_visibility" value="Draft">
-                            <div class="custom-dropdown-btn">
+                            <div class="custom-dropdown-btn custom-dropdown-toggle">
                                 <span class="selected-text">Draft (บันทึกร่างภายในสตูดิโอผู้สอน)</span>
                                 <i class="bi bi-chevron-down"></i>
                             </div>
@@ -936,15 +942,15 @@ if (isset($conn)) {
     var currentStep = 1;
     var tagsArray = [];
 
-    // ⚡ ระบบการทำงานของ Custom Dropdown ⚡
-    $(document).on('click', '.custom-dropdown-btn', function(e) {
+    // ⚡ ระบบการทำงานของ Custom Dropdown (รองรับ AJAX Dynamic Binding) ⚡
+    $(document).off('click', '.custom-dropdown-btn').on('click', '.custom-dropdown-btn', function(e) {
         e.stopPropagation();
         var $wrapper = $(this).closest('.custom-dropdown-wrapper');
         $('.custom-dropdown-wrapper').not($wrapper).removeClass('active');
         $wrapper.toggleClass('active');
     });
 
-    $(document).on('click', '.custom-dropdown-item', function(e) {
+    $(document).off('click', '.custom-dropdown-item').on('click', '.custom-dropdown-item', function(e) {
         e.stopPropagation();
         var $item = $(this);
         var $wrapper = $item.closest('.custom-dropdown-wrapper');
@@ -961,7 +967,7 @@ if (isset($conn)) {
         $wrapper.removeClass('active');
     });
 
-    $(document).on('click', function() {
+    $(document).off('click.dropdownClose').on('click.dropdownClose', function() {
         $('.custom-dropdown-wrapper').removeClass('active');
     });
 
@@ -1093,7 +1099,6 @@ if (isset($conn)) {
             formData.append('action', 'save');
             formData.append('user_id', '<?= $user_id ?>');
 
-            // ส่งค่าราคาครอบคลุมทุกตัวแปร ป้องกัน DB รับค่า NULL
             var priceVal = $('#course_price').val() || '0';
             var salePriceVal = $('#course_sale_price').val() || '0';
 
@@ -1103,7 +1108,6 @@ if (isset($conn)) {
             formData.append('sale_price', salePriceVal);
             formData.append('course_sale_price', salePriceVal);
 
-            // จัดการข้อมูล Outcomes และ Prereq
             formData.delete('outcomes');
             formData.delete('outcomes[]');
             formData.delete('prereq');
