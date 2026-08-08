@@ -25,7 +25,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         --lv-box-bg: rgba(0, 0, 0, 0.25);
         --lv-label: #cbd5e1;
         --lv-placeholder: #64748b;
-        --lv-select-icon: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
     }
 
     html[data-theme="light"] {
@@ -43,7 +42,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         --lv-box-bg: #f8fafc;
         --lv-label: #334155;
         --lv-placeholder: #94a3b8;
-        --lv-select-icon: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23334155' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
     }
 
     /* Scope Quiz Builder Styles */
@@ -138,15 +136,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         padding-bottom: 14px !important;
     }
 
-    select.form-control-premium {
-        appearance: none;
-        background-image: var(--lv-select-icon) !important;
-        background-repeat: no-repeat !important;
-        background-position: right 16px center !important;
-        background-size: 12px 12px !important;
-        padding-right: 42px !important;
-    }
-
     /* Input Group Component */
     .input-group .form-control-premium {
         border-top-left-radius: 0 !important;
@@ -226,7 +215,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         line-height: 1.4;
     }
 
-    /* ☀️ Light Mode Theme Overrides สำหรับ Bootstrap Classes ใน Quiz Container */
+    /* ☀️ Light Mode Theme Overrides */
     html[data-theme="light"] .quiz-container .text-white,
     html[data-theme="light"] #quizSimulatorModal .text-white {
         color: var(--lv-text-main) !important;
@@ -275,7 +264,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         </div>
         <!-- 15. Validation Indicator Badge -->
         <div id="quiz-validation-alert" class="alert-badge-premium badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-20 p-2 font-monospace w-100 w-md-auto">
-            <i class="bi bi-exclamation-triangle-fill me-1"></i> 15. Validation: ตรวจพบตัวเลือกข้อสอบบางข้อยังไม่มีคำตอบเฉลัยที่ถูก
+            <i class="bi bi-exclamation-triangle-fill me-1"></i> 15. Validation: ตรวจพบตัวเลือกข้อสอบบางข้อยังไม่มีคำตอบเฉลยที่ถูก
         </div>
     </div>
 
@@ -293,42 +282,76 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                     <label class="form-label form-label-premium">ชื่อแบบทดสอบ</label>
                     <input type="text" class="form-control form-control-premium" value="แบบทดสอบย่อยบทที่ 3: โครงสร้างและการประยุกต์ใช้งาน Array ในภาษาคอมพิวเตอร์">
                 </div>
+                
+                <!-- 2. ประเภท Quiz (Custom Dropdown) -->
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">2. ประเภท Quiz (Quiz Type)</label>
-                    <select class="form-select form-control-premium">
-                        <option>Pre-Test (ก่อนเรียน)</option>
-                        <option>Post-Test (หลังเรียน)</option>
-                        <option>Practice Quiz (ฝึกฝนระหว่างเรียน)</option>
-                        <option selected>Chapter Quiz (ประจำบทเรียน)</option>
-                        <option>Final Exam (สอบไล่ปลายภาค)</option>
-                        <option>Coding Challenge (โจทย์ท้าทายสปีดรัน)</option>
-                    </select>
+                    <div class="custom-dropdown-wrapper">
+                        <div class="custom-dropdown-btn">
+                            <span class="selected-text">Chapter Quiz (ประจำบทเรียน)</span>
+                            <i class="bi bi-chevron-down"></i>
+                        </div>
+                        <div class="custom-dropdown-menu">
+                            <div class="custom-dropdown-item" data-value="pretest">Pre-Test (ก่อนเรียน)</div>
+                            <div class="custom-dropdown-item" data-value="posttest">Post-Test (หลังเรียน)</div>
+                            <div class="custom-dropdown-item" data-value="practice">Practice Quiz (ฝึกฝนระหว่างเรียน)</div>
+                            <div class="custom-dropdown-item selected" data-value="chapter">Chapter Quiz (ประจำบทเรียน)</div>
+                            <div class="custom-dropdown-item" data-value="final">Final Exam (สอบไล่ปลายภาค)</div>
+                            <div class="custom-dropdown-item" data-value="coding">Coding Challenge (โจทย์ท้าทายสปีดรัน)</div>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">คะแนนเต็มของ Quiz</label>
                     <input type="number" class="form-control form-control-premium" value="50">
                 </div>
+
+                <!-- Chapter หลักที่ผูกมัด (Custom Dropdown) -->
                 <div class="col-12 col-md-4">
                     <label class="form-label form-label-premium">Chapter หลักที่ผูกมัด</label>
-                    <select class="form-select form-control-premium">
-                        <option>Chapter 1: Introduction to Logic</option>
-                        <option selected>Chapter 2: Data Structure Core</option>
-                    </select>
+                    <div class="custom-dropdown-wrapper">
+                        <div class="custom-dropdown-btn">
+                            <span class="selected-text">Chapter 2: Data Structure Core</span>
+                            <i class="bi bi-chevron-down"></i>
+                        </div>
+                        <div class="custom-dropdown-menu">
+                            <div class="custom-dropdown-item">Chapter 1: Introduction to Logic</div>
+                            <div class="custom-dropdown-item selected">Chapter 2: Data Structure Core</div>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Lesson บทเรียนย่อย (Custom Dropdown) -->
                 <div class="col-12 col-md-4">
                     <label class="form-label form-label-premium">Lesson (บทเรียนย่อยต้นทาง)</label>
-                    <select class="form-select form-control-premium">
-                        <option>Lesson 3.1: Understanding Arrays Concept</option>
-                        <option selected>Lesson 3.2: Multidimensional Array Matrix</option>
-                    </select>
+                    <div class="custom-dropdown-wrapper">
+                        <div class="custom-dropdown-btn">
+                            <span class="selected-text">Lesson 3.2: Multidimensional Array Matrix</span>
+                            <i class="bi bi-chevron-down"></i>
+                        </div>
+                        <div class="custom-dropdown-menu">
+                            <div class="custom-dropdown-item">Lesson 3.1: Understanding Arrays Concept</div>
+                            <div class="custom-dropdown-item selected">Lesson 3.2: Multidimensional Array Matrix</div>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- สถานะการแสดงผล (Custom Dropdown) -->
                 <div class="col-12 col-md-4">
                     <label class="form-label form-label-premium">สถานะการแสดงผล (Status)</label>
-                    <select class="form-select form-control-premium text-warning fw-bold">
-                        <option value="draft" selected>🟡 Draft (แบบร่างแก้ไข)</option>
-                        <option value="published">🟢 Published (เผยแพร่สู่ผู้เรียน)</option>
-                    </select>
+                    <div class="custom-dropdown-wrapper">
+                        <div class="custom-dropdown-btn text-warning fw-bold">
+                            <span class="selected-text">🟡 Draft (แบบร่างแก้ไข)</span>
+                            <i class="bi bi-chevron-down"></i>
+                        </div>
+                        <div class="custom-dropdown-menu">
+                            <div class="custom-dropdown-item selected text-warning fw-bold" data-value="draft">🟡 Draft (แบบร่างแก้ไข)</div>
+                            <div class="custom-dropdown-item text-success fw-bold" data-value="published">🟢 Published (เผยแพร่สู่ผู้เรียน)</div>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="col-12">
                     <label class="form-label form-label-premium">คำอธิบายโครงสร้างแบบทดสอบ</label>
                     <textarea class="form-control form-control-premium" rows="2">ใช้วัดระดับความเข้าใจตรรกะการจัดเรียงอาเรย์สองมิติ ห้ามเปิดดูอินเทอร์เน็ตระหว่างเข้าทดสอบ</textarea>
@@ -429,14 +452,23 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                     <label class="form-label form-label-premium">เกณฑ์คะแนนผ่าน (%)</label>
                     <input type="number" class="form-control form-control-premium" value="60">
                 </div>
+                
+                <!-- จำนวนครั้งที่อนุญาตให้สอบ (Custom Dropdown) -->
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">จำนวนครั้งที่อนุญาตให้สอบ</label>
-                    <select class="form-select form-control-premium">
-                        <option>1 ครั้งเท่านั้น</option>
-                        <option selected>3 ครั้ง</option>
-                        <option>ไม่จำกัดจำนวนครั้ง</option>
-                    </select>
+                    <div class="custom-dropdown-wrapper">
+                        <div class="custom-dropdown-btn">
+                            <span class="selected-text">3 ครั้ง</span>
+                            <i class="bi bi-chevron-down"></i>
+                        </div>
+                        <div class="custom-dropdown-menu">
+                            <div class="custom-dropdown-item">1 ครั้งเท่านั้น</div>
+                            <div class="custom-dropdown-item selected">3 ครั้ง</div>
+                            <div class="custom-dropdown-item">ไม่จำกัดจำนวนครั้ง</div>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">การสุ่ม (Randomization)</label>
                     <div class="pt-1">
@@ -464,12 +496,26 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 <i class="bi bi-terminal-fill text-success"></i> 9. Coding Quiz Engine (ห้องส่งงานและคอมไพเลอร์โค้ด)
             </div>
             <div class="row g-3">
+                <!-- ภาษาโปรแกรมมิ่ง (Custom Dropdown) -->
                 <div class="col-12 col-sm-6 col-md-4">
                     <label class="form-label form-label-premium">ภาษาโปรแกรมมิ่งที่รองรับ</label>
-                    <select class="form-select form-control-premium">
-                        <option>PHP</option><option>Python</option><option>Java</option><option selected>JavaScript</option><option>C</option><option>C++</option><option>SQL</option>
-                    </select>
+                    <div class="custom-dropdown-wrapper">
+                        <div class="custom-dropdown-btn">
+                            <span class="selected-text">JavaScript</span>
+                            <i class="bi bi-chevron-down"></i>
+                        </div>
+                        <div class="custom-dropdown-menu">
+                            <div class="custom-dropdown-item">PHP</div>
+                            <div class="custom-dropdown-item">Python</div>
+                            <div class="custom-dropdown-item">Java</div>
+                            <div class="custom-dropdown-item selected">JavaScript</div>
+                            <div class="custom-dropdown-item">C</div>
+                            <div class="custom-dropdown-item">C++</div>
+                            <div class="custom-dropdown-item">SQL</div>
+                        </div>
+                    </div>
                 </div>
+                
                 <div class="col-12 col-sm-6 col-md-4">
                     <label class="form-label form-label-premium">Time Limit (วินาที)</label>
                     <input type="number" class="form-control form-control-premium" value="2">
@@ -533,14 +579,22 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         <div class="quiz-section-card">
             <div class="section-title"><i class="bi bi-sliders"></i> Advanced Parameters Matrix</div>
             <div class="row g-3">
+                <!-- ความยากเฉลี่ย (Custom Dropdown) -->
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">11. ความยากเฉลี่ย</label>
-                    <select class="form-select form-control-premium text-info fw-bold">
-                        <option>Easy (ง่าย)</option>
-                        <option selected>Medium (ปานกลาง)</option>
-                        <option>Hard (ขั้นสูง)</option>
-                    </select>
+                    <div class="custom-dropdown-wrapper">
+                        <div class="custom-dropdown-btn text-info fw-bold">
+                            <span class="selected-text">Medium (ปานกลาง)</span>
+                            <i class="bi bi-chevron-down"></i>
+                        </div>
+                        <div class="custom-dropdown-menu">
+                            <div class="custom-dropdown-item">Easy (ง่าย)</div>
+                            <div class="custom-dropdown-item selected text-info fw-bold">Medium (ปานกลาง)</div>
+                            <div class="custom-dropdown-item">Hard (ขั้นสูง)</div>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">12. Tags & Skills Mapping</label>
                     <input type="text" class="form-control form-control-premium" value="DataStructure, Arrays">
@@ -552,12 +606,20 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                         <button type="button" class="btn btn-dark border border-secondary w-50 py-2.5 small" onclick="alert('Export System')">Export</button>
                     </div>
                 </div>
+
+                <!-- สิทธิ์การเข้าถึง (Custom Dropdown) -->
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">17. สิทธิ์การเข้าถึง</label>
-                    <select class="form-select form-control-premium">
-                        <option selected>เฉพาะผู้ลงทะเบียนเรียนคอร์สนี้</option>
-                        <option>ปลดล็อกอัตโนมัติหลังจบเนื้อหา</option>
-                    </select>
+                    <div class="custom-dropdown-wrapper">
+                        <div class="custom-dropdown-btn">
+                            <span class="selected-text">เฉพาะผู้ลงทะเบียนเรียนคอร์สนี้</span>
+                            <i class="bi bi-chevron-down"></i>
+                        </div>
+                        <div class="custom-dropdown-menu">
+                            <div class="custom-dropdown-item selected">เฉพาะผู้ลงทะเบียนเรียนคอร์สนี้</div>
+                            <div class="custom-dropdown-item">ปลดล็อกอัตโนมัติหลังจบเนื้อหา</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -631,6 +693,44 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 </div>
 
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 🚀 สคริปต์ควบคุมการทำงานของ Custom Interactive Dropdown ทั้งหมดในหน้า
+        const dropdownWrappers = document.querySelectorAll('.custom-dropdown-wrapper');
+
+        dropdownWrappers.forEach(wrapper => {
+            const btn = wrapper.querySelector('.custom-dropdown-btn');
+            const items = wrapper.querySelectorAll('.custom-dropdown-item');
+            const selectedText = wrapper.querySelector('.selected-text');
+
+            if (btn) {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    // ปิดอันอื่นก่อนเปิดอันใหม่
+                    dropdownWrappers.forEach(other => {
+                        if (other !== wrapper) other.classList.remove('active');
+                    });
+                    wrapper.classList.toggle('active');
+                });
+            }
+
+            items.forEach(item => {
+                item.addEventListener('click', function() {
+                    items.forEach(i => i.classList.remove('selected'));
+                    this.classList.add('selected');
+                    if (selectedText) {
+                        selectedText.textContent = this.textContent;
+                    }
+                    wrapper.classList.remove('active');
+                });
+            });
+        });
+
+        // คลิกพื้นที่อื่นเพื่อปิด Dropdown
+        document.addEventListener('click', function() {
+            dropdownWrappers.forEach(wrapper => wrapper.classList.remove('active'));
+        });
+    });
+
     function triggerAIQuizAction(actionType) {
         alert('เรียกใช้งานโครงข่าย AI Co-Pilot: ' + actionType.toUpperCase());
     }
