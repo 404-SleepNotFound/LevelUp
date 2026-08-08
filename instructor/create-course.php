@@ -233,14 +233,17 @@ if (isset($conn)) {
         opacity: 1;
     }
 
-    /* 🔻 Custom Dropdown Styles 🔻 */
+    /* 🔻 Custom Dropdown Styles (อัปเดตให้แสดงผลเต็ม 100% สมบูรณ์) 🔻 */
     .custom-dropdown-wrapper {
         position: relative;
         width: 100%;
+        box-sizing: border-box;
         user-select: none;
     }
 
     .custom-dropdown-btn {
+        width: 100%;
+        box-sizing: border-box;
         background: var(--cc-input-bg);
         border: 1px solid var(--cc-input-border);
         color: var(--cc-input-text);
@@ -264,6 +267,9 @@ if (isset($conn)) {
         top: calc(100% + 6px);
         left: 0;
         right: 0;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 6px;
         background: var(--card-bg-premium);
         border: 1px solid var(--cc-box-border);
         border-radius: 10px;
@@ -272,7 +278,6 @@ if (isset($conn)) {
         display: none;
         max-height: 250px;
         overflow-y: auto;
-        padding: 6px;
     }
 
     .custom-dropdown-wrapper.active .custom-dropdown-menu {
@@ -281,6 +286,8 @@ if (isset($conn)) {
     }
 
     .custom-dropdown-item {
+        width: 100%;
+        box-sizing: border-box;
         padding: 10px 14px;
         border-radius: 6px;
         color: var(--cc-text-main);
