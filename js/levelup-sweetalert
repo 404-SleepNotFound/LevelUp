@@ -1,0 +1,68 @@
+// รวมระบบ SweetAlert กลางของ LevelUp
+window.CourseAlerts = {
+    // ยืนยันการเริ่มเควส
+    confirmStartQuest: function(id, title, xp, price) {
+        Swal.fire({
+            title: 'ยืนยันการเริ่มเควส?',
+            text: `คุณต้องการเข้าสู่บทเรียน "${title}" (+${xp} XP) หรือไม่?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#6366F1',
+            cancelButtonColor: '#64748B',
+            confirmButtonText: 'เข้าสู่เควส',
+            cancelButtonText: 'ยกเลิก',
+            customClass: {
+                popup: 'levelup-swal-popup',
+                title: 'levelup-swal-title',
+                htmlContainer: 'levelup-swal-text'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = `course_detail.php?id=${id}`;
+            }
+        });
+    },
+
+    // ยืนยันการล้างตัวกรอง
+    confirmResetFilters: function(callback) {
+        Swal.fire({
+            title: 'ล้างตัวกรองทั้งหมด?',
+            text: 'คุณต้องการรีเซ็ตเงื่อนไขการค้นหาทั้งหมดใช่หรือไม่?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#6366F1',
+            cancelButtonColor: '#64748B',
+            confirmButtonText: 'ตกลง',
+            cancelButtonText: 'ยกเลิก',
+            customClass: {
+                popup: 'levelup-swal-popup',
+                title: 'levelup-swal-title',
+                htmlContainer: 'levelup-swal-text'
+            }
+        }).then((result) => {
+            if (result.isConfirmed && typeof callback === 'function') {
+                callback();
+            }
+        });
+    },
+
+    // ระบบวิเคราะห์ด้วย AI Search
+    aiSearch: function(val) {
+        if (!val || !val.trim()) {
+            Swal.fire({
+                title: 'กรุณากรอกคำค้นหา',
+                text: 'ระบุเป้าหมาย หรือทักษะที่ต้องการเรียนรู้',
+                icon: 'info',
+                customClass: {
+                    popup: 'levelup-swal-popup',
+                    title: 'levelup-swal-title',
+                    htmlContainer: 'levelup-swal-text'
+                }
+            });
+            return;
+        }
+        if (window.CourseExplorer && typeof window.CourseExplorer.fetchCourses === 'function') {
+            window.CourseExplorer.fetchCourses();
+        }
+    }
+};
