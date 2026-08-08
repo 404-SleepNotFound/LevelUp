@@ -777,23 +777,23 @@ body {
 }
 
 /* =========================================
-   11. Custom Rocket Cursor (Fix Z-Index)
+   11. Custom Rocket Cursor (Fix Z-Index & Pass-through)
    ========================================= */
-/* ครอบคลุมคลาส/ไอดี ยอดนิยมของ Custom Cursor */
 #custom-cursor,
 #rocket-cursor,
 .custom-cursor,
-.rocket-cursor {
+.rocket-cursor,
+.custom-rocket-cursor {
     position: fixed !important;
     z-index: 999999 !important; /* ดันให้อยู่เหนือ Dropdown และ Navbar ทุกตัว */
     pointer-events: none !important; /* บังคับให้คลิกทะลุไปกดเมนูด้านหลังได้ */
 }
 
 /* ==========================================
-   🚀 Custom Dropdown Component (Rocket Cursor Compatible)
+   🚀 Custom Dropdown Component Integration
    ========================================== */
 
-/* 1. บังคับให้รับค่าเมาส์จรวดจาก Body/Parent */
+/* บังคับให้รับค่าเมาส์จรวดจาก Body/Parent */
 .custom-dropdown-wrapper,
 .custom-dropdown-btn,
 .custom-dropdown-menu,
@@ -803,78 +803,7 @@ body {
     -webkit-user-select: none !important;
 }
 
-/* 2. โครงสร้างและดีไซน์ Dropdown */
-.custom-dropdown-wrapper {
-    position: relative;
-    width: 100%;
-}
-
-.custom-dropdown-btn {
-    background: rgba(15, 23, 42, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    color: #f8fafc;
-    border-radius: 10px;
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-height: 50px;
-    transition: border-color 0.2s ease, background-color 0.2s ease;
-    font-size: 0.95rem;
-}
-
-.custom-dropdown-btn:hover {
-    border-color: #06b6d4;
-}
-
-.custom-dropdown-btn i {
-    transition: transform 0.2s ease;
-    font-size: 0.8rem;
-    opacity: 0.7;
-}
-
 /* หมุนลูกศรลงเมื่อเปิด Dropdown */
 .custom-dropdown-wrapper.active .custom-dropdown-btn i {
     transform: rotate(180deg);
-}
-
-/* เมนูตัวเลือกที่คลายออกมา */
-.custom-dropdown-menu {
-    display: none !important;
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    right: 0;
-    background: rgba(16, 24, 48, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 10px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-    z-index: 999 !important;
-    max-height: 240px;
-    overflow-y: auto;
-    backdrop-filter: blur(16px);
-    padding: 6px;
-}
-
-.custom-dropdown-wrapper.active .custom-dropdown-menu {
-    display: block !important;
-}
-
-.custom-dropdown-item {
-    padding: 10px 14px;
-    border-radius: 6px;
-    color: #f8fafc;
-    transition: background 0.15s ease, color 0.15s ease;
-    font-size: 0.9rem;
-}
-
-.custom-dropdown-item:hover {
-    background: rgba(6, 182, 212, 0.15);
-    color: #06b6d4;
-}
-
-.custom-dropdown-item.selected {
-    background: rgba(99, 102, 241, 0.25);
-    color: #818cf8;
-    font-weight: 600;
 }
