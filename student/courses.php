@@ -500,8 +500,11 @@ if ($db) {
 </div>
 
 <!-- JavaScript Integration -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bundle.min.js"></script>
+<!-- หมายเหตุ: jQuery + Bootstrap bundle ถูกโหลดไว้แล้วใน header.php
+     (บรรทัด jquery-3.7.1 + bootstrap.bundle.min.js) การโหลดซ้ำที่นี่ทำให้
+     Bootstrap Dropdown ถูก init 2 รอบ เกิด click-listener ซ้อนกัน ส่งผลให้
+     shown.bs.dropdown ทำงานไม่ตรงกับที่ header.php คาดไว้ และเมนู dropdown
+     หลุดออกจากตำแหน่งใต้ปุ่ม trigger -->
 <script>
     <?php
     $mapped_courses = array_map(function ($item) use ($fallbackImg) {
