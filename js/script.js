@@ -2,7 +2,7 @@
    LevelUp Frontend - script.js
    Combines: global site behaviour, auth/register wizard,
    dashboard, course detail, lesson page, AI chat widgets,
-   and course creation form handler.
+   course creation form handler, and auto select-to-custom dropdown converter.
 
    Every section below is guarded (it checks the elements it
    needs exist before doing anything), so this single file can
@@ -23,6 +23,7 @@ $(document).ready(function () {
     initLearningPathSimulator();
     initAiMentorChat();
     initCourseCreateForm(); // เพิ่มการทำงานของฟอร์มสร้างคอร์สเรียน
+    initAutoCustomDropdowns(); // แปลง <select> ปกติเป็น Custom Dropdown เพื่อรองรับ Rocket Cursor
 });
 
 /* =========================================
@@ -996,6 +997,89 @@ function initCourseCreateForm() {
                 $submitBtn.prop('disabled', false);
             }
         });
+    });
+}
+
+/* =========================================
+   12. Auto Custom Dropdown Converter (For Custom Cursors)
+   ========================================= */
+function initAutoCustomDropdowns() {
+    // 1. ค้นหาแท็ก <select> ปกติทุกตัวในหน้าเว็บที่ยังไม่ได้แปลง
+    function convertSelects() {
+        $('select:not([data-customized="true"])').each(function () {
+            const $select = $(this);
+            
+            // ข้าม select ที่ซ่อนอยู่หรือถูกระบุว่าไม่ต้องแปลง
+            if ($select.is(':hidden') || $select.hasClass('no-custom')) return;
+
+            $select.attr('data-customized', 'true').hide(); // ซ่อน <select> ตัวจริงไว้หลังบ้าน
+
+            // สร้าง Custom Wrapper
+            const $wrapper = $('<div class="custom-dropdown-wrapper"></div>');
+            if ($select.attr('class')) {
+                // คัดลอก Class ดั้งเดิมมาใส่เพื่อคงเลย์เอาต์เดิมไว้
+                $wrapper.addClass($select.attr('class')).removeClass('form-select lu-select form-select-custom');
+            }
+
+            const $selectedOpt = $select.find('option:selected').length ? $select.find('option:selected') : $select.find('option').first();
+            const selectedText = $selectedOpt.text().trim() || 'เลือกรายการ';
+
+            // สร้างรายการตัวเลือก HTML ย่อย
+            let menuHtml = '';
+            $select.find('option').each(function () {
+                const $opt = $(this);
+                const val = $opt.val();
+                const text = $opt.text().trim();
+                const isSelected = $opt.is(':selected') ? 'selected' : '';
+                const isDisabled = $opt.is(':disabled') ? 'style="opacity:0.5; pointer-events:none;"' : '';
+
+                menuHtml += `<div class="custom-dropdown-item ${isSelected}" data-value="${val}" ${isDisabled}>${text}</div>`;
+            });
+
+            $wrapper.html(`
+                <div class="custom-dropdown-btn">
+                    <span class="selected-text">${selectedText}</span>
+                    <i class="bi bi-chevron-down"></i>
+                </div>
+                <div class="custom-dropdown-menu">
+                    ${menuHtml}
+                </div>
+            `);
+
+            $select.after($wrapper);
+
+            // เมื่อคลิกเลือกไอเทมย่อย
+            $wrapper.on('click', '.custom-dropdown-item', function (e) {
+                e.stopPropagation();
+                const $item = $(this);
+                const val = $item.data('value');
+
+                // ส่งค่ากลับไปหา <select> ดั้งเดิมและแจ้ง Event Change
+                $select.val(val).trigger('change');
+
+                // อัปเดตการแสดงผลฝั่ง Custom UI
+                $wrapper.find('.selected-text').text($item.text().trim());
+                $wrapper.find('.custom-dropdown-item').removeClass('selected');
+                $item.addClass('selected');
+                $wrapper.removeClass('active');
+            });
+
+            // เมื่อคลิกปุ่มเปิด-ปิด Dropdown
+            $wrapper.on('click', '.custom-dropdown-btn', function (e) {
+                e.stopPropagation();
+                const isOpen = $wrapper.hasClass('active');
+                $('.custom-dropdown-wrapper.active').not($wrapper).removeClass('active');
+                $wrapper.toggleClass('active', !isOpen);
+            });
+        });
+    }
+
+    // เรียกฟังก์ชันแปลง Select ทันทีเมื่อสคริปต์ทำงาน
+    convertSelects();
+
+    // คลิกพื้นที่อื่นนอก Dropdown เพื่อปิดรายการ
+    $(document).on('click', function () {
+        $('.custom-dropdown-wrapper.active').removeClass('active');
     });
 }
 
