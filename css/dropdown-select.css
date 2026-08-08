@@ -560,12 +560,15 @@ html[data-theme="dark"] .form-select-custom,
 }
 
 /* -----------------------------------------------------------------
-9. Native Select Cursor & Custom Rocket Cursor Fix
+9. Custom Rocket Cursor & Dropdown Pointer Alignment
 ----------------------------------------------------------------- */
 .form-select,
 .lu-select,
 .form-select-custom,
-select {
+select,
+.custom-dropdown-btn,
+.custom-dropdown-item,
+.dropdown-item {
   cursor: pointer !important;
 }
 
@@ -576,25 +579,13 @@ select option {
   cursor: pointer !important;
 }
 
-/* Hide custom rocket cursor elements when native select is active/focused to prevent frozen visual glitches */
-body:has(select:focus) .custom-cursor,
-body:has(select:focus) .rocket-cursor,
-body:has(select:focus) #rocket-cursor,
-body:has(select:focus) .custom-rocket-cursor,
-body:has(.form-select:focus) .custom-cursor,
-body:has(.form-select:focus) .rocket-cursor,
-body:has(.form-select:focus) #rocket-cursor,
-body:has(.form-select:focus) .custom-rocket-cursor,
-body:has(.lu-select:focus) .custom-cursor,
-body:has(.lu-select:focus) .rocket-cursor,
-body:has(.lu-select:focus) #rocket-cursor,
-body:has(.lu-select:focus) .custom-rocket-cursor,
-select:focus ~ .custom-cursor,
-select:focus ~ .rocket-cursor,
-select:focus ~ #rocket-cursor,
-select:focus ~ .custom-rocket-cursor {
-  opacity: 0 !important;
-  visibility: hidden !important;
+/* Ensure the custom rocket cursor always stays visible above all dropdown menus */
+.custom-cursor,
+.rocket-cursor,
+#rocket-cursor,
+.custom-rocket-cursor {
+  z-index: 9999 !important;
   pointer-events: none !important;
-  transition: opacity 0.15s ease, visibility 0.15s ease;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
