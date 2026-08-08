@@ -22,14 +22,19 @@ if (!isset($isLoggedIn)) {
     $isLoggedIn = (isset($_SESSION['user_login']) || isset($_SESSION['user_id']) || isset($_SESSION['id'])) ? true : false;
 }
 
-require_once __DIR__ . '/../config/db.php';
+// 🔌 เรียกใช้ไฟล์เชื่อมต่อฐานข้อมูลอย่างปลอดภัย (รองรับทั้ง Root และ Subfolders)
+if (file_exists(__DIR__ . '/config/db.php')) {
+    require_once __DIR__ . '/config/db.php';
+} elseif (file_exists(__DIR__ . '/../config/db.php')) {
+    require_once __DIR__ . '/../config/db.php';
+}
 
 // 🔒 เพิ่มระบบป้องกันเปลี่ยน URL (Route Guard)
 $currentPage = basename($_SERVER['SCRIPT_NAME']);
 $allowedPages = ['index.php', 'login.php', 'register.php'];
 
 if (!$isLoggedIn && !in_array($currentPage, $allowedPages)) {
-    header("Location: index.php");
+    header("Location: " . $ROOT_PATH . "index.php");
     exit();
 }
 
@@ -57,24 +62,22 @@ if (empty($userId)) {
     $userId = $_SESSION['user_id'] ?? $_SESSION['id'] ?? null;
 }
 
-// 3. กรองข้อมูล ID (แก้ไข: ยกเลิกการใช้ intval() เพราะทำให้ Google ID ที่ยาว 21 หลักพัง และทำให้ Email กลายเป็น 0)
+// 3. กรองข้อมูล ID
 if (!empty($userId)) {
     // รองรับทั้งตัวเลข Google ID แบบยาวๆ และ Email
     $userId = trim((string)$userId);
 }
 
 $dbUser = null;
-// แก้ไข: เอา $userId > 0 ออก เพราะ $userId อาจจะเป็น Email หรือ String Google ID ได้
 if (!empty($userId) && isset($conn)) {
     try {
-        // ดึงข้อมูลจากฐานข้อมูลตาม ID อย่างปลอดภัย (เพิ่ม OR u.email และ OR u.google_id เผื่อไว้)
+        // ดึงข้อมูลจากฐานข้อมูลตาม ID อย่างปลอดภัย
         $stmtUser = $conn->prepare("
             SELECT u.*, su.level, su.exp 
             FROM `users` u 
             LEFT JOIN `status_users` su ON u.id = su.user_id 
             WHERE u.id = :uid OR u.email = :uid OR u.google_id = :uid
         ");
-        // แก้ไข: Bind Parameter เป็น String (PDO::PARAM_STR) เพื่อให้รองรับค่าที่ยาวเกิน Integer ลิมิตได้
         $stmtUser->bindParam(':uid', $userId, PDO::PARAM_STR);
         $stmtUser->execute();
         
@@ -83,13 +86,11 @@ if (!empty($userId) && isset($conn)) {
             $dbUser = $result;
         }
     } catch (PDOException $e) {
-        // หากต้องการ Debug ให้เปิด Comment บรรทัดด้านล่าง
-        // error_log("PDO Error in header.php: " . $e->getMessage());
+        error_log("PDO Error in header.php (User Query): " . $e->getMessage());
     }
 }
 
 // แมปข้อมูลให้ตรงกับคอลัมน์จริงในตาราง users และ status_users (มี Fallback ครบถ้วน)
-// ให้ความสำคัญกับ $dbUser เป็นอันดับแรก เพราะคือข้อมูลจริงล่าสุดจากฐานข้อมูล
 $navUser = [
     'user_id'   => $dbUser['id'] ?? ($userId ?? 'N'),
     'username'  => $dbUser['name'] ?? ($sessionData['name'] ?? ($_SESSION['name'] ?? 'Player One')),
@@ -107,34 +108,42 @@ $navUser = [
     'exp'       => $dbUser['exp'] ?? ($sessionData['exp'] ?? ($_SESSION['user_exp'] ?? '0'))
 ];
 
+// ดึงข้อมูล Category และ Course อย่างปลอดภัย
 $category_data = [];
-$sql = "SELECT * FROM `category`";
-$result = $conn->query($sql);
-if ($result) {
-    $category_data = $result->fetchAll(PDO::FETCH_ASSOC);
-}
-
 $course_data = [];
-$sql = "SELECT * FROM `course`";
-$result = $conn->query($sql);
-if ($result) {
-    $course_data = $result->fetchAll(PDO::FETCH_ASSOC);
-}
-
-$sql = "SELECT *,
-            c.id AS course_id,
-            c.title AS course_name,
-            c.img AS course_img,
-            c.difficulty,
-            cat.name AS category_name
-        FROM `course` c 
-        INNER JOIN `category` cat ON cat.id = c.category_id";
-
-$result = $conn->query($sql);
-
 $course_details = [];
-if ($result) {
-    $course_details = $result->fetchAll(PDO::FETCH_ASSOC);
+
+if (isset($conn)) {
+    try {
+        // 1. หมวดหมู่
+        $stmtCat = $conn->query("SELECT * FROM `category`");
+        if ($stmtCat) {
+            $category_data = $stmtCat->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        // 2. คอร์สทั้งหมด
+        $stmtCourse = $conn->query("SELECT * FROM `course`");
+        if ($stmtCourse) {
+            $course_data = $stmtCourse->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        // 3. รายละเอียดคอร์สรวมหมวดหมู่
+        $stmtDetails = $conn->query("
+            SELECT c.*,
+                   c.id AS course_id,
+                   c.title AS course_name,
+                   c.img AS course_img,
+                   c.difficulty,
+                   cat.name AS category_name
+            FROM `course` c 
+            INNER JOIN `category` cat ON cat.id = c.category_id
+        ");
+        if ($stmtDetails) {
+            $course_details = $stmtDetails->fetchAll(PDO::FETCH_ASSOC);
+        }
+    } catch (PDOException $e) {
+        error_log("PDO Error in header.php (Data Fetch): " . $e->getMessage());
+    }
 }
 
 // ตรวจสอบว่าเป็นการเรียกผ่าน AJAX (jQuery) หรือไม่
@@ -491,7 +500,13 @@ if (!$isAjax):
         <script src="<?= $ROOT_PATH ?>js/levelup-sweetalert.js?v=1.0"></script>
 
         <!-- 🚀 เรียกใช้งาน Rocket Cursor -->
-        <?php include_once __DIR__ . '/rocket_cursor.php'; ?>
+        <?php 
+        if (file_exists(__DIR__ . '/rocket_cursor.php')) {
+            include_once __DIR__ . '/rocket_cursor.php';
+        } elseif (file_exists(__DIR__ . '/../rocket_cursor.php')) {
+            include_once __DIR__ . '/../rocket_cursor.php';
+        }
+        ?>
     </head>
 
     <body style="padding-top: 76px;">
@@ -506,7 +521,7 @@ if (!$isAjax):
             <div class="container">
 
                 <!-- โลโก้ -->
-                <a class="navbar-brand d-flex align-items-center gap-2 text-decoration-none ajax-link m-0 me-2" href="<?= $ROOT_PATH ?? '' ?>index.php">
+                <a class="navbar-brand d-flex align-items-center gap-2 text-decoration-none ajax-link m-0 me-2" href="<?= $ROOT_PATH ?>index.php">
                     <div class="lu-logo-icon fs-5 text-info"><i class="bi bi-rocket-takeoff-fill"></i></div>
                     <span class="fw-bold fs-4" style="font-family: 'Outfit', sans-serif;">LevelUp</span>
                 </a>
@@ -527,7 +542,7 @@ if (!$isAjax):
 
                     <?php if ($isLoggedIn): ?>
                         <!-- ช่องค้นหา -->
-                        <form class="mx-lg-2 d-flex flex-grow-1 lu-search-form" action="<?= $ROOT_PATH ?? '' ?>student/courses.php" method="GET" id="ajax-search-form">
+                        <form class="mx-lg-2 d-flex flex-grow-1 lu-search-form" action="<?= $ROOT_PATH ?>student/courses.php" method="GET" id="ajax-search-form">
                             <div class="position-relative w-100">
                                 <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 lu-search-icon" style="left: 0; z-index: 10;"></i>
                                 <input type="text" name="search" class="form-control rounded-pill lu-search-input" placeholder="ค้นหา Quests, สกิล..." style="padding-left: 2.5rem; padding-right: 4.5rem;">
@@ -537,13 +552,13 @@ if (!$isAjax):
 
                         <!-- เมนูหลัก -->
                         <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1 align-items-start align-items-lg-center">
-                            <li class="nav-item"><a class="nav-link lu-nav-link ajax-link" href="<?= $ROOT_PATH ?? '' ?>student/courses.php"><i class="bi bi-journal-code me-1"></i> Quests</a></li>
-                            <li class="nav-item"><a class="nav-link lu-nav-link ajax-link" href="<?= $ROOT_PATH ?? '' ?>student/learning-path.php"><i class="bi bi-map me-1"></i> Roadmaps</a></li>
+                            <li class="nav-item"><a class="nav-link lu-nav-link ajax-link" href="<?= $ROOT_PATH ?>student/courses.php"><i class="bi bi-journal-code me-1"></i> Quests</a></li>
+                            <li class="nav-item"><a class="nav-link lu-nav-link ajax-link" href="<?= $ROOT_PATH ?>student/learning-path.php"><i class="bi bi-map me-1"></i> Roadmaps</a></li>
                             <li class="nav-item dropdown lu-dropdown--no-scroll">
                                 <a class="nav-link lu-nav-link dropdown-toggle" href="#" id="labsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-flask me-1"></i> Labs</a>
                                 <ul class="dropdown-menu user-dropdown-menu border-0 shadow mt-2" aria-labelledby="labsDropdown">
-                                    <li><a class="dropdown-item lu-dropdown-item ajax-link" href="<?= $ROOT_PATH ?? '' ?>student/coding-lab.php"><i class="bi bi-terminal me-2"></i> Coding Lab</a></li>
-                                    <li><a class="dropdown-item lu-dropdown-item ajax-link" href="<?= $ROOT_PATH ?? '' ?>student/virtual-lab.php"><i class="bi bi-cpu me-2"></i> Virtual Lab</a></li>
+                                    <li><a class="dropdown-item lu-dropdown-item ajax-link" href="<?= $ROOT_PATH ?>student/coding-lab.php"><i class="bi bi-terminal me-2"></i> Coding Lab</a></li>
+                                    <li><a class="dropdown-item lu-dropdown-item ajax-link" href="<?= $ROOT_PATH ?>student/virtual-lab.php"><i class="bi bi-cpu me-2"></i> Virtual Lab</a></li>
                                 </ul>
                             </li>
                         </ul>
@@ -561,10 +576,10 @@ if (!$isAjax):
                         </div>
 
                         <?php if ($isLoggedIn): ?>
-                            <a href="<?= $ROOT_PATH ?? '' ?>admin/notifications.php" class="nav-icon-link fs-5 position-relative ajax-link d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;"><i class="bi bi-bell"></i></a>
+                            <a href="<?= $ROOT_PATH ?>admin/notifications.php" class="nav-icon-link fs-5 position-relative ajax-link d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;"><i class="bi bi-bell"></i></a>
 
                             <div class="d-none d-sm-flex align-items-center">
-                                <a href="<?= $ROOT_PATH ?? '' ?>student/skill-map.php" class="text-decoration-none ajax-link">
+                                <a href="<?= $ROOT_PATH ?>student/skill-map.php" class="text-decoration-none ajax-link">
                                     <span class="badge rounded-pill lu-badge-xp px-3 py-2 d-flex align-items-center gap-1 fs-6 border">
                                         <i class="bi bi-star-fill text-warning"></i> Lvl <?= htmlspecialchars($navUser['level']) ?>
                                     </span>
@@ -573,10 +588,10 @@ if (!$isAjax):
 
                             <!-- ปุ่ม AI Chat -->
                             <div class="btn-group lu-ai-btn-group">
-                                <a href="<?= $ROOT_PATH ?? '' ?>ai/ai-chat.php" class="btn btn-primary rounded-start-pill px-3 ajax-link text-white border-0">
+                                <a href="<?= $ROOT_PATH ?>ai/ai-chat.php" class="btn btn-primary rounded-start-pill px-3 ajax-link text-white border-0">
                                     <i class="bi bi-robot me-1"></i> <span class="d-none d-md-inline">AI Chat</span>
                                 </a>
-                                <a href="<?= $ROOT_PATH ?? '' ?>ai/ai-coach.php" class="btn btn-primary rounded-end-pill px-2 border-start-0 ajax-link text-white border-0" style="border-left: 1px solid rgba(255,255,255,0.2) !important;">
+                                <a href="<?= $ROOT_PATH ?>ai/ai-coach.php" class="btn btn-primary rounded-end-pill px-2 border-start-0 ajax-link text-white border-0" style="border-left: 1px solid rgba(255,255,255,0.2) !important;">
                                     <i class="bi bi-lightbulb"></i>
                                 </a>
                             </div>
@@ -594,25 +609,25 @@ if (!$isAjax):
                                     <li>
                                         <hr class="dropdown-divider border-secondary opacity-25">
                                     </li>
-                                    <li><a class="dropdown-item ajax-link" href="<?= $ROOT_PATH ?? '' ?>student/dashboard.php"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a></li>
-                                    <li><a class="dropdown-item ajax-link" href="<?= $ROOT_PATH ?? '' ?>student/profile.php"><i class="bi bi-person me-2"></i> Profile</a></li>
-                                    <li><a class="dropdown-item ajax-link" href="<?= $ROOT_PATH ?? '' ?>student/settings.php"><i class="bi bi-gear me-2"></i> Settings</a></li>
+                                    <li><a class="dropdown-item ajax-link" href="<?= $ROOT_PATH ?>student/dashboard.php"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a></li>
+                                    <li><a class="dropdown-item ajax-link" href="<?= $ROOT_PATH ?>student/profile.php"><i class="bi bi-person me-2"></i> Profile</a></li>
+                                    <li><a class="dropdown-item ajax-link" href="<?= $ROOT_PATH ?>student/settings.php"><i class="bi bi-gear me-2"></i> Settings</a></li>
                                     <li>
                                         <hr class="dropdown-divider border-secondary opacity-25">
                                     </li>
-                                    <li><a class="dropdown-item text-danger" href="<?= $ROOT_PATH ?? '' ?>auth/logout.php"><i class="bi bi-box-arrow-right me-2"></i> Log Out</a></li>
+                                    <li><a class="dropdown-item text-danger" href="<?= $ROOT_PATH ?>auth/logout.php"><i class="bi bi-box-arrow-right me-2"></i> Log Out</a></li>
                                 </ul>
                             </div>
                             
                         <?php else: ?>
-                            <a href="<?= $ROOT_PATH ?? '' ?>auth/login.php" class="btn btn-outline-primary rounded-pill px-4 fw-medium ajax-link shadow-sm fs-sm">Log In</a>
+                            <a href="<?= $ROOT_PATH ?>auth/login.php" class="btn btn-outline-primary rounded-pill px-4 fw-medium ajax-link shadow-sm fs-sm">Log In</a>
                         <?php endif; ?>
                     </div>
                 </div>
             </div>
         </nav>
 
-        <!-- 🛠️ JavaScript ควบคุมการกดสลับโหมด Dark/Light -->
+        <!-- 🛠️ JavaScript ควบคุมการกดสลับโหมด Dark/Light และปรับตำแหน่ง Dropdown -->
         <script>
             $(document).ready(function() {
                 function applyThemeUI(theme) {
