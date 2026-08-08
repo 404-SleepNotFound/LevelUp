@@ -35,8 +35,7 @@
     --transition-fast: 0.2s ease;
     --transition-base: 0.3s ease;
 
-    /* Legacy "c-" tokens, used only by the .lesson-page components below.
-       Kept separate on purpose so we don't have to touch the markup. */
+    /* Legacy "c-" tokens */
     --c-bg: #f8fafc;
     --c-surface: #ffffff;
     --c-surface-darker: #f1f5f9;
@@ -273,7 +272,7 @@ body {
     font-family: 'Inter', sans-serif;
     background-color: var(--bg-main);
     color: var(--text-main);
-    transition: background-color var(--transition-base), color var(--transition-base);
+    transition: background-color var(--transition-base), color var(--transition-base), border-color 0.3s ease !important;
 }
 
 a { color: var(--primary); text-decoration: none; transition: color var(--transition-fast); }
@@ -367,7 +366,7 @@ a:hover { color: var(--primary-hover); }
     transform: rotate(15deg) scale(0.9);
 }
 
-/* Course Card (From index) */
+/* Course Card */
 .course-card {
     background-color: var(--bg-surface);
     border: 1px solid var(--border-color);
@@ -381,7 +380,7 @@ a:hover { color: var(--primary-hover); }
 .course-card:hover .course-cover-wrapper img { transform: scale(1.05); }
 
 /* =========================================
-   4. Auth Forms & Inputs (New for Login)
+   4. Auth Forms & Inputs
    ========================================= */
 
 /* Premium Input Fields */
@@ -482,7 +481,7 @@ a:hover { color: var(--primary-hover); }
 }
 .pwd-rules li i { font-size: 0.5rem; vertical-align: middle; }
 .pwd-rules li.valid { color: #10B981; }
-.pwd-rules li.valid i::before { content: "\F26A"; /* bi-check-circle-fill */ }
+.pwd-rules li.valid i::before { content: "\F26A"; }
 
 /* Selectable Badges (Multiple Select) */
 .selection-badge {
@@ -708,7 +707,6 @@ a:hover { color: var(--primary-hover); }
    9. Coding Lab (Web IDE) Styles
    ========================================= */
 
-/* IDE Theme Specifics overrides */
 .coding-lab-layout .nav-tabs-custom { background: var(--bg-surface); padding-top: 5px; }
 .coding-lab-layout [data-bs-toggle="tab"] { border-radius: 0; margin-bottom: -2px; }
 
@@ -728,7 +726,6 @@ a:hover { color: var(--primary-hover); }
    10. AJAX Page Transitions & Premium Layout Additions
    ========================================================================== */
 
-/* กล่องหลักสำหรับการสลับหน้า SPA เปลี่ยนแปลงแบบ Smooth Fade */
 #main-content-area {
     transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     opacity: 1;
@@ -736,25 +733,17 @@ a:hover { color: var(--primary-hover); }
     will-change: opacity, transform;
 }
 
-/* คลาสที่จะถูกเพิ่มด้วยสคริปต์ jQuery ระหว่างกำลังโหลดหน้าเว็บชุดใหม่ */
 #main-content-area.page-fade-out {
     opacity: 0;
     transform: translateY(12px);
 }
 
-/* ปรับปรุงเบลอฉากหลังเอฟเฟกต์สำหรับกล่อง Loading Screen */
 #ajax-loading-screen {
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     transition: opacity 0.2s ease;
 }
 
-/* ทำให้การเปลี่ยนสีกายภาพของโครงสร้างหลักสมูทเมื่อสลับดาร์กโหมด */
-body {
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
-}
-
-/* โครงสร้างพื้นหลังกราเดียนต์สำหรับหน้าแรก */
 .hero-gradient-bg {
     position: relative;
     overflow: hidden;
@@ -762,7 +751,6 @@ body {
     border-bottom: 1px solid var(--border-color);
 }
 
-/* เลเยอร์เรืองแสงวงกลมทรง Premium */
 .hero-glow {
     position: absolute;
     width: 500px;
@@ -777,7 +765,7 @@ body {
 }
 
 /* =========================================
-   11. Custom Rocket Cursor (Fix Z-Index & Pass-through)
+   11. Custom Rocket Cursor
    ========================================= */
 #custom-cursor,
 #rocket-cursor,
@@ -785,15 +773,14 @@ body {
 .rocket-cursor,
 .custom-rocket-cursor {
     position: fixed !important;
-    z-index: 999999 !important; /* ดันให้อยู่เหนือ Dropdown และ Navbar ทุกตัว */
-    pointer-events: none !important; /* บังคับให้คลิกทะลุไปกดเมนูด้านหลังได้ */
+    z-index: 999999 !important;
+    pointer-events: none !important;
 }
 
 /* ==========================================
    🚀 Custom Dropdown Component Integration
    ========================================== */
 
-/* บังคับให้รับค่าเมาส์จรวดจาก Body/Parent */
 .custom-dropdown-wrapper,
 .custom-dropdown-btn,
 .custom-dropdown-menu,
@@ -803,7 +790,6 @@ body {
     -webkit-user-select: none !important;
 }
 
-/* หมุนลูกศรลงเมื่อเปิด Dropdown */
 .custom-dropdown-wrapper.active .custom-dropdown-btn i {
     transform: rotate(180deg);
 }
