@@ -775,3 +775,16 @@ body {
     border-radius: 50%;
     pointer-events: none;
 }
+
+/* =========================================
+   11. Custom Rocket Cursor (Fix Z-Index)
+   ========================================= */
+/* ครอบคลุมคลาส/ไอดี ยอดนิยมของ Custom Cursor */
+#custom-cursor,
+#rocket-cursor,
+.custom-cursor,
+.rocket-cursor {
+    position: fixed !important;
+    z-index: 999999 !important; /* ดันให้อยู่เหนือ Dropdown และ Navbar ทุกตัว */
+    pointer-events: none !important; /* บังคับให้คลิกทะลุไปกดเมนูด้านหลังได้ */
+}
