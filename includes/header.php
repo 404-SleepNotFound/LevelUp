@@ -667,8 +667,26 @@ if (!$isAjax):
                         return;
                     }
 
-                    const rect = $trigger[0].getBoundingClientRect();
+                    const triggerEl = $trigger[0];
+                    const rect = triggerEl.getBoundingClientRect();
                     const viewportWidth = window.innerWidth;
+                    const viewportHeight = window.innerHeight;
+
+                    // If the trigger has scrolled completely out of view, close the
+                    // dropdown instead of letting the menu float disconnected from it.
+                    if (rect.bottom < 0 || rect.top > viewportHeight) {
+                        const instance = window.bootstrap && window.bootstrap.Dropdown
+                            ? window.bootstrap.Dropdown.getInstance(triggerEl)
+                            : null;
+                        if (instance) {
+                            instance.hide();
+                        } else {
+                            $dropdown.removeClass('show');
+                            $menu.removeClass('show');
+                        }
+                        return;
+                    }
+
                     const menuWidth = Math.min($menu.outerWidth(), viewportWidth - 24);
                     const isEndAligned = $menu.hasClass('dropdown-menu-end');
 
@@ -692,15 +710,34 @@ if (!$isAjax):
                     });
                 }
 
+                function repositionOpenDropdowns() {
+                    $('.dropdown.show').each(function() {
+                        positionDropdownMenu($(this));
+                    });
+                }
+
                 $(document).on('shown.bs.dropdown', '.dropdown', function() {
                     positionDropdownMenu($(this));
                 });
 
-                $(window).on('resize orientationchange', function() {
-                    $('.dropdown.show').each(function() {
-                        positionDropdownMenu($(this));
+                $(window).on('resize orientationchange', repositionOpenDropdowns);
+
+                // Keep open dropdown menus glued to their trigger while the page
+                // scrolls (menus are position:fixed, so without this they'd stay
+                // put in the viewport instead of following the button). Scroll
+                // fires very frequently, so the work is throttled to one
+                // reposition per animation frame, and the listener is passive
+                // since it never calls preventDefault().
+                let dropdownScrollRafId = null;
+                window.addEventListener('scroll', function() {
+                    if (dropdownScrollRafId !== null) {
+                        return;
+                    }
+                    dropdownScrollRafId = window.requestAnimationFrame(function() {
+                        repositionOpenDropdowns();
+                        dropdownScrollRafId = null;
                     });
-                });
+                }, { passive: true, capture: true });
             });
         </script>
 
