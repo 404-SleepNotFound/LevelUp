@@ -78,10 +78,17 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         margin-bottom: 20px;
         backdrop-filter: blur(10px);
         transition: background-color 0.3s ease, border-color 0.3s ease;
-        /* Fix Dropdown Menu Clipping */
         overflow: visible !important;
         position: relative;
+        z-index: 1;
     }
+
+    /* ยกระดับ Card ที่มีการโฟกัสหรือเปิดใช้งานเพื่อไม่ให้ Card ถัดไปบดทับ */
+    .lab-section-card:focus-within,
+    .lab-section-card.active-card {
+        z-index: 99 !important;
+    }
+
     @media (min-width: 768px) {
         .lab-section-card {
             padding: 24px;
@@ -250,7 +257,9 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         border: 1px solid var(--lab-sub-box-border);
     }
 
-    /* Custom Dropdown Overrides for lu-dropdown */
+    /* ==========================================
+       CRITICAL FIX: CUSTOM DROPDOWN OVERLAY FIX
+       ========================================== */
     .lu-select-wrapper, 
     .lu-dropdown,
     .dropdown {
@@ -259,19 +268,21 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     }
     
     .lu-select-wrapper.open, 
+    .lu-select-wrapper.active,
     .lu-select-wrapper:focus-within,
     .lu-dropdown.open,
     .dropdown.show {
-        z-index: 1050 !important;
+        z-index: 9999 !important;
     }
 
+    /* บังคับเมนูดรอปดาวน์ให้ลอยเหนือทุก Element และไม่ถูก clipping */
     .lu-select-options,
     .lu-dropdown-menu,
     .dropdown-menu {
-        z-index: 1060 !important;
+        z-index: 99999 !important;
         max-height: 260px;
         overflow-y: auto;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6) !important;
     }
 
     /* Terminal Cursor Animation */
@@ -730,6 +741,21 @@ services:
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Dynamic z-index controller for cards and dropdown elements
+    document.addEventListener('click', function(e) {
+        const activeCard = e.target.closest('.lab-section-card');
+        document.querySelectorAll('.lab-section-card').forEach(card => {
+            if (card !== activeCard) {
+                card.classList.remove('active-card');
+                card.style.zIndex = '1';
+            }
+        });
+        if (activeCard) {
+            activeCard.classList.add('active-card');
+            activeCard.style.zIndex = '999';
+        }
+    });
+
     // Visual Lab Builder Drag & Drop Functionality
     const vlbStage = document.getElementById('vlbStage');
     const toolboxItems = document.querySelectorAll('.vlb-toolbox-item');
@@ -835,19 +861,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
-
-    // Dynamic z-index controller for dropdown elements
-    document.addEventListener('click', function(e) {
-        const targetWrapper = e.target.closest('.lu-select-wrapper, .lu-dropdown, .dropdown');
-        document.querySelectorAll('.lu-select-wrapper, .lu-dropdown, .dropdown').forEach(el => {
-            if (el !== targetWrapper) {
-                el.style.zIndex = '10';
-            }
-        });
-        if (targetWrapper) {
-            targetWrapper.style.zIndex = '1050';
-        }
-    });
 
     // Submit Form Handler
     document.getElementById('labMasterForm').addEventListener('submit', function(e) {
