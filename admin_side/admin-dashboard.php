@@ -22,6 +22,10 @@ if (!isset($_SESSION['user_login']['user_role']) || $_SESSION['user_login']['use
     <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../js/levelup-sweetalert.js?v=1.0"></script>
+
     <style>
         :root {
             --dark-core: #090d16;
