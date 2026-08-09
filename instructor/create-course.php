@@ -23,45 +23,8 @@ if (isset($conn)) {
 }
 ?>
 
+<link rel="stylesheet" href="../css/custom-dropdown.css">
 <style>
-    /* 🌙 ตัวแปรสำหรับ Dark Mode (Default & Fallback เมื่อเปิดหน้าตรง) */
-    :root, html[data-theme="dark"] {
-        --bg-dark-blend: #070a13;
-        --card-bg-premium: #0f172a;
-        --cc-text-main: #f8fafc;
-        --cc-text-muted: #cbd5e1;
-        --cc-text-label: #f1f5f9;
-        --cc-input-bg: rgba(15, 23, 42, 0.8);
-        --cc-input-border: rgba(255, 255, 255, 0.15);
-        --cc-input-text: #ffffff;
-        --cc-input-ph: #64748b;
-        --cc-step-bg: #0f172a;
-        --cc-step-border: rgba(255, 255, 255, 0.2);
-        --cc-box-border: rgba(255, 255, 255, 0.1);
-        --cc-preview-bg: rgba(0, 0, 0, 0.3);
-        --cc-template-bg: rgba(30, 41, 59, 0.6);
-        --cc-modal-bg: #212529;
-    }
-
-    /* ☀️ ตัวแปรสำหรับ Light Mode */
-    html[data-theme="light"] {
-        --bg-dark-blend: #f8fafc;
-        --card-bg-premium: #ffffff;
-        --cc-text-main: #0f172a;
-        --cc-text-muted: #64748b;
-        --cc-text-label: #1e293b;
-        --cc-input-bg: #ffffff;
-        --cc-input-border: rgba(15, 23, 42, 0.15);
-        --cc-input-text: #0f172a;
-        --cc-input-ph: #94a3b8;
-        --cc-step-bg: #f8fafc;
-        --cc-step-border: rgba(15, 23, 42, 0.2);
-        --cc-box-border: rgba(0, 0, 0, 0.15);
-        --cc-preview-bg: rgba(241, 245, 249, 0.8);
-        --cc-template-bg: #ffffff;
-        --cc-modal-bg: #ffffff;
-    }
-
     /* Safe Container Styles */
     body, .create-course-wrapper {
         animation: fadeIn 0.3s ease-in-out;
@@ -229,97 +192,6 @@ if (isset($conn)) {
     .form-dark-input::placeholder {
         color: var(--cc-input-ph) !important;
         opacity: 1;
-    }
-
-    /* Custom Dropdown Styling & Fixes */
-    .custom-dropdown-wrapper {
-        position: relative;
-        display: block;
-        width: 100%;
-        box-sizing: border-box;
-        user-select: none;
-        z-index: 1;
-    }
-
-    /* แก้ไขปัญหาสุดสำคัญ: ยก z-index เมื่อdropdown ตัวนั้นถูกคลิกเปิดขึ้นมา */
-    .custom-dropdown-wrapper.active {
-        z-index: 1050 !important;
-    }
-
-    .custom-dropdown-btn {
-        width: 100%;
-        box-sizing: border-box;
-        background: var(--cc-input-bg);
-        border: 1px solid var(--cc-input-border);
-        color: var(--cc-input-text);
-        border-radius: 10px;
-        padding: 12px 16px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        cursor: pointer;
-        transition: all 0.25s ease;
-    }
-
-    .custom-dropdown-btn:hover,
-    .custom-dropdown-wrapper.active .custom-dropdown-btn {
-        border-color: #06b6d4;
-        box-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
-    }
-
-    /* สถานะเมื่อกรอกไม่ครบ (Validation Error) */
-    .custom-dropdown-btn.border-danger {
-        border-color: #ef4444 !important;
-        box-shadow: 0 0 10px rgba(239, 68, 68, 0.3) !important;
-    }
-
-    .custom-dropdown-menu {
-        position: absolute;
-        top: calc(100% + 6px);
-        left: 0;
-        right: 0;
-        box-sizing: border-box;
-        padding: 6px;
-        margin: 0;
-        list-style: none;
-        background: var(--card-bg-premium, #0f172a);
-        border: 1px solid var(--cc-box-border, rgba(255, 255, 255, 0.15));
-        border-radius: 10px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-        z-index: 1060;
-        display: none;
-        max-height: 250px;
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
-
-    .custom-dropdown-menu.show,
-    .custom-dropdown-wrapper.active .custom-dropdown-menu {
-        display: block !important;
-        animation: fadeIn 0.2s ease-in-out;
-    }
-
-    .custom-dropdown-item {
-        width: 100%;
-        box-sizing: border-box;
-        padding: 10px 14px;
-        border-radius: 6px;
-        color: var(--cc-text-main, #f8fafc);
-        cursor: pointer;
-        font-size: 0.9rem;
-        transition: background 0.2s ease, color 0.2s ease;
-        word-break: break-word;  
-    }
-
-    .custom-dropdown-item:hover {
-        background: rgba(6, 182, 212, 0.15);
-        color: #06b6d4;
-    }
-
-    .custom-dropdown-item.selected {
-        background: #06b6d4;
-        color: #ffffff !important;
-        font-weight: 600;
     }
 
     /* Spin button hides */
@@ -945,53 +817,7 @@ if (isset($conn)) {
     var currentStep = 1;
     var tagsArray = [];
 
-    // ==========================================
-    // 🎯 CUSTOM DROPDOWN ENGINE (FIXED & IMPROVED)
-    // ==========================================
-    $(document).off('click', '.custom-dropdown-btn').on('click', '.custom-dropdown-btn', function(e) {
-        e.stopPropagation();
-        var $wrapper = $(this).closest('.custom-dropdown-wrapper');
-        $('.custom-dropdown-wrapper').not($wrapper).removeClass('active');
-        $wrapper.toggleClass('active');
-    });
-
-    $(document).off('click', '.custom-dropdown-item').on('click', '.custom-dropdown-item', function(e) {
-        e.stopPropagation();
-        var $item = $(this);
-        var $wrapper = $item.closest('.custom-dropdown-wrapper');
-        var val = $item.data('value');
-        var text = $.trim($item.text());
-
-        // อัปเดตข้อความบนปุ่ม
-        $wrapper.find('.selected-text').text(text);
-        
-        // อัปเดตค่าใน Hidden Input และยิง Trigger Change
-        var $hiddenInput = $wrapper.find('input[type="hidden"]');
-        $hiddenInput.val(val).trigger('change');
-
-        // สลับ Class Active/Selected
-        $wrapper.find('.custom-dropdown-item').removeClass('selected');
-        $item.addClass('selected');
-        $wrapper.removeClass('active');
-        $wrapper.find('.custom-dropdown-btn').removeClass('border-danger');
-    });
-
-    // ปิด Dropdown เมื่อคลิกนอกพื้นที่
-    $(document).off('click.dropdownClose').on('click.dropdownClose', function(e) {
-        if (!$(e.target).closest('.custom-dropdown-wrapper').length) {
-            $('.custom-dropdown-wrapper').removeClass('active');
-        }
-    });
-
-    // Event Triggers เมื่อค่าใน Dropdown เปลี่ยนแปลง
-    $(document).off('change', '#course_difficulty').on('change', '#course_difficulty', function() {
-        updateDifficultyHelp();
-    });
-
-    $(document).off('change', '#course_type').on('change', '#course_type', function() {
-        togglePriceFields($(this).val());
-    });
-
+    <script src="../js/custom-dropdown.js"></script>
     // ==========================================
     // ⚙️ SYSTEM HELPER FUNCTIONS
     // ==========================================
