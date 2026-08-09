@@ -4,10 +4,10 @@ $ROOT_PATH = '../';
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 ?>
 
-<!-- 🎨 External Custom Scrollbar (If needed) -->
+<!-- 🎨 External Custom Scrollbar -->
 <link rel="stylesheet" href="<?php echo $ROOT_PATH; ?>css/custom-scrollbar.css">
 
-<!-- Import Dropdown Select Stylesheet (ระบบกลาง) -->
+<!-- Import Dropdown Select Stylesheet (ใช้ Style กลางทั้งหมดที่นี่) -->
 <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css">
 
 <style>
@@ -45,6 +45,9 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         --lv-label: #334155;
         --lv-placeholder: #94a3b8;
     }
+
+    /* 📌 หมายเหตุ: ลบ CSS ของ .custom-dropdown-* ทั้งหมดออกจากไฟล์นี้แล้ว 
+       เพื่อป้องกัน Style ทับซ้อน และให้เรียกใช้จาก dropdown-select.css เพียงจุดเดียว */
 
     /* Scope Quiz Builder Styles */
     .quiz-container {
@@ -276,7 +279,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                     <label class="form-label form-label-premium">2. ประเภท Quiz (Quiz Type)</label>
                     <div class="custom-dropdown-wrapper">
                         <div class="custom-dropdown-btn">
-                            <span class="selected-text">Chapter Quiz (ประจำบทเรียน)</span>
+                            <span class="custom-dropdown-label">Chapter Quiz (ประจำบทเรียน)</span>
                             <i class="bi bi-chevron-down"></i>
                         </div>
                         <div class="custom-dropdown-menu">
@@ -300,12 +303,12 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                     <label class="form-label form-label-premium">Chapter หลักที่ผูกมัด</label>
                     <div class="custom-dropdown-wrapper">
                         <div class="custom-dropdown-btn">
-                            <span class="selected-text">Chapter 2: Data Structure Core</span>
+                            <span class="custom-dropdown-label">Chapter 2: Data Structure Core</span>
                             <i class="bi bi-chevron-down"></i>
                         </div>
                         <div class="custom-dropdown-menu">
-                            <div class="custom-dropdown-item">Chapter 1: Introduction to Logic</div>
-                            <div class="custom-dropdown-item selected">Chapter 2: Data Structure Core</div>
+                            <div class="custom-dropdown-item" data-value="ch1">Chapter 1: Introduction to Logic</div>
+                            <div class="custom-dropdown-item selected" data-value="ch2">Chapter 2: Data Structure Core</div>
                         </div>
                     </div>
                 </div>
@@ -315,12 +318,12 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                     <label class="form-label form-label-premium">Lesson (บทเรียนย่อยต้นทาง)</label>
                     <div class="custom-dropdown-wrapper">
                         <div class="custom-dropdown-btn">
-                            <span class="selected-text">Lesson 3.2: Multidimensional Array Matrix</span>
+                            <span class="custom-dropdown-label">Lesson 3.2: Multidimensional Array Matrix</span>
                             <i class="bi bi-chevron-down"></i>
                         </div>
                         <div class="custom-dropdown-menu">
-                            <div class="custom-dropdown-item">Lesson 3.1: Understanding Arrays Concept</div>
-                            <div class="custom-dropdown-item selected">Lesson 3.2: Multidimensional Array Matrix</div>
+                            <div class="custom-dropdown-item" data-value="ls3.1">Lesson 3.1: Understanding Arrays Concept</div>
+                            <div class="custom-dropdown-item selected" data-value="ls3.2">Lesson 3.2: Multidimensional Array Matrix</div>
                         </div>
                     </div>
                 </div>
@@ -330,7 +333,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                     <label class="form-label form-label-premium">สถานะการแสดงผล (Status)</label>
                     <div class="custom-dropdown-wrapper">
                         <div class="custom-dropdown-btn text-warning fw-bold">
-                            <span class="selected-text">🟡 Draft (แบบร่างแก้ไข)</span>
+                            <span class="custom-dropdown-label">🟡 Draft (แบบร่างแก้ไข)</span>
                             <i class="bi bi-chevron-down"></i>
                         </div>
                         <div class="custom-dropdown-menu">
@@ -437,13 +440,13 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                     <label class="form-label form-label-premium">จำนวนครั้งที่อนุญาตให้สอบ</label>
                     <div class="custom-dropdown-wrapper">
                         <div class="custom-dropdown-btn">
-                            <span class="selected-text">3 ครั้ง</span>
+                            <span class="custom-dropdown-label">3 ครั้ง</span>
                             <i class="bi bi-chevron-down"></i>
                         </div>
                         <div class="custom-dropdown-menu">
-                            <div class="custom-dropdown-item">1 ครั้งเท่านั้น</div>
-                            <div class="custom-dropdown-item selected">3 ครั้ง</div>
-                            <div class="custom-dropdown-item">ไม่จำกัดจำนวนครั้ง</div>
+                            <div class="custom-dropdown-item" data-value="1">1 ครั้งเท่านั้น</div>
+                            <div class="custom-dropdown-item selected" data-value="3">3 ครั้ง</div>
+                            <div class="custom-dropdown-item" data-value="unlimited">ไม่จำกัดจำนวนครั้ง</div>
                         </div>
                     </div>
                 </div>
@@ -468,15 +471,15 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                     <label class="form-label form-label-premium">ภาษาโปรแกรมมิ่งที่รองรับ</label>
                     <div class="custom-dropdown-wrapper">
                         <div class="custom-dropdown-btn">
-                            <span class="selected-text">JavaScript</span>
+                            <span class="custom-dropdown-label">JavaScript</span>
                             <i class="bi bi-chevron-down"></i>
                         </div>
                         <div class="custom-dropdown-menu">
-                            <div class="custom-dropdown-item">PHP</div>
-                            <div class="custom-dropdown-item">Python</div>
-                            <div class="custom-dropdown-item">Java</div>
-                            <div class="custom-dropdown-item selected">JavaScript</div>
-                            <div class="custom-dropdown-item">C++</div>
+                            <div class="custom-dropdown-item" data-value="php">PHP</div>
+                            <div class="custom-dropdown-item" data-value="python">Python</div>
+                            <div class="custom-dropdown-item" data-value="java">Java</div>
+                            <div class="custom-dropdown-item selected" data-value="js">JavaScript</div>
+                            <div class="custom-dropdown-item" data-value="cpp">C++</div>
                         </div>
                     </div>
                 </div>
@@ -499,13 +502,13 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                     <label class="form-label form-label-premium">11. ความยากเฉลี่ย</label>
                     <div class="custom-dropdown-wrapper">
                         <div class="custom-dropdown-btn text-info fw-bold">
-                            <span class="selected-text">Medium (ปานกลาง)</span>
+                            <span class="custom-dropdown-label">Medium (ปานกลาง)</span>
                             <i class="bi bi-chevron-down"></i>
                         </div>
                         <div class="custom-dropdown-menu">
-                            <div class="custom-dropdown-item">Easy (ง่าย)</div>
-                            <div class="custom-dropdown-item selected text-info fw-bold">Medium (ปานกลาง)</div>
-                            <div class="custom-dropdown-item">Hard (ขั้นสูง)</div>
+                            <div class="custom-dropdown-item" data-value="easy">Easy (ง่าย)</div>
+                            <div class="custom-dropdown-item selected text-info fw-bold" data-value="medium">Medium (ปานกลาง)</div>
+                            <div class="custom-dropdown-item" data-value="hard">Hard (ขั้นสูง)</div>
                         </div>
                     </div>
                 </div>
@@ -527,12 +530,12 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                     <label class="form-label form-label-premium">17. สิทธิ์การเข้าถึง</label>
                     <div class="custom-dropdown-wrapper">
                         <div class="custom-dropdown-btn">
-                            <span class="selected-text">เฉพาะผู้ลงทะเบียนเรียนคอร์สนี้</span>
+                            <span class="custom-dropdown-label">เฉพาะผู้ลงทะเบียนเรียนคอร์สนี้</span>
                             <i class="bi bi-chevron-down"></i>
                         </div>
                         <div class="custom-dropdown-menu">
-                            <div class="custom-dropdown-item selected">เฉพาะผู้ลงทะเบียนเรียนคอร์สนี้</div>
-                            <div class="custom-dropdown-item">ปลดล็อกอัตโนมัติหลังจบเนื้อหา</div>
+                            <div class="custom-dropdown-item selected" data-value="enrolled">เฉพาะผู้ลงทะเบียนเรียนคอร์สนี้</div>
+                            <div class="custom-dropdown-item" data-value="unlocked">ปลดล็อกอัตโนมัติหลังจบเนื้อหา</div>
                         </div>
                     </div>
                 </div>
@@ -554,7 +557,55 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     </form>
 </div>
 
+<!-- 🚀 Dynamic Handlers -->
 <script>
+    // Global Event Handler สำหรับคลิกเปิด/ปิด Custom Dropdown 
+    (function() {
+        document.removeEventListener('click', handleCustomDropdownClick);
+        document.addEventListener('click', handleCustomDropdownClick);
+
+        function handleCustomDropdownClick(e) {
+            const btn = e.target.closest('.custom-dropdown-btn');
+            const item = e.target.closest('.custom-dropdown-item');
+
+            if (btn) {
+                e.stopPropagation();
+                const wrapper = btn.closest('.custom-dropdown-wrapper');
+                const isOpen = wrapper.classList.contains('active');
+
+                document.querySelectorAll('.custom-dropdown-wrapper.active').forEach(w => {
+                    w.classList.remove('active');
+                });
+
+                if (!isOpen) {
+                    wrapper.classList.add('active');
+                }
+                return;
+            }
+
+            if (item) {
+                const wrapper = item.closest('.custom-dropdown-wrapper');
+                if (wrapper) {
+                    const labelSpan = wrapper.querySelector('.custom-dropdown-label') || wrapper.querySelector('.selected-text');
+                    if (labelSpan) {
+                        labelSpan.textContent = item.textContent.trim();
+                    }
+
+                    wrapper.querySelectorAll('.custom-dropdown-item').forEach(i => i.classList.remove('selected'));
+                    item.classList.add('selected');
+
+                    wrapper.classList.remove('active');
+                }
+                return;
+            }
+
+            // คลิกพื้นที่อื่นปิด Dropdown ทั้งหมด
+            document.querySelectorAll('.custom-dropdown-wrapper.active').forEach(w => {
+                w.classList.remove('active');
+            });
+        }
+    })();
+
     function appendQuestionType(type) {
         var uniqId = Math.floor(Math.random() * 99999);
         var customBlockNodeHtml = `
