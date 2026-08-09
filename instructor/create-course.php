@@ -80,6 +80,7 @@ if (isset($conn)) {
 ?>
 
 <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css">
+<script src="<?= $ROOT_PATH ?>js/lu-dropdown.js" defer></script>
 
 <style>
     /* Safe Container Styles */
