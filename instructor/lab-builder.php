@@ -3,8 +3,9 @@ $ROOT_PATH = '../';
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 ?>
 
-<!-- Import Dropdown Select Stylesheet -->
+<!-- Import Dropdown Select Stylesheet & JavaScript -->
 <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css">
+<script src="<?= $ROOT_PATH ?>js/lu-dropdown.js" defer></script>
 
 <style>
     /* Theme Variables Setup */
@@ -145,34 +146,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         min-height: 110px !important;
         padding-top: 14px !important;
         padding-bottom: 14px !important;
-    }
-
-    /* FIX DROP DOWN BUGS & STYLING */
-    select.form-control-premium {
-        -webkit-appearance: none !important;
-        -moz-appearance: none !important;
-        appearance: none !important;
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
-        background-repeat: no-repeat !important;
-        background-position: right 16px center !important;
-        background-size: 12px 12px !important;
-        padding-right: 42px !important;
-        cursor: pointer !important;
-        position: relative;
-        z-index: 1;
-    }
-
-    /* FIX INVISIBLE OPTION TEXT IN DARK MODE */
-    select.form-control-premium option {
-        background-color: #0f172a !important;
-        color: #f8fafc !important;
-        padding: 10px !important;
-    }
-
-    html[data-theme="light"] select.form-control-premium option,
-    [data-bs-theme="light"] select.form-control-premium option {
-        background-color: #ffffff !important;
-        color: #0f172a !important;
     }
 
     .form-label-premium {
@@ -317,7 +290,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">2. ประเภทปฏิบัติการ (Lab Type)</label>
-                    <select name="lab_type" class="form-select form-control-premium">
+                    <select name="lab_type" class="form-select form-control-premium lu-select">
                         <option value="Coding">Coding Lab</option>
                         <option value="Linux">Linux Lab</option>
                         <option value="SQL">SQL Lab</option>
@@ -332,7 +305,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">ความยาก (Difficulty)</label>
-                    <select name="difficulty" class="form-select form-control-premium fw-bold text-info">
+                    <select name="difficulty" class="form-select form-control-premium lu-select fw-bold text-info">
                         <option value="Beginner">Beginner (ระดับต้น)</option>
                         <option value="Intermediate" selected>Intermediate (ระดับกลาง)</option>
                         <option value="Advanced">Advanced (ระดับสูง)</option>
@@ -340,20 +313,20 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 </div>
                 <div class="col-12 col-md-4">
                     <label class="form-label form-label-premium">Chapter ผูกมัดหลักสูตร</label>
-                    <select name="chapter_id" class="form-select form-control-premium">
+                    <select name="chapter_id" class="form-select form-control-premium lu-select">
                         <option value="3">Chapter 3: Virtualization Concepts</option>
                         <option value="4" selected>Chapter 4: Containerization Workflow</option>
                     </select>
                 </div>
                 <div class="col-12 col-md-4">
                     <label class="form-label form-label-premium">Lesson (บทเรียนย่อย)</label>
-                    <select name="lesson_id" class="form-select form-control-premium">
+                    <select name="lesson_id" class="form-select form-control-premium lu-select">
                         <option value="4.3" selected>Lesson 4.3: Custom Bridge Network Configuration</option>
                     </select>
                 </div>
                 <div class="col-12 col-md-4">
                     <label class="form-label form-label-premium">สถานะ (Status)</label>
-                    <select name="status" id="lab_status" class="form-select form-control-premium fw-bold text-warning">
+                    <select name="status" id="lab_status" class="form-select form-control-premium lu-select fw-bold text-warning">
                         <option value="draft" selected>🟡 Draft (บันทึกร่าง)</option>
                         <option value="published">🟢 Published (เปิดใช้งานจริง)</option>
                     </select>
@@ -387,7 +360,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <div class="row g-3">
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">Operating System</label>
-                    <select name="operating_system" class="form-select form-control-premium">
+                    <select name="operating_system" class="form-select form-control-premium lu-select">
                         <option value="ubuntu-22.04" selected>Ubuntu 22.04 LTS</option>
                         <option value="alpine">Alpine Linux</option>
                         <option value="debian-12">Debian 12</option>
@@ -395,7 +368,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">Programming Language</label>
-                    <select name="programming_language" class="form-select form-control-premium">
+                    <select name="programming_language" class="form-select form-control-premium lu-select">
                         <option value="bash" selected>Bash / Shell</option>
                         <option value="nodejs">Node.js</option>
                         <option value="python">Python</option>
@@ -408,7 +381,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">Database Engine</label>
-                    <select name="database_engine" class="form-select form-control-premium">
+                    <select name="database_engine" class="form-select form-control-premium lu-select">
                         <option value="none" selected>None (ไม่ใช้ฐานข้อมูล)</option>
                         <option value="mysql-8.0">MySQL 8.0</option>
                         <option value="postgres-15">PostgreSQL 15</option>
@@ -416,7 +389,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 </div>
                 <div class="col-6 col-md-3">
                     <label class="form-label form-label-premium">RAM Limit</label>
-                    <select name="ram_limit" class="form-select form-control-premium">
+                    <select name="ram_limit" class="form-select form-control-premium lu-select">
                         <option value="512MB">512 MB</option>
                         <option value="1GB" selected>1 GB</option>
                         <option value="2GB">2 GB</option>
@@ -424,7 +397,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 </div>
                 <div class="col-6 col-md-3">
                     <label class="form-label form-label-premium">CPU Core Allocation</label>
-                    <select name="cpu_allocation" class="form-select form-control-premium">
+                    <select name="cpu_allocation" class="form-select form-control-premium lu-select">
                         <option value="0.5" selected>0.5 Core</option>
                         <option value="1.0">1.0 Core</option>
                         <option value="2.0">2.0 Core</option>
@@ -432,7 +405,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 </div>
                 <div class="col-6 col-md-3">
                     <label class="form-label form-label-premium">Disk Storage</label>
-                    <select name="disk_storage" class="form-select form-control-premium">
+                    <select name="disk_storage" class="form-select form-control-premium lu-select">
                         <option value="2GB" selected>2 GB</option>
                         <option value="5GB">5 GB</option>
                     </select>
@@ -522,25 +495,25 @@ services:
                     <label class="form-label form-label-premium">5. สเปกค่าเบื้องต้นของหน้าต่าง Code Editor</label>
                     <div class="row g-2">
                         <div class="col-6">
-                            <select name="editor_theme" class="form-select form-control-premium small">
+                            <select name="editor_theme" class="form-select form-control-premium lu-select small">
                                 <option value="vs-dark" selected>Theme: VS Dark</option>
                                 <option value="monokai">Theme: Monokai</option>
                             </select>
                         </div>
                         <div class="col-6">
-                            <select name="font_size" class="form-select form-control-premium small">
+                            <select name="font_size" class="form-select form-control-premium lu-select small">
                                 <option value="14px" selected>Font Size: 14px</option>
                                 <option value="16px">Font Size: 16px</option>
                             </select>
                         </div>
                         <div class="col-6">
-                            <select name="auto_save" class="form-select form-control-premium small">
+                            <select name="auto_save" class="form-select form-control-premium lu-select small">
                                 <option value="1" selected>Auto Save: ON</option>
                                 <option value="0">Auto Save: OFF</option>
                             </select>
                         </div>
                         <div class="col-6">
-                            <select name="minimap" class="form-select form-control-premium small">
+                            <select name="minimap" class="form-select form-control-premium lu-select small">
                                 <option value="0" selected>Minimap: Hidden</option>
                                 <option value="1">Minimap: Visible</option>
                             </select>
@@ -632,7 +605,7 @@ services:
                 </div>
                 <div class="col-6 col-md-3">
                     <label class="form-label form-label-premium">14. จำกัดจำนวนสิทธิ์การรันแล็บ</label>
-                    <select name="max_attempts" class="form-select form-control-premium">
+                    <select name="max_attempts" class="form-select form-control-premium lu-select">
                         <option value="unlimited">ไม่จำกัดจำนวนครั้ง</option>
                         <option value="5" selected>จำกัดสูงสุด 5 ครั้งต่อคน</option>
                     </select>
