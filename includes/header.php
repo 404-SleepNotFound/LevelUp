@@ -5,10 +5,9 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // 🛠️ [FIX] ระบบ Auto-Detect $ROOT_PATH 
-// ป้องกันบัค URL เบิ้ล (เช่น student/student/...) กรณีไฟล์ปัจจุบันลืมประกาศตัวแปร
 if (!isset($ROOT_PATH) || $ROOT_PATH === '') {
     $current_folder = basename(dirname($_SERVER['SCRIPT_NAME']));
-    $sub_folders = ['student', 'admin', 'auth', 'ai', 'config']; // รายชื่อโฟลเดอร์ย่อยในระบบ
+    $sub_folders = ['student', 'admin', 'auth', 'ai', 'config'];
     
     if (in_array(strtolower($current_folder), $sub_folders)) {
         $ROOT_PATH = '../';
@@ -17,12 +16,12 @@ if (!isset($ROOT_PATH) || $ROOT_PATH === '') {
     }
 }
 
-// เช็คว่าล็อคอินอยู่หรือไม่ (รองรับทั้งแบบเก็บ user_login และ user_id)
+// เช็คว่าล็อคอินอยู่หรือไม่
 if (!isset($isLoggedIn)) {
     $isLoggedIn = (isset($_SESSION['user_login']) || isset($_SESSION['user_id']) || isset($_SESSION['id'])) ? true : false;
 }
 
-// 🔌 เรียกใช้ไฟล์เชื่อมต่อฐานข้อมูลอย่างปลอดภัย (รองรับทั้ง Root และ Subfolders)
+// 🔌 เรียกใช้ไฟล์เชื่อมต่อฐานข้อมูลอย่างปลอดภัย
 if (file_exists(__DIR__ . '/config/db.php')) {
     require_once __DIR__ . '/config/db.php';
 } elseif (file_exists(__DIR__ . '/../config/db.php')) {
@@ -38,40 +37,33 @@ if (!$isLoggedIn && !in_array($currentPage, $allowedPages)) {
     exit();
 }
 
-// 🔄 ระบบดึง ID ผู้ใช้อย่างรัดกุม ป้องกัน Type Error
+// 🔄 ระบบดึง ID ผู้ใช้อย่างรัดกุม
 $userId = null;
 $sessionData = [];
 
-// 1. ตรวจสอบว่ามีข้อมูลถูกเก็บไว้ใน user_login หรือไม่
 if (isset($_SESSION['user_login'])) {
     if (is_array($_SESSION['user_login'])) {
         $sessionData = $_SESSION['user_login'];
-        // ค้นหา ID จาก Array อย่างปลอดภัย
         $userId = $sessionData['id'] ?? $sessionData['user_id'] ?? null;
     } elseif (is_object($_SESSION['user_login'])) {
         $sessionData = (array) $_SESSION['user_login'];
         $userId = $sessionData['id'] ?? $sessionData['user_id'] ?? null;
     } elseif (is_scalar($_SESSION['user_login'])) {
-        // ถ้าระบบของคุณเซ็ตค่า id เข้าไปใน user_login ตรงๆ (เช่น = 18)
         $userId = $_SESSION['user_login'];
     }
 }
 
-// 2. ถ้ายังไม่ได้ ID ให้ค้นหาจาก Session Root ตัวยอดฮิตเผื่อไว้
 if (empty($userId)) {
     $userId = $_SESSION['user_id'] ?? $_SESSION['id'] ?? null;
 }
 
-// 3. กรองข้อมูล ID
 if (!empty($userId)) {
-    // รองรับทั้งตัวเลข Google ID แบบยาวๆ และ Email
     $userId = trim((string)$userId);
 }
 
 $dbUser = null;
 if (!empty($userId) && isset($conn)) {
     try {
-        // ดึงข้อมูลจากฐานข้อมูลตาม ID อย่างปลอดภัย
         $stmtUser = $conn->prepare("
             SELECT u.*, su.level, su.exp 
             FROM `users` u 
@@ -90,7 +82,6 @@ if (!empty($userId) && isset($conn)) {
     }
 }
 
-// แมปข้อมูลให้ตรงกับคอลัมน์จริงในตาราง users และ status_users (มี Fallback ครบถ้วน)
 $navUser = [
     'user_id'   => $dbUser['id'] ?? ($userId ?? 'N'),
     'username'  => $dbUser['name'] ?? ($sessionData['name'] ?? ($_SESSION['name'] ?? 'Player One')),
@@ -108,26 +99,19 @@ $navUser = [
     'exp'       => $dbUser['exp'] ?? ($sessionData['exp'] ?? ($_SESSION['user_exp'] ?? '0'))
 ];
 
-// ดึงข้อมูล Category และ Course อย่างปลอดภัย
+// ดึงข้อมูล Category และ Course
 $category_data = [];
 $course_data = [];
 $course_details = [];
 
 if (isset($conn)) {
     try {
-        // 1. หมวดหมู่
         $stmtCat = $conn->query("SELECT * FROM `category`");
-        if ($stmtCat) {
-            $category_data = $stmtCat->fetchAll(PDO::FETCH_ASSOC);
-        }
+        if ($stmtCat) $category_data = $stmtCat->fetchAll(PDO::FETCH_ASSOC);
 
-        // 2. คอร์สทั้งหมด
         $stmtCourse = $conn->query("SELECT * FROM `course`");
-        if ($stmtCourse) {
-            $course_data = $stmtCourse->fetchAll(PDO::FETCH_ASSOC);
-        }
+        if ($stmtCourse) $course_data = $stmtCourse->fetchAll(PDO::FETCH_ASSOC);
 
-        // 3. รายละเอียดคอร์สรวมหมวดหมู่
         $stmtDetails = $conn->query("
             SELECT c.*,
                    c.id AS course_id,
@@ -138,15 +122,12 @@ if (isset($conn)) {
             FROM `course` c 
             INNER JOIN `category` cat ON cat.id = c.category_id
         ");
-        if ($stmtDetails) {
-            $course_details = $stmtDetails->fetchAll(PDO::FETCH_ASSOC);
-        }
+        if ($stmtDetails) $course_details = $stmtDetails->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
         error_log("PDO Error in header.php (Data Fetch): " . $e->getMessage());
     }
 }
 
-// ตรวจสอบว่าเป็นการเรียกผ่าน AJAX (jQuery) หรือไม่
 $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
 
 if (!$isAjax):
@@ -160,7 +141,7 @@ if (!$isAjax):
         <meta name="color-scheme" content="dark light">
         <meta name="theme-color" content="#0b0f19" id="meta-theme-color">
 
-        <!-- 🚀 1. CRITICAL CSS: CSS Variables กำหนดสีหลักของเว็บ -->
+        <!-- 🚀 1. CRITICAL CSS Variables -->
         <style>
             :root,
             html[data-theme="dark"] {
@@ -209,7 +190,6 @@ if (!$isAjax):
                 min-height: 100vh;
             }
 
-            /* สไตล์สำหรับรองรับ Card ในหน้า Dashboard/หน้าอื่นๆ ให้เปลี่ยนสีตาม Light Mode */
             html[data-theme="light"] .card,
             html[data-theme="light"] .bg-dark-card,
             html[data-theme="light"] .dashboard-card {
@@ -219,7 +199,7 @@ if (!$isAjax):
             }
         </style>
 
-        <!-- 🚀 2. CRITICAL JS: อ่าน LocalStorage และเปลี่ยน Theme ก่อน Render DOM -->
+        <!-- 🚀 2. CRITICAL JS Theme Init -->
         <script>
             (function() {
                 try {
@@ -243,6 +223,7 @@ if (!$isAjax):
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
         <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/custom-scrollbar.css?v=1.0">
         <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css?v=1.0">
+        <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/header.css?v=1.0">
 
         <!-- 🎨 4. COMPONENT CSS RULES -->
         <style>
@@ -498,6 +479,7 @@ if (!$isAjax):
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script src="<?= $ROOT_PATH ?>js/levelup-sweetalert.js?v=1.0"></script>
+        <script src="<?= $ROOT_PATH ?>js/header.js?v=1.0" defer></script>
 
         <!-- 🚀 เรียกใช้งาน Rocket Cursor -->
         <?php 
@@ -541,12 +523,17 @@ if (!$isAjax):
                 <div class="collapse navbar-collapse" id="luMainNav">
 
                     <?php if ($isLoggedIn): ?>
-                        <!-- ช่องค้นหา -->
-                        <form class="mx-lg-2 d-flex flex-grow-1 lu-search-form" action="<?= $ROOT_PATH ?>student/courses.php" method="GET" id="ajax-search-form">
+                        <!-- ช่องค้นหา Autocomplete -->
+                        <form class="mx-lg-2 d-flex flex-grow-1 lu-search-form position-relative" action="<?= $ROOT_PATH ?>student/courses.php" method="GET" id="ajax-search-form">
                             <div class="position-relative w-100">
                                 <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 lu-search-icon" style="left: 0; z-index: 10;"></i>
-                                <input type="text" name="search" class="form-control rounded-pill lu-search-input" placeholder="ค้นหา Quests, สกิล..." style="padding-left: 2.5rem; padding-right: 4.5rem;">
+                                <input type="text" id="globalSearchInput" name="search" class="form-control rounded-pill lu-search-input" placeholder="ค้นหา Quests, สกิล..." autocomplete="off" style="padding-left: 2.5rem; padding-right: 4.5rem;">
                                 <span class="position-absolute top-50 translate-middle-y me-2 border rounded px-2 py-1 lu-search-icon d-none d-xl-block" style="right: 0; font-size: 0.75rem; z-index: 10; border-color: var(--nav-input-border) !important;">Ctrl K</span>
+                            </div>
+
+                            <!-- Panel แสดงผลลัพธ์การค้นหา -->
+                            <div id="searchAutocompletePanel" class="dropdown-menu user-dropdown-menu lu-autocomplete-panel d-none p-2 shadow-lg">
+                                <div id="searchAutocompleteContent"></div>
                             </div>
                         </form>
 
@@ -576,7 +563,18 @@ if (!$isAjax):
                         </div>
 
                         <?php if ($isLoggedIn): ?>
-                            <a href="<?= $ROOT_PATH ?>admin/notifications.php" class="nav-icon-link fs-5 position-relative ajax-link d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;"><i class="bi bi-bell"></i></a>
+                            <!-- Dropdown การแจ้งเตือน -->
+                            <div class="dropdown">
+                                <button class="btn btn-link nav-icon-link fs-5 p-0 border-0 position-relative text-decoration-none d-flex align-items-center justify-content-center" id="notifButton" data-bs-toggle="dropdown" aria-expanded="false" style="width: 36px; height: 36px;">
+                                    <i class="bi bi-bell"></i>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end user-dropdown-menu shadow-lg p-0 mt-2" style="width: 300px; max-height: 400px; overflow-y: auto;" aria-labelledby="notifButton">
+                                    <div class="p-3 border-bottom border-color fw-bold text-main fs-sm">การแจ้งเตือน</div>
+                                    <div id="notifList" class="list-group list-group-flush">
+                                        <div class="p-3 text-center text-muted fs-xs">กำลังโหลดการแจ้งเตือน...</div>
+                                    </div>
+                                </div>
+                            </div>
 
                             <div class="d-none d-sm-flex align-items-center">
                                 <a href="<?= $ROOT_PATH ?>student/skill-map.php" class="text-decoration-none ajax-link">
@@ -627,7 +625,7 @@ if (!$isAjax):
             </div>
         </nav>
 
-        <!-- 🛠️ JavaScript ควบคุมการกดสลับโหมด Dark/Light และปรับตำแหน่ง Dropdown -->
+        <!-- 🛠️ JavaScript ควบคุมการกดสลับโหมด Dark/Light และปรับตำแหน่ง Dropdown (แก้ไขจุดบัคเรียบร้อย) -->
         <script>
             $(document).ready(function() {
                 function applyThemeUI(theme) {
@@ -659,11 +657,24 @@ if (!$isAjax):
                     }, 300);
                 });
 
+                // 🛠️ [FIXED] ฟังก์ชันคำนวณตำแหน่ง Dropdown ป้องกันบัคหลุดจอบนมือถือ
                 function positionDropdownMenu($dropdown) {
                     const $menu = $dropdown.find('.dropdown-menu').first();
                     const $trigger = $dropdown.find('[data-bs-toggle="dropdown"]').first();
 
-                    if (!$menu.length || !$trigger.length) {
+                    if (!$menu.length || !$trigger.length) return;
+
+                    // ถ้าเป็นหน้าจอมือถือ (กว้างน้อยกว่า 992px) ให้ยกเลิก Inline Style เพื่อใช้ CSS Responsive ตามปกติ
+                    if (window.innerWidth < 992) {
+                        $menu.css({
+                            position: '',
+                            top: '',
+                            left: '',
+                            right: '',
+                            transform: '',
+                            maxHeight: '',
+                            width: ''
+                        });
                         return;
                     }
 
@@ -672,8 +683,6 @@ if (!$isAjax):
                     const viewportWidth = window.innerWidth;
                     const viewportHeight = window.innerHeight;
 
-                    // If the trigger has scrolled completely out of view, close the
-                    // dropdown instead of letting the menu float disconnected from it.
                     if (rect.bottom < 0 || rect.top > viewportHeight) {
                         const instance = window.bootstrap && window.bootstrap.Dropdown
                             ? window.bootstrap.Dropdown.getInstance(triggerEl)
@@ -687,7 +696,7 @@ if (!$isAjax):
                         return;
                     }
 
-                    const menuWidth = Math.min($menu.outerWidth(), viewportWidth - 24);
+                    const menuWidth = Math.min($menu.outerWidth() || 220, viewportWidth - 24);
                     const isEndAligned = $menu.hasClass('dropdown-menu-end');
 
                     let left = rect.left + (rect.width / 2) - (menuWidth / 2);
@@ -705,7 +714,7 @@ if (!$isAjax):
                         left: left + 'px',
                         right: 'auto',
                         transform: 'none',
-                        maxHeight: '320px',
+                        maxHeight: '380px',
                         width: menuWidth + 'px'
                     });
                 }
@@ -722,17 +731,9 @@ if (!$isAjax):
 
                 $(window).on('resize orientationchange', repositionOpenDropdowns);
 
-                // Keep open dropdown menus glued to their trigger while the page
-                // scrolls (menus are position:fixed, so without this they'd stay
-                // put in the viewport instead of following the button). Scroll
-                // fires very frequently, so the work is throttled to one
-                // reposition per animation frame, and the listener is passive
-                // since it never calls preventDefault().
                 let dropdownScrollRafId = null;
                 window.addEventListener('scroll', function() {
-                    if (dropdownScrollRafId !== null) {
-                        return;
-                    }
+                    if (dropdownScrollRafId !== null) return;
                     dropdownScrollRafId = window.requestAnimationFrame(function() {
                         repositionOpenDropdowns();
                         dropdownScrollRafId = null;
