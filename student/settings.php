@@ -26,6 +26,22 @@ if (empty($user_data['id'])) {
     $user_data['bio']       = $user_data['bio'] ?? '';
 }
 
+// 🐞 DEBUG ชั่วคราว: เปิดดูได้ด้วยการเข้า settings.php?debug=1
+// (ลบโค้ดช่วงนี้ออกทีหลังเมื่อแก้ปัญหาเสร็จ เพื่อไม่ให้ session/DB ข้อมูลรั่วไหลสู่สาธารณะ)
+if (isset($_GET['debug'])) {
+    echo '<pre style="background:#111;color:#0f0;padding:20px;white-space:pre-wrap;">';
+    echo "==== \$_SESSION ====\n";
+    print_r($_SESSION);
+    echo "\n==== \$dbUser (จาก header.php) ====\n";
+    print_r($dbUser);
+    echo "\n==== \$user_data (หลัง fallback) ====\n";
+    print_r($user_data);
+    echo "\n==== isset(\$conn)? ====\n";
+    var_dump(isset($conn));
+    echo '</pre>';
+    exit;
+}
+
 // ?? เตรียม Script และ Style ทั้งหมดเพื่อยัดเข้าไปใน <head>
 $head_injection = <<<'EOT'
 <!-- สคริปต์บังคับโหลดธีมสีดำ (Dark Mode) และป้องกัน White Flash 100% -->
