@@ -1,8 +1,5 @@
 /* =========================================
-   LevelUp Frontend - header.js (Fixed & Optimized)
-   Handles: Global Search Autocomplete (with Ctrl+K shortcut),
-   dynamic panel positioning, and AJAX Notifications lazy loading.
-   Fully theme-agnostic (supports Light & Dark modes).
+   LevelUp Frontend - header.js (Fixed & Optimized 100%)
    ========================================= */
 'use strict';
 
@@ -19,28 +16,27 @@ function initGlobalSearchHeader() {
     const autocompletePanel = document.getElementById('searchAutocompletePanel');
     const searchContent = document.getElementById('searchAutocompleteContent');
 
-    // Guard Clause: ถ้าหน้านี้ไม่มีองค์ประกอบ Search ให้ข้ามการทำงาน
     if (!searchInput || !autocompletePanel || !searchContent) return;
 
     let searchTimeout;
 
-    // คำนวณตำแหน่งของ Autocomplete Panel ให้แสดงผลถูกต้องทั้ง Desktop และ Mobile
+    // คำนวณตำแหน่ง Autocomplete Panel ให้แม่นยำ
     const positionPanel = () => {
         const rect = searchInput.getBoundingClientRect();
-        autocompletePanel.style.top = `${rect.bottom + 8}px`;
+        autocompletePanel.style.top = `${rect.bottom + window.scrollY + 8}px`;
 
         if (window.innerWidth < 992) {
-            autocompletePanel.style.left = '50%';
-            autocompletePanel.style.transform = 'translateX(-50%)';
-            autocompletePanel.style.width = '92vw';
+            autocompletePanel.style.left = '5%';
+            autocompletePanel.style.width = '90vw';
+            autocompletePanel.style.transform = 'none';
         } else {
-            autocompletePanel.style.left = `${rect.left}px`;
-            autocompletePanel.style.width = `${Math.max(rect.width, 360)}px`;
+            autocompletePanel.style.left = `${rect.left + window.scrollX}px`;
+            autocompletePanel.style.width = `${Math.max(rect.width, 320)}px`;
             autocompletePanel.style.transform = 'none';
         }
     };
 
-    // คีย์ลัด Ctrl + K / Cmd + K เพื่อ Focus ช่องค้นหา & Esc เพื่อปิด Panel
+    // คีย์ลัด Ctrl + K / Cmd + K เพื่อ Focus ช่องค้นหา & Esc เพื่อปิด
     document.addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
             e.preventDefault();
@@ -80,9 +76,8 @@ function initGlobalSearchHeader() {
 
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
-            const safeQuery = escapeHtml(query); // ป้องกัน XSS Injection
+            const safeQuery = escapeHtml(query);
 
-            // Mockup ผลลัพธ์จากการค้นหา (ปรับ Class ให้รองรับทั้ง Light และ Dark Theme)
             const mockHTML = `
                 <a href="#" class="d-flex align-items-center gap-3 mb-1 text-decoration-none lu-dropdown-item p-2 rounded">
                     <div class="bg-primary bg-opacity-10 text-primary rounded p-2 flex-shrink-0 d-flex align-items-center justify-content-center" style="width:36px; height:36px;">
@@ -104,28 +99,21 @@ function initGlobalSearchHeader() {
                 </a>
             `;
             searchContent.innerHTML = mockHTML;
-        }, 350); // Debounce 350ms
+        }, 300);
     });
 
-    // ซ่อน Panel เมื่อคลิกพื้นที่อื่นภายนอก
+    // ซ่อน Panel เมื่อคลิกภายนอก
     document.addEventListener('click', (e) => {
         if (!searchInput.contains(e.target) && !autocompletePanel.contains(e.target)) {
             autocompletePanel.classList.add('d-none');
         }
     });
 
-    // คำนวณตำแหน่งใหม่เมื่อ Resize หรือ Scroll
     window.addEventListener('resize', () => {
         if (!autocompletePanel.classList.contains('d-none')) {
             positionPanel();
         }
     });
-
-    window.addEventListener('scroll', () => {
-        if (!autocompletePanel.classList.contains('d-none')) {
-            positionPanel();
-        }
-    }, { passive: true });
 }
 
 /* =========================================
@@ -136,12 +124,10 @@ function initNotificationsHeader() {
     const notifList = document.getElementById('notifList');
     let notifLoaded = false;
 
-    // Guard Clause
     if (!notifButton || !notifList) return;
 
     notifButton.addEventListener('show.bs.dropdown', () => {
         if (!notifLoaded) {
-            // จำลองการดึงข้อมูลการแจ้งเตือนจาก AJAX
             setTimeout(() => {
                 notifList.innerHTML = `
                     <a href="#" class="list-group-item list-group-item-action bg-transparent border-bottom border-color p-3">
@@ -164,13 +150,13 @@ function initNotificationsHeader() {
                     </a>
                 `;
                 notifLoaded = true;
-            }, 400);
+            }, 300);
         }
     });
 }
 
 /**
- * Helper: Escapes HTML characters to prevent XSS Attacks
+ * Helper: ป้องกัน XSS Injection
  */
 function escapeHtml(str) {
     return str.replace(/[&<>"']/g, function(m) {
