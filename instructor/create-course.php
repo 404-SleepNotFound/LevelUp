@@ -81,31 +81,6 @@ if (isset($conn)) {
 
 <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css">
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-require_once '../config/db.php';
-
-$user_id = $_SESSION['user_login']['user_id'] ?? ($_SESSION['user_id'] ?? 0);
-
-// ดึงข้อมูล Category ด้วย PDO
-$category_data = [];
-if (isset($conn)) {
-    try {
-        $sql = "SELECT * FROM `category` ORDER BY `id` ASC";
-        $result = $conn->query($sql);
-        if ($result) {
-            $category_data = $result->fetchAll(PDO::FETCH_ASSOC);
-        }
-    } catch (PDOException $e) {
-        error_log("DB Error: " . $e->getMessage());
-    }
-}
-?>
-
-<link rel="stylesheet" href="../css/dropdown-select.css">
-
 <style>
     /* Safe Container Styles */
     body, .create-course-wrapper {
