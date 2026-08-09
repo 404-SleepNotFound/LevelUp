@@ -281,13 +281,13 @@ if (!$isAjax):
                 white-space: nowrap !important;
             }
 
-            /* 🛠️ FIX 1: ปรับแต่ง Dropdown ให้มีขนาดเหมาะสม ไม่ถูกบีบ */
+            /* Dropdown Styling */
             .user-dropdown-menu {
                 background-color: var(--nav-dropdown-bg) !important;
                 border: 1px solid var(--nav-dropdown-border) !important;
                 box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4) !important;
                 z-index: 1060 !important;
-                min-width: 200px !important; /* กำหนดความกว้างขั้นต่ำ */
+                min-width: 200px !important;
                 width: auto !important;
             }
 
@@ -296,7 +296,7 @@ if (!$isAjax):
                 font-weight: 500;
                 padding: 0.6rem 1rem;
                 transition: all 0.15s ease;
-                white-space: nowrap !important; /* ป้องกันข้อความขึ้นบรรทัดใหม่ */
+                white-space: nowrap !important;
             }
 
             .user-dropdown-menu .dropdown-item i {
@@ -323,7 +323,6 @@ if (!$isAjax):
                 color: #f87171 !important;
             }
 
-            /* 🛠️ FIX 2: แก้ไขปัญหาตัวอักษรตั้งฉาก/ตกบรรทัดในส่วนชื่อผู้ใช้ */
             .profile-name-wrap {
                 white-space: nowrap !important;
                 word-break: normal !important;
@@ -432,6 +431,7 @@ if (!$isAjax):
                 }
             }
 
+            /* SweetAlert2 Styling */
             html[data-theme="dark"] .swal2-popup,
             html[data-theme="dark"] .levelup-swal-popup,
             html[data-theme="dark"] .swal2-border-custom {
@@ -665,7 +665,6 @@ if (!$isAjax):
                     }, 300);
                 });
 
-                // 🛠️ [FIXED] แก้ไขฟังก์ชันให้กว้างอัตโนมัติตามเนื้อหา ไม่ถูกบีบ
                 function positionDropdownMenu($dropdown) {
                     const $menu = $dropdown.find('.dropdown-menu').first();
                     const $trigger = $dropdown.find('[data-bs-toggle="dropdown"]').first();
@@ -695,7 +694,6 @@ if (!$isAjax):
                     const dropdownRect = $dropdown[0].getBoundingClientRect();
                     const viewportWidth = window.innerWidth;
                     
-                    // ให้ใช้ความกว้างตามคอนเทนต์ธรรมชาติ แต่ไม่แคบกว่า min-width
                     const contentWidth = Math.max($menu[0].scrollWidth || 0, 200);
                     const menuWidth = Math.min(contentWidth, viewportWidth - 24);
                     const isEndAligned = $menu.hasClass('dropdown-menu-end');
@@ -733,6 +731,6 @@ if (!$isAjax):
         </script>
 
         <main id="content-area">
-        <?php
-    endif;
-        ?>
+<?php
+endif;
+?>
