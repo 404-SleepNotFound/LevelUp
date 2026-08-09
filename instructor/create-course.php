@@ -85,7 +85,7 @@ if (isset($conn)) {
     /* Safe Container Styles */
     body, .create-course-wrapper {
         animation: fadeIn 0.3s ease-in-out;
-        color: var(--cc-text-main);
+        color: var(--cc-text-main, #f8fafc);
         background-color: var(--bg-dark-blend);
         border-radius: 12px;
     }
@@ -94,7 +94,7 @@ if (isset($conn)) {
     html[data-theme="light"] .create-course-wrapper h5.text-white,
     html[data-theme="light"] .create-course-wrapper .text-white:not(.btn),
     html[data-theme="light"] .modal .text-white:not(.btn) {
-        color: var(--cc-text-main) !important;
+        color: var(--cc-text-main, #f8fafc) !important;
     }
     
     html[data-theme="light"] .create-course-wrapper .text-info:not(.btn),
@@ -189,15 +189,15 @@ if (isset($conn)) {
         left: 0;
         right: 0;
         height: 2px;
-        background: var(--cc-box-border);
+        background: var(--cc-box-border, rgba(255,255,255,0.08));
         z-index: 1;
     }
 
     .step-node {
         position: relative;
         z-index: 2;
-        background: var(--cc-step-bg);
-        border: 2px solid var(--cc-step-border);
+        background: var(--cc-step-bg, rgba(15,23,42,0.6));
+        border: 2px solid var(--cc-step-border, rgba(255,255,255,0.12));
         border-radius: 50%;
         width: 42px;
         height: 42px;
@@ -205,7 +205,7 @@ if (isset($conn)) {
         align-items: center;
         justify-content: center;
         font-weight: bold;
-        color: var(--cc-text-muted);
+        color: var(--cc-text-muted, #94a3b8);
         cursor: pointer;
         transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
     }
@@ -225,16 +225,16 @@ if (isset($conn)) {
 
     .step-label {
         font-size: 0.8rem;
-        color: var(--cc-text-muted);
+        color: var(--cc-text-muted, #94a3b8);
         text-align: center;
         margin-top: 6px;
         font-weight: 500;
     }
 
     .form-dark-input {
-        background: var(--cc-input-bg) !important;
-        border: 1px solid var(--cc-input-border) !important;
-        color: var(--cc-input-text) !important;
+        background: var(--cc-input-bg, rgba(15,23,42,0.6)) !important;
+        border: 1px solid var(--cc-input-border, rgba(255,255,255,0.12)) !important;
+        color: var(--cc-input-text, #f8fafc) !important;
         border-radius: 10px !important;
         padding: 12px 16px !important;
         transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
@@ -247,7 +247,7 @@ if (isset($conn)) {
     }
 
     .form-dark-input::placeholder {
-        color: var(--cc-input-ph) !important;
+        color: var(--cc-input-ph, rgba(148,163,184,0.6)) !important;
         opacity: 1;
     }
 
@@ -263,7 +263,7 @@ if (isset($conn)) {
 
     .form-label-custom {
         font-size: 0.9rem;
-        color: var(--cc-text-label) !important;
+        color: var(--cc-text-label, #cbd5e1) !important;
         font-weight: 500;
         margin-bottom: 6px;
         transition: color 0.3s ease;
@@ -306,9 +306,9 @@ if (isset($conn)) {
     }
 
     .image-preview-box {
-        border: 2px dashed var(--cc-box-border);
+        border: 2px dashed var(--cc-box-border, rgba(255,255,255,0.08));
         border-radius: 16px;
-        background: var(--cc-preview-bg);
+        background: var(--cc-preview-bg, rgba(15,23,42,0.4));
         min-height: 180px;
         display: flex;
         flex-direction: column;
@@ -331,13 +331,13 @@ if (isset($conn)) {
     }
 
     .image-preview-box span {
-        color: var(--cc-text-main) !important;
+        color: var(--cc-text-main, #f8fafc) !important;
         font-weight: 500;
     }
 
     .template-card {
-        background: var(--cc-template-bg);
-        border: 1px solid var(--cc-box-border);
+        background: var(--cc-template-bg, rgba(15,23,42,0.5));
+        border: 1px solid var(--cc-box-border, rgba(255,255,255,0.08));
         border-radius: 12px;
         padding: 18px;
         cursor: pointer;
@@ -350,11 +350,11 @@ if (isset($conn)) {
     }
 
     .template-card .text-desc {
-        color: var(--cc-text-muted) !important;
+        color: var(--cc-text-muted, #94a3b8) !important;
     }
 
     .checkbox-text-container {
-        color: var(--cc-text-label) !important;
+        color: var(--cc-text-label, #cbd5e1) !important;
         font-size: 0.9rem;
     }
 
@@ -364,30 +364,30 @@ if (isset($conn)) {
     }
 
     .cc-modal-bg {
-        background-color: var(--cc-modal-bg) !important;
-        border: 1px solid var(--cc-box-border);
+        background-color: var(--cc-modal-bg, #0f172a) !important;
+        border: 1px solid var(--cc-box-border, rgba(255,255,255,0.08));
     }
     
     .cc-inner-box {
-        background-color: var(--cc-step-bg) !important;
-        border: 1px solid var(--cc-box-border);
+        background-color: var(--cc-step-bg, rgba(15,23,42,0.6)) !important;
+        border: 1px solid var(--cc-box-border, rgba(255,255,255,0.08));
     }
     
     .cc-preview-box {
-        background-color: var(--cc-preview-bg);
-        color: var(--cc-text-main);
+        background-color: var(--cc-preview-bg, rgba(15,23,42,0.4));
+        color: var(--cc-text-main, #f8fafc);
     }
 
     .btn-cc-outline {
-        border: 1px solid var(--cc-box-border);
-        color: var(--cc-text-main) !important;
+        border: 1px solid var(--cc-box-border, rgba(255,255,255,0.08));
+        color: var(--cc-text-main, #f8fafc) !important;
         background: transparent;
         transition: background-color 0.3s ease, border-color 0.3s ease;
         border-radius: 8px;
     }
     
     .btn-cc-outline:hover {
-        background: var(--cc-step-bg);
+        background: var(--cc-step-bg, rgba(15,23,42,0.6));
         border-color: #06b6d4;
     }
 
@@ -449,7 +449,7 @@ if (isset($conn)) {
 
         <!-- STEP 1: ข้อมูลพื้นฐาน -->
         <div class="course-step-section" id="step-section-1">
-            <div class="p-4 rounded-4 mb-4" style="background: var(--card-bg-premium); border: 1px solid var(--cc-box-border);">
+            <div class="p-4 rounded-4 mb-4" style="background: var(--card-bg-premium); border: 1px solid var(--cc-box-border, rgba(255,255,255,0.08));">
                 <h5 class="fw-bold text-white mb-3"><i class="bi bi-info-circle text-info me-2"></i> 1. ข้อมูลพื้นฐานของคอร์ส</h5>
 
                 <div class="row g-3">
@@ -496,7 +496,7 @@ if (isset($conn)) {
 
         <!-- STEP 2: รูปภาพ สื่อ หมวดหมู่ และความยาก -->
         <div class="course-step-section d-none" id="step-section-2">
-            <div class="p-4 rounded-4 mb-4" style="background: var(--card-bg-premium); border: 1px solid var(--cc-box-border);">
+            <div class="p-4 rounded-4 mb-4" style="background: var(--card-bg-premium); border: 1px solid var(--cc-box-border, rgba(255,255,255,0.08));">
                 <div class="row g-4">
                     <!-- สื่อแนะนำคอร์ส -->
                     <div class="col-12 col-md-6">
@@ -592,7 +592,7 @@ if (isset($conn)) {
 
         <!-- STEP 3: เป้าหมายการเรียน + Prerequisites + Career Path -->
         <div class="course-step-section d-none" id="step-section-3">
-            <div class="p-4 rounded-4 mb-4" style="background: var(--card-bg-premium); border: 1px solid var(--cc-box-border);">
+            <div class="p-4 rounded-4 mb-4" style="background: var(--card-bg-premium); border: 1px solid var(--cc-box-border, rgba(255,255,255,0.08));">
                 <div class="row g-4">
                     <div class="col-12 col-md-6">
                         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -615,7 +615,7 @@ if (isset($conn)) {
                     </div>
 
                     <div class="col-12">
-                        <hr style="border-color: var(--cc-box-border);">
+                        <hr style="border-color: var(--cc-box-border, rgba(255,255,255,0.08));">
                         <div class="row g-3">
                             <!-- Dropdown 4: กลุ่มเป้าหมาย -->
                             <div class="col-12 col-md-6">
@@ -647,7 +647,7 @@ if (isset($conn)) {
 
         <!-- STEP 4: การตั้งค่าระบบ / ราคา / ใบประกาศ / SEO -->
         <div class="course-step-section d-none" id="step-section-4">
-            <div class="p-4 rounded-4 mb-4" style="background: var(--card-bg-premium); border: 1px solid var(--cc-box-border);">
+            <div class="p-4 rounded-4 mb-4" style="background: var(--card-bg-premium); border: 1px solid var(--cc-box-border, rgba(255,255,255,0.08));">
                 
                 <h5 class="fw-bold text-white mb-3"><i class="bi bi-cash-stack text-info me-2"></i> ประเภทคอร์ส การตั้งค่าราคา และระบบ</h5>
                 
@@ -767,7 +767,7 @@ if (isset($conn)) {
 <div class="modal fade" id="aiBlueprintModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content text-white cc-modal-bg rounded-4">
-            <div class="modal-header p-3" style="border-bottom: 1px solid var(--cc-box-border);">
+            <div class="modal-header p-3" style="border-bottom: 1px solid var(--cc-box-border, rgba(255,255,255,0.08));">
                 <h5 class="modal-title fw-bold text-purple"><i class="bi bi-stars"></i> AI Course Blueprint Assistant</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -793,7 +793,7 @@ if (isset($conn)) {
 <div class="modal fade" id="templateModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-md">
         <div class="modal-content text-white cc-modal-bg rounded-4">
-            <div class="modal-header p-3" style="border-bottom: 1px solid var(--cc-box-border);">
+            <div class="modal-header p-3" style="border-bottom: 1px solid var(--cc-box-border, rgba(255,255,255,0.08));">
                 <h5 class="modal-title fw-bold text-white"><i class="bi bi-journal-album text-info"></i> คลังเทมเพลตสำหรับเริ่มสร้างคอร์ส</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
