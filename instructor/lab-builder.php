@@ -78,6 +78,9 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         margin-bottom: 20px;
         backdrop-filter: blur(10px);
         transition: background-color 0.3s ease, border-color 0.3s ease;
+        /* Fix Dropdown Menu Clipping */
+        overflow: visible !important;
+        position: relative;
     }
     @media (min-width: 768px) {
         .lab-section-card {
@@ -165,6 +168,8 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         border: 1px solid var(--lab-sub-box-border);
         border-radius: 8px;
         padding: 12px;
+        overflow: visible !important;
+        position: relative;
     }
 
     .btn-purple {
@@ -243,6 +248,30 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         background-color: var(--lab-modal-bg);
         color: var(--lab-title-color);
         border: 1px solid var(--lab-sub-box-border);
+    }
+
+    /* Custom Dropdown Overrides for lu-dropdown */
+    .lu-select-wrapper, 
+    .lu-dropdown,
+    .dropdown {
+        position: relative;
+        z-index: 10;
+    }
+    
+    .lu-select-wrapper.open, 
+    .lu-select-wrapper:focus-within,
+    .lu-dropdown.open,
+    .dropdown.show {
+        z-index: 1050 !important;
+    }
+
+    .lu-select-options,
+    .lu-dropdown-menu,
+    .dropdown-menu {
+        z-index: 1060 !important;
+        max-height: 260px;
+        overflow-y: auto;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
     }
 
     /* Terminal Cursor Animation */
@@ -806,6 +835,19 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
+
+    // Dynamic z-index controller for dropdown elements
+    document.addEventListener('click', function(e) {
+        const targetWrapper = e.target.closest('.lu-select-wrapper, .lu-dropdown, .dropdown');
+        document.querySelectorAll('.lu-select-wrapper, .lu-dropdown, .dropdown').forEach(el => {
+            if (el !== targetWrapper) {
+                el.style.zIndex = '10';
+            }
+        });
+        if (targetWrapper) {
+            targetWrapper.style.zIndex = '1050';
+        }
+    });
 
     // Submit Form Handler
     document.getElementById('labMasterForm').addEventListener('submit', function(e) {
