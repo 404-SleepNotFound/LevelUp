@@ -1,5 +1,86 @@
 <?php
-$ROOT_PATH = '../';
+// ระบบ Session และเช็คสถานะการเข้าสู่ระบบ
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// 🛠️ [FIX] ระบบ Auto-Detect $ROOT_PATH 
+if (!isset($ROOT_PATH) || $ROOT_PATH === '') {
+    $current_folder = basename(dirname($_SERVER['SCRIPT_NAME']));
+    $sub_folders = ['student', 'admin', 'auth', 'ai', 'config', 'instructor'];
+    
+    if (in_array(strtolower($current_folder), $sub_folders)) {
+        $ROOT_PATH = '../';
+    } else {
+        $ROOT_PATH = './';
+    }
+}
+
+// เช็คว่าล็อคอินอยู่หรือไม่
+if (!isset($isLoggedIn)) {
+    $isLoggedIn = (isset($_SESSION['user_login']) || isset($_SESSION['user_id']) || isset($_SESSION['id'])) ? true : false;
+}
+
+// 🔌 เรียกใช้ไฟล์เชื่อมต่อฐานข้อมูลอย่างปลอดภัย
+if (file_exists(__DIR__ . '/config/db.php')) {
+    require_once __DIR__ . '/config/db.php';
+} elseif (file_exists(__DIR__ . '/../config/db.php')) {
+    require_once __DIR__ . '/../config/db.php';
+}
+
+// 🔒 เพิ่มระบบป้องกันเปลี่ยน URL (Route Guard)
+$currentPage = basename($_SERVER['SCRIPT_NAME']);
+$allowedPages = ['index.php', 'login.php', 'register.php'];
+
+if (!$isLoggedIn && !in_array($currentPage, $allowedPages)) {
+    header("Location: " . $ROOT_PATH . "index.php");
+    exit();
+}
+
+// 🔄 ระบบดึง ID ผู้ใช้อย่างรัดกุม
+$userId = null;
+$sessionData = [];
+
+if (isset($_SESSION['user_login'])) {
+    if (is_array($_SESSION['user_login'])) {
+        $sessionData = $_SESSION['user_login'];
+        $userId = $sessionData['id'] ?? $sessionData['user_id'] ?? null;
+    } elseif (is_object($_SESSION['user_login'])) {
+        $sessionData = (array) $_SESSION['user_login'];
+        $userId = $sessionData['id'] ?? $sessionData['user_id'] ?? null;
+    } elseif (is_scalar($_SESSION['user_login'])) {
+        $userId = $_SESSION['user_login'];
+    }
+}
+
+if (empty($userId)) {
+    $userId = $_SESSION['user_id'] ?? $_SESSION['id'] ?? null;
+}
+
+if (!empty($userId)) {
+    $userId = trim((string)$userId);
+}
+
+// ตัวแปรย้อนกลับสำหรับใช้อ้างอิงในฟอร์มสร้างคอร์ส
+$user_id = $userId ?? 0;
+
+// ดึงข้อมูล Category ด้วย PDO
+$category_data = [];
+if (isset($conn)) {
+    try {
+        $sql = "SELECT * FROM `category` ORDER BY `id` ASC";
+        $result = $conn->query($sql);
+        if ($result) {
+            $category_data = $result->fetchAll(PDO::FETCH_ASSOC);
+        }
+    } catch (PDOException $e) {
+        error_log("DB Error: " . $e->getMessage());
+    }
+}
+?>
+
+<link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css">
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
