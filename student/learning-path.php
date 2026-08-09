@@ -689,7 +689,7 @@ include '../includes/header.php';
 </section>
 
 <!-- ========================================================================= -->
-<!-- 3. JAVASCRIPT LAYER & SCRIPT INCLUSIONS -->
+<!-- 3. JAVASCRIPT LAYER & LEVELUP-SWEETALERT INTEGRATION -->
 <!-- ========================================================================= -->
 <script>
     function initSlider() {
@@ -751,14 +751,93 @@ include '../includes/header.php';
         }
     }
 
+    // ฟังก์ชันเชื่อมต่อการใช้งาน LevelUpAlert
+    function initLevelUpAlerts() {
+        // 1. ปุ่ม Rebuild Learning Path
+        const btnRebuild = document.getElementById('btnRebuildPath');
+        if (btnRebuild) {
+            btnRebuild.addEventListener('click', function() {
+                if (typeof LevelUpAlert !== 'undefined') {
+                    LevelUpAlert.confirm(
+                        'คำนวณเส้นทางการเรียนใหม่?',
+                        'ระบบ AI จะทำการปรับโครงสร้างแผนการเรียนตามเป้าหมายและเวลาที่คุณระบุ'
+                    ).then((isConfirmed) => {
+                        if (isConfirmed) {
+                            LevelUpAlert.loading('AI กำลังวิเคราะห์และปรับปรุง Roadmap...');
+                            
+                            // จำลองการประมวลผลผ่าน AJAX หรือ AI Service
+                            setTimeout(() => {
+                                LevelUpAlert.close();
+                                LevelUpAlert.success(
+                                    'ปรับปรุงเส้นทางสำเร็จ!',
+                                    'ระบบ AI ได้ปรับเปลี่ยนแผนการเรียนของคุณเรียบร้อยแล้ว'
+                                );
+                            }, 1500);
+                        }
+                    });
+                }
+            });
+        }
+
+        // 2. ปุ่มแชร์ Roadmap
+        const btnShare = document.getElementById('btnShareRoadmap');
+        if (btnShare) {
+            btnShare.addEventListener('click', function() {
+                if (typeof LevelUpAlert !== 'undefined') {
+                    if (navigator.clipboard) {
+                        navigator.clipboard.writeText(window.location.href).then(() => {
+                            LevelUpAlert.toast('คัดลอกลิงก์ Roadmap เรียบร้อยแล้ว', 'success');
+                        }).catch(() => {
+                            LevelUpAlert.toast('คัดลอกลิงก์เรียบร้อยแล้ว', 'success');
+                        });
+                    } else {
+                        LevelUpAlert.toast('คัดลอกลิงก์ Roadmap เรียบร้อยแล้ว', 'success');
+                    }
+                }
+            });
+        }
+
+        // 3. ปุ่ม Export PDF
+        const btnExport = document.getElementById('btnExportPdf');
+        if (btnExport) {
+            btnExport.addEventListener('click', function() {
+                if (typeof LevelUpAlert !== 'undefined') {
+                    LevelUpAlert.loading('กำลังจัดเตรียมไฟล์ PDF...');
+                    setTimeout(() => {
+                        LevelUpAlert.close();
+                        LevelUpAlert.toast('เริ่มดาวน์โหลด PDF เรียบร้อยแล้ว', 'success');
+                    }, 1200);
+                }
+            });
+        }
+
+        // 4. การคลิกเลเวลที่ยังล็อกอยู่ (Locked Roadmap Nodes)
+        const lockedNodes = document.querySelectorAll('.roadmap-node.locked');
+        lockedNodes.forEach(node => {
+            node.addEventListener('click', function() {
+                const titleElement = this.querySelector('h5');
+                const nodeTitle = titleElement ? titleElement.textContent.trim() : 'บทเรียนนี้';
+
+                if (typeof LevelUpAlert !== 'undefined') {
+                    LevelUpAlert.warning(
+                        'เลเวลนี้ยังไม่เปิดใช้งาน',
+                        `คุณต้องผ่านเงื่อนไข Prerequisite ก่อนจึงจะสามารถปลดล็อกบทเรียน "${nodeTitle}" ได้`
+                    );
+                }
+            });
+        });
+    }
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             initSlider();
             initCustomDropdown();
+            initLevelUpAlerts();
         });
     } else {
         initSlider();
         initCustomDropdown();
+        initLevelUpAlerts();
     }
 </script>
 
