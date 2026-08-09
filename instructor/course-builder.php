@@ -92,8 +92,9 @@ if (!$current_user_id) {
 }
 ?>
 
-<!-- Import Dropdown Select Stylesheet -->
+<!-- Import Dropdown Select Stylesheet & Script -->
 <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css">
+<script src="<?= $ROOT_PATH ?>js/lu-dropdown.js" defer></script>
 
 <!-- SweetAlert2 Library & Handler -->
 <style>
@@ -245,7 +246,7 @@ if (!$current_user_id) {
                 <div class="d-flex align-items-center gap-2 flex-wrap">
                     <i class="bi bi-journal-bookmark-fill text-cyan fs-5"></i>
                     <label class="text-white fw-bold me-2">รายการคอร์สของคุณ:</label>
-                    <select class="form-select cb-input" style="min-width: 260px; width: auto;" onchange="location.href='?course_id=' + this.value">
+                    <select class="form-select cb-input lu-select" style="min-width: 260px; width: auto;" onchange="location.href='?course_id=' + this.value">
                         <?php foreach ($all_courses as $c): ?>
                             <option value="<?= $c['id'] ?>" <?= ($course && $course['id'] == $c['id']) ? 'selected' : '' ?>>
                                 [ID: <?= $c['id'] ?>] <?= htmlspecialchars($c['title']) ?>
@@ -591,7 +592,7 @@ if (!$current_user_id) {
             <div class="modal-body p-4">
                 <div class="mb-3">
                     <label class="form-label small text-white-50">ประเภทบทเรียน (Lesson Type)</label>
-                    <select class="form-select cb-input" id="modal-lesson-type" onchange="switchModalFormType(this.value)">
+                    <select class="form-select cb-input lu-select" id="modal-lesson-type" onchange="switchModalFormType(this.value)">
                         <option value="video">🎥 วิดีโอแนะนำหลัก (Video Content)</option>
                         <option value="slide">📊 สไลด์เอกสารและบทความ (Slide / PDF / Article)</option>
                         <option value="quiz">📝 แบบทดสอบประเมินผล (Quiz Management)</option>
@@ -620,7 +621,7 @@ if (!$current_user_id) {
                     <div class="row g-2">
                         <div class="col-12 col-sm-4">
                             <label class="small text-white-50">ประเภทข้อสอบ</label>
-                            <select class="form-select cb-input"><option>Quiz หลังเรียนจบชุด</option><option>Quiz ก่อนเรียนบทเรียน</option><option>Final Quiz</option></select>
+                            <select class="form-select cb-input lu-select"><option>Quiz หลังเรียนจบชุด</option><option>Quiz ก่อนเรียนบทเรียน</option><option>Final Quiz</option></select>
                         </div>
                         <div class="col-6 col-sm-4"><label class="small text-white-50">เกณฑ์คะแนนผ่าน (%)</label><input type="number" class="form-control cb-input" value="70"></div>
                         <div class="col-6 col-sm-4"><label class="small text-white-50">เวลาสอบ (นาที)</label><input type="number" class="form-control cb-input" value="15"></div>
@@ -632,7 +633,7 @@ if (!$current_user_id) {
                     <div class="row g-2">
                         <div class="col-6">
                             <label class="small text-white-50">ภาษาโปรแกรม</label>
-                            <select class="form-select cb-input"><option>JavaScript (Node.js)</option><option>Python 3.x</option><option>TypeScript</option><option>SQL</option></select>
+                            <select class="form-select cb-input lu-select"><option>JavaScript (Node.js)</option><option>Python 3.x</option><option>TypeScript</option><option>SQL</option></select>
                         </div>
                         <div class="col-3"><label class="small text-white-50">Time Limit (s)</label><input type="number" class="form-control cb-input" value="2"></div>
                         <div class="col-3"><label class="small text-white-50">Memory (MB)</label><input type="number" class="form-control cb-input" value="256"></div>
@@ -674,7 +675,7 @@ if (!$current_user_id) {
             <div class="modal-body p-4">
                 <div class="mb-3">
                     <label class="form-label small text-info fw-bold">Import โครงสร้าง</label>
-                    <select class="form-select cb-input mb-2"><option>JSON Structure</option><option>SCORM Package (.zip)</option></select>
+                    <select class="form-select cb-input lu-select mb-2"><option>JSON Structure</option><option>SCORM Package (.zip)</option></select>
                     <button class="btn btn-sm btn-outline-cyan text-white w-100" onclick="InstructorAlerts.toast('success', 'นำเข้าไฟล์โครงสร้างสำเร็จแล้ว')">นำเข้าไฟล์</button>
                 </div>
                 <hr style="border-color: rgba(255,255,255,0.15)">
