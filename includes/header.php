@@ -281,11 +281,14 @@ if (!$isAjax):
                 white-space: nowrap !important;
             }
 
+            /* 🛠️ FIX 1: ปรับแต่ง Dropdown ให้มีขนาดเหมาะสม ไม่ถูกบีบ */
             .user-dropdown-menu {
                 background-color: var(--nav-dropdown-bg) !important;
                 border: 1px solid var(--nav-dropdown-border) !important;
                 box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4) !important;
                 z-index: 1060 !important;
+                min-width: 200px !important; /* กำหนดความกว้างขั้นต่ำ */
+                width: auto !important;
             }
 
             .user-dropdown-menu .dropdown-item {
@@ -293,6 +296,7 @@ if (!$isAjax):
                 font-weight: 500;
                 padding: 0.6rem 1rem;
                 transition: all 0.15s ease;
+                white-space: nowrap !important; /* ป้องกันข้อความขึ้นบรรทัดใหม่ */
             }
 
             .user-dropdown-menu .dropdown-item i {
@@ -319,15 +323,18 @@ if (!$isAjax):
                 color: #f87171 !important;
             }
 
+            /* 🛠️ FIX 2: แก้ไขปัญหาตัวอักษรตั้งฉาก/ตกบรรทัดในส่วนชื่อผู้ใช้ */
             .profile-name-wrap {
-                white-space: normal !important;
-                word-wrap: break-word !important;
-                word-break: break-all !important;
+                white-space: nowrap !important;
+                word-break: normal !important;
+                overflow: hidden;
+                text-overflow: ellipsis;
                 line-height: 1.4;
                 color: var(--nav-text-muted) !important;
                 font-size: 0.85rem;
                 font-weight: 700;
                 padding: 0.5rem 1rem;
+                max-width: 220px;
             }
 
             .user-action-panel {
@@ -626,7 +633,7 @@ if (!$isAjax):
             </div>
         </nav>
 
-        <!-- 🛠️ JavaScript ควบคุมการกดสลับโหมด Dark/Light และปรับตำแหน่ง Dropdown (แก้ไขจุดบัคเรียบร้อย) -->
+        <!-- 🛠️ JavaScript ควบคุมการเปิด/ปิด และจัดตำแหน่ง Dropdown -->
         <script>
             $(document).ready(function() {
                 function applyThemeUI(theme) {
@@ -658,18 +665,13 @@ if (!$isAjax):
                     }, 300);
                 });
 
-                // 🛠️ [FIXED] ฟังก์ชันคำนวณตำแหน่ง Dropdown ป้องกันบัคหลุดจอบนมือถือ
-                //     (อัปเดต: ใช้ position:absolute อิงจาก .dropdown wrapper ผ่าน
-                //     CSS top:100% แทน position:fixed เดิม เพื่อให้เมนูเลื่อนไปพร้อม
-                //     กับปุ่ม trigger ตามธรรมชาติของ document flow ไม่ต้องมี JS
-                //     คอยจับ scroll event คำนวณตำแหน่งใหม่ทุกเฟรมอีกต่อไป)
+                // 🛠️ [FIXED] แก้ไขฟังก์ชันให้กว้างอัตโนมัติตามเนื้อหา ไม่ถูกบีบ
                 function positionDropdownMenu($dropdown) {
                     const $menu = $dropdown.find('.dropdown-menu').first();
                     const $trigger = $dropdown.find('[data-bs-toggle="dropdown"]').first();
 
                     if (!$menu.length || !$trigger.length) return;
 
-                    // ถ้าเป็นหน้าจอมือถือ (กว้างน้อยกว่า 992px) ให้ยกเลิก Inline Style เพื่อใช้ CSS Responsive ตามปกติ
                     if (window.innerWidth < 992) {
                         $menu.css({
                             position: '',
@@ -683,32 +685,28 @@ if (!$isAjax):
                         return;
                     }
 
-                    // position:absolute + top:100% (ตั้งไว้ใน dropdown-select.css) จะยึด
-                    // ตำแหน่งเมนูไว้ใต้ .dropdown wrapper ของปุ่มเองโดยอัตโนมัติ ทำให้เมนู
-                    // เลื่อนไปพร้อมกับปุ่มตอน scroll หน้าเพจได้เองโดยไม่ต้องพึ่ง JS เลย
                     $menu.css({
                         position: 'absolute',
-                        top: '',
+                        top: '100%',
                         transform: 'none'
                     });
 
                     const triggerRect = $trigger[0].getBoundingClientRect();
                     const dropdownRect = $dropdown[0].getBoundingClientRect();
                     const viewportWidth = window.innerWidth;
-                    const menuWidth = Math.min($menu.outerWidth() || 220, viewportWidth - 24);
+                    
+                    // ให้ใช้ความกว้างตามคอนเทนต์ธรรมชาติ แต่ไม่แคบกว่า min-width
+                    const contentWidth = Math.max($menu[0].scrollWidth || 0, 200);
+                    const menuWidth = Math.min(contentWidth, viewportWidth - 24);
                     const isEndAligned = $menu.hasClass('dropdown-menu-end');
 
-                    // left/right คำนวณเทียบกับ .dropdown wrapper (containing block ของเมนู
-                    // ภายใต้ position:absolute) แล้ว clamp ไม่ให้ล้นขอบซ้าย/ขวาของจอ
-                    let left = (triggerRect.width / 2) - (menuWidth / 2);
+                    let left = 0;
                     if (isEndAligned) {
                         left = triggerRect.right - dropdownRect.left - menuWidth;
                     } else {
-                        const leftInViewport = dropdownRect.left + left;
-                        if (leftInViewport < 12) {
-                            left -= (leftInViewport - 12);
-                        } else if (leftInViewport + menuWidth > viewportWidth - 12) {
-                            left -= (leftInViewport + menuWidth - (viewportWidth - 12));
+                        left = triggerRect.left - dropdownRect.left;
+                        if (dropdownRect.left + left + menuWidth > viewportWidth - 12) {
+                            left = viewportWidth - dropdownRect.left - menuWidth - 12;
                         }
                     }
 
@@ -730,8 +728,6 @@ if (!$isAjax):
                     positionDropdownMenu($(this));
                 });
 
-                // Resize/orientation change ยังคำนวณ left/width ใหม่ (เผื่อพลิกจอ) แต่ไม่มี
-                // scroll listener แล้ว เพราะ position:absolute เกาะติดปุ่มอยู่แล้วโดยธรรมชาติ
                 $(window).on('resize orientationchange', repositionOpenDropdowns);
             });
         </script>
