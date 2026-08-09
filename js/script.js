@@ -983,13 +983,12 @@ function initCourseCreateForm() {
 }
 
 /* =========================================
-   11. Single Source Custom Dropdown Converter (Fixed)
+   11. Single Source Custom Dropdown Converter (Fixed & Bulletproof)
    ========================================= */
 window.initAutoCustomDropdowns = function () {
     $('select:not([data-customized="true"])').each(function () {
         const $select = $(this);
         
-        // Removed $select.is(':hidden') check so hidden selects (e.g. inside tabs/modals/steps) get converted properly
         if ($select.hasClass('no-custom')) return;
 
         $select.attr('data-customized', 'true').hide();
@@ -999,53 +998,104 @@ window.initAutoCustomDropdowns = function () {
             $wrapper.addClass($select.attr('class')).removeClass('form-select lu-select form-select-custom');
         }
 
-        const $selectedOpt = $select.find('option:selected').length ? $select.find('option:selected') : $select.find('option').first();
-        const selectedText = $selectedOpt.text().trim() || 'เลือกรายการ';
+        $wrapper.css({'position': 'relative'});
 
-        let menuHtml = '';
-        $select.find('option').each(function () {
-            const $opt = $(this);
-            const val = $opt.val();
-            const text = $opt.text().trim();
-            const isSelected = $opt.is(':selected') ? 'selected' : '';
-            const isDisabled = $opt.is(':disabled') ? 'style="opacity:0.5; pointer-events:none;"' : '';
-
-            menuHtml += `<div class="custom-dropdown-item ${isSelected}" data-value="${val}" ${isDisabled}>${text}</div>`;
-        });
-
-        $wrapper.html(`
-            <div class="custom-dropdown-btn">
-                <span class="selected-text">${selectedText}</span>
-                <i class="bi bi-chevron-down"></i>
-            </div>
-            <div class="custom-dropdown-menu">
-                ${menuHtml}
-            </div>
-        `);
+        // Generate menu HTML
+        window.rebuildCustomDropdownMenu($select, $wrapper);
 
         $select.after($wrapper);
+
+        // Auto sync when native select value changes programmatically
+        $select.off('change.customSync').on('change.customSync', function () {
+            window.syncCustomDropdownVal($select);
+        });
     });
 };
 
-// Consolidated Event Delegation (Ensures single click handler across all custom dropdowns)
+// Helper: Rebuild dropdown items from underlying <select> options
+window.rebuildCustomDropdownMenu = function ($select, $wrapper) {
+    if (!$wrapper) {
+        $wrapper = $select.next('.custom-dropdown-wrapper');
+    }
+    if (!$wrapper.length) return;
+
+    const $selectedOpt = $select.find('option:selected').length 
+        ? $select.find('option:selected') 
+        : $select.find('option').first();
+    const selectedText = $selectedOpt.text().trim() || 'เลือกรายการ';
+
+    let menuHtml = '';
+    $select.find('option').each(function () {
+        const $opt = $(this);
+        const val = $opt.val();
+        const text = $opt.text().trim();
+        const isSelected = $opt.is(':selected') ? 'selected' : '';
+        const isDisabled = $opt.is(':disabled') ? 'style="opacity:0.5; pointer-events:none;"' : '';
+
+        menuHtml += `<div class="custom-dropdown-item ${isSelected}" data-value="${val}" ${isDisabled}>${text}</div>`;
+    });
+
+    $wrapper.html(`
+        <div class="custom-dropdown-btn" style="cursor: pointer;">
+            <span class="selected-text">${selectedText}</span>
+            <i class="bi bi-chevron-down ms-auto"></i>
+        </div>
+        <div class="custom-dropdown-menu" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 1050;">
+            ${menuHtml}
+        </div>
+    `);
+};
+
+// Helper: Sync text & selected class when native select value changes
+window.syncCustomDropdownVal = function ($select) {
+    const $wrapper = $select.next('.custom-dropdown-wrapper');
+    if (!$wrapper.length) return;
+
+    const val = $select.val();
+    const $opt = $select.find(`option[value="${val}"]`);
+    const text = $opt.text().trim() || $select.find('option:selected').text().trim();
+
+    if (text) {
+        $wrapper.find('.selected-text').text(text);
+    }
+    $wrapper.find('.custom-dropdown-item').removeClass('selected');
+    $wrapper.find(`.custom-dropdown-item[data-value="${val}"]`).addClass('selected');
+};
+
+// Bulletproof Event Delegation for Custom Dropdowns
 $(document).off('click.customDropdown').on('click.customDropdown', function (e) {
     const $target = $(e.target);
     const $btn = $target.closest('.custom-dropdown-btn');
     const $item = $target.closest('.custom-dropdown-item');
 
+    // 1. Clicked on Custom Dropdown Header
     if ($btn.length) {
+        e.preventDefault();
         e.stopPropagation();
-        const $wrapper = $btn.closest('.custom-dropdown-wrapper');
-        const isOpen = $wrapper.hasClass('active');
 
-        $('.custom-dropdown-wrapper.active').not($wrapper).removeClass('active');
-        $wrapper.toggleClass('active', !isOpen);
+        const $wrapper = $btn.closest('.custom-dropdown-wrapper');
+        const $menu = $wrapper.find('.custom-dropdown-menu');
+        const isOpen = $wrapper.hasClass('active') || $menu.is(':visible');
+
+        // Close all other dropdowns
+        $('.custom-dropdown-wrapper').removeClass('active show').css('z-index', '');
+        $('.custom-dropdown-menu').hide().removeClass('show');
+
+        // Toggle current dropdown
+        if (!isOpen) {
+            $wrapper.addClass('active show').css('z-index', '1060');
+            $menu.show().addClass('show');
+        }
         return;
     }
 
+    // 2. Clicked on Option Item
     if ($item.length) {
+        e.preventDefault();
         e.stopPropagation();
+
         const $wrapper = $item.closest('.custom-dropdown-wrapper');
+        const $menu = $wrapper.find('.custom-dropdown-menu');
         const $select = $wrapper.prev('select[data-customized="true"]');
         const val = $item.data('value');
 
@@ -1056,12 +1106,22 @@ $(document).off('click.customDropdown').on('click.customDropdown', function (e) 
         $wrapper.find('.selected-text').text($item.text().trim());
         $wrapper.find('.custom-dropdown-item').removeClass('selected');
         $item.addClass('selected');
-        $wrapper.removeClass('active');
+
+        $wrapper.removeClass('active show').css('z-index', '');
+        $menu.hide().removeClass('show');
         return;
     }
 
-    // Close options when clicking outside
-    $('.custom-dropdown-wrapper.active').removeClass('active');
+    // 3. Clicked Outside -> Close open dropdowns
+    $('.custom-dropdown-wrapper').removeClass('active show').css('z-index', '');
+    $('.custom-dropdown-menu').hide().removeClass('show');
+});
+
+// Auto-Reinit when Bootstrap Tabs/Collapses change
+$(document).on('shown.bs.tab shown.bs.collapse', function () {
+    if (typeof window.initAutoCustomDropdowns === 'function') {
+        window.initAutoCustomDropdowns();
+    }
 });
 
 /* =========================================
