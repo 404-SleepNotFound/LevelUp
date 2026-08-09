@@ -1,160 +1,176 @@
 /* =========================================
-   Header & Navbar Component Styles
+   Header & Navbar Component Styles (Fixed & Optimized)
    ========================================= */
 
-/* Glassmorphism Navbar */
+/* Navbar & Glassmorphism */
 .lu-navbar {
-    background: rgba(11, 15, 25, 0.7);
+    background: var(--nav-bg) !important;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid var(--border-color);
-    z-index: var(--z-navbar);
+    border-bottom: 1px solid var(--nav-border) !important;
+    z-index: 1050 !important;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-html[data-theme="light"] .lu-navbar {
-    background: rgba(255, 255, 255, 0.8);
-}
-
-/* Logo */
+/* Logo Styling */
 .lu-logo-icon {
-    width: 32px;
-    height: 32px;
-    background: linear-gradient(135deg, var(--color-primary), #8B5CF6);
-    border-radius: var(--radius-sm);
+    width: 34px;
+    height: 34px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: #ffffff;
 }
 
 /* Nav Links */
 .lu-nav-link {
-    color: var(--text-secondary);
+    color: var(--nav-text) !important;
     font-weight: 500;
     font-size: 0.95rem;
-    padding: 0.5rem 1rem;
-    border-radius: var(--radius-pill);
-    transition: var(--transition);
+    padding: 0.5rem 0.85rem !important;
+    border-radius: 20px;
+    transition: all 0.2s ease;
+    display: inline-flex !important;
+    align-items: center !important;
+    white-space: nowrap !important;
 }
 
 .lu-nav-link:hover, .lu-nav-link.active {
-    color: var(--text-primary);
-    background: var(--bg-surface-hover);
+    color: #6366f1 !important;
+    background: var(--nav-btn-theme-bg);
 }
 
-/* Search Bar */
-.lu-search-wrapper {
-    position: relative;
-    width: 280px;
-    transition: var(--transition);
-}
-
-.lu-search-wrapper:focus-within {
-    width: 340px;
+/* Search Input & Form */
+.lu-search-form {
+    max-width: 320px;
+    transition: all 0.2s ease;
 }
 
 .lu-search-input {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    border-radius: var(--radius-pill);
-    padding-left: 2.5rem;
-    padding-right: 4rem;
-    transition: var(--transition);
+    background-color: var(--nav-input-bg) !important;
+    border-color: var(--nav-input-border) !important;
+    color: var(--nav-text) !important;
+    transition: all 0.3s ease;
+}
+
+.lu-search-input::placeholder {
+    color: var(--nav-text-muted) !important;
 }
 
 .lu-search-input:focus {
-    background: var(--bg-main);
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-    color: var(--text-primary);
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2) !important;
 }
 
-.lu-search-icon {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-secondary);
+.lu-search-icon, .lu-search-shortcut {
+    color: var(--nav-text-muted) !important;
     pointer-events: none;
 }
 
 .lu-search-shortcut {
-    position: absolute;
-    right: 0.5rem;
-    top: 50%;
-    transform: translateY(-50%);
     font-size: 0.7rem;
-    background: var(--bg-surface-hover);
-    border: 1px solid var(--border-color);
-    padding: 0.1rem 0.4rem;
-    border-radius: var(--radius-sm);
-    color: var(--text-secondary);
-    pointer-events: none;
+    background: var(--nav-btn-theme-bg);
+    border-color: var(--nav-input-border) !important;
 }
 
 /* Gamification Badges */
-.lu-badge-streak {
-    color: var(--color-streak);
-    background: rgba(249, 115, 22, 0.1);
-    border: 1px solid rgba(249, 115, 22, 0.2);
-}
-
 .lu-badge-xp {
-    color: var(--color-xp);
-    background: rgba(234, 179, 8, 0.1);
-    border: 1px solid rgba(234, 179, 8, 0.2);
+    background-color: var(--nav-input-bg) !important;
+    border-color: var(--nav-input-border) !important;
+    color: var(--nav-text) !important;
+    white-space: nowrap !important;
 }
 
-/* AI Button */
-.lu-btn-ai {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
-    border: 1px solid var(--color-primary);
-    color: var(--color-primary);
-    position: relative;
-    overflow: hidden;
+/* AI Button Group */
+.lu-ai-btn-group {
+    flex-shrink: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    height: 38px !important;
 }
 
-.lu-btn-ai::before {
-    content: '';
-    position: absolute;
-    top: 0; left: -100%; width: 50%; height: 100%;
-    background: linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent);
-    transform: skewX(-20deg);
-    animation: shine 3s infinite;
-}
-
-.lu-btn-ai:hover {
-    background: var(--color-primary);
-    color: white;
-    box-shadow: var(--shadow-glow);
-}
-
-@keyframes shine {
-    0% { left: -100%; }
-    20% { left: 200%; }
-    100% { left: 200%; }
+.lu-ai-btn-group .btn {
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 100% !important;
 }
 
 /* Dropdowns & Autocomplete Panel */
-.lu-dropdown-menu, .lu-autocomplete-panel {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-md);
-    border-radius: var(--radius-lg);
+.user-dropdown-menu, .lu-autocomplete-panel {
+    background-color: var(--nav-dropdown-bg) !important;
+    border: 1px solid var(--nav-dropdown-border) !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important;
+    border-radius: 12px !important;
+    z-index: 1060 !important;
 }
 
-.lu-dropdown-item {
-    color: var(--text-secondary);
-    transition: var(--transition);
+.user-dropdown-menu .dropdown-item, .lu-dropdown-item {
+    color: var(--nav-dropdown-text) !important;
+    font-weight: 500;
+    padding: 0.6rem 1rem;
+    transition: all 0.15s ease;
 }
+
+.user-dropdown-menu .dropdown-item:hover,
+.user-dropdown-menu .dropdown-item:focus,
 .lu-dropdown-item:hover {
-    background: var(--bg-surface-hover);
-    color: var(--text-primary);
+    background-color: var(--nav-dropdown-hover-bg) !important;
+    color: var(--nav-dropdown-hover-text) !important;
 }
 
-/* Responsive Search */
-@media (max-width: 991px) {
-    .lu-search-wrapper { width: 100%; }
-    .lu-search-wrapper:focus-within { width: 100%; }
+.user-dropdown-menu .dropdown-item.text-danger {
+    color: #ef4444 !important;
+}
+
+.user-dropdown-menu .dropdown-item.text-danger:hover {
+    background-color: rgba(239, 68, 68, 0.15) !important;
+    color: #f87171 !important;
+}
+
+.profile-name-wrap {
+    white-space: normal !important;
+    word-break: break-all !important;
+    line-height: 1.4;
+    color: var(--nav-text-muted) !important;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 0.5rem 1rem;
+}
+
+.lu-autocomplete-panel {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    margin-top: 8px;
+}
+
+/* Responsive Handling */
+@media (max-width: 991.98px) {
+    .navbar-collapse {
+        background-color: var(--nav-mobile-bg) !important;
+        padding: 1rem !important;
+        border-radius: 12px !important;
+        margin-top: 0.5rem !important;
+        border: 1px solid var(--nav-border) !important;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    .lu-search-form {
+        max-width: 100% !important;
+        margin-bottom: 1rem !important;
+    }
+
+    .user-action-panel {
+        flex-wrap: wrap !important;
+        justify-content: space-between !important;
+        padding-top: 1rem !important;
+        margin-top: 0.5rem !important;
+        width: 100% !important;
+        border-top: 1px solid var(--nav-border) !important;
+    }
 }
