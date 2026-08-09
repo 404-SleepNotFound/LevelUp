@@ -130,23 +130,23 @@ if ($db) {
 }
 ?>
 
+<!-- เรียกใช้ Dropdown CSS & JS (กรณีไม่ได้เรียกใน header.php หรือกันเหนียว) -->
+<link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css">
+<script src="<?= $ROOT_PATH ?>js/lu-dropdown.js" defer></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<!-- 🎨 Custom Styles Fixes -->
+<!-- 🎨 Custom Styles -->
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
 
     :root, html[data-theme="dark"] {
         --lv-bg-dark: #090d1a;
         --lv-card-bg: rgba(20, 27, 45, 0.85);
-        --lv-card-hover: rgba(28, 38, 62, 0.95);
         --lv-border-glow: rgba(99, 102, 241, 0.25);
         --lv-border-hover: rgba(6, 182, 212, 0.5);
         --lv-primary: #6366F1;
         --lv-secondary: #8B5CF6;
         --lv-cyan: #06b6d4;
-        --lv-success: #10B981;
-        --lv-warning: #F59E0B;
         --lv-text-main: #f8fafc;
         --lv-text-muted: #cbd5e1;
         --lv-surface: rgba(20, 27, 45, 0.6);
@@ -157,7 +157,6 @@ if ($db) {
     html[data-theme="light"] {
         --lv-bg-dark: #f8fafc;
         --lv-card-bg: rgba(255, 255, 255, 0.85);
-        --lv-card-hover: rgba(240, 244, 248, 0.95);
         --lv-border-glow: rgba(99, 102, 241, 0.2);
         --lv-border-hover: rgba(99, 102, 241, 0.5);
         --lv-text-main: #0f172a;
@@ -218,7 +217,6 @@ if ($db) {
         border-radius: 16px !important;
         position: relative;
         z-index: 1050 !important;
-        overflow: visible !important;
         display: flex !important;
         flex-direction: row !important;
         align-items: center !important;
@@ -234,85 +232,8 @@ if ($db) {
         flex-grow: 1;
     }
 
-    .custom-filter-dropdown {
-        position: relative;
-    }
-
-    /* ซ่อนลูกศร default ของ Bootstrap */
-    .btn-dropdown-trigger.dropdown-toggle::after {
-        display: none !important;
-    }
-
-    .btn-dropdown-trigger {
-        background: rgba(15, 23, 42, 0.6) !important;
-        border: 1px solid var(--lv-border-glow) !important;
-        color: var(--lv-text-main) !important;
-        border-radius: 12px !important;
-        padding: 8px 16px;
-        display: inline-flex !important;
-        align-items: center;
-        justify-content: space-between;
+    .select-item-container {
         min-width: 180px;
-        width: auto !important;
-        transition: all 0.2s ease;
-        white-space: nowrap !important;
-    }
-
-    .btn-dropdown-trigger:hover, 
-    .btn-dropdown-trigger.show,
-    .btn-dropdown-trigger.active-filter {
-        border-color: var(--lv-cyan) !important;
-        box-shadow: 0 0 12px rgba(6, 182, 212, 0.25);
-    }
-
-    /* 🛠️ แก้ไข Dropdown Menu: เพิ่ม Max Height + Scrollbar ไม่ให้ล้นล่างจอบังการ์ด */
-    .custom-filter-dropdown .dropdown-menu {
-        background: #0f172a !important;
-        border: 1px solid var(--lv-border-hover) !important;
-        border-radius: 12px !important;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
-        padding: 12px 16px !important;
-        min-width: 240px;
-        max-height: 320px !important; /* กำหนดความสูงสูงสุด */
-        overflow-y: auto !important; /* เปิดใช้งาน Scrollbar เมื่อรายการเยอะ */
-        z-index: 9999 !important;
-    }
-
-    /* ตกแต่ง Scrollbar ให้เข้ากับสไตล์ Dark Mode */
-    .custom-filter-dropdown .dropdown-menu::-webkit-scrollbar {
-        width: 6px;
-    }
-    .custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-track {
-        background: rgba(15, 23, 42, 0.5);
-        border-radius: 10px;
-    }
-    .custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-thumb {
-        background: var(--lv-cyan);
-        border-radius: 10px;
-    }
-
-    /* จัดระยะ Radio & Checkbox */
-    .custom-filter-dropdown .form-check {
-        display: flex !important;
-        align-items: center !important;
-        padding-left: 2rem !important;
-        margin-bottom: 0.6rem;
-    }
-
-    .custom-filter-dropdown .form-check:last-child {
-        margin-bottom: 0;
-    }
-
-    .custom-filter-dropdown .form-check-input {
-        margin-left: -2rem !important;
-        cursor: pointer;
-        float: none !important;
-    }
-
-    .custom-filter-dropdown .form-check-label {
-        color: var(--lv-text-main) !important;
-        cursor: pointer;
-        user-select: none;
     }
 
     .clear-btn-container {
@@ -422,7 +343,7 @@ if ($db) {
             gap: 10px !important;
         }
 
-        .btn-dropdown-trigger {
+        .select-item-container {
             width: 100% !important;
         }
 
@@ -476,7 +397,7 @@ if ($db) {
         </div>
     </section>
 
-    <!-- ระบบแผงฟิลเตอร์แนวนอน -->
+    <!-- ระบบแผงฟิลเตอร์แนวนอน (ใช้ select.lu-select เพื่อรองรับ lu-dropdown.js) -->
     <div class="horizontal-filter-bar p-3 mb-4">
         <div class="filter-group-wrapper">
             <span class="text-main fw-bold me-1 small text-nowrap">
@@ -484,75 +405,26 @@ if ($db) {
             </span>
 
             <!-- Dropdown 1: หมวดหมู่เนื้อหา -->
-            <div class="dropdown custom-filter-dropdown">
-                <button class="btn btn-dropdown-trigger dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-                    <span><i class="fas fa-th-large text-primary me-2"></i>หมวดหมู่เนื้อหา</span>
-                    <i class="fas fa-chevron-down small opacity-50 ms-2"></i>
-                </button>
-                <div class="dropdown-menu">
-                    <div class="form-check">
-                        <input class="form-check-input filter-radio" type="radio" name="category_filter" value="" id="cat_all" checked>
-                        <label class="form-check-label ms-1" for="cat_all"><i class="fas fa-layer-group text-info me-1"></i> ทั้งหมด</label>
-                    </div>
+            <div class="select-item-container">
+                <select class="lu-select" id="category_filter">
+                    <option value="">หมวดหมู่ทั้งหมด</option>
                     <?php if (!empty($category_data)): ?>
                         <?php foreach ($category_data as $category): ?>
-                            <div class="form-check">
-                                <input class="form-check-input filter-radio" type="radio" name="category_filter" value="<?= htmlspecialchars($category['name']); ?>" id="cat_<?= htmlspecialchars($category['id']); ?>">
-                                <label class="form-check-label ms-1" for="cat_<?= htmlspecialchars($category['id']); ?>"><?= htmlspecialchars($category['name']); ?></label>
-                            </div>
+                            <option value="<?= htmlspecialchars($category['name']); ?>"><?= htmlspecialchars($category['name']); ?></option>
                         <?php endforeach; ?>
-                    <?php else: ?>
-                        <div class="px-2 py-1 text-muted-custom small">ไม่พบหมวดหมู่เนื้อหา</div>
                     <?php endif; ?>
-                </div>
+                </select>
             </div>
 
             <!-- Dropdown 2: ระดับความท้าทาย -->
-            <div class="dropdown custom-filter-dropdown">
-                <button class="btn btn-dropdown-trigger dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-                    <span><i class="fas fa-trophy text-warning me-2"></i>ระดับความท้าทาย</span>
-                    <i class="fas fa-chevron-down small opacity-50 ms-2"></i>
-                </button>
-                <div class="dropdown-menu">
-                    <div class="form-check">
-                        <input class="form-check-input filter-radio" type="radio" name="level_filter" value="" id="lvl_all" checked>
-                        <label class="form-check-label ms-1" for="lvl_all"><i class="fas fa-layer-group text-info me-1"></i> ทั้งหมด</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input filter-radio" type="radio" name="level_filter" value="Beginner" id="lvl1">
-                        <label class="form-check-label ms-1" for="lvl1"><i class="fas fa-shield-alt tier-beginner me-1"></i> Beginner</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input filter-radio" type="radio" name="level_filter" value="Intermediate" id="lvl2">
-                        <label class="form-check-label ms-1" for="lvl2"><i class="fas fa-shield-alt tier-intermediate me-1"></i> Intermediate</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input filter-radio" type="radio" name="level_filter" value="Advanced" id="lvl3">
-                        <label class="form-check-label ms-1" for="lvl3"><i class="fas fa-shield-alt tier-advanced me-1"></i> Advanced</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input filter-radio" type="radio" name="level_filter" value="Expert" id="lvl4">
-                        <label class="form-check-label ms-1" for="lvl4"><i class="fas fa-shield-alt tier-advanced me-1"></i> Expert</label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Dropdown 3: ฟังก์ชันห้องแล็บเสริม -->
-            <div class="dropdown custom-filter-dropdown">
-                <button class="btn btn-dropdown-trigger dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-                    <span><i class="fas fa-flask text-success me-2"></i>ฟังก์ชันห้องแล็บเสริม</span>
-                    <i class="fas fa-chevron-down small opacity-50 ms-2"></i>
-                </button>
-                <div class="dropdown-menu">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input filter-checkbox" type="checkbox" id="feat1">
-                        <label class="form-check-label ms-1" for="feat1"><i class="fas fa-robot text-info me-1"></i> ระบบ AI Tutor</label>
-                    </div>
-                    <div class="form-check form-switch">
-                        <input class="form-check-input filter-checkbox" type="checkbox" id="feat2">
-                        <label class="form-check-label ms-1" for="feat2"><i class="fas fa-terminal text-success me-1"></i> Coding Lab</label>
-                    </div>
-                </div>
+            <div class="select-item-container">
+                <select class="lu-select" id="level_filter">
+                    <option value="">ระดับทั้งหมด</option>
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                    <option value="Expert">Expert</option>
+                </select>
             </div>
         </div>
 
@@ -572,25 +444,12 @@ if ($db) {
                     ตรวจพบภารกิจการเรียนรู้ทั้งหมด <span id="course-count" class="text-info fw-bold">0</span> รายการ
                 </div>
                 
-                <div class="d-flex gap-2 align-items-center sort-wrapper">
+                <div class="d-flex gap-2 align-items-center sort-wrapper" style="min-width: 220px;">
                     <label class="text-main text-nowrap mb-0 small"><i class="fas fa-sort-amount-down me-1"></i>เรียงตาม:</label>
-                    <div class="dropdown custom-filter-dropdown" id="sort-dropdown-container">
-                        <button class="btn btn-dropdown-trigger dropdown-toggle py-1.5 px-3" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="min-width: 170px;">
-                            <span id="selected-sort-text">คอร์สยอดนิยมสูงสุด</span>
-                            <i class="fas fa-chevron-down small ms-2 opacity-50"></i>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end shadow">
-                            <div class="dropdown-item-custom sort-item active" data-value="popular">
-                                <span>คอร์สยอดนิยมสูงสุด</span>
-                                <i class="fas fa-check small text-info check-icon"></i>
-                            </div>
-                            <div class="dropdown-item-custom sort-item" data-value="latest">
-                                <span>คอร์สใหม่ล่าสุด</span>
-                                <i class="fas fa-check small text-info check-icon d-none"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <input type="hidden" id="sort-select" value="popular">
+                    <select class="lu-select" id="sort-select">
+                        <option value="popular">คอร์สยอดนิยมสูงสุด</option>
+                        <option value="latest">คอร์สใหม่ล่าสุด</option>
+                    </select>
                 </div>
             </div>
 
@@ -652,7 +511,6 @@ if ($db) {
         init: function() {
             this.parseUrlParams();
             this.bindEvents();
-            this.updateDropdownGlows();
             this.fetchCourses();
         },
 
@@ -663,21 +521,7 @@ if ($db) {
 
             if (categoryParam) {
                 const decodedCat = decodeURIComponent(categoryParam).trim();
-
-                let $targetRadio = $('input[name="category_filter"]').filter(function() {
-                    return $(this).val().trim() === decodedCat || $(this).attr('id') === `cat_${decodedCat}`;
-                });
-
-                if ($targetRadio.length > 0) {
-                    $('input[name="category_filter"]').prop('checked', false);
-                    $targetRadio.prop('checked', true);
-                } else {
-                    $('#cat_all').prop('checked', true);
-                }
-            } else {
-                if ($('input[name="category_filter"]:checked').length === 0) {
-                    $('#cat_all').prop('checked', true);
-                }
+                $('#category_filter').val(decodedCat).trigger('change');
             }
 
             if (searchParam) {
@@ -688,24 +532,7 @@ if ($db) {
         bindEvents: function() {
             const self = this;
             
-            $('.filter-checkbox, .filter-radio').on('change', function() {
-                self.updateDropdownGlows();
-                self.fetchCourses();
-            });
-
-            $('.sort-item').on('click', function() {
-                let val = $(this).data('value');
-                let text = $(this).find('span').text();
-                
-                $('#sort-select').val(val);
-                $('#selected-sort-text').text(text);
-
-                $('.sort-item').removeClass('active');
-                $('.sort-item .check-icon').addClass('d-none');
-
-                $(this).addClass('active');
-                $(this).find('.check-icon').removeClass('d-none');
-
+            $('#category_filter, #level_filter, #sort-select').on('change', function() {
                 self.fetchCourses();
             });
 
@@ -739,32 +566,15 @@ if ($db) {
             });
         },
 
-        updateDropdownGlows: function() {
-            $('.custom-filter-dropdown').each(function() {
-                let hasCheckedCheckbox = $(this).find('.filter-checkbox:checked').length > 0;
-                let selectedRadioVal = $(this).find('.filter-radio:checked').val();
-                let hasSelectedRadio = selectedRadioVal && selectedRadioVal !== "";
-
-                let $triggerBtn = $(this).find('.btn-dropdown-trigger');
-                if (hasCheckedCheckbox || hasSelectedRadio) {
-                    $triggerBtn.addClass('active-filter');
-                } else {
-                    $triggerBtn.removeClass('active-filter');
-                }
-            });
-        },
-
         fetchCourses: function() {
-            let selectedCategory = $('input[name="category_filter"]:checked').val();
-            let selectedLevel = $('input[name="level_filter"]:checked').val();
+            let selectedCategory = $('#category_filter').val();
+            let selectedLevel = $('#level_filter').val();
             let sortBy = $('#sort-select').val();
             let keyword = $('#ai-search-input').val().toLowerCase().trim();
 
             let filtered = mockCoursesData.filter(course => {
                 if (selectedCategory && selectedCategory !== "" && course.category !== selectedCategory) return false;
                 if (selectedLevel && selectedLevel !== "" && course.level !== selectedLevel) return false;
-                if ($('#feat1').is(':checked') && !course.ai) return false;
-                if ($('#feat2').is(':checked') && !course.lab) return false;
                 if (keyword !== "" && !course.title.toLowerCase().includes(keyword) && !course.category.toLowerCase().includes(keyword)) return false;
                 return true;
             });
@@ -824,19 +634,11 @@ if ($db) {
         },
 
         resetFilters: function() {
-            $('.filter-checkbox').prop('checked', false);
-            $('#cat_all').prop('checked', true);
-            $('#lvl_all').prop('checked', true);
+            $('#category_filter').val('').trigger('change');
+            $('#level_filter').val('').trigger('change');
+            $('#sort-select').val('popular').trigger('change');
             $('#ai-search-input').val('');
             
-            $('#sort-select').val('popular');
-            $('#selected-sort-text').text('คอร์สยอดนิยมสูงสุด');
-            $('.sort-item').removeClass('active');
-            $('.sort-item[data-value="popular"]').addClass('active');
-            $('.sort-item .check-icon').addClass('d-none');
-            $('.sort-item[data-value="popular"] .check-icon').removeClass('d-none');
-
-            this.updateDropdownGlows();
             this.fetchCourses();
 
             if (typeof LevelUpAlert !== 'undefined') {
