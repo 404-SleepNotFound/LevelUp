@@ -472,6 +472,59 @@ html[data-theme="dark"] .form-select-custom,
 }
 
 /* -----------------------------------------------------------------
+7b. Specificity Fix: force LevelUp select style to win over
+    page-local ".form-dark-input" (e.g. create-course.php), which also
+    ships its own !important rules on background/border/border-radius/
+    padding for the same elements. Both rules have equal specificity
+    (single class + !important), so without this override, whichever
+    one happens to be declared LAST in the document wins the tie -
+    fragile, and breaks whenever markup/include order changes (as with
+    AJAX-loaded pages like create-course.php inside instructor.php).
+    Combining classes here bumps specificity so this wins regardless
+    of load order.
+----------------------------------------------------------------- */
+.form-dark-input.form-select,
+.form-dark-input.lu-select,
+.form-dark-input.form-select-custom {
+  min-height: 48px !important;
+  padding: 0.85rem 1.25rem !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(99, 102, 241, 0.22) !important;
+  background: var(--card-bg) !important;
+  background-color: var(--card-bg) !important;
+  color: var(--body-text) !important;
+  box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.12) !important;
+}
+
+.form-dark-input.form-select:focus,
+.form-dark-input.lu-select:focus,
+.form-dark-input.form-select-custom:focus {
+  border-color: rgba(99, 102, 241, 0.9) !important;
+  box-shadow: 0 0 0 0.18rem rgba(99, 102, 241, 0.14) !important;
+}
+
+html[data-theme="light"] .form-dark-input.form-select,
+html[data-theme="light"] .form-dark-input.lu-select,
+html[data-theme="light"] .form-dark-input.form-select-custom {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+html[data-theme="dark"] .form-dark-input.form-select,
+html[data-theme="dark"] .form-dark-input.lu-select,
+html[data-theme="dark"] .form-dark-input.form-select-custom,
+:root:not([data-theme="light"]) .form-dark-input.form-select,
+:root:not([data-theme="light"]) .form-dark-input.lu-select,
+:root:not([data-theme="light"]) .form-dark-input.form-select-custom {
+  background: #0f172a !important;
+  background-color: #0f172a !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+  color: #f8fafc !important;
+}
+
+/* -----------------------------------------------------------------
 8. Custom Interactive Dropdown Builder (Smooth Transition Fix)
 ----------------------------------------------------------------- */
 .custom-dropdown-wrapper {
