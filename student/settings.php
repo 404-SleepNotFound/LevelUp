@@ -656,7 +656,7 @@ $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
             };
 
             $.ajax({
-                url: 'services/user.php',
+                url: '<?php echo $ROOT_PATH; ?>services/user.php',
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(requestData),
