@@ -7,6 +7,9 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 <!-- 🎨 External Custom Scrollbar (If needed) -->
 <link rel="stylesheet" href="<?php echo $ROOT_PATH; ?>css/custom-scrollbar.css">
 
+<!-- Import Dropdown Select Stylesheet -->
+<link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css">
+
 <style>
     /* 🎨 CSS Variables Dynamic Theme (Light & Dark Mode) */
     :root, html[data-theme="dark"] {

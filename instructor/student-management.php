@@ -30,6 +30,9 @@ $high_risk_students = array_filter($mock_students, function($s) { return $s['ris
 $low_risk_students  = array_filter($mock_students, function($s) { return $s['risk'] === 'Low'; });
 ?>
 
+<!-- Import Dropdown Select Stylesheet -->
+<link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css">
+
 <style>
     /* 🌓 LIGHT / DARK MODE CSS VARIABLES */
     :root, html[data-theme="dark"], [data-bs-theme="dark"] {

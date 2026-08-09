@@ -4,6 +4,9 @@ $ROOT_PATH = '../';
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 ?>
 
+<!-- Import Dropdown Select Stylesheet -->
+<link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css">
+
 <style>
     /* 🌓 LIGHT / DARK MODE CSS VARIABLES FOR COURSE ANALYTICS */
     :root, html[data-theme="dark"], [data-bs-theme="dark"] {

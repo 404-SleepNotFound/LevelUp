@@ -3,6 +3,9 @@ $ROOT_PATH = '../';
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 ?>
 
+<!-- Import Dropdown Select Stylesheet -->
+<link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css">
+
 <style>
     /* Theme Variables Setup */
     :root, 

@@ -5,6 +5,9 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 // ห้ามใส่ include '../includes/header.php' หรือ footer เด็ดขาด เพราะหน้า instructor.php โหลดให้แล้ว
 ?>
 
+<!-- Import Dropdown Select Stylesheet -->
+<link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css">
+
 <style>
     /* Scope Editor Styles ให้เข้ากับ Premium Dark/Light Theme */
     .editor-container {
