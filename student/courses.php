@@ -637,7 +637,7 @@ if ($db) {
                     `คุณต้องการเข้าสู่บทเรียน "${title}" (+${xp} XP) หรือไม่?`
                 ).then((isConfirmed) => {
                     if (isConfirmed) {
-                        window.location.href = `course_detail.php?id=${id}`;
+                        window.location.href = `course-detail.php?id=${id}`;
                     }
                 });
             });

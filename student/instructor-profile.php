@@ -246,7 +246,7 @@ $inst_bio = $instructor['bio'] ?? 'ผู้เชี่ยวชาญประ
                                     $c_category = !empty($c['category_name']) ? $c['category_name'] : 'ทั่วไป';
                                 ?>
                                 <div class="col-md-6">
-                                    <a href="course_detail.php?id=<?= htmlspecialchars($c['id'] ?? '') ?>" class="text-decoration-none">
+                                    <a href="course-detail.php?id=<?= htmlspecialchars($c['id'] ?? '') ?>" class="text-decoration-none">
                                         <div class="course-card rounded-4 overflow-hidden h-100 d-flex flex-column">
                                             <!-- Course Image -->
                                             <div class="position-relative">
