@@ -238,6 +238,11 @@ if ($db) {
         position: relative;
     }
 
+    /* ซ่อนลูกศร default ของ Bootstrap เพื่อป้องกันไอคอนแสดงซ้ำกัน 2 ตัว */
+    .btn-dropdown-trigger.dropdown-toggle::after {
+        display: none !important;
+    }
+
     .btn-dropdown-trigger {
         background: rgba(15, 23, 42, 0.6) !important;
         border: 1px solid var(--lv-border-glow) !important;
@@ -260,20 +265,40 @@ if ($db) {
         box-shadow: 0 0 12px rgba(6, 182, 212, 0.25);
     }
 
-    /* ตกแต่ง Dropdown Menu ให้ลอยอยู่ชั้นบนสุด */
+    /* ตกแต่ง Dropdown Menu ให้ลอยอยู่ชั้นบนสุดและจัดระยะไม่ให้ Radio โดนบัง */
     .custom-filter-dropdown .dropdown-menu {
         background: #0f172a !important;
         border: 1px solid var(--lv-border-hover) !important;
         border-radius: 12px !important;
         box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
-        padding: 12px;
+        padding: 12px 16px !important;
         min-width: 220px;
         z-index: 9999 !important;
+        overflow: visible !important;
     }
 
-    .custom-filter-dropdown .dropdown-menu .form-check-label {
-        color: var(--lv-text-main);
+    /* จัดระยะ Radio & Checkbox ใน Dropdown ไม่ให้โดนขอบบัง */
+    .custom-filter-dropdown .form-check {
+        display: flex !important;
+        align-items: center !important;
+        padding-left: 2rem !important;
+        margin-bottom: 0.5rem;
+    }
+
+    .custom-filter-dropdown .form-check:last-child {
+        margin-bottom: 0;
+    }
+
+    .custom-filter-dropdown .form-check-input {
+        margin-left: -2rem !important;
         cursor: pointer;
+        float: none !important;
+    }
+
+    .custom-filter-dropdown .form-check-label {
+        color: var(--lv-text-main) !important;
+        cursor: pointer;
+        user-select: none;
     }
 
     .clear-btn-container {
@@ -437,7 +462,7 @@ if ($db) {
         </div>
     </section>
 
-    <!-- ระบบแผงฟิลเตอร์แนวนอน (ปรับโครงสร้าง Flex ตามแบบรูปที่ 2) -->
+    <!-- ระบบแผงฟิลเตอร์แนวนอน -->
     <div class="horizontal-filter-bar p-3 mb-4">
         <div class="filter-group-wrapper">
             <span class="text-main fw-bold me-1 small text-nowrap">
@@ -451,13 +476,13 @@ if ($db) {
                     <i class="fas fa-chevron-down small opacity-50 ms-2"></i>
                 </button>
                 <div class="dropdown-menu">
-                    <div class="form-check mb-2">
+                    <div class="form-check">
                         <input class="form-check-input filter-radio" type="radio" name="category_filter" value="" id="cat_all" checked>
                         <label class="form-check-label ms-1" for="cat_all"><i class="fas fa-layer-group text-info me-1"></i> ทั้งหมด</label>
                     </div>
                     <?php if (!empty($category_data)): ?>
                         <?php foreach ($category_data as $category): ?>
-                            <div class="form-check mb-2">
+                            <div class="form-check">
                                 <input class="form-check-input filter-radio" type="radio" name="category_filter" value="<?= htmlspecialchars($category['name']); ?>" id="cat_<?= htmlspecialchars($category['id']); ?>">
                                 <label class="form-check-label ms-1" for="cat_<?= htmlspecialchars($category['id']); ?>"><?= htmlspecialchars($category['name']); ?></label>
                             </div>
@@ -475,19 +500,19 @@ if ($db) {
                     <i class="fas fa-chevron-down small opacity-50 ms-2"></i>
                 </button>
                 <div class="dropdown-menu">
-                    <div class="form-check mb-2">
+                    <div class="form-check">
                         <input class="form-check-input filter-radio" type="radio" name="level_filter" value="" id="lvl_all" checked>
                         <label class="form-check-label ms-1" for="lvl_all"><i class="fas fa-layer-group text-info me-1"></i> ทั้งหมด</label>
                     </div>
-                    <div class="form-check mb-2">
+                    <div class="form-check">
                         <input class="form-check-input filter-radio" type="radio" name="level_filter" value="Beginner" id="lvl1">
                         <label class="form-check-label ms-1" for="lvl1"><i class="fas fa-shield-alt tier-beginner me-1"></i> Beginner</label>
                     </div>
-                    <div class="form-check mb-2">
+                    <div class="form-check">
                         <input class="form-check-input filter-radio" type="radio" name="level_filter" value="Intermediate" id="lvl2">
                         <label class="form-check-label ms-1" for="lvl2"><i class="fas fa-shield-alt tier-intermediate me-1"></i> Intermediate</label>
                     </div>
-                    <div class="form-check mb-2">
+                    <div class="form-check">
                         <input class="form-check-input filter-radio" type="radio" name="level_filter" value="Advanced" id="lvl3">
                         <label class="form-check-label ms-1" for="lvl3"><i class="fas fa-shield-alt tier-advanced me-1"></i> Advanced</label>
                     </div>
@@ -505,7 +530,7 @@ if ($db) {
                     <i class="fas fa-chevron-down small opacity-50 ms-2"></i>
                 </button>
                 <div class="dropdown-menu">
-                    <div class="form-check form-switch mb-2">
+                    <div class="form-check form-switch">
                         <input class="form-check-input filter-checkbox" type="checkbox" id="feat1">
                         <label class="form-check-label ms-1" for="feat1"><i class="fas fa-robot text-info me-1"></i> ระบบ AI Tutor</label>
                     </div>
