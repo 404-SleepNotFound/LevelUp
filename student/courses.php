@@ -479,7 +479,7 @@ if ($db) {
                 <div class="d-flex gap-2 align-items-center sort-wrapper">
                     <label class="text-main text-nowrap mb-0 small"><i class="fas fa-sort-amount-down me-1"></i>เรียงตาม:</label>
                     <div class="dropdown custom-filter-dropdown" id="sort-dropdown-container">
-                        <button class="btn btn-dropdown-trigger dropdown-toggle py-1.5 px-3" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="min-width: 170px;">
+                        <button class="btn btn-dropdown-trigger dropdown-toggle py-1.5 px-3" type="button" data-bs-toggle="dropdown" data-bs-display="static" data-bs-auto-close="outside" aria-expanded="false" style="min-width: 170px;">
                             <span id="selected-sort-text">คอร์สยอดนิยมสูงสุด</span>
                             <i class="fas fa-chevron-down small ms-2 opacity-50"></i>
                         </button>
