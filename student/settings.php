@@ -11,6 +11,10 @@ ob_start();
 include '../includes/header.php';
 $header_html = ob_get_clean();
 
+// ✅ ใช้ข้อมูลผู้ใช้ที่ header.php ดึงมาจาก DB แล้ว (ตัวแปร $dbUser)
+// เพื่อเติมค่าในฟอร์ม Settings ให้ตรงกับข้อมูลจริงในฐานข้อมูล
+$user_data = $dbUser ?? [];
+
 // ?? เตรียม Script และ Style ทั้งหมดเพื่อยัดเข้าไปใน <head>
 $head_injection = <<<'EOT'
 <!-- สคริปต์บังคับโหลดธีมสีดำ (Dark Mode) และป้องกัน White Flash 100% -->
@@ -303,25 +307,19 @@ $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
                         <div class="glass-card rounded-4 mb-4 p-4 p-md-5">
                             <h5 class="text-white fw-bold mb-4 ai-text-gradient"><i class="bi bi-person-bounding-box me-2"></i>Player Profile (โปรไฟล์สาธารณะ)</h5>
 
-                            <form id="profileForm" data-user-id="<?php
-$ROOT_PATH = '../';
-echo $user_data['id'] ?? ''; ?>">
+                            <form id="profileForm" data-user-id="<?php echo htmlspecialchars($user_data['id'] ?? '', ENT_QUOTES); ?>">
                                 <div class="row g-4">
                                     <div class="col-md-6">
                                         <label class="form-label text-white fs-sm fw-medium">ชื่อตัวละคร (Full Name)</label>
-                                        <input type="text" class="form-control shadow-none rounded-3 py-2" name="name" value="<?php
-$ROOT_PATH = '../';
-echo htmlspecialchars($user_data['name'] ?? '', ENT_QUOTES); ?>" required>
+                                        <input type="text" class="form-control shadow-none rounded-3 py-2" name="name" value="<?php echo htmlspecialchars($user_data['name'] ?? '', ENT_QUOTES); ?>" required>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label text-white fs-sm fw-medium">ไอดีประจำตัว (Google ID)</label>
-                                        <input type="text" class="form-control shadow-none rounded-3 py-2" name="google_id" value="<?php
-$ROOT_PATH = '../';
-echo htmlspecialchars($user_data['google_id'] ?? '', ENT_QUOTES); ?>" disabled>
+                                        <input type="text" class="form-control shadow-none rounded-3 py-2" name="google_id" value="<?php echo htmlspecialchars($user_data['google_id'] ?? '', ENT_QUOTES); ?>" disabled>
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label text-white fs-sm fw-medium">ประวัติย่อ (Bio / Status)</label>
-                                        <textarea class="form-control shadow-none rounded-3 py-2" name="bio" rows="3">Frontend Developer & AI Enthusiast.</textarea>
+                                        <textarea class="form-control shadow-none rounded-3 py-2" name="bio" rows="3"><?php echo htmlspecialchars($user_data['bio'] ?? '', ENT_QUOTES); ?></textarea>
                                     </div>
                                     <div class="col-12 text-end mt-5 border-top border-secondary border-opacity-25 pt-4">
                                         <button type="submit" class="btn btn-premium rounded-pill px-5 fw-bold fs-sm w-100 w-md-auto" id="btnSaveProfile">

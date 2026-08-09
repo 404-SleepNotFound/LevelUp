@@ -37,13 +37,21 @@ switch ($action) {
             // เริ่ม Transaction เพื่อความปลอดภัยของข้อมูล
             $conn->beginTransaction();
 
-            $full_name = $data['full_name'] ?? '';
+            // ⚠️ ชื่อ field ใน formData มาจาก attribute name="..." ของ input จริงในฟอร์ม
+            // (settings.php ใช้ name="name" และ name="bio" ไม่ใช่ full_name)
+            $full_name = trim($data['name'] ?? '');
+            $bio       = trim($data['bio'] ?? '');
 
-            // 1. บันทึกลงตาราง course
-            $sql = "UPDATE `users` SET `name` = ? WHERE `id` = ?";
+            if ($full_name === '') {
+                throw new Exception('กรุณากรอกชื่อตัวละคร');
+            }
+
+            // 1. บันทึกลงตาราง users
+            $sql = "UPDATE `users` SET `name` = ?, `bio` = ? WHERE `id` = ?";
             $stmt = $conn->prepare($sql);
             $stmt->execute([
                 $full_name,
+                $bio,
                 $user_id
             ]);
 
@@ -52,11 +60,13 @@ switch ($action) {
 
             echo json_encode([
                 'status'  => 'success',
-                'message' => 'บันทึกข้อมูลเรียบร้อยแล้ว: '
+                'message' => 'บันทึกข้อมูลเรียบร้อยแล้ว'
             ]);
-        } catch (PDOException $e) {
-            // หากเกิดข้อผิดพลาดให้ ย้อนกลับ (Rollback) ข้อมูลทั้งหมด
-            $conn->rollBack();
+        } catch (Throwable $e) {
+            // หากเกิดข้อผิดพลาดให้ ย้อนกลับ (Rollback) ข้อมูลทั้งหมด (ถ้า transaction ยังเปิดอยู่)
+            if ($conn->inTransaction()) {
+                $conn->rollBack();
+            }
             echo json_encode([
                 'status'  => 'error',
                 'message' => 'เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' . $e->getMessage()
