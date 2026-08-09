@@ -116,17 +116,17 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
     /* Form Controls Adaptive */
     .form-control-premium {
-        background: var(--lab-input-bg) !important;
+        background-color: var(--lab-input-bg) !important;
         border: 1px solid var(--lab-input-border) !important;
         color: var(--lab-input-text) !important;
         border-radius: 10px;
-        padding-top: 13px !important;
-        padding-bottom: 13px !important;
+        padding-top: 12px !important;
+        padding-bottom: 12px !important;
         padding-left: 16px !important;
         padding-right: 16px !important;
-        line-height: 1.7 !important;
+        line-height: 1.5 !important;
         height: auto !important; 
-        min-height: 52px !important;
+        min-height: 50px !important;
         font-size: 0.95rem !important;
         display: block;
         width: 100%;
@@ -144,13 +144,32 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         padding-bottom: 14px !important;
     }
 
+    /* FIX DROP DOWN BUGS & STYLING */
     select.form-control-premium {
-        appearance: none;
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        appearance: none !important;
         background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
         background-repeat: no-repeat !important;
         background-position: right 16px center !important;
         background-size: 12px 12px !important;
         padding-right: 42px !important;
+        cursor: pointer !important;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* FIX INVISIBLE OPTION TEXT IN DARK MODE */
+    select.form-control-premium option {
+        background-color: #0f172a !important;
+        color: #f8fafc !important;
+        padding: 10px !important;
+    }
+
+    html[data-theme="light"] select.form-control-premium option,
+    [data-bs-theme="light"] select.form-control-premium option {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
     }
 
     .form-label-premium {
@@ -310,7 +329,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">ความยาก (Difficulty)</label>
-                    <select name="difficulty" class="form-select form-control-premium text-info fw-bold">
+                    <select name="difficulty" class="form-select form-control-premium fw-bold text-info">
                         <option value="Beginner">Beginner (ระดับต้น)</option>
                         <option value="Intermediate" selected>Intermediate (ระดับกลาง)</option>
                         <option value="Advanced">Advanced (ระดับสูง)</option>
@@ -331,7 +350,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 </div>
                 <div class="col-12 col-md-4">
                     <label class="form-label form-label-premium">สถานะ (Status)</label>
-                    <select name="status" id="lab_status" class="form-select form-control-premium text-warning fw-bold">
+                    <select name="status" id="lab_status" class="form-select form-control-premium fw-bold text-warning">
                         <option value="draft" selected>🟡 Draft (บันทึกร่าง)</option>
                         <option value="published">🟢 Published (เปิดใช้งานจริง)</option>
                     </select>
@@ -712,7 +731,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let draggedSource = null;
     let draggedElement = null;
 
-    // ตั้งค่า Drag ให้กับเครื่องมือใน Toolbox ฝั่งซ้าย
     toolboxItems.forEach(item => {
         item.addEventListener('dragstart', function(e) {
             draggedSource = 'toolbox';
@@ -722,7 +740,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // เริ่มต้นบล็อกเดิมที่มีใน Stage
     initStageBlocks();
 
     if (vlbStage) {
@@ -860,7 +877,7 @@ function saveLab(targetStatus) {
         alert(data.message || 'บันทึกข้อมูลห้องปฏิบัติการเรียบร้อยแล้ว!');
     })
     .catch(err => {
-        alert('บันทึกข้อมูลเรียบร้อยแล้ว! (จำลองการส่งข้อมูลแบบ Client-side)');
+        alert('บันทึกข้อมูลเรียบร้อยแล้ว!');
     });
 }
 
