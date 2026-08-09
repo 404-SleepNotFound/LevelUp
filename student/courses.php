@@ -208,7 +208,7 @@ if ($db) {
         font-weight: 300;
     }
 
-    /* Horizontal Filter Bar */
+    /* Horizontal Filter Bar (ปรับแต่งขนาดให้ยาวสวยพอดี) */
     .horizontal-filter-bar {
         background: var(--lv-surface) !important;
         border: 1px solid var(--lv-border-glow) !important;
@@ -219,7 +219,7 @@ if ($db) {
         display: flex !important;
         flex-direction: row !important;
         align-items: center !important;
-        justify-content: space-between !important;
+        justify-content: flex-start !important;
         gap: 1rem !important;
     }
 
@@ -227,17 +227,24 @@ if ($db) {
         display: flex !important;
         flex-direction: row !important;
         align-items: center !important;
-        gap: 0.75rem !important;
-        flex-grow: 1;
+        gap: 0.85rem !important;
+        flex: 1;
     }
 
     .select-item-container {
-        min-width: 200px;
+        flex: 0 1 240px;
+        min-width: 190px;
+    }
+
+    .select-item-container .lu-select,
+    .select-item-container .lu-select-wrapper {
+        width: 100% !important;
     }
 
     .clear-btn-container {
         white-space: nowrap !important;
         margin-left: auto !important;
+        flex-shrink: 0;
     }
 
     .btn-clear-glow {
@@ -343,6 +350,7 @@ if ($db) {
 
         .select-item-container {
             width: 100% !important;
+            flex: 1 1 100% !important;
         }
 
         .clear-btn-container {
@@ -394,14 +402,14 @@ if ($db) {
         </div>
     </section>
 
-    <!-- แผงฟิลเตอร์แนวนอน (นำไอคอนและเมนูห้องแล็บเสริมกลับมาครบถ้วน) -->
+    <!-- แผงฟิลเตอร์แนวนอน -->
     <div class="horizontal-filter-bar p-3 mb-4">
         <div class="filter-group-wrapper">
             <span class="text-main fw-bold me-1 small text-nowrap">
                 <i class="fas fa-filter text-info me-1"></i> คัดกรองภารกิจ:
             </span>
 
-            <!-- Dropdown 1: หมวดหมู่เนื้อหา (ใส่ data-icon) -->
+            <!-- Dropdown 1: หมวดหมู่เนื้อหา -->
             <div class="select-item-container">
                 <select class="lu-select" id="category_filter" data-icon="fas fa-th-large text-primary">
                     <option value="">หมวดหมู่เนื้อหา</option>
@@ -413,7 +421,7 @@ if ($db) {
                 </select>
             </div>
 
-            <!-- Dropdown 2: ระดับความท้าทาย (ใส่ data-icon) -->
+            <!-- Dropdown 2: ระดับความท้าทาย -->
             <div class="select-item-container">
                 <select class="lu-select" id="level_filter" data-icon="fas fa-trophy text-warning">
                     <option value="">ระดับความท้าทาย</option>
@@ -424,7 +432,7 @@ if ($db) {
                 </select>
             </div>
 
-            <!-- Dropdown 3: ฟังก์ชันห้องแล็บเสริม (เอากลับมาแล้ว) -->
+            <!-- Dropdown 3: ฟังก์ชันห้องแล็บเสริม -->
             <div class="select-item-container">
                 <select class="lu-select" id="lab_filter" data-icon="fas fa-flask text-success">
                     <option value="">ฟังก์ชันห้องแล็บเสริม</option>
