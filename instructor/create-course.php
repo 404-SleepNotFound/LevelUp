@@ -79,8 +79,7 @@ if (isset($conn)) {
 }
 ?>
 
-<link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css">
-<script src="<?= $ROOT_PATH ?>js/lu-dropdown.js" defer></script>
+<?php // css/dropdown-select.css และ js/lu-dropdown.js ถูกโหลดจาก header.php แล้ว (ใช้ร่วมกันทุกหน้า) ?>
 
 <style>
     /* Safe Container Styles */
