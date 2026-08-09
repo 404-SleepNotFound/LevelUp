@@ -154,6 +154,10 @@ $roadmapNodes = [
 include '../includes/header.php';
 ?>
 
+<!-- โหลดไฟล์ CSS/JS สำหรับ Dropdown สำรอง (กรณีไม่ทำงานผ่าน header.php) -->
+<link rel="stylesheet" href="css/dropdown-select.css">
+<script src="js/lu-dropdown.js" defer></script>
+
 <!-- Custom Embedded Styles for Learning Path (LevelUp Design System - Dual Theme) -->
 <style>
     /* Dark Mode Theme Variables (Default) */
@@ -708,49 +712,6 @@ include '../includes/header.php';
         }
     }
 
-    function initCustomDropdown() {
-        const wrapper = document.getElementById('customCareerDropdown');
-        const trigger = document.getElementById('careerDropdownTrigger');
-        const hiddenInput = document.getElementById('careerSelector');
-        const items = document.querySelectorAll('.custom-dropdown-item');
-
-        if (wrapper && trigger) {
-            trigger.addEventListener('click', function(e) {
-                e.stopPropagation();
-                wrapper.classList.toggle('active');
-            });
-
-            items.forEach(item => {
-                item.addEventListener('click', function() {
-                    const val = this.dataset.value;
-                    const title = this.dataset.title;
-                    const icon = this.dataset.icon;
-
-                    const selectedTitle = document.getElementById('selectedCareerTitle');
-                    const selectedIcon = document.getElementById('selectedCareerIcon');
-                    if (selectedTitle) selectedTitle.textContent = title;
-                    if (selectedIcon) selectedIcon.className = 'bi ' + icon + ' fs-5 text-info';
-
-                    items.forEach(i => i.classList.remove('selected'));
-                    this.classList.add('selected');
-
-                    if (hiddenInput) {
-                        hiddenInput.value = val;
-                        hiddenInput.dispatchEvent(new Event('change'));
-                    }
-
-                    wrapper.classList.remove('active');
-                });
-            });
-
-            document.addEventListener('click', function(e) {
-                if (!wrapper.contains(e.target)) {
-                    wrapper.classList.remove('active');
-                }
-            });
-        }
-    }
-
     // ฟังก์ชันเชื่อมต่อการใช้งาน LevelUpAlert
     function initLevelUpAlerts() {
         // 1. ปุ่ม Rebuild Learning Path
@@ -831,12 +792,10 @@ include '../includes/header.php';
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             initSlider();
-            initCustomDropdown();
             initLevelUpAlerts();
         });
     } else {
         initSlider();
-        initCustomDropdown();
         initLevelUpAlerts();
     }
 </script>
