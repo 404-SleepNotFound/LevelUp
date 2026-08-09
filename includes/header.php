@@ -4,10 +4,11 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// 🛠️ ระบบ Auto-Detect $ROOT_PATH 
+// 🛠️ [FIX] ระบบ Auto-Detect $ROOT_PATH 
+// ป้องกันบัค URL เบิ้ล (เช่น student/student/...) กรณีไฟล์ปัจจุบันลืมประกาศตัวแปร
 if (!isset($ROOT_PATH) || $ROOT_PATH === '') {
     $current_folder = basename(dirname($_SERVER['SCRIPT_NAME']));
-    $sub_folders = ['student', 'admin', 'auth', 'ai', 'config'];
+    $sub_folders = ['student', 'admin', 'auth', 'ai', 'config']; // รายชื่อโฟลเดอร์ย่อยในระบบ
     
     if (in_array(strtolower($current_folder), $sub_folders)) {
         $ROOT_PATH = '../';
@@ -16,12 +17,12 @@ if (!isset($ROOT_PATH) || $ROOT_PATH === '') {
     }
 }
 
-// เช็คว่าล็อคอินอยู่หรือไม่
+// เช็คว่าล็อคอินอยู่หรือไม่ (รองรับทั้งแบบเก็บ user_login และ user_id)
 if (!isset($isLoggedIn)) {
     $isLoggedIn = (isset($_SESSION['user_login']) || isset($_SESSION['user_id']) || isset($_SESSION['id'])) ? true : false;
 }
 
-// 🔌 เรียกใช้ไฟล์เชื่อมต่อฐานข้อมูล
+// 🔌 เรียกใช้ไฟล์เชื่อมต่อฐานข้อมูลอย่างปลอดภัย (รองรับทั้ง Root และ Subfolders)
 if (file_exists(__DIR__ . '/config/db.php')) {
     require_once __DIR__ . '/config/db.php';
 } elseif (file_exists(__DIR__ . '/../config/db.php')) {
@@ -37,33 +38,40 @@ if (!$isLoggedIn && !in_array($currentPage, $allowedPages)) {
     exit();
 }
 
-// 🔄 ระบบดึง ID ผู้ใช้
+// 🔄 ระบบดึง ID ผู้ใช้อย่างรัดกุม ป้องกัน Type Error
 $userId = null;
 $sessionData = [];
 
+// 1. ตรวจสอบว่ามีข้อมูลถูกเก็บไว้ใน user_login หรือไม่
 if (isset($_SESSION['user_login'])) {
     if (is_array($_SESSION['user_login'])) {
         $sessionData = $_SESSION['user_login'];
+        // ค้นหา ID จาก Array อย่างปลอดภัย
         $userId = $sessionData['id'] ?? $sessionData['user_id'] ?? null;
     } elseif (is_object($_SESSION['user_login'])) {
         $sessionData = (array) $_SESSION['user_login'];
         $userId = $sessionData['id'] ?? $sessionData['user_id'] ?? null;
     } elseif (is_scalar($_SESSION['user_login'])) {
+        // ถ้าระบบของคุณเซ็ตค่า id เข้าไปใน user_login ตรงๆ (เช่น = 18)
         $userId = $_SESSION['user_login'];
     }
 }
 
+// 2. ถ้ายังไม่ได้ ID ให้ค้นหาจาก Session Root ตัวยอดฮิตเผื่อไว้
 if (empty($userId)) {
     $userId = $_SESSION['user_id'] ?? $_SESSION['id'] ?? null;
 }
 
+// 3. กรองข้อมูล ID
 if (!empty($userId)) {
+    // รองรับทั้งตัวเลข Google ID แบบยาวๆ และ Email
     $userId = trim((string)$userId);
 }
 
 $dbUser = null;
 if (!empty($userId) && isset($conn)) {
     try {
+        // ดึงข้อมูลจากฐานข้อมูลตาม ID อย่างปลอดภัย
         $stmtUser = $conn->prepare("
             SELECT u.*, su.level, su.exp 
             FROM `users` u 
@@ -82,6 +90,7 @@ if (!empty($userId) && isset($conn)) {
     }
 }
 
+// แมปข้อมูลให้ตรงกับคอลัมน์จริงในตาราง users และ status_users (มี Fallback ครบถ้วน)
 $navUser = [
     'user_id'   => $dbUser['id'] ?? ($userId ?? 'N'),
     'username'  => $dbUser['name'] ?? ($sessionData['name'] ?? ($_SESSION['name'] ?? 'Player One')),
@@ -99,19 +108,26 @@ $navUser = [
     'exp'       => $dbUser['exp'] ?? ($sessionData['exp'] ?? ($_SESSION['user_exp'] ?? '0'))
 ];
 
-// ดึงข้อมูล Category และ Course
+// ดึงข้อมูล Category และ Course อย่างปลอดภัย
 $category_data = [];
 $course_data = [];
 $course_details = [];
 
 if (isset($conn)) {
     try {
+        // 1. หมวดหมู่
         $stmtCat = $conn->query("SELECT * FROM `category`");
-        if ($stmtCat) $category_data = $stmtCat->fetchAll(PDO::FETCH_ASSOC);
+        if ($stmtCat) {
+            $category_data = $stmtCat->fetchAll(PDO::FETCH_ASSOC);
+        }
 
+        // 2. คอร์สทั้งหมด
         $stmtCourse = $conn->query("SELECT * FROM `course`");
-        if ($stmtCourse) $course_data = $stmtCourse->fetchAll(PDO::FETCH_ASSOC);
+        if ($stmtCourse) {
+            $course_data = $stmtCourse->fetchAll(PDO::FETCH_ASSOC);
+        }
 
+        // 3. รายละเอียดคอร์สรวมหมวดหมู่
         $stmtDetails = $conn->query("
             SELECT c.*,
                    c.id AS course_id,
@@ -122,12 +138,15 @@ if (isset($conn)) {
             FROM `course` c 
             INNER JOIN `category` cat ON cat.id = c.category_id
         ");
-        if ($stmtDetails) $course_details = $stmtDetails->fetchAll(PDO::FETCH_ASSOC);
+        if ($stmtDetails) {
+            $course_details = $stmtDetails->fetchAll(PDO::FETCH_ASSOC);
+        }
     } catch (PDOException $e) {
         error_log("PDO Error in header.php (Data Fetch): " . $e->getMessage());
     }
 }
 
+// ตรวจสอบว่าเป็นการเรียกผ่าน AJAX (jQuery) หรือไม่
 $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
 
 if (!$isAjax):
@@ -141,7 +160,7 @@ if (!$isAjax):
         <meta name="color-scheme" content="dark light">
         <meta name="theme-color" content="#0b0f19" id="meta-theme-color">
 
-        <!-- 🚀 1. CRITICAL CSS Variables -->
+        <!-- 🚀 1. CRITICAL CSS: CSS Variables กำหนดสีหลักของเว็บ -->
         <style>
             :root,
             html[data-theme="dark"] {
@@ -149,7 +168,7 @@ if (!$isAjax):
                 --body-text: #f1f5f9;
                 --card-bg: #0f172a;
                 --card-border: #1e293b;
-                --nav-bg: rgba(15, 23, 42, 0.95);
+                --nav-bg: #0f172a;
                 --nav-border: #1e293b;
                 --nav-text: #f8fafc;
                 --nav-text-muted: #94a3b8;
@@ -169,7 +188,7 @@ if (!$isAjax):
                 --body-text: #0f172a;
                 --card-bg: #ffffff;
                 --card-border: #e2e8f0;
-                --nav-bg: rgba(255, 255, 255, 0.95);
+                --nav-bg: #ffffff;
                 --nav-border: #e2e8f0;
                 --nav-text: #0f172a;
                 --nav-text-muted: #64748b;
@@ -189,9 +208,18 @@ if (!$isAjax):
                 color: var(--body-text) !important;
                 min-height: 100vh;
             }
+
+            /* สไตล์สำหรับรองรับ Card ในหน้า Dashboard/หน้าอื่นๆ ให้เปลี่ยนสีตาม Light Mode */
+            html[data-theme="light"] .card,
+            html[data-theme="light"] .bg-dark-card,
+            html[data-theme="light"] .dashboard-card {
+                background-color: var(--card-bg) !important;
+                color: var(--body-text) !important;
+                border-color: var(--card-border) !important;
+            }
         </style>
 
-        <!-- 🚀 2. CRITICAL JS Theme Init -->
+        <!-- 🚀 2. CRITICAL JS: อ่าน LocalStorage และเปลี่ยน Theme ก่อน Render DOM -->
         <script>
             (function() {
                 try {
@@ -209,19 +237,269 @@ if (!$isAjax):
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-        <!-- 🚀 3. EXTERNAL CSS -->
+        <!-- 🚀 3. CSS EXTERNAL LIBRARIES -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800;900&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
         <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/custom-scrollbar.css?v=1.0">
-        <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/header.css?v=1.0">
+        <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css?v=1.0">
 
-        <!-- 🚀 4. EXTERNAL JS LIBRARIES -->
+        <!-- 🎨 4. COMPONENT CSS RULES -->
+        <style>
+            html.theme-transitioning,
+            html.theme-transitioning body {
+                transition: background-color 0.3s ease, color 0.3s ease !important;
+            }
+
+            .lu-navbar {
+                background-color: var(--nav-bg) !important;
+                border-bottom: 1px solid var(--nav-border) !important;
+                transition: background-color 0.3s ease, border-color 0.3s ease;
+            }
+
+            .lu-navbar .nav-link {
+                color: var(--nav-text) !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                white-space: nowrap !important;
+            }
+
+            .lu-navbar .navbar-brand span,
+            .lu-navbar .nav-icon-link {
+                color: var(--nav-text) !important;
+            }
+
+            .lu-navbar .nav-link:hover {
+                color: #6366f1 !important;
+            }
+
+            .lu-search-form {
+                max-width: 320px;
+                transition: all 0.2s ease;
+            }
+
+            .lu-search-input {
+                background-color: var(--nav-input-bg) !important;
+                border-color: var(--nav-input-border) !important;
+                color: var(--nav-text) !important;
+                transition: all 0.3s ease;
+            }
+
+            .lu-search-input::placeholder {
+                color: var(--nav-text-muted) !important;
+            }
+
+            .lu-search-icon {
+                color: var(--nav-text-muted) !important;
+            }
+
+            .lu-badge-xp {
+                background-color: var(--nav-input-bg) !important;
+                border-color: var(--nav-input-border) !important;
+                color: var(--nav-text) !important;
+                white-space: nowrap !important;
+            }
+
+            .user-dropdown-menu {
+                background-color: var(--nav-dropdown-bg) !important;
+                border: 1px solid var(--nav-dropdown-border) !important;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4) !important;
+                z-index: 1060 !important;
+            }
+
+            .user-dropdown-menu .dropdown-item {
+                color: var(--nav-dropdown-text) !important;
+                font-weight: 500;
+                padding: 0.6rem 1rem;
+                transition: all 0.15s ease;
+            }
+
+            .user-dropdown-menu .dropdown-item i {
+                color: var(--nav-dropdown-text) !important;
+                opacity: 0.85;
+            }
+
+            .user-dropdown-menu .dropdown-item:hover,
+            .user-dropdown-menu .dropdown-item:focus {
+                background-color: var(--nav-dropdown-hover-bg) !important;
+                color: var(--nav-dropdown-hover-text) !important;
+            }
+
+            .user-dropdown-menu .dropdown-item.text-danger {
+                color: #ef4444 !important;
+            }
+
+            .user-dropdown-menu .dropdown-item.text-danger i {
+                color: #ef4444 !important;
+            }
+
+            .user-dropdown-menu .dropdown-item.text-danger:hover {
+                background-color: rgba(239, 68, 68, 0.15) !important;
+                color: #f87171 !important;
+            }
+
+            .profile-name-wrap {
+                white-space: normal !important;
+                word-wrap: break-word !important;
+                word-break: break-all !important;
+                line-height: 1.4;
+                color: var(--nav-text-muted) !important;
+                font-size: 0.85rem;
+                font-weight: 700;
+                padding: 0.5rem 1rem;
+            }
+
+            .user-action-panel {
+                flex-shrink: 0 !important;
+            }
+
+            .lu-ai-btn-group {
+                flex-shrink: 0 !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                height: 38px !important;
+            }
+
+            .lu-ai-btn-group .btn {
+                white-space: nowrap !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                height: 100% !important;
+                padding-top: 0 !important;
+                padding-bottom: 0 !important;
+                line-height: 1 !important;
+            }
+
+            html[data-theme="light"] .navbar-toggler-icon {
+                filter: none !important;
+            }
+
+            @media (min-width: 768px) and (max-width: 1199.98px) {
+                .lu-search-form {
+                    max-width: 180px !important;
+                }
+
+                .navbar-nav {
+                    gap: 0.25rem !important;
+                }
+
+                .navbar-nav .nav-link {
+                    font-size: 0.85rem !important;
+                    padding-left: 0.3rem !important;
+                    padding-right: 0.3rem !important;
+                }
+
+                .user-action-panel {
+                    gap: 0.5rem !important;
+                }
+            }
+
+            @media (max-width: 991.98px) {
+                .navbar-collapse {
+                    background-color: var(--nav-mobile-bg) !important;
+                    padding: 1rem !important;
+                    border-radius: 0.5rem !important;
+                    margin-top: 0.5rem !important;
+                    border: 1px solid var(--nav-border) !important;
+                    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15) !important;
+                }
+
+                .navbar-nav {
+                    align-items: flex-start !important;
+                    width: 100% !important;
+                }
+
+                .lu-search-form {
+                    max-width: 100% !important;
+                    margin-left: 0 !important;
+                    margin-right: 0 !important;
+                    margin-bottom: 1rem !important;
+                    margin-top: 0 !important;
+                }
+
+                .navbar-nav .nav-link {
+                    padding: 0.5rem 0 !important;
+                    justify-content: flex-start !important;
+                    width: 100% !important;
+                }
+
+                .user-action-panel {
+                    flex-wrap: wrap !important;
+                    justify-content: space-between !important;
+                    padding-top: 1rem !important;
+                    margin-top: 0.5rem !important;
+                    width: 100% !important;
+                    border-top: 1px solid var(--nav-border) !important;
+                    gap: 0.5rem !important;
+                }
+
+                .user-action-panel .dropdown-menu {
+                    position: absolute !important;
+                    top: 100% !important;
+                    right: 0 !important;
+                    left: auto !important;
+                    min-width: 220px !important;
+                    z-index: 1060 !important;
+                }
+            }
+
+            html[data-theme="dark"] .swal2-popup,
+            html[data-theme="dark"] .levelup-swal-popup,
+            html[data-theme="dark"] .swal2-border-custom {
+                background-color: #0f172a !important;
+                color: #f8fafc !important;
+                border: 1px solid #1e293b !important;
+                border-radius: 18px !important;
+                box-shadow: 0 20px 30px rgba(0, 0, 0, 0.55) !important;
+            }
+
+            html[data-theme="dark"] .swal2-title,
+            html[data-theme="dark"] .levelup-swal-title {
+                color: #f8fafc !important;
+                font-weight: 700 !important;
+            }
+
+            html[data-theme="dark"] .swal2-html-container,
+            html[data-theme="dark"] .levelup-swal-text {
+                color: #cbd5e1 !important;
+            }
+
+            html[data-theme="dark"] .swal2-icon.swal2-info { border-color: #38bdf8 !important; color: #38bdf8 !important; }
+            html[data-theme="dark"] .swal2-icon.swal2-success { border-color: #22c55e !important; color: #22c55e !important; }
+            html[data-theme="dark"] .swal2-icon.swal2-question { border-color: #8b5cf6 !important; color: #8b5cf6 !important; }
+            html[data-theme="dark"] .swal2-icon.swal2-warning { border-color: #f59e0b !important; color: #f59e0b !important; }
+            html[data-theme="dark"] .swal2-icon.swal2-error { border-color: #ef4444 !important; color: #ef4444 !important; }
+
+            html[data-theme="light"] .swal2-popup,
+            html[data-theme="light"] .levelup-swal-popup,
+            html[data-theme="light"] .swal2-border-custom {
+                background-color: #ffffff !important;
+                color: #0f172a !important;
+                border: 1px solid #e2e8f0 !important;
+                border-radius: 18px !important;
+                box-shadow: 0 20px 30px rgba(15, 23, 42, 0.12) !important;
+            }
+
+            html[data-theme="light"] .swal2-title,
+            html[data-theme="light"] .levelup-swal-title {
+                color: #0f172a !important;
+                font-weight: 700 !important;
+            }
+
+            html[data-theme="light"] .swal2-html-container,
+            html[data-theme="light"] .levelup-swal-text {
+                color: #475569 !important;
+            }
+        </style>
+
+        <!-- 🚀 5. JAVASCRIPT LIBRARIES -->
         <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <script src="<?= $ROOT_PATH ?>js/header.js?v=1.0" defer></script>
+        <script src="<?= $ROOT_PATH ?>js/levelup-sweetalert.js?v=1.0"></script>
 
+        <!-- 🚀 เรียกใช้งาน Rocket Cursor -->
         <?php 
         if (file_exists(__DIR__ . '/rocket_cursor.php')) {
             include_once __DIR__ . '/rocket_cursor.php';
@@ -235,15 +513,15 @@ if (!$isAjax):
 
         <!-- ⏳ Cyber Loading Screen -->
         <div id="ajax-loading-screen" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:var(--body-bg); z-index:9999; opacity:0.95; align-items:center; justify-content:center; flex-direction:column;">
-            <div class="spinner-border text-primary" role="status" style="width: 2.5rem; height: 2.5rem;"></div>
-            <div class="mt-3 font-monospace text-muted" style="font-size: 0.75rem; letter-spacing: 1px;">LOADING DATA...</div>
+            <div class="spinner-border text-primary" role="status" style="width: 2.5rem; height: 2.5rem; border-width: 0.25em;"></div>
+            <div class="mt-3 font-monospace text-muted style-xs" style="font-size: 0.75rem; letter-spacing: 1px;">LOADING DATA...</div>
         </div>
 
-        <nav class="navbar navbar-expand-lg fixed-top lu-navbar shadow-sm">
+        <nav class="navbar navbar-expand-lg fixed-top lu-navbar shadow-sm" style="z-index: 1050 !important;">
             <div class="container">
 
                 <!-- โลโก้ -->
-                <a class="navbar-brand d-flex align-items-center gap-2 text-decoration-none ajax-link m-0 me-3" href="<?= $ROOT_PATH ?>index.php">
+                <a class="navbar-brand d-flex align-items-center gap-2 text-decoration-none ajax-link m-0 me-2" href="<?= $ROOT_PATH ?>index.php">
                     <div class="lu-logo-icon fs-5 text-info"><i class="bi bi-rocket-takeoff-fill"></i></div>
                     <span class="fw-bold fs-4" style="font-family: 'Outfit', sans-serif;">LevelUp</span>
                 </a>
@@ -254,25 +532,21 @@ if (!$isAjax):
                     data-bs-toggle="collapse"
                     data-bs-target="#luMainNav"
                     aria-controls="luMainNav"
-                    aria-expanded="false">
-                    <span class="navbar-toggler-icon"></span>
+                    aria-expanded="false"
+                    style="background: transparent !important;">
+                    <span class="navbar-toggler-icon" style="filter: invert(1) brightness(2); width: 1.5em; height: 1.5em;"></span>
                 </button>
 
                 <!-- ส่วนของเมนูเมื่อหด/ขยาย -->
                 <div class="collapse navbar-collapse" id="luMainNav">
 
                     <?php if ($isLoggedIn): ?>
-                        <!-- ช่องค้นหา Autocomplete -->
-                        <form class="mx-lg-2 d-flex flex-grow-1 lu-search-form position-relative" action="<?= $ROOT_PATH ?>student/courses.php" method="GET" id="ajax-search-form">
+                        <!-- ช่องค้นหา -->
+                        <form class="mx-lg-2 d-flex flex-grow-1 lu-search-form" action="<?= $ROOT_PATH ?>student/courses.php" method="GET" id="ajax-search-form">
                             <div class="position-relative w-100">
-                                <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 lu-search-icon" style="z-index: 10;"></i>
-                                <input type="text" id="globalSearchInput" name="search" class="form-control rounded-pill lu-search-input" placeholder="ค้นหา Quests, สกิล..." autocomplete="off" style="padding-left: 2.5rem; padding-right: 4.5rem;">
-                                <span class="position-absolute top-50 translate-middle-y me-2 border rounded px-2 py-1 lu-search-shortcut d-none d-xl-block">Ctrl K</span>
-                            </div>
-
-                            <!-- Panel แสดงผลลัพธ์การค้นหา -->
-                            <div id="searchAutocompletePanel" class="dropdown-menu user-dropdown-menu lu-autocomplete-panel d-none p-2 shadow-lg">
-                                <div id="searchAutocompleteContent"></div>
+                                <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 lu-search-icon" style="left: 0; z-index: 10;"></i>
+                                <input type="text" name="search" class="form-control rounded-pill lu-search-input" placeholder="ค้นหา Quests, สกิล..." style="padding-left: 2.5rem; padding-right: 4.5rem;">
+                                <span class="position-absolute top-50 translate-middle-y me-2 border rounded px-2 py-1 lu-search-icon d-none d-xl-block" style="right: 0; font-size: 0.75rem; z-index: 10; border-color: var(--nav-input-border) !important;">Ctrl K</span>
                             </div>
                         </form>
 
@@ -280,9 +554,9 @@ if (!$isAjax):
                         <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1 align-items-start align-items-lg-center">
                             <li class="nav-item"><a class="nav-link lu-nav-link ajax-link" href="<?= $ROOT_PATH ?>student/courses.php"><i class="bi bi-journal-code me-1"></i> Quests</a></li>
                             <li class="nav-item"><a class="nav-link lu-nav-link ajax-link" href="<?= $ROOT_PATH ?>student/learning-path.php"><i class="bi bi-map me-1"></i> Roadmaps</a></li>
-                            <li class="nav-item dropdown">
+                            <li class="nav-item dropdown lu-dropdown--no-scroll">
                                 <a class="nav-link lu-nav-link dropdown-toggle" href="#" id="labsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-flask me-1"></i> Labs</a>
-                                <ul class="dropdown-menu user-dropdown-menu border-0 shadow-lg mt-2" aria-labelledby="labsDropdown">
+                                <ul class="dropdown-menu user-dropdown-menu border-0 shadow mt-2" aria-labelledby="labsDropdown">
                                     <li><a class="dropdown-item lu-dropdown-item ajax-link" href="<?= $ROOT_PATH ?>student/coding-lab.php"><i class="bi bi-terminal me-2"></i> Coding Lab</a></li>
                                     <li><a class="dropdown-item lu-dropdown-item ajax-link" href="<?= $ROOT_PATH ?>student/virtual-lab.php"><i class="bi bi-cpu me-2"></i> Virtual Lab</a></li>
                                 </ul>
@@ -293,7 +567,7 @@ if (!$isAjax):
                     <!-- เมนูผู้ใช้ -->
                     <div class="user-action-panel d-flex align-items-center gap-2 gap-lg-3 ms-auto mt-3 mt-lg-0">
 
-                        <!-- 🌙/☀️ ปุ่มสลับโหมด Theme -->
+                        <!-- 🌙/☀️ ปุ่มสลับโหมด Dark/Light Theme -->
                         <div class="btn-group me-1">
                             <button type="button" id="theme-toggle-btn" class="theme-toggle btn border-0 p-0 shadow-none" style="border-radius: 50%; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; background: var(--nav-btn-theme-bg);" title="สลับโหมดมืด/สว่าง">
                                 <i class="bi bi-sun-fill text-warning d-none" id="theme-icon-light" style="font-size: 1.1rem;"></i>
@@ -302,18 +576,7 @@ if (!$isAjax):
                         </div>
 
                         <?php if ($isLoggedIn): ?>
-                            <!-- Dropdown กระดิ่งแจ้งเตือน -->
-                            <div class="dropdown">
-                                <button class="btn btn-link nav-icon-link fs-5 p-0 border-0 position-relative text-decoration-none d-flex align-items-center justify-content-center" id="notifButton" data-bs-toggle="dropdown" aria-expanded="false" style="width: 36px; height: 36px; color: var(--nav-text);">
-                                    <i class="bi bi-bell"></i>
-                                </button>
-                                <div class="dropdown-menu dropdown-menu-end user-dropdown-menu shadow-lg p-0 mt-2" style="width: 300px; max-height: 400px; overflow-y: auto;" aria-labelledby="notifButton">
-                                    <div class="p-3 border-bottom border-color fw-bold text-main fs-sm">การแจ้งเตือน</div>
-                                    <div id="notifList" class="list-group list-group-flush">
-                                        <div class="p-3 text-center text-muted fs-xs">กำลังโหลดการแจ้งเตือน...</div>
-                                    </div>
-                                </div>
-                            </div>
+                            <a href="<?= $ROOT_PATH ?>admin/notifications.php" class="nav-icon-link fs-5 position-relative ajax-link d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;"><i class="bi bi-bell"></i></a>
 
                             <div class="d-none d-sm-flex align-items-center">
                                 <a href="<?= $ROOT_PATH ?>student/skill-map.php" class="text-decoration-none ajax-link">
@@ -333,22 +596,25 @@ if (!$isAjax):
                                 </a>
                             </div>
 
-                            <!-- Dropdown โปรไฟล์ -->
                             <div class="dropdown position-relative d-flex align-items-center">
-                                <a href="#" class="dropdown-toggle border-0 text-decoration-none d-flex align-items-center" data-bs-toggle="dropdown" aria-expanded="false">
+                                <a href="#" class="dropdown-toggle border-0 text-decoration-none d-flex align-items-center" data-bs-toggle="dropdown">
                                     <img src="<?= htmlspecialchars($navUser['avatar']) ?>" class="rounded-circle border border-2 border-primary" width="38" height="38" style="object-fit: cover;">
                                 </a>
-                                <ul class="dropdown-menu user-dropdown-menu dropdown-menu-end shadow-lg py-2 mt-2">
+                                <ul class="dropdown-menu user-dropdown-menu dropdown-menu-end shadow-lg py-2">
                                     <li>
                                         <div class="profile-name-wrap">
                                             <?= htmlspecialchars($navUser['username']) ?>
                                         </div>
                                     </li>
-                                    <li><hr class="dropdown-divider border-secondary opacity-25"></li>
+                                    <li>
+                                        <hr class="dropdown-divider border-secondary opacity-25">
+                                    </li>
                                     <li><a class="dropdown-item ajax-link" href="<?= $ROOT_PATH ?>student/dashboard.php"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a></li>
                                     <li><a class="dropdown-item ajax-link" href="<?= $ROOT_PATH ?>student/profile.php"><i class="bi bi-person me-2"></i> Profile</a></li>
                                     <li><a class="dropdown-item ajax-link" href="<?= $ROOT_PATH ?>student/settings.php"><i class="bi bi-gear me-2"></i> Settings</a></li>
-                                    <li><hr class="dropdown-divider border-secondary opacity-25"></li>
+                                    <li>
+                                        <hr class="dropdown-divider border-secondary opacity-25">
+                                    </li>
                                     <li><a class="dropdown-item text-danger" href="<?= $ROOT_PATH ?>auth/logout.php"><i class="bi bi-box-arrow-right me-2"></i> Log Out</a></li>
                                 </ul>
                             </div>
@@ -361,7 +627,7 @@ if (!$isAjax):
             </div>
         </nav>
 
-        <!-- 🛠️ JavaScript สลับโหมด Dark/Light Theme -->
+        <!-- 🛠️ JavaScript ควบคุมการกดสลับโหมด Dark/Light และปรับตำแหน่ง Dropdown -->
         <script>
             $(document).ready(function() {
                 function applyThemeUI(theme) {
@@ -392,6 +658,86 @@ if (!$isAjax):
                         $('html').removeClass('theme-transitioning');
                     }, 300);
                 });
+
+                function positionDropdownMenu($dropdown) {
+                    const $menu = $dropdown.find('.dropdown-menu').first();
+                    const $trigger = $dropdown.find('[data-bs-toggle="dropdown"]').first();
+
+                    if (!$menu.length || !$trigger.length) {
+                        return;
+                    }
+
+                    const triggerEl = $trigger[0];
+                    const rect = triggerEl.getBoundingClientRect();
+                    const viewportWidth = window.innerWidth;
+                    const viewportHeight = window.innerHeight;
+
+                    // If the trigger has scrolled completely out of view, close the
+                    // dropdown instead of letting the menu float disconnected from it.
+                    if (rect.bottom < 0 || rect.top > viewportHeight) {
+                        const instance = window.bootstrap && window.bootstrap.Dropdown
+                            ? window.bootstrap.Dropdown.getInstance(triggerEl)
+                            : null;
+                        if (instance) {
+                            instance.hide();
+                        } else {
+                            $dropdown.removeClass('show');
+                            $menu.removeClass('show');
+                        }
+                        return;
+                    }
+
+                    const menuWidth = Math.min($menu.outerWidth(), viewportWidth - 24);
+                    const isEndAligned = $menu.hasClass('dropdown-menu-end');
+
+                    let left = rect.left + (rect.width / 2) - (menuWidth / 2);
+                    if (isEndAligned) {
+                        left = rect.right - menuWidth;
+                    } else if (left < 12) {
+                        left = 12;
+                    } else if (left + menuWidth > viewportWidth - 12) {
+                        left = viewportWidth - menuWidth - 12;
+                    }
+
+                    $menu.css({
+                        position: 'fixed',
+                        top: (rect.bottom + 8) + 'px',
+                        left: left + 'px',
+                        right: 'auto',
+                        transform: 'none',
+                        maxHeight: '320px',
+                        width: menuWidth + 'px'
+                    });
+                }
+
+                function repositionOpenDropdowns() {
+                    $('.dropdown.show').each(function() {
+                        positionDropdownMenu($(this));
+                    });
+                }
+
+                $(document).on('shown.bs.dropdown', '.dropdown', function() {
+                    positionDropdownMenu($(this));
+                });
+
+                $(window).on('resize orientationchange', repositionOpenDropdowns);
+
+                // Keep open dropdown menus glued to their trigger while the page
+                // scrolls (menus are position:fixed, so without this they'd stay
+                // put in the viewport instead of following the button). Scroll
+                // fires very frequently, so the work is throttled to one
+                // reposition per animation frame, and the listener is passive
+                // since it never calls preventDefault().
+                let dropdownScrollRafId = null;
+                window.addEventListener('scroll', function() {
+                    if (dropdownScrollRafId !== null) {
+                        return;
+                    }
+                    dropdownScrollRafId = window.requestAnimationFrame(function() {
+                        repositionOpenDropdowns();
+                        dropdownScrollRafId = null;
+                    });
+                }, { passive: true, capture: true });
             });
         </script>
 
