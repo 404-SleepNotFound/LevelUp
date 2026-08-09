@@ -642,18 +642,31 @@ html[data-theme="dark"] .form-dark-input.form-select-custom,
   z-index: 1;
 }
 
-/* 2. เมื่อมีการ Hover, Focus หรือมี Dropdown ภายในเปิดใช้งาน (.active) 
-      ให้ดัน z-index ของการ์ดใบนั้นขึ้นมาระดับสูงทันที ไม่ว่าเมาส์จะชี้อยู่ที่ไหน */
-.editor-section-card:hover,
-.editor-section-card:focus-within,
+/* 2. ดัน z-index ของการ์ดใบที่มี Dropdown เปิดค้างอยู่ (.active / .show / :focus-within)
+      ให้ลอยอยู่สูงที่สุดเสมอ แม้เมาส์จะหลุดออกจากการ์ดใบนั้นไปแล้ว */
 .editor-section-card:has(.custom-dropdown-wrapper.active),
-.card:hover,
-.card:focus-within,
-.card:has(.custom-dropdown-wrapper.active) {
-  z-index: 100 !important;
+.editor-section-card:has(.dropdown-menu.show),
+.editor-section-card:has(.show),
+.card:has(.custom-dropdown-wrapper.active),
+.card:has(.dropdown-menu.show),
+.card:has(.show),
+.block-unit-item:has(.custom-dropdown-wrapper.active),
+.block-unit-item:has(.dropdown-menu.show),
+.block-unit-item:has(.show) {
+  z-index: 1000 !important;
 }
 
-/* 3. ดัน Layer ของ Custom Dropdown Wrapper ขณะ Active ให้ลอยสูงที่สุด */
+/* 3. รองรับการ Hover และ Focus ปกติเมื่อไม่ได้เปิด Dropdown */
+.editor-section-card:hover,
+.editor-section-card:focus-within,
+.card:hover,
+.card:focus-within,
+.block-unit-item:hover,
+.block-unit-item:focus-within {
+  z-index: 100;
+}
+
+/* 4. ดัน Layer ของ Custom Dropdown Wrapper ขณะ Active ให้ลอยสูงที่สุด */
 .custom-dropdown-wrapper.active {
   z-index: 9999 !important;
 }
