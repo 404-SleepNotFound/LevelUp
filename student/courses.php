@@ -210,15 +210,28 @@ if ($db) {
         font-weight: 300;
     }
 
-    /* 📌 แก้ไขส่วน Filter Bar และ Dropdown */
+    /* 📌 สไตล์ Filter Bar แนวนอน ตรงตามรูปที่ 2 */
     .horizontal-filter-bar {
         background: var(--lv-surface) !important;
         border: 1px solid var(--lv-border-glow) !important;
         box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
         border-radius: 16px !important;
         position: relative;
-        z-index: 1050 !important; /* ปรับ z-index ให้สูงขึ้น */
-        overflow: visible !important; /* ป้องกันไม่ให้ Dropdown โดนตัดขอบ */
+        z-index: 1050 !important;
+        overflow: visible !important;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 1rem !important;
+    }
+
+    .filter-group-wrapper {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 0.75rem !important;
+        flex-grow: 1;
     }
 
     .custom-filter-dropdown {
@@ -231,11 +244,13 @@ if ($db) {
         color: var(--lv-text-main) !important;
         border-radius: 12px !important;
         padding: 8px 16px;
-        display: flex;
+        display: inline-flex !important;
         align-items: center;
         justify-content: space-between;
-        min-width: 200px;
+        min-width: 180px;
+        width: auto !important;
         transition: all 0.2s ease;
+        white-space: nowrap !important;
     }
 
     .btn-dropdown-trigger:hover, 
@@ -253,12 +268,17 @@ if ($db) {
         box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
         padding: 12px;
         min-width: 220px;
-        z-index: 9999 !important; /* ให้แน่ใจว่าลอยอยู่เหนือสิ่งอื่นใด */
+        z-index: 9999 !important;
     }
 
     .custom-filter-dropdown .dropdown-menu .form-check-label {
         color: var(--lv-text-main);
         cursor: pointer;
+    }
+
+    .clear-btn-container {
+        white-space: nowrap !important;
+        margin-left: auto !important;
     }
 
     .btn-clear-glow {
@@ -338,7 +358,17 @@ if ($db) {
         height: 340px;
     }
 
-    /* Responsive */
+    /* Responsive adjustments */
+    @media (max-width: 991px) {
+        .horizontal-filter-bar {
+            flex-wrap: wrap !important;
+        }
+        
+        .filter-group-wrapper {
+            flex-wrap: wrap !important;
+        }
+    }
+
     @media (max-width: 768px) {
         .horizontal-filter-bar {
             flex-direction: column !important;
@@ -407,10 +437,12 @@ if ($db) {
         </div>
     </section>
 
-    <!-- ระบบแผงฟิลเตอร์แนวนอน -->
-    <div class="horizontal-filter-bar p-3 mb-4 d-flex flex-wrap align-items-center justify-content-between gap-3">
-        <div class="d-flex flex-wrap align-items-center gap-3 filter-group-wrapper">
-            <span class="text-main fw-bold me-1 small"><i class="fas fa-filter text-info me-1"></i> คัดกรองภารกิจ:</span>
+    <!-- ระบบแผงฟิลเตอร์แนวนอน (ปรับโครงสร้าง Flex ตามแบบรูปที่ 2) -->
+    <div class="horizontal-filter-bar p-3 mb-4">
+        <div class="filter-group-wrapper">
+            <span class="text-main fw-bold me-1 small text-nowrap">
+                <i class="fas fa-filter text-info me-1"></i> คัดกรองภารกิจ:
+            </span>
 
             <!-- Dropdown 1: หมวดหมู่เนื้อหา -->
             <div class="dropdown custom-filter-dropdown">
@@ -485,7 +517,7 @@ if ($db) {
             </div>
         </div>
 
-        <div class="clear-btn-container ms-auto">
+        <div class="clear-btn-container">
             <button class="btn btn-sm btn-link btn-clear-glow text-decoration-none p-0 fw-bold" onclick="CourseExplorer.resetFilters()">
                 <i class="fas fa-sync-alt me-1"></i> ล้างทั้งหมด
             </button>
