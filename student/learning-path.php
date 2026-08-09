@@ -428,40 +428,15 @@ include '../includes/header.php';
                     <div class="col-md-6">
                         <label class="form-label fs-sm fw-medium text-muted-custom">เป้าหมายอาชีพ (Career Goal)</label>
                         
-                        <input type="hidden" id="careerSelector" value="<?= htmlspecialchars($plannerData['selected_career']) ?>">
-
-                        <?php 
-                            $selectedKey = $plannerData['selected_career'];
-                            $selectedItem = $plannerData['career_options'][$selectedKey] ?? reset($plannerData['career_options']);
-                        ?>
-                        <div class="custom-dropdown-wrapper lu-dropdown--compact" id="customCareerDropdown">
-                            <div class="custom-dropdown-btn shadow-sm" id="careerDropdownTrigger" style="cursor: pointer;">
-                                <div class="d-flex align-items-center gap-2 overflow-hidden">
-                                    <i class="bi <?= htmlspecialchars($selectedItem['icon']) ?> fs-5 text-info" id="selectedCareerIcon"></i>
-                                    <span class="fw-semibold text-truncate" id="selectedCareerTitle"><?= htmlspecialchars($selectedItem['title']) ?></span>
-                                </div>
-                                <i class="bi bi-chevron-down chevron-icon ms-2"></i>
-                            </div>
-
-                            <div class="custom-dropdown-menu">
-                                <?php foreach ($plannerData['career_options'] as $key => $option): ?>
-                                    <div class="custom-dropdown-item <?= ($key === $selectedKey) ? 'selected' : '' ?>" 
-                                         data-value="<?= htmlspecialchars($key) ?>"
-                                         data-title="<?= htmlspecialchars($option['title']) ?>"
-                                         data-icon="<?= htmlspecialchars($option['icon']) ?>"
-                                         style="cursor: pointer;">
-                                        <div class="item-icon-box">
-                                            <i class="bi <?= htmlspecialchars($option['icon']) ?>"></i>
-                                        </div>
-                                        <div class="overflow-hidden">
-                                            <div class="fw-bold fs-sm text-truncate"><?= htmlspecialchars($option['title']) ?></div>
-                                            <div class="fs-xs text-muted-custom text-truncate"><?= htmlspecialchars($option['desc']) ?></div>
-                                        </div>
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-
+                        <select name="career" id="careerSelector" class="lu-select">
+                            <?php foreach ($plannerData['career_options'] as $key => $option): ?>
+                                <option value="<?= htmlspecialchars($key) ?>" 
+                                        data-icon="<?= htmlspecialchars($option['icon']) ?>"
+                                        <?= ($key === $plannerData['selected_career']) ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($option['title']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fs-sm fw-medium text-muted-custom d-flex justify-content-between">
@@ -693,56 +668,9 @@ include '../includes/header.php';
 </section>
 
 <!-- ========================================================================= -->
-<!-- 3. JAVASCRIPT LAYER & DROPDOWN + LEVELUP-SWEETALERT INTEGRATION -->
+<!-- 3. JAVASCRIPT LAYER & LEVELUP-SWEETALERT INTEGRATION -->
 <!-- ========================================================================= -->
 <script>
-    // ฟังก์ชันจัดการการเปิด/ปิด และเลือก Dropdown สำหรับสายอาชีพ
-    function initCustomDropdown() {
-        const wrapper = document.getElementById('customCareerDropdown');
-        const trigger = document.getElementById('careerDropdownTrigger');
-        const hiddenInput = document.getElementById('careerSelector');
-        const selectedTitle = document.getElementById('selectedCareerTitle');
-        const selectedIcon = document.getElementById('selectedCareerIcon');
-
-        if (!wrapper || !trigger) return;
-
-        // 1. กดเปิด/ปิด Dropdown Menu
-        trigger.addEventListener('click', function(e) {
-            e.stopPropagation();
-            wrapper.classList.toggle('active');
-        });
-
-        // 2. เลือก Item ใน Dropdown
-        const items = wrapper.querySelectorAll('.custom-dropdown-item');
-        items.forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const val = this.getAttribute('data-value');
-                const title = this.getAttribute('data-title');
-                const icon = this.getAttribute('data-icon');
-
-                // อัปเดตค่า Value และ UI
-                if (hiddenInput) hiddenInput.value = val;
-                if (selectedTitle) selectedTitle.textContent = title;
-                if (selectedIcon) selectedIcon.className = 'bi ' + icon + ' fs-5 text-info';
-
-                // อัปเดตสถานะ Active/Selected
-                items.forEach(i => i.classList.remove('selected'));
-                this.classList.add('selected');
-
-                // ปิด Menu
-                wrapper.classList.remove('active');
-            });
-        });
-
-        // 3. คลิกที่อื่นนอก Dropdown ให้ปิด Menu
-        document.addEventListener('click', function(e) {
-            if (!wrapper.contains(e.target)) {
-                wrapper.classList.remove('active');
-            }
-        });
-    }
-
     // ฟังก์ชันจัดการ Slider เวลาเรียน
     function initSlider() {
         const timeSlider = document.getElementById('timeSlider');
@@ -838,12 +766,10 @@ include '../includes/header.php';
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
-            initCustomDropdown();
             initSlider();
             initLevelUpAlerts();
         });
     } else {
-        initCustomDropdown();
         initSlider();
         initLevelUpAlerts();
     }

@@ -45,26 +45,48 @@
     var options = select.querySelectorAll('option');
     var items = [];
 
+    // ฟังก์ชันช่วยตั้งค่า Label (แสดงผลทั้ง ไอคอน และ ข้อความ)
+    function updateLabel(opt) {
+      label.innerHTML = '';
+      if (opt.dataset.icon) {
+        var labelIcon = document.createElement('i');
+        labelIcon.className = 'bi ' + opt.dataset.icon + ' me-2 text-info';
+        label.appendChild(labelIcon);
+      }
+      var textNode = document.createTextNode(opt.textContent);
+      label.appendChild(textNode);
+    }
+
     options.forEach(function (opt) {
       var item = document.createElement('div');
       item.className = 'custom-dropdown-item';
-      item.textContent = opt.textContent;
       item.dataset.value = opt.value;
       item.setAttribute('role', 'option');
+
+      // ตรวจสอบและเพิ่ม Icon ประจำ Item (ถ้ามี data-icon)
+      if (opt.dataset.icon) {
+        var icon = document.createElement('i');
+        icon.className = 'bi ' + opt.dataset.icon + ' me-2 text-info';
+        item.appendChild(icon);
+      }
+
+      var textSpan = document.createElement('span');
+      textSpan.textContent = opt.textContent;
+      item.appendChild(textSpan);
 
       if (opt.disabled) item.classList.add('disabled-item');
 
       if (opt.selected) {
         item.classList.add('selected');
-        label.textContent = opt.textContent;
+        updateLabel(opt);
       }
 
       menu.appendChild(item);
       items.push(item);
     });
 
-    if (label.textContent === '' && options.length) {
-      label.textContent = options[0].textContent;
+    if (!label.childNodes.length && options.length) {
+      updateLabel(options[0]);
     }
 
     // ย้าย select จริงเข้ามาไว้ในกล่องเดียวกันแล้วซ่อนไว้
@@ -103,13 +125,15 @@
       }
     });
 
-    items.forEach(function (item) {
+    items.forEach(function (item, index) {
       item.addEventListener('click', function () {
         if (item.classList.contains('disabled-item')) return;
 
         items.forEach(function (i) { i.classList.remove('selected'); });
         item.classList.add('selected');
-        label.textContent = item.textContent;
+
+        var targetOpt = options[index];
+        updateLabel(targetOpt);
 
         select.value = item.dataset.value;
         select.classList.remove('is-invalid');
