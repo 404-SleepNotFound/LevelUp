@@ -34,6 +34,15 @@ switch ($action) {
 
     case 'update_profile':
         try {
+            // ✅ user_id ต้องไม่ว่าง ไม่งั้น UPDATE ... WHERE id = '' จะรันผ่านแต่ไม่แก้อะไรเลย
+            if (empty($user_id)) {
+                echo json_encode([
+                    'status'  => 'error',
+                    'message' => 'ไม่พบ user_id (โปรดลองล็อกอินใหม่อีกครั้ง)'
+                ]);
+                break;
+            }
+
             // เริ่ม Transaction เพื่อความปลอดภัยของข้อมูล
             $conn->beginTransaction();
 
@@ -55,13 +64,23 @@ switch ($action) {
                 $user_id
             ]);
 
+            $rowsAffected = $stmt->rowCount();
+
             // บันทึกสำเร็จทั้งหมดค่อย Commit
             $conn->commit();
 
-            echo json_encode([
-                'status'  => 'success',
-                'message' => 'บันทึกข้อมูลเรียบร้อยแล้ว'
-            ]);
+            if ($rowsAffected === 0) {
+                // Query รันสำเร็จแต่ไม่มีแถวไหนตรงกับ user_id นี้เลย (id ผิด หรือค่าที่ส่งมาเหมือนค่าเดิมทุกตัว)
+                echo json_encode([
+                    'status'  => 'error',
+                    'message' => 'ไม่พบผู้ใช้ id=' . htmlspecialchars((string)$user_id) . ' ในระบบ หรือข้อมูลเหมือนเดิมทุกช่อง'
+                ]);
+            } else {
+                echo json_encode([
+                    'status'  => 'success',
+                    'message' => 'บันทึกข้อมูลเรียบร้อยแล้ว'
+                ]);
+            }
         } catch (Throwable $e) {
             // หากเกิดข้อผิดพลาดให้ ย้อนกลับ (Rollback) ข้อมูลทั้งหมด (ถ้า transaction ยังเปิดอยู่)
             if ($conn->inTransaction()) {
