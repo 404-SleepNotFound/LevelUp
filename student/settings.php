@@ -11,9 +11,20 @@ ob_start();
 include '../includes/header.php';
 $header_html = ob_get_clean();
 
-// ✅ ใช้ข้อมูลผู้ใช้ที่ header.php ดึงมาจาก DB แล้ว (ตัวแปร $dbUser)
-// เพื่อเติมค่าในฟอร์ม Settings ให้ตรงกับข้อมูลจริงในฐานข้อมูล
+// ✅ ใช้ข้อมูลผู้ใช้ที่ header.php ดึงจาก DB มาแล้ว (ตัวแปร $dbUser) เป็นหลัก
+// แต่ถ้า $dbUser ว่าง (เช่น query ใน header.php ล้มเหลวเงียบๆ) ให้ fallback
+// กลับไปใช้ $_SESSION['user_login'] ที่ตั้งไว้ตอน login สำเร็จใน callback.php
+// เพื่อให้ user_id ไม่หายไปกรณีนี้
 $user_data = $dbUser ?? [];
+
+if (empty($user_data['id'])) {
+    $sessionLogin = $_SESSION['user_login'] ?? [];
+    $user_data['id']        = $sessionLogin['id'] ?? ($_SESSION['user_id'] ?? null);
+    $user_data['name']      = $user_data['name'] ?? ($sessionLogin['name'] ?? '');
+    $user_data['email']     = $user_data['email'] ?? ($sessionLogin['email'] ?? '');
+    $user_data['google_id'] = $user_data['google_id'] ?? '';
+    $user_data['bio']       = $user_data['bio'] ?? '';
+}
 
 // ?? เตรียม Script และ Style ทั้งหมดเพื่อยัดเข้าไปใน <head>
 $head_injection = <<<'EOT'
