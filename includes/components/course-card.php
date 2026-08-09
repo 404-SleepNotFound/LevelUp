@@ -27,7 +27,7 @@ $is_bookmarked = $item['is_bookmarked'] ?? false;
     <div class="card course-card-component h-100 border-0 rounded-4 overflow-hidden position-relative">
         <!-- Thumbnail & Badges -->
         <div class="position-relative overflow-hidden card-thumb-wrapper">
-            <a href="course-detail.php?id=<?= htmlspecialchars($id) ?>" class="d-block">
+            <a href="student/course-detail.php?id=<?= htmlspecialchars($id) ?>" class="d-block">
                 <img src="<?= htmlspecialchars($image) ?>" class="card-img-top object-fit-cover w-100 course-thumb" alt="<?= htmlspecialchars($title) ?>">
             </a>
             
@@ -61,7 +61,7 @@ $is_bookmarked = $item['is_bookmarked'] ?? false;
 
             <!-- Title -->
             <h6 class="card-title fw-bold mb-2">
-                <a href="course-detail.php?id=<?= htmlspecialchars($id) ?>" class="text-white text-decoration-none course-title-link line-clamp-2">
+                <a href="student/course-detail.php?id=<?= htmlspecialchars($id) ?>" class="text-white text-decoration-none course-title-link line-clamp-2">
                     <?= htmlspecialchars($title) ?>
                 </a>
             </h6>
