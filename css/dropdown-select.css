@@ -71,22 +71,12 @@ used across the LevelUp platform.
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
   color: var(--nav-text);
   backdrop-filter: blur(18px);
-  z-index: 2050;
+  z-index: 9999 !important;
   max-height: min(320px, calc(100dvh - 120px));
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
 }
-
-/* NOTE: Bootstrap's own CSS only sets top:100%/left:0 via the
-   `.dropdown-menu[data-bs-popper]` selector, and that attribute is added
-   BY Popper itself. Any trigger using data-bs-display="static" (all 3
-   filter dropdowns in courses.php) intentionally disables Popper, so
-   that attribute is never present and the menu was falling back to its
-   default in-flow "static" position inside the flex filter bar - hence
-   it rendering far from its trigger button. Setting position/top/left
-   explicitly here (not gated on [data-bs-popper]) fixes it for both
-   Popper-positioned and static-positioned dropdowns. */
 
 .dropdown-menu.show,
 .lu-dropdown-menu.show {
@@ -346,7 +336,7 @@ html[data-theme="light"] .btn-dropdown-trigger:focus {
   overflow-y: auto !important;
   margin-top: 8px !important;
   box-shadow: 0 18px 36px rgba(15, 23, 42, 0.18) !important;
-  z-index: 2050 !important;
+  z-index: 9999 !important;
 }
 
 .custom-filter-dropdown .form-check {
@@ -472,16 +462,7 @@ html[data-theme="dark"] .form-select-custom,
 }
 
 /* -----------------------------------------------------------------
-7b. Specificity Fix: force LevelUp select style to win over
-    page-local ".form-dark-input" (e.g. create-course.php), which also
-    ships its own !important rules on background/border/border-radius/
-    padding for the same elements. Both rules have equal specificity
-    (single class + !important), so without this override, whichever
-    one happens to be declared LAST in the document wins the tie -
-    fragile, and breaks whenever markup/include order changes (as with
-    AJAX-loaded pages like create-course.php inside instructor.php).
-    Combining classes here bumps specificity so this wins regardless
-    of load order.
+7b. Specificity Fix
 ----------------------------------------------------------------- */
 .form-dark-input.form-select,
 .form-dark-input.lu-select,
@@ -562,7 +543,7 @@ html[data-theme="dark"] .form-dark-input.form-select-custom,
   border-radius: 20px;
   backdrop-filter: blur(18px);
   box-shadow: 0 26px 64px rgba(15, 23, 42, 0.28);
-  z-index: 2050;
+  z-index: 9999 !important;
   opacity: 0;
   visibility: hidden;
   transform: translateY(-12px);
@@ -644,15 +625,38 @@ html[data-theme="dark"] .form-dark-input.form-select-custom,
   pointer-events: none !important;
 }
 
-/* สะท้อนสถานะ is-invalid ของ select จริง (ที่ lu-dropdown.js ซ่อนไว้)
-   มาที่ปุ่มที่มองเห็น เช่นตอน validate ฟอร์มไม่ผ่าน */
 .custom-dropdown-wrapper:has(select.is-invalid) .custom-dropdown-btn {
   border-color: #ef4444 !important;
   box-shadow: 0 0 0 0.15rem rgba(239, 68, 68, 0.25) !important;
 }
 
 /* -----------------------------------------------------------------
-9. Custom Rocket Cursor & Dropdown Pointer Alignment
+9. Stacking Context & Overflow Fixes (แก้ปัญหา Dropdown ถูกบัง)
+----------------------------------------------------------------- */
+/* ป้องกันกล่องการ์ดหรือ Container ตัดขอบ Dropdown และยก z-index ของ Wrapper ให้สูงขึ้น */
+.editor-section-card,
+.card,
+.block-unit-item {
+  overflow: visible !important;
+  position: relative;
+  z-index: 1;
+}
+
+/* เมื่อใช้งานการ์ดที่มี Dropdown ถูกโฟกัสหรือโฮเวอร์ ให้ดัน Layer การ์ดนั้นขึ้นมาข้างบน */
+.editor-section-card:hover,
+.editor-section-card:focus-within,
+.card:hover,
+.card:focus-within {
+  z-index: 10;
+}
+
+/* ดัน Layer ของ Custom Dropdown Wrapper ขณะ Active ให้อยู่เหนือ Element อื่นๆ ในแถวเดียวกัน */
+.custom-dropdown-wrapper.active {
+  z-index: 9999 !important;
+}
+
+/* -----------------------------------------------------------------
+10. Custom Rocket Cursor & Dropdown Pointer Alignment
 ----------------------------------------------------------------- */
 .form-select,
 .lu-select,
@@ -672,7 +676,6 @@ select option {
   cursor: inherit !important;
 }
 
-/* Ensure the custom rocket cursor always stays visible above all dropdown menus */
 .custom-cursor,
 .rocket-cursor,
 #rocket-cursor,
