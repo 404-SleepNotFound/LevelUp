@@ -23,7 +23,8 @@ if (isset($conn)) {
 }
 ?>
 
-<link rel="stylesheet" href="../css/custom-dropdown.css">
+<link rel="stylesheet" href="../css/dropdown-select.css">
+
 <style>
     /* Safe Container Styles */
     body, .create-course-wrapper {
@@ -408,17 +409,10 @@ if (isset($conn)) {
                     <!-- Dropdown 1: ภาษาในคอร์ส -->
                     <div class="col-12 col-md-6">
                         <label class="form-label form-label-custom">ภาษาในคอร์ส</label>
-                        <div class="custom-dropdown-wrapper">
-                            <input type="hidden" name="course_language" id="course_language" value="th">
-                            <div class="custom-dropdown-btn custom-dropdown-toggle">
-                                <span class="selected-text">ภาษาไทย (Thai)</span>
-                                <i class="bi bi-chevron-down"></i>
-                            </div>
-                            <div class="custom-dropdown-menu">
-                                <div class="custom-dropdown-item selected" data-value="th">ภาษาไทย (Thai)</div>
-                                <div class="custom-dropdown-item" data-value="en">ภาษาอังกฤษ (English)</div>
-                            </div>
-                        </div>
+                        <select class="form-select lu-select form-dark-input" name="course_language" id="course_language">
+                            <option value="th" selected>ภาษาไทย (Thai)</option>
+                            <option value="en">ภาษาอังกฤษ (English)</option>
+                        </select>
                     </div>
 
                     <div class="col-12">
@@ -495,43 +489,29 @@ if (isset($conn)) {
                         <!-- Dropdown 2: หมวดหมู่หลักคอร์ส -->
                         <div class="mb-3">
                             <label class="form-label form-label-custom">หมวดหมู่หลักคอร์ส <span class="text-danger">*</span></label>
-                            <div class="custom-dropdown-wrapper">
-                                <input type="hidden" name="course_category" id="course_category" class="required-field" value="">
-                                <div class="custom-dropdown-btn custom-dropdown-toggle">
-                                    <span class="selected-text">-- กรุณาเลือกหมวดหมู่หลัก --</span>
-                                    <i class="bi bi-chevron-down"></i>
-                                </div>
-                                <div class="custom-dropdown-menu">
-                                    <div class="custom-dropdown-item selected" data-value="">-- กรุณาเลือกหมวดหมู่หลัก --</div>
-                                    <?php if (!empty($category_data)): ?>
-                                        <?php foreach ($category_data as $category): ?>
-                                            <div class="custom-dropdown-item" data-value="<?= htmlspecialchars($category['id'] ?? ''); ?>">
-                                                <?= htmlspecialchars($category['name'] ?? ''); ?>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    <?php else: ?>
-                                        <div class="custom-dropdown-item" data-value="">ไม่มีข้อมูลหมวดหมู่</div>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
+                            <select class="form-select lu-select form-dark-input required-field" name="course_category" id="course_category">
+                                <option value="">-- กรุณาเลือกหมวดหมู่หลัก --</option>
+                                <?php if (!empty($category_data)): ?>
+                                    <?php foreach ($category_data as $category): ?>
+                                        <option value="<?= htmlspecialchars($category['id'] ?? ''); ?>">
+                                            <?= htmlspecialchars($category['name'] ?? ''); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <option value="" disabled>ไม่มีข้อมูลหมวดหมู่</option>
+                                <?php endif; ?>
+                            </select>
                         </div>
 
                         <!-- Dropdown 3: ระดับความยากผู้เรียน -->
                         <div class="mb-3">
                             <label class="form-label form-label-custom">ระดับความยากผู้เรียน (Difficulty Level)</label>
-                            <div class="custom-dropdown-wrapper">
-                                <input type="hidden" name="course_difficulty" id="course_difficulty" value="Beginner">
-                                <div class="custom-dropdown-btn custom-dropdown-toggle">
-                                    <span class="selected-text">Beginner (เหมาะสำหรับผู้เริ่มต้น ไม่มีพื้นฐานเลย)</span>
-                                    <i class="bi bi-chevron-down"></i>
-                                </div>
-                                <div class="custom-dropdown-menu">
-                                    <div class="custom-dropdown-item selected" data-value="Beginner">Beginner (เหมาะสำหรับผู้เริ่มต้น ไม่มีพื้นฐานเลย)</div>
-                                    <div class="custom-dropdown-item" data-value="Intermediate">Intermediate (มีพื้นฐานภาษาคอมพิวเตอร์มาบ้างแล้ว)</div>
-                                    <div class="custom-dropdown-item" data-value="Advanced">Advanced (เจาะลึกโปรเจกต์ใหญ่ ลอจิกซับซ้อน)</div>
-                                    <div class="custom-dropdown-item" data-value="Expert">Expert (ระดับสถาปัตยกรรมระบบขั้นสูงและ Security)</div>
-                                </div>
-                            </div>
+                            <select class="form-select lu-select form-dark-input" name="course_difficulty" id="course_difficulty" onchange="updateDifficultyHelp()">
+                                <option value="Beginner" selected>Beginner (เหมาะสำหรับผู้เริ่มต้น ไม่มีพื้นฐานเลย)</option>
+                                <option value="Intermediate">Intermediate (มีพื้นฐานภาษาคอมพิวเตอร์มาบ้างแล้ว)</option>
+                                <option value="Advanced">Advanced (เจาะลึกโปรเจกต์ใหญ่ ลอจิกซับซ้อน)</option>
+                                <option value="Expert">Expert (ระดับสถาปัตยกรรมระบบขั้นสูงและ Security)</option>
+                            </select>
                             <div id="difficulty_help" class="small text-info mt-2 fw-medium">💡 ปูพื้นฐานจากศูนย์ ไม่จำเป็นต้องมีประสบการณ์เขียนโค้ดมาก่อน</div>
                         </div>
 
@@ -584,38 +564,24 @@ if (isset($conn)) {
                             <!-- Dropdown 4: กลุ่มเป้าหมาย -->
                             <div class="col-12 col-md-6">
                                 <label class="form-label form-label-custom">เหมาะสำหรับกลุ่มเป้าหมายใด (Target Audience)</label>
-                                <div class="custom-dropdown-wrapper">
-                                    <input type="hidden" name="course_target" id="course_target" value="ผู้เริ่มต้น / นักเรียน นักศึกษา">
-                                    <div class="custom-dropdown-btn custom-dropdown-toggle">
-                                        <span class="selected-text">ผู้เริ่มต้น / นักเรียน นักศึกษา</span>
-                                        <i class="bi bi-chevron-down"></i>
-                                    </div>
-                                    <div class="custom-dropdown-menu">
-                                        <div class="custom-dropdown-item selected" data-value="ผู้เริ่มต้น / นักเรียน นักศึกษา">ผู้เริ่มต้น / นักเรียน นักศึกษา</div>
-                                        <div class="custom-dropdown-item" data-value="โปรแกรมเมอร์ที่ต้องการย้ายหรือเปลี่ยนสายงาน">โปรแกรมเมอร์ที่ต้องการย้ายหรือเปลี่ยนสายงาน</div>
-                                        <div class="custom-dropdown-item" data-value="ผู้ทำงานสายตรงที่ต้องการอัปสกิลเทคโนโลยีใหม่">ผู้ทำงานสายตรงที่ต้องการอัปสกิลเทคโนโลยีใหม่</div>
-                                    </div>
-                                </div>
+                                <select class="form-select lu-select form-dark-input" name="course_target" id="course_target">
+                                    <option value="ผู้เริ่มต้น / นักเรียน นักศึกษา" selected>ผู้เริ่มต้น / นักเรียน นักศึกษา</option>
+                                    <option value="โปรแกรมเมอร์ที่ต้องการย้ายหรือเปลี่ยนสายงาน">โปรแกรมเมอร์ที่ต้องการย้ายหรือเปลี่ยนสายงาน</option>
+                                    <option value="ผู้ทำงานสายตรงที่ต้องการอัปสกิลเทคโนโลยีใหม่">ผู้ทำงานสายตรงที่ต้องการอัปสกิลเทคโนโลยีใหม่</option>
+                                </select>
                             </div>
 
                             <!-- Dropdown 5: แผนอาชีพ -->
                             <div class="col-12 col-md-6">
                                 <label class="form-label form-label-custom">เชื่อมโยงกับแผนอาชีพ (Career Path)</label>
-                                <div class="custom-dropdown-wrapper">
-                                    <input type="hidden" name="course_career" id="course_career" value="Full Stack Developer">
-                                    <div class="custom-dropdown-btn custom-dropdown-toggle">
-                                        <span class="selected-text">Full Stack Developer</span>
-                                        <i class="bi bi-chevron-down"></i>
-                                    </div>
-                                    <div class="custom-dropdown-menu">
-                                        <div class="custom-dropdown-item selected" data-value="Full Stack Developer">Full Stack Developer</div>
-                                        <div class="custom-dropdown-item" data-value="Front-end Developer">Front-end Developer</div>
-                                        <div class="custom-dropdown-item" data-value="Back-end Developer">Back-end Developer</div>
-                                        <div class="custom-dropdown-item" data-value="Data Scientist / AI Engineer">Data Scientist / AI Engineer</div>
-                                        <div class="custom-dropdown-item" data-value="Cloud & DevOps Engineer">Cloud & DevOps Engineer</div>
-                                        <div class="custom-dropdown-item" data-value="Cybersecurity Analyst">Cybersecurity Analyst</div>
-                                    </div>
-                                </div>
+                                <select class="form-select lu-select form-dark-input" name="course_career" id="course_career">
+                                    <option value="Full Stack Developer" selected>Full Stack Developer</option>
+                                    <option value="Front-end Developer">Front-end Developer</option>
+                                    <option value="Back-end Developer">Back-end Developer</option>
+                                    <option value="Data Scientist / AI Engineer">Data Scientist / AI Engineer</option>
+                                    <option value="Cloud & DevOps Engineer">Cloud & DevOps Engineer</option>
+                                    <option value="Cybersecurity Analyst">Cybersecurity Analyst</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -633,36 +599,22 @@ if (isset($conn)) {
                     <!-- Dropdown 6: ประเภทคอร์สและการคิดเงิน -->
                     <div class="col-12 col-md-4">
                         <label class="form-label form-label-custom">ประเภทคอร์สและการคิดเงิน</label>
-                        <div class="custom-dropdown-wrapper">
-                            <input type="hidden" name="course_type" id="course_type" value="Paid">
-                            <div class="custom-dropdown-btn custom-dropdown-toggle">
-                                <span class="selected-text">เสียเงินซื้อขาดรายคอร์ส (Paid)</span>
-                                <i class="bi bi-chevron-down"></i>
-                            </div>
-                            <div class="custom-dropdown-menu">
-                                <div class="custom-dropdown-item selected" data-value="Paid">เสียเงินซื้อขาดรายคอร์ส (Paid)</div>
-                                <div class="custom-dropdown-item" data-value="Free">เปิดให้เข้าเรียนฟรี (Free)</div>
-                                <div class="custom-dropdown-item" data-value="Premium">Premium รวมในแพ็กเกจสมาชิก</div>
-                                <div class="custom-dropdown-item" data-value="Private">ส่วนบุคคลเฉพาะกลุ่ม (Private / Internal)</div>
-                            </div>
-                        </div>
+                        <select class="form-select lu-select form-dark-input" name="course_type" id="course_type" onchange="togglePriceFields(this.value)">
+                            <option value="Paid" selected>เสียเงินซื้อขาดรายคอร์ส (Paid)</option>
+                            <option value="Free">เปิดให้เข้าเรียนฟรี (Free)</option>
+                            <option value="Premium">Premium รวมในแพ็กเกจสมาชิก</option>
+                            <option value="Private">ส่วนบุคคลเฉพาะกลุ่ม (Private / Internal)</option>
+                        </select>
                     </div>
 
                     <!-- Dropdown 7: สถานะเปิดรับชม -->
                     <div class="col-12 col-md-4">
                         <label class="form-label form-label-custom">สถานะเปิดรับชม (Visibility)</label>
-                        <div class="custom-dropdown-wrapper">
-                            <input type="hidden" name="course_visibility" id="course_visibility" value="Draft">
-                            <div class="custom-dropdown-btn custom-dropdown-toggle">
-                                <span class="selected-text">Draft (บันทึกร่างภายในสตูดิโอผู้สอน)</span>
-                                <i class="bi bi-chevron-down"></i>
-                            </div>
-                            <div class="custom-dropdown-menu">
-                                <div class="custom-dropdown-item selected" data-value="Draft">Draft (บันทึกร่างภายในสตูดิโอผู้สอน)</div>
-                                <div class="custom-dropdown-item" data-value="Public">Public (เปิดสาธารณะ ค้นหาเจอบนหน้าเว็บ)</div>
-                                <div class="custom-dropdown-item" data-value="Unlisted">Unlisted (เข้าเรียนได้ผ่านลิงก์ตรงเท่านั้น)</div>
-                            </div>
-                        </div>
+                        <select class="form-select lu-select form-dark-input" name="course_visibility" id="course_visibility">
+                            <option value="Draft" selected>Draft (บันทึกร่างภายในสตูดิโอผู้สอน)</option>
+                            <option value="Public">Public (เปิดสาธารณะ ค้นหาเจอบนหน้าเว็บ)</option>
+                            <option value="Unlisted">Unlisted (เข้าเรียนได้ผ่านลิงก์ตรงเท่านั้น)</option>
+                        </select>
                     </div>
 
                     <div class="col-12 col-md-4">
@@ -817,7 +769,6 @@ if (isset($conn)) {
     var currentStep = 1;
     var tagsArray = [];
 
-    <script src="../js/custom-dropdown.js"></script>
     // ==========================================
     // ⚙️ SYSTEM HELPER FUNCTIONS
     // ==========================================
@@ -867,10 +818,8 @@ if (isset($conn)) {
             if ($(this).val().trim() === "") {
                 isValid = false;
                 $(this).addClass('is-invalid');
-                $(this).closest('.custom-dropdown-wrapper').find('.custom-dropdown-btn').addClass('border-danger');
             } else {
                 $(this).removeClass('is-invalid');
-                $(this).closest('.custom-dropdown-wrapper').find('.custom-dropdown-btn').removeClass('border-danger');
             }
         });
         return isValid;
@@ -930,13 +879,11 @@ if (isset($conn)) {
             $('.required-field').each(function() {
                 if ($(this).val().trim() === "") {
                     $(this).addClass('is-invalid');
-                    $(this).closest('.custom-dropdown-wrapper').find('.custom-dropdown-btn').addClass('border-danger');
                     if (!firstErrorStep) {
                         firstErrorStep = $(this).closest('.course-step-section').attr('id').replace('step-section-', '');
                     }
                 } else {
                     $(this).removeClass('is-invalid');
-                    $(this).closest('.custom-dropdown-wrapper').find('.custom-dropdown-btn').removeClass('border-danger');
                 }
             });
 
