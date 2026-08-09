@@ -658,6 +658,10 @@ if (!$isAjax):
                 });
 
                 // 🛠️ [FIXED] ฟังก์ชันคำนวณตำแหน่ง Dropdown ป้องกันบัคหลุดจอบนมือถือ
+                //     (อัปเดต: ใช้ position:absolute อิงจาก .dropdown wrapper ผ่าน
+                //     CSS top:100% แทน position:fixed เดิม เพื่อให้เมนูเลื่อนไปพร้อม
+                //     กับปุ่ม trigger ตามธรรมชาติของ document flow ไม่ต้องมี JS
+                //     คอยจับ scroll event คำนวณตำแหน่งใหม่ทุกเฟรมอีกต่อไป)
                 function positionDropdownMenu($dropdown) {
                     const $menu = $dropdown.find('.dropdown-menu').first();
                     const $trigger = $dropdown.find('[data-bs-toggle="dropdown"]').first();
@@ -678,42 +682,38 @@ if (!$isAjax):
                         return;
                     }
 
-                    const triggerEl = $trigger[0];
-                    const rect = triggerEl.getBoundingClientRect();
+                    // position:absolute + top:100% (ตั้งไว้ใน dropdown-select.css) จะยึด
+                    // ตำแหน่งเมนูไว้ใต้ .dropdown wrapper ของปุ่มเองโดยอัตโนมัติ ทำให้เมนู
+                    // เลื่อนไปพร้อมกับปุ่มตอน scroll หน้าเพจได้เองโดยไม่ต้องพึ่ง JS เลย
+                    $menu.css({
+                        position: 'absolute',
+                        top: '',
+                        transform: 'none'
+                    });
+
+                    const triggerRect = $trigger[0].getBoundingClientRect();
+                    const dropdownRect = $dropdown[0].getBoundingClientRect();
                     const viewportWidth = window.innerWidth;
-                    const viewportHeight = window.innerHeight;
-
-                    if (rect.bottom < 0 || rect.top > viewportHeight) {
-                        const instance = window.bootstrap && window.bootstrap.Dropdown
-                            ? window.bootstrap.Dropdown.getInstance(triggerEl)
-                            : null;
-                        if (instance) {
-                            instance.hide();
-                        } else {
-                            $dropdown.removeClass('show');
-                            $menu.removeClass('show');
-                        }
-                        return;
-                    }
-
                     const menuWidth = Math.min($menu.outerWidth() || 220, viewportWidth - 24);
                     const isEndAligned = $menu.hasClass('dropdown-menu-end');
 
-                    let left = rect.left + (rect.width / 2) - (menuWidth / 2);
+                    // left/right คำนวณเทียบกับ .dropdown wrapper (containing block ของเมนู
+                    // ภายใต้ position:absolute) แล้ว clamp ไม่ให้ล้นขอบซ้าย/ขวาของจอ
+                    let left = (triggerRect.width / 2) - (menuWidth / 2);
                     if (isEndAligned) {
-                        left = rect.right - menuWidth;
-                    } else if (left < 12) {
-                        left = 12;
-                    } else if (left + menuWidth > viewportWidth - 12) {
-                        left = viewportWidth - menuWidth - 12;
+                        left = triggerRect.right - dropdownRect.left - menuWidth;
+                    } else {
+                        const leftInViewport = dropdownRect.left + left;
+                        if (leftInViewport < 12) {
+                            left -= (leftInViewport - 12);
+                        } else if (leftInViewport + menuWidth > viewportWidth - 12) {
+                            left -= (leftInViewport + menuWidth - (viewportWidth - 12));
+                        }
                     }
 
                     $menu.css({
-                        position: 'fixed',
-                        top: (rect.bottom + 8) + 'px',
                         left: left + 'px',
                         right: 'auto',
-                        transform: 'none',
                         maxHeight: '380px',
                         width: menuWidth + 'px'
                     });
@@ -729,16 +729,9 @@ if (!$isAjax):
                     positionDropdownMenu($(this));
                 });
 
+                // Resize/orientation change ยังคำนวณ left/width ใหม่ (เผื่อพลิกจอ) แต่ไม่มี
+                // scroll listener แล้ว เพราะ position:absolute เกาะติดปุ่มอยู่แล้วโดยธรรมชาติ
                 $(window).on('resize orientationchange', repositionOpenDropdowns);
-
-                let dropdownScrollRafId = null;
-                window.addEventListener('scroll', function() {
-                    if (dropdownScrollRafId !== null) return;
-                    dropdownScrollRafId = window.requestAnimationFrame(function() {
-                        repositionOpenDropdowns();
-                        dropdownScrollRafId = null;
-                    });
-                }, { passive: true, capture: true });
             });
         </script>
 
