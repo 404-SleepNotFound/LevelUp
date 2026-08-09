@@ -231,13 +231,19 @@ if (isset($conn)) {
         opacity: 1;
     }
 
-    /* Custom Dropdown Styling */
+    /* Custom Dropdown Styling & Fixes */
     .custom-dropdown-wrapper {
         position: relative;
-        display: inline-block;
+        display: block;
         width: 100%;
         box-sizing: border-box;
         user-select: none;
+        z-index: 1;
+    }
+
+    /* แก้ไขปัญหาสุดสำคัญ: ยก z-index เมื่อdropdown ตัวนั้นถูกคลิกเปิดขึ้นมา */
+    .custom-dropdown-wrapper.active {
+        z-index: 1050 !important;
     }
 
     .custom-dropdown-btn {
@@ -261,6 +267,12 @@ if (isset($conn)) {
         box-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
     }
 
+    /* สถานะเมื่อกรอกไม่ครบ (Validation Error) */
+    .custom-dropdown-btn.border-danger {
+        border-color: #ef4444 !important;
+        box-shadow: 0 0 10px rgba(239, 68, 68, 0.3) !important;
+    }
+
     .custom-dropdown-menu {
         position: absolute;
         top: calc(100% + 6px);
@@ -271,10 +283,10 @@ if (isset($conn)) {
         margin: 0;
         list-style: none;
         background: var(--card-bg-premium, #0f172a);
-        border: 1px solid var(--cc-box-border, rgba(255, 255, 255, 0.1));
+        border: 1px solid var(--cc-box-border, rgba(255, 255, 255, 0.15));
         border-radius: 10px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-        z-index: 1050;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        z-index: 1060;
         display: none;
         max-height: 250px;
         overflow-y: auto;
@@ -288,7 +300,7 @@ if (isset($conn)) {
     }
 
     .custom-dropdown-item {
-        width: auto;
+        width: 100%;
         box-sizing: border-box;
         padding: 10px 14px;
         border-radius: 6px;
@@ -636,7 +648,7 @@ if (isset($conn)) {
                         <div class="mb-3">
                             <label class="form-label form-label-custom">ระดับความยากผู้เรียน (Difficulty Level)</label>
                             <div class="custom-dropdown-wrapper">
-                                <input type="hidden" name="course_difficulty" id="course_difficulty" value="Beginner" onchange="updateDifficultyHelp()">
+                                <input type="hidden" name="course_difficulty" id="course_difficulty" value="Beginner">
                                 <div class="custom-dropdown-btn custom-dropdown-toggle">
                                     <span class="selected-text">Beginner (เหมาะสำหรับผู้เริ่มต้น ไม่มีพื้นฐานเลย)</span>
                                     <i class="bi bi-chevron-down"></i>
@@ -750,7 +762,7 @@ if (isset($conn)) {
                     <div class="col-12 col-md-4">
                         <label class="form-label form-label-custom">ประเภทคอร์สและการคิดเงิน</label>
                         <div class="custom-dropdown-wrapper">
-                            <input type="hidden" name="course_type" id="course_type" value="Paid" onchange="togglePriceFields(this.value)">
+                            <input type="hidden" name="course_type" id="course_type" value="Paid">
                             <div class="custom-dropdown-btn custom-dropdown-toggle">
                                 <span class="selected-text">เสียเงินซื้อขาดรายคอร์ส (Paid)</span>
                                 <i class="bi bi-chevron-down"></i>
@@ -933,7 +945,9 @@ if (isset($conn)) {
     var currentStep = 1;
     var tagsArray = [];
 
-    // Custom Dropdown Handler
+    // ==========================================
+    // 🎯 CUSTOM DROPDOWN ENGINE (FIXED & IMPROVED)
+    // ==========================================
     $(document).off('click', '.custom-dropdown-btn').on('click', '.custom-dropdown-btn', function(e) {
         e.stopPropagation();
         var $wrapper = $(this).closest('.custom-dropdown-wrapper');
@@ -946,23 +960,41 @@ if (isset($conn)) {
         var $item = $(this);
         var $wrapper = $item.closest('.custom-dropdown-wrapper');
         var val = $item.data('value');
-        var text = $item.text();
+        var text = $.trim($item.text());
 
+        // อัปเดตข้อความบนปุ่ม
         $wrapper.find('.selected-text').text(text);
+        
+        // อัปเดตค่าใน Hidden Input และยิง Trigger Change
         var $hiddenInput = $wrapper.find('input[type="hidden"]');
         $hiddenInput.val(val).trigger('change');
 
+        // สลับ Class Active/Selected
         $wrapper.find('.custom-dropdown-item').removeClass('selected');
         $item.addClass('selected');
         $wrapper.removeClass('active');
+        $wrapper.find('.custom-dropdown-btn').removeClass('border-danger');
     });
 
+    // ปิด Dropdown เมื่อคลิกนอกพื้นที่
     $(document).off('click.dropdownClose').on('click.dropdownClose', function(e) {
         if (!$(e.target).closest('.custom-dropdown-wrapper').length) {
             $('.custom-dropdown-wrapper').removeClass('active');
         }
     });
 
+    // Event Triggers เมื่อค่าใน Dropdown เปลี่ยนแปลง
+    $(document).off('change', '#course_difficulty').on('change', '#course_difficulty', function() {
+        updateDifficultyHelp();
+    });
+
+    $(document).off('change', '#course_type').on('change', '#course_type', function() {
+        togglePriceFields($(this).val());
+    });
+
+    // ==========================================
+    // ⚙️ SYSTEM HELPER FUNCTIONS
+    // ==========================================
     function togglePriceFields(type) {
         if (type === 'Free') {
             $('.price-field-group').hide();
@@ -1003,7 +1035,6 @@ if (isset($conn)) {
         }
     }
 
-    // ตรวจสอบความถูกต้องของแต่ละ Step ก่อนไปต่อ
     function validateCurrentStep(step) {
         var isValid = true;
         $(`#step-section-${step} .required-field`).each(function() {
