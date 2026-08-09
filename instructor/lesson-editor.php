@@ -5,7 +5,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 // ห้ามใส่ include '../includes/header.php' หรือ footer เด็ดขาด เพราะหน้า instructor.php โหลดให้แล้ว
 ?>
 
-<!-- Import Dropdown Select Stylesheet -->
+<!-- Import Custom Dropdown Select Stylesheet -->
 <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css">
 
 <style>
@@ -279,7 +279,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 </div>
                 <div class="col-md-3">
                     <label class="form-label form-label-premium">Chapter (บทหลัก)</label>
-                    <select class="form-select form-control-premium">
+                    <select class="form-select form-control-premium lu-select">
                         <option>Chapter 1: Getting Started</option>
                         <option selected>Chapter 2: Variables & Syntax Core</option>
                     </select>
@@ -294,14 +294,14 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 </div>
                 <div class="col-md-3">
                     <label class="form-label form-label-premium">ประเภทบทเรียน</label>
-                    <select class="form-select form-control-premium">
+                    <select class="form-select form-control-premium lu-select">
                         <option>ทฤษฎีทั่วไป (Theory Lecture)</option>
                         <option selected>ปฏิบัติการแล็บ (Lab Practical)</option>
                     </select>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label form-label-premium">สถานะ (Status)</label>
-                    <select class="form-select form-control-premium text-warning fw-bold">
+                    <select class="form-select form-control-premium text-warning fw-bold lu-select">
                         <option value="draft" selected>🟡 Draft (แบบร่าง)</option>
                         <option value="published">🟢 Published (เผยแพร่แล้ว)</option>
                     </select>
@@ -403,7 +403,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             </div>
             <div class="row g-2 mb-2 align-items-center">
                 <div class="col-md-4">
-                    <select class="form-select form-control-premium small">
+                    <select class="form-select form-control-premium small lu-select">
                         <option>PHP</option><option selected>JavaScript</option><option>Python</option><option>Java</option><option>C</option><option>C++</option><option>SQL</option><option>HTML/CSS</option>
                     </select>
                 </div>
@@ -441,14 +441,14 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label form-label-premium">ดึงหัวข้อข้อสอบเดิมที่มีอยู่</label>
-                    <select class="form-select form-control-premium">
+                    <select class="form-select form-control-premium lu-select">
                         <option selected>[กรุณาเลือกควิซจากคลังส่วนกลาง]</option>
                         <option>Quiz 1: Fundamentals of Block Scope</option>
                     </select>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label form-label-premium">กำหนดตำแหน่งแสดง</label>
-                    <select class="form-select form-control-premium">
+                    <select class="form-select form-control-premium lu-select">
                         <option>ท้ายสุดของบทเรียน</option>
                         <option>แทรกกลางเนื้อหา (ก่อนขึ้นหัวข้อแล็บ)</option>
                     </select>
@@ -469,7 +469,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label form-label-premium">เลือก Coding Lab เดิมของหลักสูตร</label>
-                    <select class="form-select form-control-premium">
+                    <select class="form-select form-control-premium lu-select">
                         <option selected>[ ค้นหาหรือเลือกแล็บคอมไพเลอร์ในระบบ ]</option>
                         <option>Lab Assignment 3.1: Fix Scope Bug</option>
                     </select>
@@ -539,7 +539,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label form-label-premium">ประเภทการบ้านตรวจรับ</label>
-                    <select class="form-select form-control-premium">
+                    <select class="form-select form-control-premium lu-select">
                         <option>ไม่มีภารกิจการบ้านภายนอก (เน้นทำแล็บอัตโนมัติ)</option>
                         <option selected>File Upload (นักเรียนอัปโหลดเอกสารหรือโปรเจกต์สรุป)</option>
                         <option>Coding Project Repo Submission</option>
@@ -606,7 +606,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 </div>
                 <div class="col-md-4">
                     <label class="form-label form-label-premium">13. Prerequisite (ต้องเรียนบทไหนก่อน)</label>
-                    <select class="form-select form-control-premium small" multiple style="min-height: 80px !important;">
+                    <select class="form-select form-control-premium small lu-select" multiple style="min-height: 80px !important;">
                         <option selected>Lesson 1: Introduction Variables</option>
                         <option>Lesson 2: Setup Environment IDE</option>
                     </select>
@@ -717,3 +717,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         $('#block-builder-stage').append(blockElementHtml);
     }
 </script>
+
+<!-- Import Dropdown Select Script -->
+<script src="<?= $ROOT_PATH ?>js/lu-dropdown.js" defer></script>
