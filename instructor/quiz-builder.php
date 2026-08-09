@@ -7,7 +7,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 <!-- 🎨 External Custom Scrollbar (If needed) -->
 <link rel="stylesheet" href="<?php echo $ROOT_PATH; ?>css/custom-scrollbar.css">
 
-<!-- Import Dropdown Select Stylesheet -->
+<!-- Import Dropdown Select Stylesheet (ระบบกลาง) -->
 <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css">
 
 <style>
@@ -44,96 +44,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         --lv-box-bg: #f8fafc;
         --lv-label: #334155;
         --lv-placeholder: #94a3b8;
-    }
-
-    /* 🚀 Custom Interactive Dropdown CSS (แก้ไขเรื่อง Cursor แล้ว) */
-    .custom-dropdown-wrapper,
-    .custom-dropdown-btn,
-    .custom-dropdown-menu,
-    .custom-dropdown-item {
-        /* ป้องกันไม่ให้เบราว์เซอร์เรียกเมาส์ OS มาแทนที่เมาส์จรวด */
-        cursor: inherit !important; 
-        user-select: none !important;
-        -webkit-user-select: none !important;
-    }
-
-    /* หากใช้เมาส์จรวดแบบ JS Element บินตาม (Floating Rocket) ให้ปลดล็อกคอมเมนต์บรรทัดล่างนี้ครับ: */
-    /*
-    .custom-dropdown-wrapper, .custom-dropdown-btn, .custom-dropdown-menu, .custom-dropdown-item {
-        cursor: none !important;
-    }
-    */
-
-    .custom-dropdown-wrapper {
-        position: relative;
-        width: 100%;
-    }
-
-    .custom-dropdown-btn {
-        background: var(--lv-input-bg);
-        border: 1px solid var(--lv-input-border);
-        color: var(--lv-input-text);
-        border-radius: 10px;
-        padding: 12px 16px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        min-height: 52px;
-        transition: all 0.2s ease;
-        font-size: 0.95rem;
-    }
-
-    .custom-dropdown-btn:hover {
-        border-color: var(--lv-cyan);
-    }
-
-    .custom-dropdown-btn i {
-        transition: transform 0.2s ease;
-        font-size: 0.8rem;
-        opacity: 0.7;
-    }
-
-    .custom-dropdown-wrapper.active .custom-dropdown-btn i {
-        transform: rotate(180deg);
-    }
-
-    .custom-dropdown-menu {
-        display: none !important;
-        position: absolute;
-        top: calc(100% + 6px);
-        left: 0;
-        right: 0;
-        background: var(--lv-card-bg);
-        border: 1px solid var(--lv-input-border);
-        border-radius: 10px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-        z-index: 999 !important; /* ปรับ z-index เพื่อไม่ให้บัง Element จรวดลอย */
-        max-height: 240px;
-        overflow-y: auto;
-        backdrop-filter: blur(16px);
-        padding: 6px;
-    }
-
-    .custom-dropdown-wrapper.active .custom-dropdown-menu {
-        display: block !important;
-    }
-
-    .custom-dropdown-item {
-        padding: 10px 14px;
-        border-radius: 6px;
-        color: var(--lv-input-text);
-        transition: background 0.15s ease;
-        font-size: 0.9rem;
-    }
-
-    .custom-dropdown-item:hover {
-        background: rgba(6, 182, 212, 0.15);
-        color: var(--lv-cyan);
-    }
-
-    .custom-dropdown-item.selected {
-        background: rgba(99, 102, 241, 0.2);
-        font-weight: 600;
     }
 
     /* Scope Quiz Builder Styles */
@@ -644,53 +554,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     </form>
 </div>
 
-<!-- 🚀 Global Dynamic Dropdown Handler -->
 <script>
-    (function() {
-        document.removeEventListener('click', handleCustomDropdownClick);
-        document.addEventListener('click', handleCustomDropdownClick);
-
-        function handleCustomDropdownClick(e) {
-            const btn = e.target.closest('.custom-dropdown-btn');
-            const item = e.target.closest('.custom-dropdown-item');
-
-            if (btn) {
-                e.stopPropagation();
-                const wrapper = btn.closest('.custom-dropdown-wrapper');
-                const isOpen = wrapper.classList.contains('active');
-
-                document.querySelectorAll('.custom-dropdown-wrapper.active').forEach(w => {
-                    w.classList.remove('active');
-                });
-
-                if (!isOpen) {
-                    wrapper.classList.add('active');
-                }
-                return;
-            }
-
-            if (item) {
-                const wrapper = item.closest('.custom-dropdown-wrapper');
-                if (wrapper) {
-                    const textSpan = wrapper.querySelector('.selected-text');
-                    if (textSpan) {
-                        textSpan.textContent = item.textContent.trim();
-                    }
-
-                    wrapper.querySelectorAll('.custom-dropdown-item').forEach(i => i.classList.remove('selected'));
-                    item.classList.add('selected');
-
-                    wrapper.classList.remove('active');
-                }
-                return;
-            }
-
-            document.querySelectorAll('.custom-dropdown-wrapper.active').forEach(w => {
-                w.classList.remove('active');
-            });
-        }
-    })();
-
     function appendQuestionType(type) {
         var uniqId = Math.floor(Math.random() * 99999);
         var customBlockNodeHtml = `
