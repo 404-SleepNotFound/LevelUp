@@ -222,7 +222,7 @@ include '../includes/header.php';
             <!-- Career Selector -->
             <div class="d-flex align-items-center gap-2">
                 <span class="fs-xs text-uppercase fw-bold opacity-75">Target Class:</span>
-                <select class="form-select form-select-sm bg-dark text-info border-info border-opacity-25 rounded-3 fw-bold" id="careerSelector" style="width: 200px; box-shadow: 0 0 5px rgba(0,229,255,0.2);">
+                <select class="form-select form-select-sm lu-select bg-dark text-info border-info border-opacity-25 rounded-3 fw-bold" id="careerSelector" style="width: 200px; box-shadow: 0 0 5px rgba(0,229,255,0.2);">
                     <?php
 $ROOT_PATH = '../';
 foreach($careerPaths as $path): ?>
