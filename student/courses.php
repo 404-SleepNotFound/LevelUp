@@ -210,7 +210,7 @@ if ($db) {
         font-weight: 300;
     }
 
-    /* 📌 สไตล์ Filter Bar แนวนอน ตรงตามรูปที่ 2 */
+    /* Filter Bar แนวนอน */
     .horizontal-filter-bar {
         background: var(--lv-surface) !important;
         border: 1px solid var(--lv-border-glow) !important;
@@ -238,7 +238,7 @@ if ($db) {
         position: relative;
     }
 
-    /* ซ่อนลูกศร default ของ Bootstrap เพื่อป้องกันไอคอนแสดงซ้ำกัน 2 ตัว */
+    /* ซ่อนลูกศร default ของ Bootstrap */
     .btn-dropdown-trigger.dropdown-toggle::after {
         display: none !important;
     }
@@ -265,24 +265,38 @@ if ($db) {
         box-shadow: 0 0 12px rgba(6, 182, 212, 0.25);
     }
 
-    /* ตกแต่ง Dropdown Menu ให้ลอยอยู่ชั้นบนสุดและจัดระยะไม่ให้ Radio โดนบัง */
+    /* 🛠️ แก้ไข Dropdown Menu: เพิ่ม Max Height + Scrollbar ไม่ให้ล้นล่างจอบังการ์ด */
     .custom-filter-dropdown .dropdown-menu {
         background: #0f172a !important;
         border: 1px solid var(--lv-border-hover) !important;
         border-radius: 12px !important;
         box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
         padding: 12px 16px !important;
-        min-width: 220px;
+        min-width: 240px;
+        max-height: 320px !important; /* กำหนดความสูงสูงสุด */
+        overflow-y: auto !important; /* เปิดใช้งาน Scrollbar เมื่อรายการเยอะ */
         z-index: 9999 !important;
-        overflow: visible !important;
     }
 
-    /* จัดระยะ Radio & Checkbox ใน Dropdown ไม่ให้โดนขอบบัง */
+    /* ตกแต่ง Scrollbar ให้เข้ากับสไตล์ Dark Mode */
+    .custom-filter-dropdown .dropdown-menu::-webkit-scrollbar {
+        width: 6px;
+    }
+    .custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-track {
+        background: rgba(15, 23, 42, 0.5);
+        border-radius: 10px;
+    }
+    .custom-filter-dropdown .dropdown-menu::-webkit-scrollbar-thumb {
+        background: var(--lv-cyan);
+        border-radius: 10px;
+    }
+
+    /* จัดระยะ Radio & Checkbox */
     .custom-filter-dropdown .form-check {
         display: flex !important;
         align-items: center !important;
         padding-left: 2rem !important;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.6rem;
     }
 
     .custom-filter-dropdown .form-check:last-child {
