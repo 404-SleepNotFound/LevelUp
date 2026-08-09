@@ -82,7 +82,8 @@ foreach ($raw_courses as $item) {
         'difficulty'    => $item['difficulty'] ?? $item['course_difficulty'] ?? $item['level'] ?? 'Beginner',
         'price'         => isset($item['price']) ? (float)$item['price'] : 0,
         'rating'        => isset($item['rating']) ? (float)$item['rating'] : 5.0,
-        'category_name' => $item['category_name'] ?? 'ทั่วไป'
+        'category_name' => $item['category_name'] ?? 'ทั่วไป',
+        'has_lab'       => isset($item['has_lab']) ? (bool)$item['has_lab'] : true // รองรับฟิลด์แล็บ
     ];
 }
 
@@ -130,12 +131,10 @@ if ($db) {
 }
 ?>
 
-<!-- เรียกใช้ Dropdown CSS & JS (กรณีไม่ได้เรียกใน header.php หรือกันเหนียว) -->
 <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css">
 <script src="<?= $ROOT_PATH ?>js/lu-dropdown.js" defer></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<!-- 🎨 Custom Styles -->
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
 
@@ -209,7 +208,7 @@ if ($db) {
         font-weight: 300;
     }
 
-    /* Filter Bar แนวนอน */
+    /* Horizontal Filter Bar */
     .horizontal-filter-bar {
         background: var(--lv-surface) !important;
         border: 1px solid var(--lv-border-glow) !important;
@@ -233,7 +232,7 @@ if ($db) {
     }
 
     .select-item-container {
-        min-width: 180px;
+        min-width: 200px;
     }
 
     .clear-btn-container {
@@ -318,7 +317,6 @@ if ($db) {
         height: 340px;
     }
 
-    /* Responsive adjustments */
     @media (max-width: 991px) {
         .horizontal-filter-bar {
             flex-wrap: wrap !important;
@@ -377,7 +375,6 @@ if ($db) {
 </style>
 
 <div class="container py-4">
-    <!-- Include Welcome Header Panel -->
     <?php include_once $ROOT_PATH . 'includes/welcome-header.php'; ?>
 
     <!-- AI Hero Section -->
@@ -397,17 +394,17 @@ if ($db) {
         </div>
     </section>
 
-    <!-- ระบบแผงฟิลเตอร์แนวนอน (ใช้ select.lu-select เพื่อรองรับ lu-dropdown.js) -->
+    <!-- แผงฟิลเตอร์แนวนอน (นำไอคอนและเมนูห้องแล็บเสริมกลับมาครบถ้วน) -->
     <div class="horizontal-filter-bar p-3 mb-4">
         <div class="filter-group-wrapper">
             <span class="text-main fw-bold me-1 small text-nowrap">
                 <i class="fas fa-filter text-info me-1"></i> คัดกรองภารกิจ:
             </span>
 
-            <!-- Dropdown 1: หมวดหมู่เนื้อหา -->
+            <!-- Dropdown 1: หมวดหมู่เนื้อหา (ใส่ data-icon) -->
             <div class="select-item-container">
-                <select class="lu-select" id="category_filter">
-                    <option value="">หมวดหมู่ทั้งหมด</option>
+                <select class="lu-select" id="category_filter" data-icon="fas fa-th-large text-primary">
+                    <option value="">หมวดหมู่เนื้อหา</option>
                     <?php if (!empty($category_data)): ?>
                         <?php foreach ($category_data as $category): ?>
                             <option value="<?= htmlspecialchars($category['name']); ?>"><?= htmlspecialchars($category['name']); ?></option>
@@ -416,14 +413,23 @@ if ($db) {
                 </select>
             </div>
 
-            <!-- Dropdown 2: ระดับความท้าทาย -->
+            <!-- Dropdown 2: ระดับความท้าทาย (ใส่ data-icon) -->
             <div class="select-item-container">
-                <select class="lu-select" id="level_filter">
-                    <option value="">ระดับทั้งหมด</option>
+                <select class="lu-select" id="level_filter" data-icon="fas fa-trophy text-warning">
+                    <option value="">ระดับความท้าทาย</option>
                     <option value="Beginner">Beginner</option>
                     <option value="Intermediate">Intermediate</option>
                     <option value="Advanced">Advanced</option>
                     <option value="Expert">Expert</option>
+                </select>
+            </div>
+
+            <!-- Dropdown 3: ฟังก์ชันห้องแล็บเสริม (เอากลับมาแล้ว) -->
+            <div class="select-item-container">
+                <select class="lu-select" id="lab_filter" data-icon="fas fa-flask text-success">
+                    <option value="">ฟังก์ชันห้องแล็บเสริม</option>
+                    <option value="has_lab">มีระบบแล็บปฏิบัติการ</option>
+                    <option value="no_lab">ไม่มีแล็บปฏิบัติการ</option>
                 </select>
             </div>
         </div>
@@ -499,7 +505,7 @@ if ($db) {
             'rating'   => isset($item['rating']) ? (float)$item['rating'] : 5.0,
             'price'    => isset($item['price']) ? (float)$item['price'] : 0,
             'ai'       => true,
-            'lab'      => true
+            'has_lab'  => (bool)($item['has_lab'] ?? true)
         ];
     }, $course_details);
     ?>
@@ -532,7 +538,7 @@ if ($db) {
         bindEvents: function() {
             const self = this;
             
-            $('#category_filter, #level_filter, #sort-select').on('change', function() {
+            $('#category_filter, #level_filter, #lab_filter, #sort-select').on('change', function() {
                 self.fetchCourses();
             });
 
@@ -569,12 +575,15 @@ if ($db) {
         fetchCourses: function() {
             let selectedCategory = $('#category_filter').val();
             let selectedLevel = $('#level_filter').val();
+            let selectedLab = $('#lab_filter').val();
             let sortBy = $('#sort-select').val();
             let keyword = $('#ai-search-input').val().toLowerCase().trim();
 
             let filtered = mockCoursesData.filter(course => {
                 if (selectedCategory && selectedCategory !== "" && course.category !== selectedCategory) return false;
                 if (selectedLevel && selectedLevel !== "" && course.level !== selectedLevel) return false;
+                if (selectedLab === "has_lab" && !course.has_lab) return false;
+                if (selectedLab === "no_lab" && course.has_lab) return false;
                 if (keyword !== "" && !course.title.toLowerCase().includes(keyword) && !course.category.toLowerCase().includes(keyword)) return false;
                 return true;
             });
@@ -636,6 +645,7 @@ if ($db) {
         resetFilters: function() {
             $('#category_filter').val('').trigger('change');
             $('#level_filter').val('').trigger('change');
+            $('#lab_filter').val('').trigger('change');
             $('#sort-select').val('popular').trigger('change');
             $('#ai-search-input').val('');
             
