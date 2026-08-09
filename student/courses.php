@@ -51,7 +51,7 @@ if ($db) {
     }
 }
 
-// กำหนดรูปภาพสำรองมาตรฐาน (เหมือนใน index.php)
+// กำหนดรูปภาพสำรองมาตรฐาน
 $fallbackImg = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=600&auto=format&fit=crop';
 
 $course_details = [];
@@ -59,7 +59,6 @@ foreach ($raw_courses as $item) {
     $rawImg = $item['cover_file'] ?? $item['cover'] ?? $item['img'] ?? $item['image'] ?? $item['thumbnail'] ?? '';
     $courseImg = $fallbackImg;
 
-    // ระบบจัดการ Path รูปภาพ (ถอดแบบมาจาก index.php)
     if (!empty($rawImg)) {
         if (filter_var($rawImg, FILTER_VALIDATE_URL)) {
             $courseImg = $rawImg;
@@ -88,7 +87,7 @@ foreach ($raw_courses as $item) {
 }
 
 // ----------------------------------------------------------------------
-// 2. ดึงข้อมูลหมวดหมู่ทั้งหมด (เพิ่มระบบป้องกันข้อมูลซ้ำ)
+// 2. ดึงข้อมูลหมวดหมู่ทั้งหมด
 // ----------------------------------------------------------------------
 $category_data = [];
 if ($db) {
@@ -114,10 +113,9 @@ if ($db) {
             }
         }
 
-        $seen_names = []; // Array สำหรับตรวจสอบชื่อซ้ำ
+        $seen_names = [];
         foreach ($raw_categories as $cat) {
             $clean_name = trim(preg_replace('/[\s\xA0]+/u', ' ', $cat['name']));
-            // กรองข้อมูลไม่ให้ชื่อหมวดหมู่ซ้ำกัน
             if (!empty($clean_name) && !in_array($clean_name, $seen_names, true)) {
                 $seen_names[] = $clean_name;
                 $category_data[] = [
@@ -134,7 +132,7 @@ if ($db) {
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<!-- 🎨 Custom Styles -->
+<!-- 🎨 Custom Styles Fixes -->
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
 
@@ -185,7 +183,6 @@ if ($db) {
             var(--lv-hero-grad) !important;
         border: 1px solid var(--lv-border-glow);
         position: relative;
-        overflow: hidden;
         border-radius: 16px;
     }
 
@@ -213,25 +210,65 @@ if ($db) {
         font-weight: 300;
     }
 
-    /* Filter Bar */
+    /* 📌 แก้ไขส่วน Filter Bar และ Dropdown */
     .horizontal-filter-bar {
         background: var(--lv-surface) !important;
         border: 1px solid var(--lv-border-glow) !important;
         box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
-        /* NOTE: backdrop-filter removed intentionally. Any filter/backdrop-filter/
-           transform on an ancestor turns it into the containing block for
-           position:fixed descendants (per CSS spec). header.php's dropdown
-           repositioning script sets the filter dropdown menus to
-           position:fixed with viewport-relative top/left - with blur() here,
-           those coordinates were being measured from THIS bar's box instead
-           of the viewport, throwing the menu far from its trigger button.
-           If you want the glass-blur look back, apply it on a separate
-           ::before/backdrop layer behind the content instead of on this
-           element directly, so it no longer sits in the dropdown's ancestor
-           chain, or move the dropdown-menu to <body> before positioning it. */
         border-radius: 16px !important;
         position: relative;
-        z-index: 1000 !important;
+        z-index: 1050 !important; /* ปรับ z-index ให้สูงขึ้น */
+        overflow: visible !important; /* ป้องกันไม่ให้ Dropdown โดนตัดขอบ */
+    }
+
+    .custom-filter-dropdown {
+        position: relative;
+    }
+
+    .btn-dropdown-trigger {
+        background: rgba(15, 23, 42, 0.6) !important;
+        border: 1px solid var(--lv-border-glow) !important;
+        color: var(--lv-text-main) !important;
+        border-radius: 12px !important;
+        padding: 8px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-width: 200px;
+        transition: all 0.2s ease;
+    }
+
+    .btn-dropdown-trigger:hover, 
+    .btn-dropdown-trigger.show,
+    .btn-dropdown-trigger.active-filter {
+        border-color: var(--lv-cyan) !important;
+        box-shadow: 0 0 12px rgba(6, 182, 212, 0.25);
+    }
+
+    /* ตกแต่ง Dropdown Menu ให้ลอยอยู่ชั้นบนสุด */
+    .custom-filter-dropdown .dropdown-menu {
+        background: #0f172a !important;
+        border: 1px solid var(--lv-border-hover) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
+        padding: 12px;
+        min-width: 220px;
+        z-index: 9999 !important; /* ให้แน่ใจว่าลอยอยู่เหนือสิ่งอื่นใด */
+    }
+
+    .custom-filter-dropdown .dropdown-menu .form-check-label {
+        color: var(--lv-text-main);
+        cursor: pointer;
+    }
+
+    .btn-clear-glow {
+        color: #06b6d4 !important;
+        transition: all 0.2s;
+    }
+    
+    .btn-clear-glow:hover {
+        color: #38bdf8 !important;
+        text-shadow: 0 0 8px rgba(6, 182, 212, 0.6);
     }
 
     /* Card Layout */
@@ -316,9 +353,13 @@ if ($db) {
             gap: 10px !important;
         }
 
+        .btn-dropdown-trigger {
+            width: 100% !important;
+        }
+
         .clear-btn-container {
             width: 100% !important;
-            text-align: center !important;
+            text-align: right !important;
             margin-top: 6px;
             padding-top: 10px;
             border-top: 1px dashed var(--lv-border-glow);
@@ -341,22 +382,6 @@ if ($db) {
             width: 100% !important;
             margin: 4px 0 0 0 !important;
             border-radius: 12px !important;
-        }
-
-        .top-action-bar {
-            flex-direction: column !important;
-            align-items: stretch !important;
-            gap: 12px !important;
-            text-align: center;
-        }
-
-        .top-action-bar .sort-wrapper {
-            width: 100% !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: space-between !important;
-            padding-top: 10px;
-            border-top: 1px dashed var(--lv-border-glow);
         }
     }
 </style>
@@ -384,14 +409,14 @@ if ($db) {
 
     <!-- ระบบแผงฟิลเตอร์แนวนอน -->
     <div class="horizontal-filter-bar p-3 mb-4 d-flex flex-wrap align-items-center justify-content-between gap-3">
-        <div class="d-flex flex-wrap align-items-center gap-2 filter-group-wrapper">
-            <span class="text-muted-custom fw-medium me-2 small d-none d-md-inline-block"><i class="fas fa-filter text-info me-1"></i> คัดกรองภารกิจ:</span>
+        <div class="d-flex flex-wrap align-items-center gap-3 filter-group-wrapper">
+            <span class="text-main fw-bold me-1 small"><i class="fas fa-filter text-info me-1"></i> คัดกรองภารกิจ:</span>
 
             <!-- Dropdown 1: หมวดหมู่เนื้อหา -->
-            <div class="dropdown custom-filter-dropdown lu-dropdown--compact">
-                <button class="btn btn-dropdown-trigger dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-display="static" data-bs-auto-close="outside" aria-expanded="false">
+            <div class="dropdown custom-filter-dropdown">
+                <button class="btn btn-dropdown-trigger dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
                     <span><i class="fas fa-th-large text-primary me-2"></i>หมวดหมู่เนื้อหา</span>
-                    <i class="fas fa-chevron-down small ms-2 opacity-50"></i>
+                    <i class="fas fa-chevron-down small opacity-50 ms-2"></i>
                 </button>
                 <div class="dropdown-menu">
                     <div class="form-check mb-2">
@@ -412,10 +437,10 @@ if ($db) {
             </div>
 
             <!-- Dropdown 2: ระดับความท้าทาย -->
-            <div class="dropdown custom-filter-dropdown lu-dropdown--compact">
-                <button class="btn btn-dropdown-trigger dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-display="static" data-bs-auto-close="outside" aria-expanded="false">
+            <div class="dropdown custom-filter-dropdown">
+                <button class="btn btn-dropdown-trigger dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
                     <span><i class="fas fa-trophy text-warning me-2"></i>ระดับความท้าทาย</span>
-                    <i class="fas fa-chevron-down small ms-2 opacity-50"></i>
+                    <i class="fas fa-chevron-down small opacity-50 ms-2"></i>
                 </button>
                 <div class="dropdown-menu">
                     <div class="form-check mb-2">
@@ -442,10 +467,10 @@ if ($db) {
             </div>
 
             <!-- Dropdown 3: ฟังก์ชันห้องแล็บเสริม -->
-            <div class="dropdown custom-filter-dropdown lu-dropdown--compact">
-                <button class="btn btn-dropdown-trigger dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-display="static" data-bs-auto-close="outside" aria-expanded="false">
+            <div class="dropdown custom-filter-dropdown">
+                <button class="btn btn-dropdown-trigger dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
                     <span><i class="fas fa-flask text-success me-2"></i>ฟังก์ชันห้องแล็บเสริม</span>
-                    <i class="fas fa-chevron-down small ms-2 opacity-50"></i>
+                    <i class="fas fa-chevron-down small opacity-50 ms-2"></i>
                 </button>
                 <div class="dropdown-menu">
                     <div class="form-check form-switch mb-2">
@@ -460,7 +485,7 @@ if ($db) {
             </div>
         </div>
 
-        <div class="clear-btn-container">
+        <div class="clear-btn-container ms-auto">
             <button class="btn btn-sm btn-link btn-clear-glow text-decoration-none p-0 fw-bold" onclick="CourseExplorer.resetFilters()">
                 <i class="fas fa-sync-alt me-1"></i> ล้างทั้งหมด
             </button>
@@ -479,7 +504,7 @@ if ($db) {
                 <div class="d-flex gap-2 align-items-center sort-wrapper">
                     <label class="text-main text-nowrap mb-0 small"><i class="fas fa-sort-amount-down me-1"></i>เรียงตาม:</label>
                     <div class="dropdown custom-filter-dropdown" id="sort-dropdown-container">
-                        <button class="btn btn-dropdown-trigger dropdown-toggle py-1.5 px-3" type="button" data-bs-toggle="dropdown" data-bs-display="static" data-bs-auto-close="outside" aria-expanded="false" style="min-width: 170px;">
+                        <button class="btn btn-dropdown-trigger dropdown-toggle py-1.5 px-3" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="min-width: 170px;">
                             <span id="selected-sort-text">คอร์สยอดนิยมสูงสุด</span>
                             <i class="fas fa-chevron-down small ms-2 opacity-50"></i>
                         </button>
@@ -510,11 +535,6 @@ if ($db) {
 </div>
 
 <!-- JavaScript Integration -->
-<!-- หมายเหตุ: jQuery + Bootstrap bundle ถูกโหลดไว้แล้วใน header.php
-     (บรรทัด jquery-3.7.1 + bootstrap.bundle.min.js) การโหลดซ้ำที่นี่ทำให้
-     Bootstrap Dropdown ถูก init 2 รอบ เกิด click-listener ซ้อนกัน ส่งผลให้
-     shown.bs.dropdown ทำงานไม่ตรงกับที่ header.php คาดไว้ และเมนู dropdown
-     หลุดออกจากตำแหน่งใต้ปุ่ม trigger -->
 <script>
     <?php
     $mapped_courses = array_map(function ($item) use ($fallbackImg) {
@@ -626,20 +646,25 @@ if ($db) {
                 }
             });
 
-            // 🚀 เรียกใช้ LevelUpAlert.confirm เมื่อกดปุ่ม "เริ่มเควส"
             $(document).on('click', '.btn-start-quest', function() {
                 let id = $(this).data('id');
                 let title = $(this).data('title');
                 let xp = $(this).data('xp');
 
-                LevelUpAlert.confirm(
-                    'ยืนยันการเริ่มเควส?',
-                    `คุณต้องการเข้าสู่บทเรียน "${title}" (+${xp} XP) หรือไม่?`
-                ).then((isConfirmed) => {
-                    if (isConfirmed) {
+                if (typeof LevelUpAlert !== 'undefined') {
+                    LevelUpAlert.confirm(
+                        'ยืนยันการเริ่มเควส?',
+                        `คุณต้องการเข้าสู่บทเรียน "${title}" (+${xp} XP) หรือไม่?`
+                    ).then((isConfirmed) => {
+                        if (isConfirmed) {
+                            window.location.href = `course-detail.php?id=${id}`;
+                        }
+                    });
+                } else {
+                    if (confirm(`คุณต้องการเข้าสู่บทเรียน "${title}" (+${xp} XP) หรือไม่?`)) {
                         window.location.href = `course-detail.php?id=${id}`;
                     }
-                });
+                }
             });
         },
 
@@ -727,7 +752,6 @@ if ($db) {
             $('#course-grid').html(html);
         },
 
-        // 🚀 เรียกใช้ LevelUpAlert.toast เมื่อล้างตัวกรอง
         resetFilters: function() {
             $('.filter-checkbox').prop('checked', false);
             $('#cat_all').prop('checked', true);
@@ -744,23 +768,34 @@ if ($db) {
             this.updateDropdownGlows();
             this.fetchCourses();
 
-            LevelUpAlert.toast('ล้างตัวกรองทั้งหมดเรียบร้อยแล้ว', 'info');
+            if (typeof LevelUpAlert !== 'undefined') {
+                LevelUpAlert.toast('ล้างตัวกรองทั้งหมดเรียบร้อยแล้ว', 'info');
+            }
         },
 
-        // 🚀 เรียกใช้ LevelUpAlert.warning / loading / toast ร่วมกับ AI Search
         aiSearch: function() {
             let val = $('#ai-search-input').val().trim();
             if (!val) {
-                LevelUpAlert.warning('กรุณากรอกข้อมูล', 'โปรดระบุเป้าหมายอาชีพหรือทักษะที่ต้องการค้นหา');
+                if (typeof LevelUpAlert !== 'undefined') {
+                    LevelUpAlert.warning('กรุณากรอกข้อมูล', 'โปรดระบุเป้าหมายอาชีพหรือทักษะที่ต้องการค้นหา');
+                } else {
+                    alert('โปรดระบุเป้าหมายอาชีพหรือทักษะที่ต้องการค้นหา');
+                }
                 return;
             }
 
-            LevelUpAlert.loading('AI กำลังวิเคราะห์เควส...');
+            if (typeof LevelUpAlert !== 'undefined') {
+                LevelUpAlert.loading('AI กำลังวิเคราะห์เควส...');
+            }
 
             setTimeout(() => {
-                LevelUpAlert.close();
+                if (typeof LevelUpAlert !== 'undefined') {
+                    LevelUpAlert.close();
+                }
                 this.fetchCourses();
-                LevelUpAlert.toast('วิเคราะห์และจัดสรรคอร์สเรียนเรียบร้อย', 'success');
+                if (typeof LevelUpAlert !== 'undefined') {
+                    LevelUpAlert.toast('วิเคราะห์และจัดสรรคอร์สเรียนเรียบร้อย', 'success');
+                }
             }, 500);
         }
     };
