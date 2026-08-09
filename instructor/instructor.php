@@ -287,9 +287,6 @@ $user_role = 'Senior Instructor';
 
 <!-- 🔔 ลบไฟล์ Script ที่ซ้ำซ้อนออกแล้ว (jQuery, Bootstrap, SweetAlert2) เนื่องจากถูกโหลดใน header.php แล้ว -->
 
-<!-- 🔔 2. ดึงไฟล์ Custom Instructor Alert Handler -->
-<script src="<?= $ROOT_PATH ?>js/sweetalert_instructor.js"></script>
-
 <script>
 $(document).ready(function() {
     // 🛠️ ปรับแก้ Path AJAX สำหรับยิงไปยังโฟลเดอร์ services/ ให้ถอยกลับ 1 ชั้นอัตโนมัติ (แก้ปัญหา 404 Not Found)

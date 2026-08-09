@@ -6,6 +6,7 @@ error_reporting(E_ALL);
 
 $ROOT_PATH = '../';
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
+include_once $ROOT_PATH . 'includes/header.php';
 
 // Check ไฟล์ db.php รองรับหลาย Path
 if (file_exists('../config/db.php')) {
@@ -106,160 +107,6 @@ $inst_role = $instructor['user_role'] ?? $instructor['role'] ?? 'Certified Instr
 $inst_bio = $instructor['bio'] ?? 'ผู้เชี่ยวชาญประจำสถาบัน LevelUp พร้อมถ่ายทอดความรู้และประสบการณ์ตรงจากอุตสาหกรรมซอฟต์แวร์';
 
 ?>
-
-<!DOCTYPE html>
-<html lang="th" data-theme="dark">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>โปรไฟล์ผู้ฝึกสอน - <?= htmlspecialchars($inst_name) ?></title>
-    
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        /* 🌙 DARK MODE (DEFAULT) */
-        :root, html[data-theme="dark"] {
-            --lv-bg-dark: #090d1a;
-            --lv-card-bg: rgba(20, 27, 45, 0.75);
-            --lv-card-inner: rgba(20, 27, 45, 0.6);
-            --lv-border-glow: rgba(99, 102, 241, 0.2);
-            --lv-border-subtle: rgba(255, 255, 255, 0.08);
-            --lv-cyan: #06b6d4;
-            --lv-primary: #6366F1;
-            --lv-text-main: #f8fafc;
-            --lv-text-muted: #cbd5e1;
-            --lv-badge-bg: rgba(0, 0, 0, 0.3);
-        }
-
-        /* ☀️ LIGHT MODE OVERRIDES */
-        html[data-theme="light"] {
-            --lv-bg-dark: #f1f5f9;
-            --lv-card-bg: #ffffff;
-            --lv-card-inner: #f8fafc;
-            --lv-border-glow: rgba(203, 213, 225, 0.8);
-            --lv-border-subtle: #e2e8f0;
-            --lv-cyan: #0891b2;
-            --lv-primary: #4f46e5;
-            --lv-text-main: #0f172a;
-            --lv-text-muted: #64748b;
-            --lv-badge-bg: #e2e8f0;
-        }
-
-        body {
-            background-color: var(--lv-bg-dark) !important;
-            font-family: 'Outfit', 'Kanit', sans-serif;
-            color: var(--lv-text-main) !important;
-            min-height: 100vh;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        /* Responsive Text Overrides for Light Mode */
-        html[data-theme="light"] .text-white { color: var(--lv-text-main) !important; }
-        html[data-theme="light"] .text-white-50 { color: var(--lv-text-muted) !important; }
-        html[data-theme="light"] .bg-dark { background-color: var(--lv-badge-bg) !important; color: var(--lv-text-main) !important; }
-
-        .dashboard-card {
-            background: var(--lv-card-bg) !important;
-            border: 1px solid var(--lv-border-glow) !important;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
-            transition: background-color 0.3s ease, border-color 0.3s ease;
-        }
-
-        .stat-card {
-            background: var(--lv-card-inner) !important;
-            border: 1px solid var(--lv-border-subtle) !important;
-            transition: transform 0.2s ease, border-color 0.2s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-3px);
-            border-color: var(--lv-cyan) !important;
-        }
-
-        .avatar-circle {
-            width: 110px;
-            height: 110px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--lv-cyan), var(--lv-primary));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #fff;
-            margin: 0 auto;
-            box-shadow: 0 0 25px rgba(6, 182, 212, 0.3);
-            object-fit: cover;
-        }
-
-        .course-card {
-            background: var(--lv-card-inner) !important;
-            border: 1px solid var(--lv-border-subtle) !important;
-            transition: all 0.25s ease;
-        }
-
-        .course-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--lv-cyan) !important;
-            box-shadow: 0 10px 25px rgba(6, 182, 212, 0.15);
-        }
-
-        .badge-verified {
-            background: rgba(6, 182, 212, 0.15);
-            color: var(--lv-cyan);
-            border: 1px solid rgba(6, 182, 212, 0.3);
-            font-size: 0.75rem;
-        }
-
-        .badge-category {
-            background: rgba(6, 182, 212, 0.2);
-            color: var(--lv-cyan);
-            border: 1px solid rgba(6, 182, 212, 0.3);
-        }
-
-        .line-clamp-2 {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .hover-text-cyan:hover {
-            color: var(--lv-cyan) !important;
-        }
-
-        .border-color {
-            border-color: var(--lv-border-subtle) !important;
-        }
-
-        .btn-surface {
-            background: var(--lv-card-inner);
-            border: 1px solid var(--lv-border-subtle);
-            color: var(--lv-text-main);
-            transition: all 0.2s ease;
-        }
-        .btn-surface:hover {
-            background: var(--lv-border-subtle);
-            color: var(--lv-text-main);
-        }
-    </style>
-</head>
-
-<body class="py-4">
-
-    <?php 
-    // 📌 ดึงไฟล์ Header มาใช้งานเพื่อรับปุ่มเปิด/ปิด Light Mode และสกินเมาส์
-    if (file_exists($ROOT_PATH . 'includes/header.php')) {
-        include_once $ROOT_PATH . 'includes/header.php';
-    } elseif (file_exists('includes/header.php')) {
-        include_once 'includes/header.php';
-    }
-    ?>
 
     <div class="container-xl mt-3">
         <!-- Top Bar / Back Button -->
@@ -441,16 +288,6 @@ $inst_bio = $instructor['bio'] ?? 'ผู้เชี่ยวชาญประ
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bundle.min.js"></script>
-
-    <!-- Synchronize Theme with LocalStorage from Header -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const savedTheme = localStorage.getItem('theme') || localStorage.getItem('student_detail_theme') || 'dark';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-        });
-    </script>
-</body>
-
-</html>
+<?php
+include_once $ROOT_PATH . 'includes/footer.php'; 
+?>

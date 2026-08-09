@@ -762,6 +762,4 @@ include '../includes/header.php';
     }
 </script>
 
-<script src="../js/sweetalert_learning-path.js?v=<?= time() ?>"></script>
-
 <?php include '../includes/footer.php'; ?>
