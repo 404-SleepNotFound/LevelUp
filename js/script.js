@@ -958,7 +958,6 @@ function initCourseCreateForm() {
         $submitBtn.prop('disabled', true);
 
         $.ajax({
-            // ✅ ใช้ Absolute/Standard relative path สอดคล้องกับโปรเจกต์
             url: 'services/course.php',
             type: 'POST',
             data: formData,
@@ -984,88 +983,86 @@ function initCourseCreateForm() {
 }
 
 /* =========================================
-   11. Single Source Custom Dropdown Converter
+   11. Single Source Custom Dropdown Converter (Fixed)
    ========================================= */
-function initAutoCustomDropdowns() {
-    function convertSelects() {
-        $('select:not([data-customized="true"])').each(function () {
-            const $select = $(this);
-            
-            if ($select.is(':hidden') || $select.hasClass('no-custom')) return;
+window.initAutoCustomDropdowns = function () {
+    $('select:not([data-customized="true"])').each(function () {
+        const $select = $(this);
+        
+        // Removed $select.is(':hidden') check so hidden selects (e.g. inside tabs/modals/steps) get converted properly
+        if ($select.hasClass('no-custom')) return;
 
-            $select.attr('data-customized', 'true').hide();
+        $select.attr('data-customized', 'true').hide();
 
-            const $wrapper = $('<div class="custom-dropdown-wrapper"></div>');
-            if ($select.attr('class')) {
-                $wrapper.addClass($select.attr('class')).removeClass('form-select lu-select form-select-custom');
-            }
+        const $wrapper = $('<div class="custom-dropdown-wrapper"></div>');
+        if ($select.attr('class')) {
+            $wrapper.addClass($select.attr('class')).removeClass('form-select lu-select form-select-custom');
+        }
 
-            const $selectedOpt = $select.find('option:selected').length ? $select.find('option:selected') : $select.find('option').first();
-            const selectedText = $selectedOpt.text().trim() || 'เลือกรายการ';
+        const $selectedOpt = $select.find('option:selected').length ? $select.find('option:selected') : $select.find('option').first();
+        const selectedText = $selectedOpt.text().trim() || 'เลือกรายการ';
 
-            let menuHtml = '';
-            $select.find('option').each(function () {
-                const $opt = $(this);
-                const val = $opt.val();
-                const text = $opt.text().trim();
-                const isSelected = $opt.is(':selected') ? 'selected' : '';
-                const isDisabled = $opt.is(':disabled') ? 'style="opacity:0.5; pointer-events:none;"' : '';
+        let menuHtml = '';
+        $select.find('option').each(function () {
+            const $opt = $(this);
+            const val = $opt.val();
+            const text = $opt.text().trim();
+            const isSelected = $opt.is(':selected') ? 'selected' : '';
+            const isDisabled = $opt.is(':disabled') ? 'style="opacity:0.5; pointer-events:none;"' : '';
 
-                menuHtml += `<div class="custom-dropdown-item ${isSelected}" data-value="${val}" ${isDisabled}>${text}</div>`;
-            });
-
-            $wrapper.html(`
-                <div class="custom-dropdown-btn">
-                    <span class="selected-text">${selectedText}</span>
-                    <i class="bi bi-chevron-down"></i>
-                </div>
-                <div class="custom-dropdown-menu">
-                    ${menuHtml}
-                </div>
-            `);
-
-            $select.after($wrapper);
+            menuHtml += `<div class="custom-dropdown-item ${isSelected}" data-value="${val}" ${isDisabled}>${text}</div>`;
         });
+
+        $wrapper.html(`
+            <div class="custom-dropdown-btn">
+                <span class="selected-text">${selectedText}</span>
+                <i class="bi bi-chevron-down"></i>
+            </div>
+            <div class="custom-dropdown-menu">
+                ${menuHtml}
+            </div>
+        `);
+
+        $select.after($wrapper);
+    });
+};
+
+// Consolidated Event Delegation (Ensures single click handler across all custom dropdowns)
+$(document).off('click.customDropdown').on('click.customDropdown', function (e) {
+    const $target = $(e.target);
+    const $btn = $target.closest('.custom-dropdown-btn');
+    const $item = $target.closest('.custom-dropdown-item');
+
+    if ($btn.length) {
+        e.stopPropagation();
+        const $wrapper = $btn.closest('.custom-dropdown-wrapper');
+        const isOpen = $wrapper.hasClass('active');
+
+        $('.custom-dropdown-wrapper.active').not($wrapper).removeClass('active');
+        $wrapper.toggleClass('active', !isOpen);
+        return;
     }
 
-    convertSelects();
+    if ($item.length) {
+        e.stopPropagation();
+        const $wrapper = $item.closest('.custom-dropdown-wrapper');
+        const $select = $wrapper.prev('select[data-customized="true"]');
+        const val = $item.data('value');
 
-    // Consolidated Event Delegation
-    $(document).off('click.customDropdown').on('click.customDropdown', function (e) {
-        const $target = $(e.target);
-        const $btn = $target.closest('.custom-dropdown-btn');
-        const $item = $target.closest('.custom-dropdown-item');
-
-        if ($btn.length) {
-            e.stopPropagation();
-            const $wrapper = $btn.closest('.custom-dropdown-wrapper');
-            const isOpen = $wrapper.hasClass('active');
-
-            $('.custom-dropdown-wrapper.active').not($wrapper).removeClass('active');
-            $wrapper.toggleClass('active', !isOpen);
-            return;
+        if ($select.length) {
+            $select.val(val).trigger('change');
         }
 
-        if ($item.length) {
-            e.stopPropagation();
-            const $wrapper = $item.closest('.custom-dropdown-wrapper');
-            const $select = $wrapper.prev('select[data-customized="true"]');
-            const val = $item.data('value');
+        $wrapper.find('.selected-text').text($item.text().trim());
+        $wrapper.find('.custom-dropdown-item').removeClass('selected');
+        $item.addClass('selected');
+        $wrapper.removeClass('active');
+        return;
+    }
 
-            if ($select.length) {
-                $select.val(val).trigger('change');
-            }
-
-            $wrapper.find('.selected-text').text($item.text().trim());
-            $wrapper.find('.custom-dropdown-item').removeClass('selected');
-            $item.addClass('selected');
-            $wrapper.removeClass('active');
-            return;
-        }
-
-        $('.custom-dropdown-wrapper.active').removeClass('active');
-    });
-}
+    // Close options when clicking outside
+    $('.custom-dropdown-wrapper.active').removeClass('active');
+});
 
 /* =========================================
    Global helper
