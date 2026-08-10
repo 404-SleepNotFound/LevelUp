@@ -30,8 +30,9 @@ $high_risk_students = array_filter($mock_students, function($s) { return $s['ris
 $low_risk_students  = array_filter($mock_students, function($s) { return $s['risk'] === 'Low'; });
 ?>
 
-<!-- Import Dropdown Select Stylesheet -->
+<!-- Import Dropdown Select Stylesheet & Script -->
 <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css">
+<script src="<?= $ROOT_PATH ?>js/lu-dropdown.js" defer></script>
 
 <style>
     /* 🌓 LIGHT / DARK MODE CSS VARIABLES */
@@ -335,10 +336,10 @@ $low_risk_students  = array_filter($mock_students, function($s) { return $s['ris
                 <input type="text" class="form-control input-premium" placeholder="🔍 ค้นหา ชื่อ, Email หรือ Student ID...">
             </div>
             <div class="flex-select-item">
-                <select class="form-select input-premium"><option>คอร์สทั้งหมด</option></select>
+                <select class="lu-select form-select input-premium"><option>คอร์สทั้งหมด</option></select>
             </div>
             <div class="flex-select-item">
-                <select class="form-select input-premium"><option>ความเสี่ยง: ทั้งหมด</option></select>
+                <select class="lu-select form-select input-premium"><option>ความเสี่ยง: ทั้งหมด</option></select>
             </div>
             <div class="flex-btn-item">
                 <button type="button" class="btn input-premium text-start d-flex justify-content-between align-items-center">
