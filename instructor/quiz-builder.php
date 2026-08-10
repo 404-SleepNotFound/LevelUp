@@ -4,17 +4,16 @@ $ROOT_PATH = '../';
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 ?>
 
-<!-- 🎨 External Custom Scrollbar (If needed) -->
+<!-- 🎨 External Custom Styles & Dropdown Scripts -->
 <link rel="stylesheet" href="<?php echo $ROOT_PATH; ?>css/custom-scrollbar.css">
-
-<!-- Import Dropdown Select Stylesheet -->
-<link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css">
+<link rel="stylesheet" href="<?php echo $ROOT_PATH; ?>css/dropdown-select.css">
+<script src="<?php echo $ROOT_PATH; ?>js/lu-dropdown.js" defer></script>
 
 <style>
     /* 🎨 CSS Variables Dynamic Theme (Light & Dark Mode) */
     :root, html[data-theme="dark"] {
         --lv-bg-dark: #0b0f19;
-        --lv-card-bg: rgba(16, 24, 48, 0.9);
+        --lv-card-bg: rgba(16, 24, 48, 0.65);
         --lv-card-border: rgba(255, 255, 255, 0.08);
         --lv-border-glow: rgba(99, 102, 241, 0.2);
         --lv-cyan: #06b6d4;
@@ -50,11 +49,9 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     .quiz-container {
         animation: fadeInQuiz 0.35s ease-in-out;
         width: 100%;
-        overflow: visible !important;
+        overflow-x: hidden;
         color: var(--lv-text-main);
     }
-
-    /* 🛡️ ป้องกัน Dropdown โดนการ์ดถัดไปซ้อนทับ */
     .quiz-section-card {
         background: var(--lv-card-bg);
         border: 1px solid var(--lv-card-border);
@@ -63,103 +60,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         margin-bottom: 20px;
         backdrop-filter: blur(10px);
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-        position: relative;
-        z-index: 1;
-        overflow: visible !important;
     }
-
-    .quiz-section-card:focus-within,
-    .quiz-section-card:hover {
-        z-index: 10;
-    }
-
-    .quiz-container .row,
-    .quiz-container [class*="col-"] {
-        overflow: visible !important;
-    }
-
-    /* 🚀 Custom Interactive Dropdown CSS */
-    .custom-dropdown-wrapper {
-        position: relative;
-        width: 100%;
-        z-index: 1;
-        cursor: inherit !important; 
-        user-select: none !important;
-        -webkit-user-select: none !important;
-    }
-
-    .custom-dropdown-wrapper.active {
-        z-index: 9999 !important;
-    }
-
-    .custom-dropdown-btn {
-        background: var(--lv-input-bg);
-        border: 1px solid var(--lv-input-border);
-        color: var(--lv-input-text);
-        border-radius: 10px;
-        padding: 12px 16px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        min-height: 52px;
-        transition: all 0.2s ease;
-        font-size: 0.95rem;
-    }
-
-    .custom-dropdown-btn:hover {
-        border-color: var(--lv-cyan);
-    }
-
-    .custom-dropdown-btn i {
-        transition: transform 0.2s ease;
-        font-size: 0.8rem;
-        opacity: 0.7;
-    }
-
-    .custom-dropdown-wrapper.active .custom-dropdown-btn i {
-        transform: rotate(180deg);
-    }
-
-    .custom-dropdown-menu {
-        display: none !important;
-        position: absolute;
-        top: calc(100% + 6px);
-        left: 0;
-        right: 0;
-        background: #0f172a;
-        border: 1px solid var(--lv-input-border);
-        border-radius: 10px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-        z-index: 10000 !important;
-        max-height: 240px;
-        overflow-y: auto;
-        backdrop-filter: blur(16px);
-        padding: 6px;
-    }
-
-    .custom-dropdown-wrapper.active .custom-dropdown-menu {
-        display: block !important;
-    }
-
-    .custom-dropdown-item {
-        padding: 10px 14px;
-        border-radius: 6px;
-        color: var(--lv-input-text);
-        transition: background 0.15s ease;
-        font-size: 0.9rem;
-        cursor: pointer;
-    }
-
-    .custom-dropdown-item:hover {
-        background: rgba(6, 182, 212, 0.15);
-        color: var(--lv-cyan);
-    }
-
-    .custom-dropdown-item.selected {
-        background: rgba(99, 102, 241, 0.2);
-        font-weight: 600;
-    }
-
     @media (min-width: 768px) {
         .quiz-section-card {
             padding: 24px;
@@ -270,11 +171,73 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         }
     }
 
+    .analytics-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    @media (min-width: 992px) {
+        .analytics-grid {
+            grid-template-columns: repeat(5, 1fr);
+        }
+    }
+    .analytics-card {
+        background: var(--lv-box-bg);
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid var(--lv-card-border);
+    }
+    @media (min-width: 992px) {
+        .analytics-card {
+            border: none;
+            border-right: 1px solid var(--lv-card-border);
+            border-radius: 0;
+            background: transparent;
+            padding: 0 8px;
+        }
+        .analytics-card:last-child {
+            border-right: none;
+        }
+    }
+
     .alert-badge-premium {
         white-space: normal;
         word-break: break-word;
         text-align: left;
         line-height: 1.4;
+    }
+
+    html[data-theme="light"] .quiz-container .text-white,
+    html[data-theme="light"] #quizSimulatorModal .text-white {
+        color: var(--lv-text-main) !important;
+    }
+    html[data-theme="light"] .quiz-container .bg-dark,
+    html[data-theme="light"] #quizSimulatorModal .bg-dark {
+        background-color: var(--lv-box-bg) !important;
+    }
+    html[data-theme="light"] .quiz-container .bg-black,
+    html[data-theme="light"] #quizSimulatorModal .bg-black {
+        background-color: rgba(0, 0, 0, 0.03) !important;
+    }
+    html[data-theme="light"] .quiz-container .btn-dark {
+        background-color: #ffffff !important;
+        color: var(--lv-text-main) !important;
+        border-color: var(--lv-input-border) !important;
+    }
+    html[data-theme="light"] .quiz-container .btn-dark:hover {
+        background-color: #e2e8f0 !important;
+    }
+    html[data-theme="light"] .quiz-container .border-secondary,
+    html[data-theme="light"] #quizSimulatorModal .border-secondary {
+        border-color: rgba(0, 0, 0, 0.1) !important;
+    }
+    html[data-theme="light"] #quizSimulatorModal .modal-content {
+        background-color: #ffffff !important;
+        color: var(--lv-text-main) !important;
+        border-color: rgba(0, 0, 0, 0.1) !important;
+    }
+    html[data-theme="light"] #quizSimulatorModal .btn-close-white {
+        filter: invert(1) grayscale(100%) brightness(0);
     }
 
     @keyframes fadeInQuiz {
@@ -310,20 +273,14 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 <!-- 2. ประเภท Quiz -->
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">2. ประเภท Quiz (Quiz Type)</label>
-                    <div class="custom-dropdown-wrapper">
-                        <div class="custom-dropdown-btn">
-                            <span class="selected-text">Chapter Quiz (ประจำบทเรียน)</span>
-                            <i class="bi bi-chevron-down"></i>
-                        </div>
-                        <div class="custom-dropdown-menu">
-                            <div class="custom-dropdown-item" data-value="pretest">Pre-Test (ก่อนเรียน)</div>
-                            <div class="custom-dropdown-item" data-value="posttest">Post-Test (หลังเรียน)</div>
-                            <div class="custom-dropdown-item" data-value="practice">Practice Quiz (ฝึกฝนระหว่างเรียน)</div>
-                            <div class="custom-dropdown-item selected" data-value="chapter">Chapter Quiz (ประจำบทเรียน)</div>
-                            <div class="custom-dropdown-item" data-value="final">Final Exam (สอบไล่ปลายภาค)</div>
-                            <div class="custom-dropdown-item" data-value="coding">Coding Challenge (โจทย์ท้าทายสปีดรัน)</div>
-                        </div>
-                    </div>
+                    <select class="lu-select form-control-premium" name="quiz_type">
+                        <option value="pretest">Pre-Test (ก่อนเรียน)</option>
+                        <option value="posttest">Post-Test (หลังเรียน)</option>
+                        <option value="practice">Practice Quiz (ฝึกฝนระหว่างเรียน)</option>
+                        <option value="chapter" selected>Chapter Quiz (ประจำบทเรียน)</option>
+                        <option value="final">Final Exam (สอบไล่ปลายภาค)</option>
+                        <option value="coding">Coding Challenge (โจทย์ท้าทายสปีดรัน)</option>
+                    </select>
                 </div>
 
                 <div class="col-12 col-sm-6 col-md-3">
@@ -334,46 +291,28 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 <!-- Chapter หลักที่ผูกมัด -->
                 <div class="col-12 col-md-4">
                     <label class="form-label form-label-premium">Chapter หลักที่ผูกมัด</label>
-                    <div class="custom-dropdown-wrapper">
-                        <div class="custom-dropdown-btn">
-                            <span class="selected-text">Chapter 2: Data Structure Core</span>
-                            <i class="bi bi-chevron-down"></i>
-                        </div>
-                        <div class="custom-dropdown-menu">
-                            <div class="custom-dropdown-item">Chapter 1: Introduction to Logic</div>
-                            <div class="custom-dropdown-item selected">Chapter 2: Data Structure Core</div>
-                        </div>
-                    </div>
+                    <select class="lu-select form-control-premium" name="chapter_id">
+                        <option value="1">Chapter 1: Introduction to Logic</option>
+                        <option value="2" selected>Chapter 2: Data Structure Core</option>
+                    </select>
                 </div>
 
                 <!-- Lesson บทเรียนย่อย -->
                 <div class="col-12 col-md-4">
                     <label class="form-label form-label-premium">Lesson (บทเรียนย่อยต้นทาง)</label>
-                    <div class="custom-dropdown-wrapper">
-                        <div class="custom-dropdown-btn">
-                            <span class="selected-text">Lesson 3.2: Multidimensional Array Matrix</span>
-                            <i class="bi bi-chevron-down"></i>
-                        </div>
-                        <div class="custom-dropdown-menu">
-                            <div class="custom-dropdown-item">Lesson 3.1: Understanding Arrays Concept</div>
-                            <div class="custom-dropdown-item selected">Lesson 3.2: Multidimensional Array Matrix</div>
-                        </div>
-                    </div>
+                    <select class="lu-select form-control-premium" name="lesson_id">
+                        <option value="3.1">Lesson 3.1: Understanding Arrays Concept</option>
+                        <option value="3.2" selected>Lesson 3.2: Multidimensional Array Matrix</option>
+                    </select>
                 </div>
 
                 <!-- สถานะการแสดงผล -->
                 <div class="col-12 col-md-4">
                     <label class="form-label form-label-premium">สถานะการแสดงผล (Status)</label>
-                    <div class="custom-dropdown-wrapper">
-                        <div class="custom-dropdown-btn text-warning fw-bold">
-                            <span class="selected-text">🟡 Draft (แบบร่างแก้ไข)</span>
-                            <i class="bi bi-chevron-down"></i>
-                        </div>
-                        <div class="custom-dropdown-menu">
-                            <div class="custom-dropdown-item selected text-warning fw-bold" data-value="draft">🟡 Draft (แบบร่างแก้ไข)</div>
-                            <div class="custom-dropdown-item text-success fw-bold" data-value="published">🟢 Published (เผยแพร่สู่ผู้เรียน)</div>
-                        </div>
-                    </div>
+                    <select class="lu-select form-control-premium" name="status">
+                        <option value="draft" selected>🟡 Draft (แบบร่างแก้ไข)</option>
+                        <option value="published">🟢 Published (เผยแพร่สู่ผู้เรียน)</option>
+                    </select>
                 </div>
 
                 <div class="col-12">
@@ -471,17 +410,11 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 <!-- จำนวนครั้งที่อนุญาตให้สอบ -->
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">จำนวนครั้งที่อนุญาตให้สอบ</label>
-                    <div class="custom-dropdown-wrapper">
-                        <div class="custom-dropdown-btn">
-                            <span class="selected-text">3 ครั้ง</span>
-                            <i class="bi bi-chevron-down"></i>
-                        </div>
-                        <div class="custom-dropdown-menu">
-                            <div class="custom-dropdown-item">1 ครั้งเท่านั้น</div>
-                            <div class="custom-dropdown-item selected">3 ครั้ง</div>
-                            <div class="custom-dropdown-item">ไม่จำกัดจำนวนครั้ง</div>
-                        </div>
-                    </div>
+                    <select class="lu-select form-control-premium" name="attempts_limit">
+                        <option value="1">1 ครั้งเท่านั้น</option>
+                        <option value="3" selected>3 ครั้ง</option>
+                        <option value="unlimited">ไม่จำกัดจำนวนครั้ง</option>
+                    </select>
                 </div>
 
                 <div class="col-12 col-sm-6 col-md-3">
@@ -502,19 +435,13 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <div class="row g-3">
                 <div class="col-12 col-sm-6 col-md-4">
                     <label class="form-label form-label-premium">ภาษาโปรแกรมมิ่งที่รองรับ</label>
-                    <div class="custom-dropdown-wrapper">
-                        <div class="custom-dropdown-btn">
-                            <span class="selected-text">JavaScript</span>
-                            <i class="bi bi-chevron-down"></i>
-                        </div>
-                        <div class="custom-dropdown-menu">
-                            <div class="custom-dropdown-item">PHP</div>
-                            <div class="custom-dropdown-item">Python</div>
-                            <div class="custom-dropdown-item">Java</div>
-                            <div class="custom-dropdown-item selected">JavaScript</div>
-                            <div class="custom-dropdown-item">C++</div>
-                        </div>
-                    </div>
+                    <select class="lu-select form-control-premium" name="programming_language">
+                        <option value="php">PHP</option>
+                        <option value="python">Python</option>
+                        <option value="java">Java</option>
+                        <option value="javascript" selected>JavaScript</option>
+                        <option value="cpp">C++</option>
+                    </select>
                 </div>
                 <div class="col-12 col-sm-6 col-md-4">
                     <label class="form-label form-label-premium">Time Limit (วินาที)</label>
@@ -533,17 +460,11 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <div class="row g-3">
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">11. ความยากเฉลี่ย</label>
-                    <div class="custom-dropdown-wrapper">
-                        <div class="custom-dropdown-btn text-info fw-bold">
-                            <span class="selected-text">Medium (ปานกลาง)</span>
-                            <i class="bi bi-chevron-down"></i>
-                        </div>
-                        <div class="custom-dropdown-menu">
-                            <div class="custom-dropdown-item">Easy (ง่าย)</div>
-                            <div class="custom-dropdown-item selected text-info fw-bold">Medium (ปานกลาง)</div>
-                            <div class="custom-dropdown-item">Hard (ขั้นสูง)</div>
-                        </div>
-                    </div>
+                    <select class="lu-select form-control-premium" name="difficulty">
+                        <option value="easy">Easy (ง่าย)</option>
+                        <option value="medium" selected>Medium (ปานกลาง)</option>
+                        <option value="hard">Hard (ขั้นสูง)</option>
+                    </select>
                 </div>
 
                 <div class="col-12 col-sm-6 col-md-3">
@@ -561,16 +482,10 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">17. สิทธิ์การเข้าถึง</label>
-                    <div class="custom-dropdown-wrapper">
-                        <div class="custom-dropdown-btn">
-                            <span class="selected-text">เฉพาะผู้ลงทะเบียนเรียนคอร์สนี้</span>
-                            <i class="bi bi-chevron-down"></i>
-                        </div>
-                        <div class="custom-dropdown-menu">
-                            <div class="custom-dropdown-item selected">เฉพาะผู้ลงทะเบียนเรียนคอร์สนี้</div>
-                            <div class="custom-dropdown-item">ปลดล็อกอัตโนมัติหลังจบเนื้อหา</div>
-                        </div>
-                    </div>
+                    <select class="lu-select form-control-premium" name="access_rights">
+                        <option value="enrolled" selected>เฉพาะผู้ลงทะเบียนเรียนคอร์สนี้</option>
+                        <option value="unlocked_after">ปลดล็อกอัตโนมัติหลังจบเนื้อหา</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -590,64 +505,8 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     </form>
 </div>
 
-<!-- 🚀 Global Dynamic Dropdown Handler -->
+<!-- Helper Script for Dynamic Questions -->
 <script>
-    (function() {
-        document.removeEventListener('click', handleCustomDropdownClick);
-        document.addEventListener('click', handleCustomDropdownClick);
-
-        function handleCustomDropdownClick(e) {
-            const btn = e.target.closest('.custom-dropdown-btn');
-            const item = e.target.closest('.custom-dropdown-item');
-
-            if (btn) {
-                e.stopPropagation();
-                const wrapper = btn.closest('.custom-dropdown-wrapper');
-                const isOpen = wrapper.classList.contains('active');
-
-                // ปิด Dropdown ตัวอื่นทั้งหมดก่อน
-                document.querySelectorAll('.custom-dropdown-wrapper.active').forEach(w => {
-                    w.classList.remove('active');
-                    const parentCard = w.closest('.quiz-section-card');
-                    if (parentCard) parentCard.style.zIndex = '1';
-                });
-
-                if (!isOpen) {
-                    wrapper.classList.add('active');
-                    // ยกระดับ z-index การ์ดใบที่เปิดให้สูงกว่าการ์ดอื่นๆ
-                    const parentCard = wrapper.closest('.quiz-section-card');
-                    if (parentCard) parentCard.style.zIndex = '999';
-                }
-                return;
-            }
-
-            if (item) {
-                const wrapper = item.closest('.custom-dropdown-wrapper');
-                if (wrapper) {
-                    const textSpan = wrapper.querySelector('.selected-text');
-                    if (textSpan) {
-                        textSpan.textContent = item.textContent.trim();
-                    }
-
-                    wrapper.querySelectorAll('.custom-dropdown-item').forEach(i => i.classList.remove('selected'));
-                    item.classList.add('selected');
-
-                    wrapper.classList.remove('active');
-                    const parentCard = wrapper.closest('.quiz-section-card');
-                    if (parentCard) parentCard.style.zIndex = '1';
-                }
-                return;
-            }
-
-            // คลิกพื้นที่ภายนอก ปิด Dropdown ทั้งหมด
-            document.querySelectorAll('.custom-dropdown-wrapper.active').forEach(w => {
-                w.classList.remove('active');
-                const parentCard = w.closest('.quiz-section-card');
-                if (parentCard) parentCard.style.zIndex = '1';
-            });
-        }
-    })();
-
     function appendQuestionType(type) {
         var uniqId = Math.floor(Math.random() * 99999);
         var customBlockNodeHtml = `
