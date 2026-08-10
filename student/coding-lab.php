@@ -48,6 +48,10 @@ include '../includes/header.php';
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/loader.min.js"></script>
 
+<!-- Custom Dropdown Select -->
+<link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css">
+<script src="<?= $ROOT_PATH ?>js/lu-dropdown.js" defer></script>
+
 <style>
     /* ==================================================================
        CSS VARIABLES: DARK MODE (Default)
@@ -432,7 +436,7 @@ include '../includes/header.php';
                 <i class="bi bi-cloud-check text-success fs-5" id="saveStatus" title="Auto-saved"></i>
             </div>
             
-            <select class="form-select form-select-sm font-outfit lab-select" id="languageSelect" style="width: 120px;">
+            <select class="lu-select form-select form-select-sm font-outfit lab-select" id="languageSelect" style="width: 120px;">
                 <option value="python">Python 3</option>
                 <option value="javascript">JavaScript</option>
                 <option value="java">Java</option>
