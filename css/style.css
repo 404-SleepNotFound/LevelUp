@@ -268,8 +268,11 @@ pre { margin: 0; padding: 1rem; border-radius: 0 0 8px 8px; background: #0f0f12;
 /* =========================================
    2. Base Styles
    ========================================= */
+body, button, input, textarea, select {
+    font-family: 'Inter', sans-serif !important;
+}
+
 body {
-    font-family: 'Inter', sans-serif;
     background-color: var(--bg-main);
     color: var(--text-main);
     transition: background-color var(--transition-base), color var(--transition-base), border-color 0.3s ease !important;
