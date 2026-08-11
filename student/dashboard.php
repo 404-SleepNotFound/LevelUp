@@ -31,22 +31,49 @@ $user_role = 'Beginner';
 $career_goal = 'Not Set';
 $daily_missions = [];
 $recent_activities = [];
-$mission_reward_xp = 50; // สามารถดึงมาจาก DB ได้ในอนาคต
+$mission_reward_xp = 0; // ค่าเริ่มต้น (Guest) — จะถูกคำนวณจริงจาก missions.xp_reward เมื่อ Login
+
+$stats = [
+    'completed_courses' => 0,
+    'total_courses'     => 0,
+    'study_hours'       => 0
+];
+$ai_summary = [
+    'topic'       => '',
+    'description' => 'เริ่มทำ Quiz หรือเรียนบทเรียนต่างๆ เพื่อให้ AI เริ่มวิเคราะห์และแนะนำการเรียนของคุณ'
+];
+$current_course = null;      // จะถูกกำหนดค่าจริงจาก DB หรือ fallback ด้านล่าง
+$recommended_course = null;  // จะถูกกำหนดค่าจริงจาก DB หรือ fallback ด้านล่าง
+$goal_progress = [
+    'percentage'         => 0,
+    'completed_courses'  => 0,
+    'remaining_courses'  => 0,
+    'remaining_projects' => 0
+];
+$learning_path = [];
 
 if ($user_id !== 'GUEST' && isset($conn)) {
-    // --- Fetch User Data (Role and Goal) ---
-    $stmt_user = $conn->prepare("SELECT career_goal, user_role FROM users WHERE id = ?");
+    // --- Fetch User Data (Role, Goal, Level, EXP) ---
+    $stmt_user = $conn->prepare("
+        SELECT u.career_goal, u.user_role, su.level, su.exp
+        FROM users u
+        LEFT JOIN status_users su ON su.user_id = u.id
+        WHERE u.id = ?
+    ");
     $stmt_user->execute([$user_id]);
     $user_data = $stmt_user->fetch(PDO::FETCH_ASSOC);
     if ($user_data) {
         $user_role = $user_data['user_role'] ?: $user_role;
         $career_goal = $user_data['career_goal'] ?: $career_goal;
+        // ใช้ level/exp จริงจากตาราง status_users แทนค่าจาก Session (กันข้อมูลไม่ตรงกัน)
+        if ($user_data['level'] !== null) $navUser['level'] = (int)$user_data['level'];
+        if ($user_data['exp']   !== null) $navUser['exp']   = (int)$user_data['exp'];
     }
 
     // --- Fetch Daily Missions ---
     $today = date("Y-m-d");
     $stmt_missions = $conn->prepare("
-        SELECT m.id, m.title, um.completed_at
+        SELECT m.id, m.title, m.xp_reward, um.completed_at
         FROM missions m
         LEFT JOIN user_missions um ON m.id = um.mission_id AND um.user_id = ? AND um.progress_date = ?
         WHERE m.is_daily = 1
@@ -54,6 +81,7 @@ if ($user_id !== 'GUEST' && isset($conn)) {
     $stmt_missions->execute([$user_id, $today]);
     $missions_from_db = $stmt_missions->fetchAll(PDO::FETCH_ASSOC);
 
+    $mission_reward_xp = 0;
     foreach ($missions_from_db as $mission) {
         $is_completed = $mission['completed_at'] !== null;
         $daily_missions[] = [
@@ -62,6 +90,10 @@ if ($user_id !== 'GUEST' && isset($conn)) {
             'completed' => $is_completed,
             'disabled'  => $is_completed
         ];
+        // รวม XP ของภารกิจที่ยังไม่เสร็จ ไว้แสดงเป็นยอดรวมที่ยังสามารถรับได้วันนี้
+        if (!$is_completed) {
+            $mission_reward_xp += (int)$mission['xp_reward'];
+        }
     }
     // หากไม่มีภารกิจใน DB ให้ใช้ข้อมูลจำลอง (ป้องกันหน้าโล่ง)
     if(empty($daily_missions)) {
@@ -114,68 +146,187 @@ if ($user_id !== 'GUEST' && isset($conn)) {
             'color' => $activity['color']
         ];
     }
+
+    // --- Fetch Quick Stats (จำนวนคอร์สที่จบ / ลงเรียนทั้งหมด / ชม. เรียนสะสม) ---
+    $stmt_stats = $conn->prepare("
+        SELECT 
+            COUNT(*) AS total_courses,
+            SUM(CASE WHEN e.status = 'completed' THEN 1 ELSE 0 END) AS completed_courses,
+            COALESCE(SUM(CASE WHEN e.status = 'completed' THEN c.time_total ELSE 0 END), 0) AS study_hours
+        FROM enrollments e
+        JOIN course c ON c.id = e.course_id
+        WHERE e.user_id = ?
+    ");
+    $stmt_stats->execute([$user_id]);
+    $stats_data = $stmt_stats->fetch(PDO::FETCH_ASSOC);
+    if ($stats_data && $stats_data['total_courses'] !== null) {
+        $stats = [
+            'completed_courses' => (int)$stats_data['completed_courses'],
+            'total_courses'     => (int)$stats_data['total_courses'],
+            'study_hours'       => (int)$stats_data['study_hours']
+        ];
+    }
+
+    // --- Fetch AI Study Summary ล่าสุด ---
+    $stmt_ai_summary = $conn->prepare("
+        SELECT title, description
+        FROM ai_recommendations
+        WHERE user_id = ? AND recommendation_type = 'summary'
+        ORDER BY created_at DESC
+        LIMIT 1
+    ");
+    $stmt_ai_summary->execute([$user_id]);
+    $ai_summary_data = $stmt_ai_summary->fetch(PDO::FETCH_ASSOC);
+    if ($ai_summary_data) {
+        $ai_summary = [
+            'topic'       => $ai_summary_data['title'],
+            'description' => $ai_summary_data['description']
+        ];
+    }
+
+    // --- Fetch คอร์สที่กำลังเรียนล่าสุด (Continue Learning) ---
+    $stmt_current_course = $conn->prepare("
+        SELECT e.course_id, e.progress, c.title, cat.name AS category_name, l.title AS lesson_title
+        FROM enrollments e
+        JOIN course c ON c.id = e.course_id
+        LEFT JOIN category cat ON cat.id = c.category_id
+        LEFT JOIN lessons l ON l.id = e.current_lesson_id
+        WHERE e.user_id = ? AND e.status = 'in-progress'
+        ORDER BY e.last_accessed DESC
+        LIMIT 1
+    ");
+    $stmt_current_course->execute([$user_id]);
+    $current_course_data = $stmt_current_course->fetch(PDO::FETCH_ASSOC);
+    if ($current_course_data) {
+        $current_course = [
+            'title'          => $current_course_data['title'],
+            'path'           => $current_course_data['category_name'] ?: 'คอร์สเรียน',
+            'current_lesson' => $current_course_data['lesson_title'] ?: 'ยังไม่เริ่มบทเรียน',
+            'progress'       => (int)$current_course_data['progress'],
+            'link'           => 'course-detail.php?id=' . (int)$current_course_data['course_id']
+        ];
+    }
+
+    // --- Fetch คอร์สแนะนำจาก AI ล่าสุด ---
+    $stmt_rec_course = $conn->prepare("
+        SELECT title, description, link
+        FROM ai_recommendations
+        WHERE user_id = ? AND recommendation_type = 'course'
+        ORDER BY created_at DESC
+        LIMIT 1
+    ");
+    $stmt_rec_course->execute([$user_id]);
+    $rec_course_data = $stmt_rec_course->fetch(PDO::FETCH_ASSOC);
+    if ($rec_course_data) {
+        $recommended_course = [
+            'title'       => $rec_course_data['title'],
+            'description' => $rec_course_data['description'],
+            'link'        => $rec_course_data['link'] ?: 'course-detail.php'
+        ];
+    }
+
+    // --- Fetch ความคืบหน้าเป้าหมายอาชีพ (จับคู่ users.career_goal กับ career.name) ---
+    if ($career_goal && $career_goal !== 'Not Set') {
+        $stmt_goal_courses = $conn->prepare("SELECT course_id FROM career WHERE name = ?");
+        $stmt_goal_courses->execute([$career_goal]);
+        $goal_course_ids = $stmt_goal_courses->fetchAll(PDO::FETCH_COLUMN);
+
+        if (!empty($goal_course_ids)) {
+            $placeholders = implode(',', array_fill(0, count($goal_course_ids), '?'));
+            $stmt_goal_done = $conn->prepare("
+                SELECT COUNT(*) FROM enrollments
+                WHERE user_id = ? AND status = 'completed' AND course_id IN ($placeholders)
+            ");
+            $stmt_goal_done->execute(array_merge([$user_id], $goal_course_ids));
+            $completed_goal_courses = (int)$stmt_goal_done->fetchColumn();
+            $total_goal_courses     = count($goal_course_ids);
+
+            $goal_progress = [
+                'percentage'         => $total_goal_courses > 0 ? (int)round(($completed_goal_courses / $total_goal_courses) * 100) : 0,
+                'completed_courses'  => $completed_goal_courses,
+                'remaining_courses'  => max($total_goal_courses - $completed_goal_courses, 0),
+                // ⚠️ ยังไม่มีตาราง Real-world Project ใน Database จึงยังคงเป็น 0 ไปก่อน
+                'remaining_projects' => 0
+            ];
+        }
+    }
+
+    // --- Fetch แผนการเรียน (Learning Path / Roadmap) ที่ผู้ใช้กำลังเดินอยู่ ---
+    $stmt_path = $conn->prepare("
+        SELECT lp.id
+        FROM user_learning_path ulp
+        JOIN learning_paths lp ON lp.id = ulp.path_id
+        WHERE ulp.user_id = ?
+        LIMIT 1
+    ");
+    $stmt_path->execute([$user_id]);
+    $path_id = $stmt_path->fetchColumn();
+
+    if ($path_id) {
+        $stmt_steps = $conn->prepare("
+            SELECT c.title, e.status, e.progress
+            FROM learning_path_steps lps
+            JOIN course c ON c.id = lps.course_id
+            LEFT JOIN enrollments e ON e.course_id = lps.course_id AND e.user_id = ?
+            WHERE lps.path_id = ?
+            ORDER BY lps.step_order ASC
+        ");
+        $stmt_steps->execute([$user_id, $path_id]);
+        $steps_from_db = $stmt_steps->fetchAll(PDO::FETCH_ASSOC);
+
+        $learning_path = [];
+        $found_current = false;
+        foreach ($steps_from_db as $step) {
+            if ($step['status'] === 'completed') {
+                $status = 'completed';
+                $desc   = 'เรียนจบแล้ว';
+            } elseif (!$found_current) {
+                $status = 'current';
+                $desc   = $step['status'] === 'in-progress'
+                            ? 'กำลังเรียนอยู่ (' . (int)$step['progress'] . '%)'
+                            : 'ยังไม่ได้เริ่มเรียน';
+                $found_current = true;
+            } else {
+                $status = 'pending';
+                $desc   = 'รอเรียนในลำดับถัดไป';
+            }
+            $learning_path[] = [
+                'title'  => $step['title'],
+                'desc'   => $desc,
+                'status' => $status
+            ];
+        }
+    }
 }
 
-
 // ==========================================
-// 3. ตัวแปรจำลองที่ยังไม่ได้เชื่อมฐานข้อมูล
+// 3. ค่า Fallback สำหรับข้อมูลที่ยังไม่มีในฐานข้อมูล (ป้องกันหน้าโล่ง)
 // ==========================================
-
-// 📊 สถิติทั่วไป (Quick Stats)
-$stats = [
-    'completed_courses' => 8,
-    'total_courses'     => 20,
-    'study_hours'       => 15
-];
-
-// 🤖 ข้อความสรุปและแนะนำจาก AI (AI Study Summary)
-$ai_summary = [
-    'topic'       => 'REST API',
-    'description' => 'เมื่อวานคุณทำคะแนน Quiz ต่ำในเรื่อง REST API วันนี้ AI แนะนำให้ทบทวนบทนี้ก่อนขึ้นเรื่องใหม่ (ใช้เวลา ~15 นาที)'
-];
-
-// 📚 คอร์สที่กำลังเรียนอยู่ (Continue Learning)
-$current_course = [
-    'title'          => 'Python Fundamentals',
-    'path'           => 'Backend Path',
-    'current_lesson' => 'บทที่ 4: Data Structures & Algorithms',
-    'progress'       => 70,
-    'link'           => 'lesson.php'
-];
-
-// 💡 คอร์สแนะนำจาก AI (AI Recommendation)
-$recommended_course = [
-    'title'       => 'Docker Essentials',
-    'description' => 'AI แนะนำคอร์สนี้เพราะคุณกำลังศึกษา Backend Dev และทำ Lab เรื่อง API สำเร็จเมื่อวาน',
-    'link'        => 'course-detail.php'
-];
-
-// 🎯 ความคืบหน้าเป้าหมายอาชีพ (Career Goal Progress)
-$goal_progress = [
-    'percentage'         => 65,
-    'completed_courses'  => 12,
-    'remaining_courses'  => 5,
-    'remaining_projects' => 2
-];
-
-// 🗺️ แผนการเรียน (Learning Path / Roadmap)
-$learning_path = [
-    [
-        'title'  => 'Python Basics',
-        'desc'   => 'เรียนจบแล้วเมื่อ 3 วันก่อน',
-        'status' => 'completed'
-    ],
-    [
-        'title'  => 'Object-Oriented Programming (OOP)',
-        'desc'   => 'เรียนจบแล้วเมื่อวาน',
-        'status' => 'completed'
-    ],
-    [
-        'title'  => 'Data Structures (ปัจจุบัน)',
-        'desc'   => 'เหลือเวลาประมาณ 2 ชั่วโมง',
-        'status' => 'current'
-    ]
-];
+if (!$current_course) {
+    $current_course = [
+        'title'          => 'ยังไม่มีคอร์สที่กำลังเรียน',
+        'path'           => '-',
+        'current_lesson' => 'เลือกคอร์สเพื่อเริ่มเรียน',
+        'progress'       => 0,
+        'link'           => 'courses.php'
+    ];
+}
+if (!$recommended_course) {
+    $recommended_course = [
+        'title'       => 'สำรวจคอร์สเรียนทั้งหมด',
+        'description' => 'ลงเรียนคอร์สแรกของคุณ เพื่อให้ AI เริ่มแนะนำคอร์สที่เหมาะกับคุณต่อไป',
+        'link'        => 'courses.php'
+    ];
+}
+if (empty($learning_path)) {
+    $learning_path = [
+        [
+            'title'  => 'ยังไม่มีแผนการเรียน',
+            'desc'   => 'เลือก Learning Path เพื่อเริ่มต้นเส้นทางอาชีพของคุณ',
+            'status' => 'pending'
+        ]
+    ];
+}
 
 
 include '../includes/header.php';
@@ -771,4 +922,3 @@ $(document).ready(function() {
 <?php
 $ROOT_PATH = '../';
 include '../includes/footer.php'; ?>
-
