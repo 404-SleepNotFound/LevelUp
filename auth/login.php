@@ -263,7 +263,7 @@ if (file_exists(__DIR__ . '/../includes/header.php')) {
                         </a>
 
                         <!-- GitHub Login -->
-                        <a href="<?= $ROOT_PATH; ?>api/github_auth.php" class="btn btn-github-premium w-100 d-flex align-items-center justify-content-center gap-3 py-3 text-decoration-none">
+                        <a href="<?= $ROOT_PATH; ?>auth/github_login.php" class="btn btn-github-premium w-100 d-flex align-items-center justify-content-center gap-3 py-3 text-decoration-none">
                             <i class="bi bi-github fs-4"></i>
                             <span class="fs-5">Sign In with GitHub</span>
                         </a>
