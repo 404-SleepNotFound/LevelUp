@@ -20,11 +20,105 @@ $navUser = [
     'exp'      => (int)($sessionData['exp'] ?? ($_SESSION['user_exp'] ?? ($_SESSION['exp'] ?? 0)))
 ];
 
-$user_role = 'Intermediate';
-$career_goal = 'Backend Developer';
+// ==========================================
+// 2. ดึงข้อมูลจากฐานข้อมูล (Dynamic Data Fetching)
+// ==========================================
+require_once '../config/db.php';
+$user_id = $navUser['user_id'];
+
+// --- Initialize default values ---
+$user_role = 'Beginner';
+$career_goal = 'Not Set';
+$daily_missions = [];
+$recent_activities = [];
+$mission_reward_xp = 50; // สามารถดึงมาจาก DB ได้ในอนาคต
+
+if ($user_id !== 'GUEST' && isset($conn)) {
+    // --- Fetch User Data (Role and Goal) ---
+    $stmt_user = $conn->prepare("SELECT career_goal, user_role FROM users WHERE id = ?");
+    $stmt_user->execute([$user_id]);
+    $user_data = $stmt_user->fetch(PDO::FETCH_ASSOC);
+    if ($user_data) {
+        $user_role = $user_data['user_role'] ?: $user_role;
+        $career_goal = $user_data['career_goal'] ?: $career_goal;
+    }
+
+    // --- Fetch Daily Missions ---
+    $today = date("Y-m-d");
+    $stmt_missions = $conn->prepare("
+        SELECT m.id, m.title, um.completed_at
+        FROM missions m
+        LEFT JOIN user_missions um ON m.id = um.mission_id AND um.user_id = ? AND um.progress_date = ?
+        WHERE m.is_daily = 1
+    ");
+    $stmt_missions->execute([$user_id, $today]);
+    $missions_from_db = $stmt_missions->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach ($missions_from_db as $mission) {
+        $is_completed = $mission['completed_at'] !== null;
+        $daily_missions[] = [
+            'id'        => $mission['id'],
+            'title'     => $mission['title'],
+            'completed' => $is_completed,
+            'disabled'  => $is_completed
+        ];
+    }
+    // หากไม่มีภารกิจใน DB ให้ใช้ข้อมูลจำลอง (ป้องกันหน้าโล่ง)
+    if(empty($daily_missions)) {
+         $daily_missions = [
+            ['id' => 0, 'title' => 'ไม่มีภารกิจสำหรับวันนี้', 'completed' => false, 'disabled' => true]
+        ];
+    }
+
+
+    // --- Fetch Recent Activities ---
+    function format_time_ago($datetime, $full = false) {
+        $now = new DateTime;
+        $ago = new DateTime($datetime);
+        $diff = $now->diff($ago);
+
+        $diff->w = floor($diff->d / 7);
+        $diff->d -= $diff->w * 7;
+
+        $string = array(
+            'y' => 'year', 'm' => 'month', 'w' => 'week', 'd' => 'day',
+            'h' => 'hour', 'i' => 'minute', 's' => 'second',
+        );
+        foreach ($string as $k => &$v) {
+            if ($diff->$k) {
+                $v = $diff->$k . ' ' . $v . ($diff->$k > 1 ? 's' : '');
+            } else {
+                unset($string[$k]);
+            }
+        }
+
+        if (!$full) $string = array_slice($string, 0, 1);
+        return $string ? implode(', ', $string) . ' ago' : 'just now';
+    }
+
+    $stmt_activities = $conn->prepare("
+        SELECT title, created_at, icon, color 
+        FROM activity_log
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+        LIMIT 3
+    ");
+    $stmt_activities->execute([$user_id]);
+    $activities_from_db = $stmt_activities->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach ($activities_from_db as $activity) {
+        $recent_activities[] = [
+            'title' => $activity['title'],
+            'time'  => format_time_ago($activity['created_at']),
+            'icon'  => $activity['icon'],
+            'color' => $activity['color']
+        ];
+    }
+}
+
 
 // ==========================================
-// 2. ตัวแปรจำลอง (Placeholder Variables) สำหรับรองรับฐานข้อมูล
+// 3. ตัวแปรจำลองที่ยังไม่ได้เชื่อมฐานข้อมูล
 // ==========================================
 
 // 📊 สถิติทั่วไป (Quick Stats)
@@ -83,44 +177,6 @@ $learning_path = [
     ]
 ];
 
-// 🎯 ภารกิจประจำวัน (Daily Missions)
-$daily_missions = [
-    [
-        'id'        => 1,
-        'title'     => 'เรียนจบ 1 บทเรียน',
-        'completed' => true,
-        'disabled'  => true
-    ],
-    [
-        'id'        => 2,
-        'title'     => 'ทำ Quiz ให้ผ่าน 80%',
-        'completed' => false,
-        'disabled'  => false
-    ],
-    [
-        'id'        => 3,
-        'title'     => 'ทำ Coding Lab 1 ครั้ง',
-        'completed' => false,
-        'disabled'  => false
-    ]
-];
-$mission_reward_xp = 50;
-
-// 🕒 กิจกรรมล่าสุด (Recent Activities)
-$recent_activities = [
-    [
-        'title' => 'สอบผ่าน Quiz: OOP Basics',
-        'time'  => '2 ชั่วโมงที่แล้ว',
-        'icon'  => 'bi-patch-check',
-        'color' => 'success'
-    ],
-    [
-        'title' => 'AI วิเคราะห์ Code ใน Lab',
-        'time'  => 'เมื่อวาน',
-        'icon'  => 'bi-robot',
-        'color' => 'primary'
-    ]
-];
 
 include '../includes/header.php';
 ?>
