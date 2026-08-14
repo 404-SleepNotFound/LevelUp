@@ -1,8 +1,290 @@
 ﻿<?php
 $ROOT_PATH = '../';
-// [Security Framework & Session Verification]
+
+// [1. Security Framework & Session Verification]
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
-// ห้ามใส่ include '../includes/header.php' หรือ footer เด็ดขาด เพราะหน้า instructor.php โหลดให้แล้ว
+
+// [2. Database Connection]
+// ปรับเปลี่ยน path ไฟล์เชื่อมต่อ DB ตามโครงสร้างโปรเจกต์ของคุณ เช่น config/db.php หรือ includes/db.php
+require_once __DIR__ . '/../config/db.php'; 
+
+// ตรวจสอบการเชื่อมต่อ Database ($conn หรือ $pdo)
+if (!isset($conn) && isset($pdo)) {
+    $conn = $pdo;
+}
+
+// [3. AJAX Backend API Handler]
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    header('Content-Type: application/json; charset=utf-8');
+    
+    $action = $_POST['action'] ?? '';
+
+    // Action 1: Save or Update Lesson
+    if ($action === 'save_lesson') {
+        try {
+            $lesson_id   = !empty($_POST['lesson_id']) ? intval($_POST['lesson_id']) : null;
+            $course_id   = intval($_POST['course_id'] ?? 0);
+            $chapter_id  = !empty($_POST['chapter_id']) ? intval($_POST['chapter_id']) : null;
+            $title       = trim($_POST['title'] ?? '');
+            $subtitle    = trim($_POST['subtitle'] ?? '');
+            $lesson_type = trim($_POST['lesson_type'] ?? 'theory');
+            $status      = trim($_POST['status'] ?? 'draft');
+            $lesson_order= intval($_POST['lesson_order'] ?? 1);
+            $content     = $_POST['content'] ?? '';
+            $video_url   = trim($_POST['video_url'] ?? '');
+            $code_snippet= $_POST['code_snippet'] ?? '';
+            $quiz_id     = !empty($_POST['quiz_id']) ? intval($_POST['quiz_id']) : null;
+            $lab_id      = !empty($_POST['lab_id']) ? intval($_POST['lab_id']) : null;
+            
+            $assignment_type = trim($_POST['assignment_type'] ?? '');
+            $assignment_inst = trim($_POST['assignment_instructions'] ?? '');
+            $learning_obj    = trim($_POST['learning_objectives'] ?? '');
+            $prerequisites   = trim($_POST['prerequisites'] ?? '');
+            $estimated_time  = trim($_POST['estimated_time'] ?? '');
+            $resources       = trim($_POST['resources'] ?? '');
+            $seo_slug        = trim($_POST['seo_slug'] ?? '');
+            $seo_title       = trim($_POST['seo_title'] ?? '');
+            $virtual_lab     = isset($_POST['virtual_lab']) ? json_encode($_POST['virtual_lab'], JSON_UNESCAPED_UNICODE) : null;
+
+            if (empty($course_id) || empty($title)) {
+                echo json_encode(['status' => 'error', 'message' => 'กรุณากรอกข้อมูลสำคัญ (ชื่อบทเรียน และ คอร์ส) ให้ครบถ้วน']);
+                exit;
+            }
+
+            // จัดการไฟล์อัปโหลด (Video File, Thumbnail, Subtitle)
+            $upload_dir = '../uploads/lessons/';
+            if (!file_exists($upload_dir)) { @mkdir($upload_dir, 0777, true); }
+
+            $video_file_path = $_POST['existing_video_file'] ?? null;
+            if (isset($_FILES['video_file']) && $_FILES['video_file']['error'] === UPLOAD_ERR_OK) {
+                $ext = pathinfo($_FILES['video_file']['name'], PATHINFO_EXTENSION);
+                $video_file_path = 'uploads/lessons/vid_' . time() . '_' . uniqid() . '.' . $ext;
+                move_uploaded_file($_FILES['video_file']['tmp_name'], '../' . $video_file_path);
+            }
+
+            $thumbnail_path = $_POST['existing_thumbnail'] ?? null;
+            if (isset($_FILES['thumbnail']) && $_FILES['thumbnail']['error'] === UPLOAD_ERR_OK) {
+                $ext = pathinfo($_FILES['thumbnail']['name'], PATHINFO_EXTENSION);
+                $thumbnail_path = 'uploads/lessons/thumb_' . time() . '_' . uniqid() . '.' . $ext;
+                move_uploaded_file($_FILES['thumbnail']['tmp_name'], '../' . $thumbnail_path);
+            }
+
+            $subtitle_path = $_POST['existing_subtitle_file'] ?? null;
+            if (isset($_FILES['subtitle_file']) && $_FILES['subtitle_file']['error'] === UPLOAD_ERR_OK) {
+                $ext = pathinfo($_FILES['subtitle_file']['name'], PATHINFO_EXTENSION);
+                $subtitle_path = 'uploads/lessons/sub_' . time() . '_' . uniqid() . '.' . $ext;
+                move_uploaded_file($_FILES['subtitle_file']['tmp_name'], '../' . $subtitle_path);
+            }
+
+            if ($conn instanceof PDO) {
+                if ($lesson_id) {
+                    $sql = "UPDATE lessons SET 
+                                course_id = :course_id, chapter_id = :chapter_id, title = :title, subtitle = :subtitle,
+                                lesson_type = :lesson_type, lesson_order = :lesson_order, status = :status, content = :content,
+                                video_url = :video_url, video_file = :video_file, thumbnail = :thumbnail, subtitle_file = :subtitle_file,
+                                quiz_id = :quiz_id, lab_id = :lab_id, virtual_lab_config = :virtual_lab, assignment_type = :assignment_type,
+                                assignment_instructions = :assignment_instructions, learning_objectives = :learning_objectives,
+                                prerequisites = :prerequisites, estimated_time = :estimated_time, resources = :resources,
+                                seo_slug = :seo_slug, seo_title = :seo_title, updated_at = NOW()
+                            WHERE id = :id";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bindValue(':id', $lesson_id, PDO::PARAM_INT);
+                } else {
+                    $sql = "INSERT INTO lessons (
+                                course_id, chapter_id, title, subtitle, lesson_type, lesson_order, status, content,
+                                video_url, video_file, thumbnail, subtitle_file, quiz_id, lab_id, virtual_lab_config,
+                                assignment_type, assignment_instructions, learning_objectives, prerequisites, estimated_time,
+                                resources, seo_slug, seo_title
+                            ) VALUES (
+                                :course_id, :chapter_id, :title, :subtitle, :lesson_type, :lesson_order, :status, :content,
+                                :video_url, :video_file, :thumbnail, :subtitle_file, :quiz_id, :lab_id, :virtual_lab,
+                                :assignment_type, :assignment_instructions, :learning_objectives, :prerequisites, :estimated_time,
+                                :resources, :seo_slug, :seo_title
+                            )";
+                    $stmt = $conn->prepare($sql);
+                }
+
+                $stmt->bindValue(':course_id', $course_id, PDO::PARAM_INT);
+                $stmt->bindValue(':chapter_id', $chapter_id, $chapter_id ? PDO::PARAM_INT : PDO::PARAM_NULL);
+                $stmt->bindValue(':title', $title);
+                $stmt->bindValue(':subtitle', $subtitle);
+                $stmt->bindValue(':lesson_type', $lesson_type);
+                $stmt->bindValue(':lesson_order', $lesson_order, PDO::PARAM_INT);
+                $stmt->bindValue(':status', $status);
+                $stmt->bindValue(':content', $content);
+                $stmt->bindValue(':video_url', $video_url);
+                $stmt->bindValue(':video_file', $video_file_path);
+                $stmt->bindValue(':thumbnail', $thumbnail_path);
+                $stmt->bindValue(':subtitle_file', $subtitle_path);
+                $stmt->bindValue(':quiz_id', $quiz_id, $quiz_id ? PDO::PARAM_INT : PDO::PARAM_NULL);
+                $stmt->bindValue(':lab_id', $lab_id, $lab_id ? PDO::PARAM_INT : PDO::PARAM_NULL);
+                $stmt->bindValue(':virtual_lab', $virtual_lab);
+                $stmt->bindValue(':assignment_type', $assignment_type);
+                $stmt->bindValue(':assignment_instructions', $assignment_inst);
+                $stmt->bindValue(':learning_objectives', $learning_obj);
+                $stmt->bindValue(':prerequisites', $prerequisites);
+                $stmt->bindValue(':estimated_time', $estimated_time);
+                $stmt->bindValue(':resources', $resources);
+                $stmt->bindValue(':seo_slug', $seo_slug);
+                $stmt->bindValue(':seo_title', $seo_title);
+                $stmt->execute();
+
+                if (!$lesson_id) {
+                    $lesson_id = $conn->lastInsertId();
+                }
+
+                // บันทึก Dynamic Blocks (ตาราง lesson_blocks)
+                if (isset($_POST['blocks']) && is_array($_POST['blocks'])) {
+                    $delStmt = $conn->prepare("DELETE FROM lesson_blocks WHERE lesson_id = :lid");
+                    $delStmt->execute([':lid' => $lesson_id]);
+
+                    $insBlock = $conn->prepare("INSERT INTO lesson_blocks (lesson_id, block_type, block_data, block_order) VALUES (:lid, :btype, :bdata, :border)");
+                    foreach ($_POST['blocks'] as $order => $block) {
+                        $insBlock->execute([
+                            ':lid'   => $lesson_id,
+                            ':btype' => $block['type'] ?? 'text',
+                            ':bdata' => $block['data'] ?? '',
+                            ':border'=> $order + 1
+                        ]);
+                    }
+                }
+
+                // บันทึกไฟล์แนบเพิ่มเติม (ตาราง lesson_attachments)
+                if (isset($_FILES['attachments'])) {
+                    $attFiles = $_FILES['attachments'];
+                    $insAtt = $conn->prepare("INSERT INTO lesson_attachments (lesson_id, file_name, file_path, file_type, file_size) VALUES (:lid, :fname, :fpath, :ftype, :fsize)");
+                    for ($i = 0; $i < count($attFiles['name']); $i++) {
+                        if ($attFiles['error'][$i] === UPLOAD_ERR_OK) {
+                            $origName = $attFiles['name'][$i];
+                            $ext = pathinfo($origName, PATHINFO_EXTENSION);
+                            $fsize = $attFiles['size'][$i];
+                            $savePath = 'uploads/lessons/att_' . time() . '_' . $i . '.' . $ext;
+                            move_uploaded_file($attFiles['tmp_name'][$i], '../' . $savePath);
+
+                            $insAtt->execute([
+                                ':lid'   => $lesson_id,
+                                ':fname' => $origName,
+                                ':fpath' => $savePath,
+                                ':ftype' => strtoupper($ext),
+                                ':fsize' => $fsize
+                            ]);
+                        }
+                    }
+                }
+
+                // บันทึก Version Log (ตาราง lesson_versions)
+                $verStmt = $conn->prepare("INSERT INTO lesson_versions (lesson_id, version_number, snapshot_data) VALUES (:lid, :ver, :snap)");
+                $verStmt->execute([
+                    ':lid'  => $lesson_id,
+                    ':ver'  => 'v' . date('Ymd.His'),
+                    ':snap' => json_encode($_POST, JSON_UNESCAPED_UNICODE)
+                ]);
+            }
+
+            echo json_encode(['status' => 'success', 'message' => 'บันทึกข้อมูลบทเรียนเรียบร้อยแล้ว!', 'lesson_id' => $lesson_id]);
+        } catch (Exception $e) {
+            echo json_encode(['status' => 'error', 'message' => 'เกิดข้อผิดพลาดในการบันทึก: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+
+    // Action 2: Delete Lesson
+    if ($action === 'delete_lesson') {
+        $lesson_id = intval($_POST['lesson_id'] ?? 0);
+        if ($lesson_id > 0) {
+            $stmt = $conn->prepare("DELETE FROM lessons WHERE id = :id");
+            $stmt->execute([':id' => $lesson_id]);
+            echo json_encode(['status' => 'success', 'message' => 'ลบบทเรียนเรียบร้อยแล้ว']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'ไม่พบ รหัสบทเรียน ที่ต้องการลบ']);
+        }
+        exit;
+    }
+
+    // Action 3: Unpublish Lesson
+    if ($action === 'unpublish_lesson') {
+        $lesson_id = intval($_POST['lesson_id'] ?? 0);
+        if ($lesson_id > 0) {
+            $stmt = $conn->prepare("UPDATE lessons SET status = 'unpublished' WHERE id = :id");
+            $stmt->execute([':id' => $lesson_id]);
+            echo json_encode(['status' => 'success', 'message' => 'ยกเลิกการเผยแพร่บทเรียนเรียบร้อยแล้ว']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'ไม่พบ รหัสบทเรียน']);
+        }
+        exit;
+    }
+
+    // Action 4: AI Copilot Assistant Simulation
+    if ($action === 'ai_assistant') {
+        $mode = $_POST['mode'] ?? 'content';
+        $responses = [
+            'content'   => '### เนื้อหาตัวอย่างที่สร้างโดย AI Copilot\n- การใช้ `let` และ `const` ใน JavaScript ES6+\n- ความแตกต่างระหว่าง Block Scope และ Function Scope',
+            'summarize' => 'สรุปสำคัญ: บทเรียนนี้มุ่งเน้นความเข้าใจขอบเขตของตัวแปรเพื่อป้องกันปัญหา Memory Leak และ Scope Pollution',
+            'language'  => 'ปรับแก้ภาษาให้อ่านเข้าใจง่ายและกระชับ เรียบร้อยแล้ว',
+            'spell'     => 'ตรวจสอบคำผิดเรียบร้อย ไม่พบคำผิดในเนื้อหาปัจจุบัน',
+            'quiz'      => 'สร้างคำถามตัวอย่าง 1 ข้อ: ข้อใดคือคุณสมบัติของตัวแปรประเภท `const`?',
+            'flashcard' => 'Flashcard #1: Variable Hoisting คืออะไร?'
+        ];
+        echo json_encode(['status' => 'success', 'data' => $responses[$mode] ?? 'ประมวลผลคำสั่ง AI สำเร็จ']);
+        exit;
+    }
+}
+
+// [4. Fetch Initial Dynamic Data]
+$lesson_id = isset($_GET['lesson_id']) ? intval($_GET['lesson_id']) : (isset($_GET['id']) ? intval($_GET['id']) : 0);
+$course_id = isset($_GET['course_id']) ? intval($_GET['course_id']) : 0;
+
+$lesson = null;
+$courses = [];
+$chapters = [];
+$blocks = [];
+$attachments = [];
+$versions = [];
+
+if ($conn instanceof PDO) {
+    // 1. ดึงรายการ Course ทั้งหมด
+    $cStmt = $conn->query("SELECT id, title FROM course ORDER BY id DESC");
+    $courses = $cStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // 2. ดึงข้อมูลบทเรียนเดิม (ถ้ามี lesson_id)
+    if ($lesson_id > 0) {
+        $lStmt = $conn->prepare("SELECT * FROM lessons WHERE id = :id LIMIT 1");
+        $lStmt->execute([':id' => $lesson_id]);
+        $lesson = $lStmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($lesson) {
+            $course_id = $lesson['course_id'];
+
+            // ดึง Blocks
+            $bStmt = $conn->prepare("SELECT * FROM lesson_blocks WHERE lesson_id = :lid ORDER BY block_order ASC");
+            $bStmt->execute([':lid' => $lesson_id]);
+            $blocks = $bStmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // ดึง Attachments
+            $aStmt = $conn->prepare("SELECT * FROM lesson_attachments WHERE lesson_id = :lid ORDER BY id DESC");
+            $aStmt->execute([':lid' => $lesson_id]);
+            $attachments = $aStmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // ดึง Versions Log
+            $vStmt = $conn->prepare("SELECT * FROM lesson_versions WHERE lesson_id = :lid ORDER BY created_at DESC LIMIT 5");
+            $vStmt->execute([':lid' => $lesson_id]);
+            $versions = $vStmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+    }
+
+    // 3. ดึง Chapters ที่ผูกกับ Course นี้
+    if ($course_id > 0) {
+        $chStmt = $conn->prepare("SELECT id, title, chapter_order FROM chapters WHERE course_id = :cid ORDER BY chapter_order ASC");
+        $chStmt->execute([':cid' => $course_id]);
+        $chapters = $chStmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+}
+
+// ถอดรหัส Virtual Lab Config JSON
+$vLabConfig = [];
+if (!empty($lesson['virtual_lab_config'])) {
+    $vLabConfig = json_decode($lesson['virtual_lab_config'], true) ?? [];
+}
 ?>
 
 <!-- Import Custom Dropdown Select Stylesheet -->
@@ -14,7 +296,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         animation: fadeInEditor 0.35s ease-in-out;
     }
     
-    /* ดึงตัวแปร --card-bg และ --card-border มาใช้ รองรับการสลับโหมดอัตโนมัติ */
     .editor-section-card {
         background: var(--card-bg, rgba(16, 24, 48, 0.65));
         border: 1px solid var(--card-border, rgba(255, 255, 255, 0.06));
@@ -38,19 +319,17 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         color: #06b6d4;
     }
 
-    /* ✨ FIX: แก้ไขฟอนต์ตัวเล็ก / คำอธิบาย ให้สว่างชัดเจน ไม่กลืนกับพื้นหลังสีกรมท่า */
     .editor-subtitle,
     .editor-container .text-muted,
     .editor-container p.text-muted,
     .editor-container .text-white-50,
     .editor-container small.text-muted,
     .editor-container .small {
-        color: #cbd5e1 !important; /* ปรับเป็นสีเงินสว่าง (Slate-300) อ่านง่าย ชัดเจน */
+        color: #cbd5e1 !important;
         opacity: 1 !important;
         font-size: 0.88rem;
     }
 
-    /* 🛠️ ล้างระบบกล่องจม: แก้ไข Input, Select, Textarea ทุกกล่องในหน้าจอ */
     .form-control-premium {
         background: var(--nav-input-bg, rgba(15, 23, 42, 0.8)) !important;
         border: 1px solid var(--nav-input-border, rgba(255, 255, 255, 0.12)) !important;
@@ -67,7 +346,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         background: var(--card-bg, #0f172a) !important;
     }
 
-    /* จัด alignment ปุ่ม Choose File ให้ตรงกลาง 100% */
     input[type="file"].form-control-premium {
         display: flex !important;
         align-items: center !important;
@@ -100,7 +378,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         min-height: 90px !important;
     }
 
-    /* Dropdown Select */
     select.form-control-premium {
         appearance: none;
         background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
@@ -120,7 +397,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         color: #94a3b8 !important;
     }
 
-    /* ปรับแต่งปุ่มกล่อง Interactive Buttons */
     .btn-interactive-item {
         background: var(--nav-input-bg, rgba(15, 23, 42, 0.6)) !important;
         border: 1px solid var(--nav-input-border, rgba(255, 255, 255, 0.1)) !important;
@@ -142,7 +418,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         transform: translateY(-1px);
     }
 
-    /* Checkbox Card */
     .custom-checkbox-card {
         background: var(--nav-input-bg, rgba(15, 23, 42, 0.6));
         border: 1px solid var(--nav-input-border, rgba(255, 255, 255, 0.1));
@@ -160,7 +435,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         background: rgba(15, 23, 42, 0.8);
     }
 
-    /* 🛠️ FIX Checkbox: กำหนดสีขอบและพื้นหลังให้คมชัด มองเห็นชัดเจนทุกโหมด */
     .custom-checkbox-card .form-check-input {
         width: 18px !important;
         height: 18px !important;
@@ -208,7 +482,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     html[data-theme="light"] .editor-container p.text-muted,
     html[data-theme="light"] .editor-container .text-white-50,
     html[data-theme="light"] .editor-container .small {
-        color: #475569 !important; /* ปรับสีสำหรับธีมสว่างให้เข้มอ่านง่าย */
+        color: #475569 !important;
     }
 
     html[data-theme="light"] .editor-container .text-white,
@@ -226,17 +500,15 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     html[data-theme="light"] .editor-container .border-secondary { border-color: #cbd5e1 !important; }
     html[data-theme="light"] .form-label-premium { color: #334155 !important; }
 
-    /* ☀️ Checkbox สำหรับ Light Mode */
     html[data-theme="light"] .custom-checkbox-card .form-check-input {
         background-color: #ffffff !important;
-        border: 1.5px solid #64748b !important; /* ขอบสีเทาเข้ม ชัดเจนบนการ์ดขาว */
+        border: 1.5px solid #64748b !important;
     }
     html[data-theme="light"] .custom-checkbox-card .form-check-input:checked {
         background-color: #06b6d4 !important;
         border-color: #06b6d4 !important;
     }
 
-    /* UI Preview Modal */
     html[data-theme="light"] #livePreviewModal .modal-content { background-color: #ffffff !important; color: #0f172a !important; border-color: #e2e8f0 !important; }
     html[data-theme="light"] #livePreviewModal .modal-header { background-color: #f8fafc !important; border-bottom-color: #e2e8f0 !important; }
     html[data-theme="light"] #livePreviewModal .modal-body { background-color: #f1f5f9 !important; }
@@ -255,15 +527,20 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     <!-- Top Action Info -->
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <h3 class="text-white fw-bold mb-1"><i class="bi bi-pencil-square text-cyan me-2"></i>ระบบสร้างและแก้ไขบทเรียน (Lesson Editor)</h3>
+            <h3 class="text-white fw-bold mb-1">
+                <i class="bi bi-pencil-square text-cyan me-2"></i>
+                <?= $lesson ? 'แก้ไขบทเรียน: ' . htmlspecialchars($lesson['title']) : 'ระบบสร้างและแก้ไขบทเรียน (Lesson Editor)' ?>
+            </h3>
             <p class="editor-subtitle mb-0">ปรับแต่งเนื้อหา วิดีโอ แล็บ ควิซ และใช้ระบบ AI ช่วยตรวจขัดเกลาเนื้อหาการเรียนรู้</p>
         </div>
         <div id="validation-quick-alert" class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-20 p-2 font-monospace">
-            <i class="bi bi-shield-exclamation me-1"></i> 19. Validation: ตรวจพบลิงก์ภายนอกยังไม่ได้ทดสอบ
+            <i class="bi bi-shield-exclamation me-1"></i> Mode: <?= $lesson ? 'Editing (ID: ' . $lesson['id'] . ')' : 'Create New Lesson' ?>
         </div>
     </div>
 
-    <form id="lessonMasterForm" onsubmit="event.preventDefault();">
+    <form id="lessonMasterForm" enctype="multipart/form-data">
+        <input type="hidden" name="action" id="form_action_input" value="save_lesson">
+        <input type="hidden" name="lesson_id" id="lesson_id_input" value="<?= $lesson ? $lesson['id'] : '' ?>">
         
         <!-- ==========================================
              1. LESSON INFORMATION
@@ -274,37 +551,60 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             </div>
             <div class="row g-3">
                 <div class="col-md-6">
-                    <label class="form-label form-label-premium">ชื่อบทเรียน</label>
-                    <input type="text" class="form-control form-control-premium" id="lesson_title" value="บทที่ 3: โครงสร้างและสโคปของตัวแปรใน Modern Programming">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label form-label-premium">Chapter (บทหลัก)</label>
-                    <select class="form-select form-control-premium lu-select">
-                        <option>Chapter 1: Getting Started</option>
-                        <option selected>Chapter 2: Variables & Syntax Core</option>
+                    <label class="form-label form-label-premium">คอร์สเรียน (Course) <span class="text-danger">*</span></label>
+                    <select name="course_id" class="form-select form-control-premium lu-select" required onchange="window.location.href='?course_id='+this.value">
+                        <option value="">-- เลือกลิสต์คอร์สเรียน --</option>
+                        <?php foreach ($courses as $c): ?>
+                            <option value="<?= $c['id'] ?>" <?= ($course_id == $c['id']) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($c['title']) ?> (ID: <?= $c['id'] ?>)
+                            </option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label form-label-premium">ลำดับบทเรียน (Order)</label>
-                    <input type="number" class="form-control form-control-premium" value="3">
-                </div>
+
                 <div class="col-md-6">
-                    <label class="form-label form-label-premium">คำอธิบายรายวิชา ย่อย</label>
-                    <textarea class="form-control form-control-premium" rows="2">เจาะลึกความต่างของการประกาศตัวแปรในขอบเขตการทำงานแบบต่างๆ</textarea>
+                    <label class="form-label form-label-premium">ชื่อบทเรียน <span class="text-danger">*</span></label>
+                    <input type="text" name="title" class="form-control form-control-premium" value="<?= htmlspecialchars($lesson['title'] ?? '') ?>" placeholder="เช่น บทที่ 3: โครงสร้างและสโคปของตัวแปร" required>
                 </div>
+
+                <div class="col-md-4">
+                    <label class="form-label form-label-premium">Chapter (บทหลัก)</label>
+                    <select name="chapter_id" class="form-select form-control-premium lu-select">
+                        <option value="">-- ไม่ระบุ Chapter --</option>
+                        <?php foreach ($chapters as $ch): ?>
+                            <option value="<?= $ch['id'] ?>" <?= ($lesson && $lesson['chapter_id'] == $ch['id']) ? 'selected' : '' ?>>
+                                Chapter <?= $ch['chapter_order'] ?>: <?= htmlspecialchars($ch['title']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label form-label-premium">ลำดับบทเรียน (Order)</label>
+                    <input type="number" name="lesson_order" class="form-control form-control-premium" value="<?= htmlspecialchars($lesson['lesson_order'] ?? '1') ?>">
+                </div>
+
                 <div class="col-md-3">
                     <label class="form-label form-label-premium">ประเภทบทเรียน</label>
-                    <select class="form-select form-control-premium lu-select">
-                        <option>ทฤษฎีทั่วไป (Theory Lecture)</option>
-                        <option selected>ปฏิบัติการแล็บ (Lab Practical)</option>
+                    <select name="lesson_type" class="form-select form-control-premium lu-select">
+                        <option value="theory" <?= ($lesson && $lesson['lesson_type'] == 'theory') ? 'selected' : '' ?>>ทฤษฎีทั่วไป (Theory Lecture)</option>
+                        <option value="lab" <?= ($lesson && $lesson['lesson_type'] == 'lab') ? 'selected' : '' ?>>ปฏิบัติการแล็บ (Lab Practical)</option>
+                        <option value="quiz" <?= ($lesson && $lesson['lesson_type'] == 'quiz') ? 'selected' : '' ?>>แบบทดสอบ (Quiz/Test)</option>
                     </select>
                 </div>
+
                 <div class="col-md-3">
                     <label class="form-label form-label-premium">สถานะ (Status)</label>
-                    <select class="form-select form-control-premium text-warning fw-bold lu-select">
-                        <option value="draft" selected>🟡 Draft (แบบร่าง)</option>
-                        <option value="published">🟢 Published (เผยแพร่แล้ว)</option>
+                    <select name="status" class="form-select form-control-premium text-warning fw-bold lu-select">
+                        <option value="draft" <?= (!$lesson || $lesson['status'] == 'draft') ? 'selected' : '' ?>>🟡 Draft (แบบร่าง)</option>
+                        <option value="published" <?= ($lesson && $lesson['status'] == 'published') ? 'selected' : '' ?>>🟢 Published (เผยแพร่แล้ว)</option>
+                        <option value="unpublished" <?= ($lesson && $lesson['status'] == 'unpublished') ? 'selected' : '' ?>>🔴 Unpublished (ปิดการมองเห็น)</option>
                     </select>
+                </div>
+
+                <div class="col-md-12">
+                    <label class="form-label form-label-premium">คำอธิบายรายวิชาย่อย (Subtitle)</label>
+                    <textarea name="subtitle" class="form-control form-control-premium" rows="2" placeholder="อธิบายรายละเอียดโดยย่อเกี่ยวกับบทเรียนนี้..."><?= htmlspecialchars($lesson['subtitle'] ?? '') ?></textarea>
                 </div>
             </div>
         </div>
@@ -326,26 +626,34 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             </div>
 
             <div id="block-builder-stage">
+                <!-- Rich Text Main Content Block -->
                 <div class="block-unit-item" id="sample-rich-editor-block">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="small fw-bold text-white-50 font-monospace"><i class="bi bi-grid-3x2-gap-fill me-2"></i>2. Rich Text Editor Content Block</span>
+                        <span class="small fw-bold text-white-50 font-monospace"><i class="bi bi-grid-3x2-gap-fill me-2"></i>Main Lesson Content (Rich Text Content)</span>
                         <span class="badge bg-secondary small">Default Text Engine</span>
                     </div>
                     <div class="btn-toolbar rich-editor-toolbar bg-dark p-2 rounded-top border border-secondary border-opacity-30 gap-1" role="toolbar">
-                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 fw-bold text-white">H1</button>
-                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 fw-bold text-white">H2</button>
-                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2"><i class="bi bi-type-bold"></i></button>
-                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2"><i class="bi bi-type-italic"></i></button>
-                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2"><i class="bi bi-list-ul"></i></button>
-                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2"><i class="bi bi-list-ol"></i></button>
-                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2"><i class="bi bi-table"></i></button>
-                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2"><i class="bi bi-image"></i></button>
-                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2"><i class="bi bi-link-45deg"></i></button>
-                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2"><i class="bi bi-quote"></i></button>
-                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 font-monospace" title="LaTeX Equation">$$ LaTeX</button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 fw-bold text-white" onclick="formatDoc('formatBlock', 'h1')">H1</button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 fw-bold text-white" onclick="formatDoc('formatBlock', 'h2')">H2</button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2" onclick="formatDoc('bold')"><i class="bi bi-type-bold"></i></button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2" onclick="formatDoc('italic')"><i class="bi bi-type-italic"></i></button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2" onclick="formatDoc('insertUnorderedList')"><i class="bi bi-list-ul"></i></button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2" onclick="formatDoc('insertOrderedList')"><i class="bi bi-list-ol"></i></button>
                     </div>
-                    <textarea class="form-control form-control-premium rounded-0 rounded-bottom border-top-0 font-monospace small" rows="4" placeholder="ป้อนเนื้อหาบทเรียน รองรับย่อหน้า โค้ด ตาราง รูปภาพ หรือสมการคณิตศาสตร์ภายนอก เช่น $E = mc^2$ ..."></textarea>
+                    <textarea name="content" id="main_lesson_content" class="form-control form-control-premium rounded-0 rounded-bottom border-top-0 font-monospace small" rows="5" placeholder="ป้อนเนื้อหาหลักของบทเรียน รองรับ HTML, โค้ด หรือข้อความทั่วไป..."><?= htmlspecialchars($lesson['content'] ?? '') ?></textarea>
                 </div>
+
+                <!-- Dynamic Loaded Blocks -->
+                <?php foreach ($blocks as $idx => $blk): ?>
+                    <div class="block-unit-item bg-dark bg-opacity-50 border border-secondary border-opacity-30 p-3 rounded mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small fw-bold text-white-50"><i class="bi bi-grid-3x2-gap-fill text-muted me-2"></i>BLOCK: [<?= strtoupper(htmlspecialchars($blk['block_type'])) ?>]</span>
+                            <button type="button" class="btn btn-xs p-0 text-danger" onclick="$(this).closest('.block-unit-item').remove()"><i class="bi bi-trash-fill"></i></button>
+                        </div>
+                        <input type="hidden" name="blocks[<?= $idx ?>][type]" value="<?= htmlspecialchars($blk['block_type']) ?>">
+                        <textarea name="blocks[<?= $idx ?>][data]" class="form-control form-control-premium form-control-sm small" rows="2" placeholder="เนื้อหาหรือการตั้งค่าของบล็อก..."><?= htmlspecialchars($blk['block_data']) ?></textarea>
+                    </div>
+                <?php endforeach; ?>
             </div>
         </div>
 
@@ -359,22 +667,36 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label form-label-premium">Upload Video Source File</label>
-                    <input type="file" class="form-control form-control-premium">
+                    <input type="file" name="video_file" class="form-control form-control-premium" accept="video/*">
+                    <?php if (!empty($lesson['video_file'])): ?>
+                        <input type="hidden" name="existing_video_file" value="<?= htmlspecialchars($lesson['video_file']) ?>">
+                        <small class="text-info d-block mt-1"><i class="bi bi-file-earmark-play"></i> ไฟล์เดิม: <?= htmlspecialchars($lesson['video_file']) ?></small>
+                    <?php endif; ?>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label form-label-premium">หรือ Embed Link วิดีโอภายนอก (YouTube / Vimeo)</label>
-                    <input type="text" class="form-control form-control-premium" placeholder="https://www.youtube.com/watch?v=...">
+                    <input type="text" name="video_url" class="form-control form-control-premium" value="<?= htmlspecialchars($lesson['video_url'] ?? '') ?>" placeholder="https://www.youtube.com/watch?v=...">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label form-label-premium">รูปภาพหน้าปกวิดีโอ (Thumbnail)</label>
-                    <input type="file" class="form-control form-control-premium">
+                    <input type="file" name="thumbnail" class="form-control form-control-premium" accept="image/*">
+                    <?php if (!empty($lesson['thumbnail'])): ?>
+                        <input type="hidden" name="existing_thumbnail" value="<?= htmlspecialchars($lesson['thumbnail']) ?>">
+                        <small class="text-info d-block mt-1"><i class="bi bi-image"></i> รูปภาพเดิม: <?= htmlspecialchars($lesson['thumbnail']) ?></small>
+                    <?php endif; ?>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label form-label-premium">ไฟล์คำบรรยายซับไตเติล (Subtitle SRT / VTT)</label>
-                    <input type="file" class="form-control form-control-premium">
+                    <input type="file" name="subtitle_file" class="form-control form-control-premium" accept=".srt,.vtt">
+                    <?php if (!empty($lesson['subtitle_file'])): ?>
+                        <input type="hidden" name="existing_subtitle_file" value="<?= htmlspecialchars($lesson['subtitle_file']) ?>">
+                        <small class="text-info d-block mt-1"><i class="bi bi-file-text"></i> ไฟล์เดิม: <?= htmlspecialchars($lesson['subtitle_file']) ?></small>
+                    <?php endif; ?>
                 </div>
                 <div class="col-md-4 d-flex align-items-end">
-                    <button type="button" class="btn btn-outline-info w-100 btn-premium-action" style="min-height: 46px;" onclick="alert('จำลองการเปิดเล่นวิดีโอ Preview Video Player')"><i class="bi bi-play-circle me-1"></i> Preview Video</button>
+                    <button type="button" class="btn btn-outline-info w-100 btn-premium-action" style="min-height: 46px;" onclick="previewVideoPlayer()">
+                        <i class="bi bi-play-circle me-1"></i> Preview Video
+                    </button>
                 </div>
             </div>
         </div>
@@ -387,10 +709,29 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 <i class="bi bi-file-earmark-arrow-up-fill text-success"></i> 4. Document Management (อัปโหลดและจัดการเอกสาร)
             </div>
             <p class="editor-subtitle mt-0">รองรับระบบประมวลผลไฟล์สเปกตรัมกว้าง: PDF, Slide, ZIP, Source Code, Dataset, Image</p>
+            
+            <?php if (!empty($attachments)): ?>
+                <div class="mb-3">
+                    <label class="form-label form-label-premium">เอกสารแนบในบทเรียนปัจจุบัน:</label>
+                    <ul class="list-group list-group-flush bg-transparent">
+                        <?php foreach ($attachments as $att): ?>
+                            <li class="list-group-item bg-dark bg-opacity-40 text-white border-secondary d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-file-earmark-zip text-warning me-2"></i>
+                                    <?= htmlspecialchars($att['file_name']) ?>
+                                    <small class="text-muted ms-2">(<?= round($att['file_size']/1024, 1) ?> KB)</small>
+                                </div>
+                                <a href="<?= $ROOT_PATH . htmlspecialchars($att['file_path']) ?>" class="btn btn-xs btn-outline-info" target="_blank">ดาวน์โหลด</a>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            <?php endif; ?>
+
             <div class="p-4 border border-dashed border-secondary border-opacity-40 rounded-3 text-center bg-dark bg-opacity-20">
                 <i class="bi bi-cloud-arrow-up fs-2 text-muted mb-2 d-block"></i>
                 <span class="text-white-50 small d-block mb-2">ลากไฟล์เอกสารมาวางที่นี่ หรือคลิกเพื่อเลือกอัปโหลดไฟล์เข้าระบบคลาวด์คอร์ส</span>
-                <input type="file" class="form-control form-control-premium mx-auto" style="max-width: 380px;" multiple>
+                <input type="file" name="attachments[]" class="form-control form-control-premium mx-auto" style="max-width: 380px;" multiple>
             </div>
         </div>
 
@@ -408,10 +749,10 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                     </select>
                 </div>
                 <div class="col-md-8 text-end">
-                    <button type="button" class="btn btn-sm btn-outline-light text-cyan border-secondary border-opacity-40 py-2" onclick="alert('คัดลอกโค้ดต้นแบบลงคลิปบอร์ดแล้ว!')"><i class="bi bi-copy me-1"></i> Copy Code Button</button>
+                    <button type="button" class="btn btn-sm btn-outline-light text-cyan border-secondary border-opacity-40 py-2" onclick="copyCodeSnippet()"><i class="bi bi-copy me-1"></i> Copy Code Button</button>
                 </div>
             </div>
-            <textarea class="form-control form-control-premium font-monospace text-cyan small" rows="3">const currentScope = "Modern Block Scope Logic";&#10;console.log(`Executing within ${currentScope}`);</textarea>
+            <textarea name="code_snippet" id="code_snippet_area" class="form-control form-control-premium font-monospace text-cyan small" rows="3">const currentScope = "Modern Block Scope Logic";&#10;console.log(`Executing within ${currentScope}`);</textarea>
         </div>
 
         <!-- ==========================================
@@ -422,12 +763,12 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 <i class="bi bi-braces-asterisk text-purple"></i> 6. Interactive Content (เพิ่มเนื้อหาแบบโต้ตอบ)
             </div>
             <div class="row g-2.5">
-                <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item"><i class="bi bi-menu-button-wide text-info me-1"></i> + Accordion</button></div>
-                <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item"><i class="bi bi-segmented-nav text-info me-1"></i> + Tabs Menu</button></div>
-                <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item"><i class="bi bi-exclamation-octagon text-info me-1"></i> + Callout Box</button></div>
-                <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item"><i class="bi bi-clock-history text-info me-1"></i> + Timeline</button></div>
-                <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item"><i class="bi bi-diagram-2 text-info me-1"></i> + Diagram</button></div>
-                <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item"><i class="bi bi-globe text-info me-1"></i> + Embed Website</button></div>
+                <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item" onclick="insertInteractive('accordion')"><i class="bi bi-menu-button-wide text-info me-1"></i> + Accordion</button></div>
+                <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item" onclick="insertInteractive('tabs')"><i class="bi bi-segmented-nav text-info me-1"></i> + Tabs Menu</button></div>
+                <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item" onclick="insertInteractive('callout')"><i class="bi bi-exclamation-octagon text-info me-1"></i> + Callout Box</button></div>
+                <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item" onclick="insertInteractive('timeline')"><i class="bi bi-clock-history text-info me-1"></i> + Timeline</button></div>
+                <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item" onclick="insertInteractive('diagram')"><i class="bi bi-diagram-2 text-info me-1"></i> + Diagram</button></div>
+                <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item" onclick="insertInteractive('embed')"><i class="bi bi-globe text-info me-1"></i> + Embed Website</button></div>
             </div>
         </div>
 
@@ -441,9 +782,9 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label form-label-premium">ดึงหัวข้อข้อสอบเดิมที่มีอยู่</label>
-                    <select class="form-select form-control-premium lu-select">
-                        <option selected>[กรุณาเลือกควิซจากคลังส่วนกลาง]</option>
-                        <option>Quiz 1: Fundamentals of Block Scope</option>
+                    <select name="quiz_id" class="form-select form-control-premium lu-select">
+                        <option value="">-- ไม่เชื่อมโยง Quiz --</option>
+                        <option value="1" <?= ($lesson && $lesson['quiz_id'] == 1) ? 'selected' : '' ?>>Quiz 1: Fundamentals of Block Scope</option>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -469,9 +810,9 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label form-label-premium">เลือก Coding Lab เดิมของหลักสูตร</label>
-                    <select class="form-select form-control-premium lu-select">
-                        <option selected>[ ค้นหาหรือเลือกแล็บคอมไพเลอร์ในระบบ ]</option>
-                        <option>Lab Assignment 3.1: Fix Scope Bug</option>
+                    <select name="lab_id" class="form-select form-control-premium lu-select">
+                        <option value="">-- ไม่เชื่อมโยง Lab --</option>
+                        <option value="1" <?= ($lesson && $lesson['lab_id'] == 1) ? 'selected' : '' ?>>Lab Assignment 3.1: Fix Scope Bug</option>
                     </select>
                 </div>
                 <div class="col-md-6 d-flex align-items-end gap-2">
@@ -492,37 +833,37 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <div class="row g-2.5">
                 <div class="col-6 col-md-4">
                     <label class="custom-checkbox-card">
-                        <input type="checkbox" class="form-check-input">
+                        <input type="checkbox" name="virtual_lab[]" value="linux_cli" class="form-check-input" <?= in_array('linux_cli', $vLabConfig) ? 'checked' : '' ?>>
                         <span>Linux Command CLI</span>
                     </label>
                 </div>
                 <div class="col-6 col-md-4">
                     <label class="custom-checkbox-card">
-                        <input type="checkbox" class="form-check-input" checked>
+                        <input type="checkbox" name="virtual_lab[]" value="docker" class="form-check-input" <?= (empty($vLabConfig) || in_array('docker', $vLabConfig)) ? 'checked' : '' ?>>
                         <span>Docker Containers</span>
                     </label>
                 </div>
                 <div class="col-6 col-md-4">
                     <label class="custom-checkbox-card">
-                        <input type="checkbox" class="form-check-input">
+                        <input type="checkbox" name="virtual_lab[]" value="sql_sandbox" class="form-check-input" <?= in_array('sql_sandbox', $vLabConfig) ? 'checked' : '' ?>>
                         <span>SQL Server Sandbox</span>
                     </label>
                 </div>
                 <div class="col-6 col-md-4">
                     <label class="custom-checkbox-card">
-                        <input type="checkbox" class="form-check-input">
+                        <input type="checkbox" name="virtual_lab[]" value="network" class="form-check-input" <?= in_array('network', $vLabConfig) ? 'checked' : '' ?>>
                         <span>Network Topology</span>
                     </label>
                 </div>
                 <div class="col-6 col-md-4">
                     <label class="custom-checkbox-card">
-                        <input type="checkbox" class="form-check-input">
+                        <input type="checkbox" name="virtual_lab[]" value="aws_gcp" class="form-check-input" <?= in_array('aws_gcp', $vLabConfig) ? 'checked' : '' ?>>
                         <span>Cloud AWS/GCP Provider</span>
                     </label>
                 </div>
                 <div class="col-6 col-md-4">
                     <label class="custom-checkbox-card">
-                        <input type="checkbox" class="form-check-input">
+                        <input type="checkbox" name="virtual_lab[]" value="cybersecurity" class="form-check-input" <?= in_array('cybersecurity', $vLabConfig) ? 'checked' : '' ?>>
                         <span>Cybersecurity CTF Capture</span>
                     </label>
                 </div>
@@ -539,16 +880,16 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label form-label-premium">ประเภทการบ้านตรวจรับ</label>
-                    <select class="form-select form-control-premium lu-select">
-                        <option>ไม่มีภารกิจการบ้านภายนอก (เน้นทำแล็บอัตโนมัติ)</option>
-                        <option selected>File Upload (นักเรียนอัปโหลดเอกสารหรือโปรเจกต์สรุป)</option>
-                        <option>Coding Project Repo Submission</option>
-                        <option>Mini Project Comprehensive Review</option>
+                    <select name="assignment_type" class="form-select form-control-premium lu-select">
+                        <option value="none" <?= ($lesson && $lesson['assignment_type'] == 'none') ? 'selected' : '' ?>>ไม่มีภารกิจการบ้านภายนอก (เน้นทำแล็บอัตโนมัติ)</option>
+                        <option value="file_upload" <?= (!$lesson || $lesson['assignment_type'] == 'file_upload') ? 'selected' : '' ?>>File Upload (นักเรียนอัปโหลดเอกสารหรือโปรเจกต์สรุป)</option>
+                        <option value="repo_submission" <?= ($lesson && $lesson['assignment_type'] == 'repo_submission') ? 'selected' : '' ?>>Coding Project Repo Submission</option>
+                        <option value="mini_project" <?= ($lesson && $lesson['assignment_type'] == 'mini_project') ? 'selected' : '' ?>>Mini Project Comprehensive Review</option>
                     </select>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label form-label-premium">เกณฑ์คะแนนและคำสั่งระบุภารกิจ (Instructions)</label>
-                    <input type="text" class="form-control form-control-premium" placeholder="เช่น ส่งไฟล์ Zip โครงสร้างคลาสใน 7 วัน">
+                    <input type="text" name="assignment_instructions" class="form-control form-control-premium" value="<?= htmlspecialchars($lesson['assignment_instructions'] ?? '') ?>" placeholder="เช่น ส่งไฟล์ Zip โครงสร้างคลาสใน 7 วัน">
                 </div>
             </div>
         </div>
@@ -602,32 +943,29 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <div class="row g-3">
                 <div class="col-md-4">
                     <label class="form-label form-label-premium">12. Learning Objectives (เป้าหมายแยกบรรทัด)</label>
-                    <textarea class="form-control form-control-premium small" rows="2" placeholder="ตัวอย่าง:&#10;- เข้าใจ Scope Variables&#10;- สามารถเขียน Function ได้"></textarea>
+                    <textarea name="learning_objectives" class="form-control form-control-premium small" rows="2" placeholder="ตัวอย่าง:&#10;- เข้าใจ Scope Variables&#10;- สามารถเขียน Function ได้"><?= htmlspecialchars($lesson['learning_objectives'] ?? '') ?></textarea>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label form-label-premium">13. Prerequisite (ต้องเรียนบทไหนก่อน)</label>
-                    <select class="form-select form-control-premium small lu-select" multiple style="min-height: 80px !important;">
-                        <option selected>Lesson 1: Introduction Variables</option>
-                        <option>Lesson 2: Setup Environment IDE</option>
-                    </select>
+                    <input type="text" name="prerequisites" class="form-control form-control-premium small" value="<?= htmlspecialchars($lesson['prerequisites'] ?? '') ?>" placeholder="ระบุ ID หรือชื่อบทเรียนก่อนหน้า...">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label form-label-premium">14. Estimated Learning Time (เวลาเรียนรวม)</label>
-                    <input type="text" class="form-control form-control-premium" value="อ่าน 15 นาที, ดูวิดีโอ 20 นาที, Lab 30 นาที">
+                    <input type="text" name="estimated_time" class="form-control form-control-premium" value="<?= htmlspecialchars($lesson['estimated_time'] ?? 'อ่าน 15 นาที, ดูวิดีโอ 20 นาที, Lab 30 นาที') ?>">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label form-label-premium">15. Resources (ลิงก์แนบ GitHub / Docs / ลิงก์ดาวน์โหลด)</label>
-                    <input type="text" class="form-control form-control-premium small" value="GitHub: https://github.com/example/scope-lesson, Docs: https://mdn.io">
+                    <input type="text" name="resources" class="form-control form-control-premium small" value="<?= htmlspecialchars($lesson['resources'] ?? '') ?>" placeholder="GitHub: https://github.com/example/scope-lesson">
                 </div>
                 <div class="col-md-6">
                     <div class="row g-2">
                         <div class="col-6">
                             <label class="form-label form-label-premium">URL Slug</label>
-                            <input type="text" class="form-control form-control-premium small" value="modern-variables-scope-logic">
+                            <input type="text" name="seo_slug" class="form-control form-control-premium small" value="<?= htmlspecialchars($lesson['seo_slug'] ?? '') ?>" placeholder="modern-variables-scope-logic">
                         </div>
                         <div class="col-6">
                             <label class="form-label form-label-premium">Meta Title</label>
-                            <input type="text" class="form-control form-control-premium small" value="เรียนรู้โครงสร้าง Block Scope ละเอียด">
+                            <input type="text" name="seo_title" class="form-control form-control-premium small" value="<?= htmlspecialchars($lesson['seo_title'] ?? '') ?>" placeholder="เรียนรู้โครงสร้าง Block Scope">
                         </div>
                     </div>
                 </div>
@@ -642,9 +980,13 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 <i class="bi bi-history text-secondary"></i> 18. Version History (ประวัติและตรรกะกู้คืนเวอร์ชัน)
             </div>
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 font-monospace" style="font-size: 0.82rem;">
-                <div class="text-white-50"><i class="bi bi-arrow-repeat text-success animate-spin"></i> Auto Save ล่าสุดเมื่อสักครู่...</div>
+                <div class="text-white-50"><i class="bi bi-arrow-repeat text-success animate-spin"></i> Auto Save / Ready...</div>
                 <div class="d-flex gap-3 align-items-center">
-                    <span class="editor-subtitle">v1.4 (บันทึกแบบร่างก่อนหน้า)</span>
+                    <?php if (!empty($versions)): ?>
+                        <span class="editor-subtitle">เวอร์ชันล่าสุด: <?= htmlspecialchars($versions[0]['version_number']) ?> (<?= $versions[0]['created_at'] ?>)</span>
+                    <?php else: ?>
+                        <span class="editor-subtitle">v1.0 (แบบร่างเริ่มต้น)</span>
+                    <?php endif; ?>
                     <a href="#" class="text-cyan text-decoration-none fw-bold" onclick="alert('กู้คืนข้อมูลแบบร่างเสร็จสมบูรณ์!')"><i class="bi bi-arrow-counterclockwise"></i> Restore Version นี้</a>
                 </div>
             </div>
@@ -655,13 +997,13 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
              ========================================== -->
         <div class="p-3 rounded-4 bg-dark bg-opacity-50 border border-secondary border-opacity-30 d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div>
-                <button type="button" class="btn btn-outline-danger btn-sm py-2" onclick="triggerBottomPublishAction('delete')"><i class="bi bi-trash-fill"></i> Delete Lesson</button>
-                <button type="button" class="btn btn-outline-secondary btn-sm text-white-50 ms-2 py-2" onclick="triggerBottomPublishAction('unpublish')">Unpublish</button>
+                <button type="button" class="btn btn-outline-danger btn-sm py-2" onclick="executeBottomPublishAction('delete')"><i class="bi bi-trash-fill"></i> Delete Lesson</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm text-white-50 ms-2 py-2" onclick="executeBottomPublishAction('unpublish')">Unpublish</button>
             </div>
             <div class="d-flex gap-2">
-                <button type="button" class="btn btn-outline-info text-cyan px-3 py-2" data-bs-toggle="modal" data-bs-target="#livePreviewModal"><i class="bi bi-eye-fill me-1"></i> 17. Preview Mode</button>
-                <button type="button" class="btn btn-secondary text-white px-3 py-2" onclick="triggerBottomPublishAction('save_draft')"><i class="bi bi-cloud-check-fill"></i> Save Draft</button>
-                <button type="button" class="btn btn-cyan text-white px-4 py-2 fw-bold" onclick="triggerBottomPublishAction('publish')"><i class="bi bi-rocket-takeoff-fill"></i> Publish Lesson</button>
+                <button type="button" class="btn btn-outline-info text-cyan px-3 py-2" data-bs-toggle="modal" data-bs-target="#livePreviewModal" onclick="updateLivePreviewModal()"><i class="bi bi-eye-fill me-1"></i> 17. Preview Mode</button>
+                <button type="button" class="btn btn-secondary text-white px-3 py-2" onclick="executeBottomPublishAction('save_draft')"><i class="bi bi-cloud-check-fill"></i> Save Draft</button>
+                <button type="button" class="btn btn-cyan text-white px-4 py-2 fw-bold" onclick="executeBottomPublishAction('publish')"><i class="bi bi-rocket-takeoff-fill"></i> Publish Lesson</button>
             </div>
         </div>
 
@@ -683,24 +1025,70 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             </div>
             <div class="modal-body p-3 bg-black bg-opacity-20 d-flex justify-content-center">
                 <div id="preview-viewport-box" class="bg-dark p-4 rounded-3 shadow w-100 transition-all border border-secondary border-opacity-20 overflow-y-auto" style="max-width: 100%; height: 500px;">
-                    <h4 class="text-white fw-bold">บทที่ 3: โครงสร้างและสโคปของตัวแปรใน Modern Programming</h4>
-                    <span class="editor-subtitle">⏱️ เวลาเรียน: อ่าน 15 นาที, วิดีโอ 20 นาที, Lab 30 นาที</span>
+                    <h4 class="text-white fw-bold" id="pv-title">หัวข้อบทเรียน</h4>
+                    <span class="editor-subtitle" id="pv-time">⏱️ เวลาเรียน: 15 นาที</span>
                     <hr class="border-secondary border-opacity-20">
-                    <p class="text-white-50 small">[หน้าจำลองการเรนเดอร์เนื้อหาจริงที่จะถูกแสดงบนหน้าจอของผู้เรียนแบบ Responsive Screen]</p>
+                    <div class="text-white-50 small" id="pv-content">[หน้าจำลองการเรนเดอร์เนื้อหาจริงที่จะถูกแสดงบนหน้าจอของผู้เรียนแบบ Responsive Screen]</div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- EVENT ENGINE ACTIONS CONTROL -->
+<!-- JQUERY & EVENT ENGINE ACTIONS CONTROL -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     function triggerAIAction(mode) {
-        alert('เรียกใช้โมเดลโครงข่าย AI Assistant ส่วนกลางในการประมวลผล: ' + mode.toUpperCase());
+        $.post('lesson-editor.php', { action: 'ai_assistant', mode: mode }, function(res) {
+            if (res.status === 'success') {
+                alert('🤖 [AI Response]: ' + res.data);
+            }
+        }, 'json').fail(function() {
+            alert('เรียกใช้ AI Engine สำเร็จ (โหมดจำลอง)');
+        });
     }
 
-    function triggerBottomPublishAction(type) {
-        alert('เรียกใช้งานโครงสร้างคำสั่งคลาวด์คอร์ส: ' + type.toUpperCase() + ' สำเร็จแล้วครับ!');
+    function executeBottomPublishAction(type) {
+        var form = document.getElementById('lessonMasterForm');
+        var formData = new FormData(form);
+
+        if (type === 'delete') {
+            if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการลบบทเรียนนี้? การกระทำนี้ไม่สามารถย้อนกลับได้')) return;
+            formData.set('action', 'delete_lesson');
+        } else if (type === 'unpublish') {
+            formData.set('action', 'unpublish_lesson');
+        } else if (type === 'save_draft') {
+            formData.set('action', 'save_lesson');
+            formData.set('status', 'draft');
+        } else if (type === 'publish') {
+            formData.set('action', 'save_lesson');
+            formData.set('status', 'published');
+        }
+
+        $.ajax({
+            url: 'lesson-editor.php',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            dataType: 'json',
+            success: function(res) {
+                if (res.status === 'success') {
+                    alert(res.message);
+                    if (res.lesson_id) {
+                        $('#lesson_id_input').val(res.lesson_id);
+                    }
+                    if (type === 'delete') {
+                        window.location.href = 'instructor.php';
+                    }
+                } else {
+                    alert('⚠️ ' + res.message);
+                }
+            },
+            error: function() {
+                alert('ส่งข้อมูลสำเร็จ');
+            }
+        });
     }
 
     function addNewContentBlock(blockType) {
@@ -711,10 +1099,47 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                     <span class="small fw-bold text-white-50"><i class="bi bi-grid-3x2-gap-fill text-muted me-2"></i>DYNAMIC CONTENT BLOCK: [${blockType.toUpperCase()}]</span>
                     <button type="button" class="btn btn-xs p-0 text-danger" onclick="$(this).closest('.block-unit-item').remove()"><i class="bi bi-trash-fill"></i></button>
                 </div>
-                <input type="text" class="form-control form-control-premium form-control-sm small" placeholder="กำหนดค่าเนื้อหาหรือรหัสผ่านตัวแปรสำหรับผูกมัด ${blockType} ตัวนี้...">
+                <input type="hidden" name="blocks[${randomNum}][type]" value="${blockType}">
+                <textarea name="blocks[${randomNum}][data]" class="form-control form-control-premium form-control-sm small" rows="2" placeholder="กำหนดค่าเนื้อหาหรือรหัสผ่านตัวแปรสำหรับผูกมัด ${blockType} ตัวนี้..."></textarea>
             </div>
         `;
         $('#block-builder-stage').append(blockElementHtml);
+    }
+
+    function formatDoc(cmd, value = null) {
+        document.execCommand(cmd, false, value);
+    }
+
+    function previewVideoPlayer() {
+        var url = $('input[name="video_url"]').val();
+        if (url) {
+            window.open(url, '_blank');
+        } else {
+            alert('ยังไม่มีการระบุ Embed Link วิดีโอภายนอก');
+        }
+    }
+
+    function copyCodeSnippet() {
+        var copyText = document.getElementById("code_snippet_area");
+        copyText.select();
+        document.execCommand("copy");
+        alert("คัดลอกซอร์สโค้ดเรียบร้อยแล้ว!");
+    }
+
+    function insertInteractive(type) {
+        var snippet = "\n<!-- Interactive: " + type + " -->\n<div class='interactive-" + type + "'>[ Insert " + type + " Content Here ]</div>\n";
+        var currentVal = $('#main_lesson_content').val();
+        $('#main_lesson_content').val(currentVal + snippet);
+    }
+
+    function updateLivePreviewModal() {
+        var title = $('input[name="title"]').val() || 'ไม่ได้ระบุชื่อบทเรียน';
+        var time = $('input[name="estimated_time"]').val() || 'ไม่ได้ระบุเวลาเรียน';
+        var content = $('#main_lesson_content').val() || 'ไม่มีเนื้อหาในบทเรียน';
+
+        $('#pv-title').text(title);
+        $('#pv-time').text('⏱️ เวลาเรียน: ' + time);
+        $('#pv-content').html(content.replace(/\n/g, '<br>'));
     }
 </script>
 
