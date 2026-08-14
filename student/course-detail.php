@@ -132,6 +132,7 @@ try {
     $fallbackImg = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=600&auto=format&fit=crop';
 
     foreach ($raw_related as $rel) {
+        // ตรวจสอบรูปภาพประกอบ
         $rawImg = $rel['img'] ?? $rel['cover_file'] ?? $rel['cover'] ?? '';
         $imgPath = $fallbackImg;
 
@@ -145,6 +146,7 @@ try {
             }
         }
 
+        // จัดรูปแบบราคาจากคอลัมน์ pice ของคอร์สที่เกี่ยวข้อง
         $price_text = (!empty($rel['pice']) && is_numeric($rel['pice']) && (float)$rel['pice'] > 0) 
             ? number_format((float)$rel['pice']) . ' ฿' 
             : 'เรียนฟรี';
@@ -168,15 +170,18 @@ function getEmbedUrl($url)
 {
     if (empty($url)) return '';
 
+    // YouTube
     $youtube_pattern = '%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/ ]{11})%i';
     if (preg_match($youtube_pattern, $url, $match)) {
         return "https://www.youtube.com/embed/" . $match[1];
     }
 
+    // Google Drive
     if (preg_match('%drive\.google\.com/file/d/([^/]+)%i', $url, $match)) {
         return "https://drive.google.com/file/d/" . $match[1] . "/preview";
     }
 
+    // Vimeo
     if (preg_match('%vimeo\.com/([0-9]+)%i', $url, $match)) {
         return "https://player.vimeo.com/video/" . $match[1];
     }
@@ -188,7 +193,7 @@ include_once $ROOT_PATH . 'includes/header.php';
 ?>
 
     <!-- 1. Hero Section -->
-    <section class="course-hero py-4 py-lg-5 position-relative overflow-hidden bg-dark text-white">
+    <section class="course-hero py-4 py-lg-5 position-relative overflow-hidden">
         <div class="container-xl position-relative z-1">
             <nav aria-label="breadcrumb" class="mb-3 mb-lg-4 d-none d-md-block">
                 <ol class="breadcrumb mb-0">
@@ -226,7 +231,7 @@ include_once $ROOT_PATH . 'includes/header.php';
                             </button>
                         <?php endif; ?>
                         <span class="text-white-50 d-none d-sm-inline">|</span>
-                        <div class="d-flex align-items-center gap-1 bg-secondary bg-opacity-25 px-3 py-1.5 rounded-pill border border-secondary border-opacity-25">
+                        <div class="d-flex align-items-center gap-1 bg-dark bg-opacity-10 px-3 py-1.5 rounded-pill border border-color">
                             <i class="bi bi-star-fill text-warning me-1 small"></i>
                             <span class="fw-bold text-white small"><?= $course['rating'] ?></span>
                             <a href="#reviews" class="text-white-50 text-decoration-none ms-1 small hover-text-white">(<?= number_format($course['reviews_count']) ?> รีวิว)</a>
@@ -246,24 +251,24 @@ include_once $ROOT_PATH . 'includes/header.php';
                         </a>
                         <div>
                             <p class="mb-0 text-white-50" style="font-size: 0.75rem;">ผู้ฝึกสอน</p>
-                            <a href="instructor-profile.php?id=<?= urlencode($course['instructor']['id']) ?>" class="text-info text-decoration-none fw-semibold" style="font-size: 0.95rem;"><?= htmlspecialchars($course['instructor']['name']) ?></a>
+                            <a href="instructor-profile.php?id=<?= urlencode($course['instructor']['id']) ?>" class="text-white text-decoration-none fw-semibold hover-text-white" style="color: var(--lv-cyan) !important; font-size: 0.95rem;"><?= htmlspecialchars($course['instructor']['name']) ?></a>
                         </div>
                     </div>
                 </div>
 
                 <!-- Right Widget -->
                 <div class="col-lg-5 d-none d-lg-block">
-                    <div class="ai-readiness-widget bg-secondary bg-opacity-25 border border-secondary border-opacity-50 rounded-4 p-4 w-100 ms-auto text-white shadow" style="max-width: 410px; backdrop-filter: blur(10px);">
+                    <div class="ai-readiness-widget rounded-4 p-4 w-100 ms-auto" style="max-width: 410px;">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div>
-                                <span class="badge bg-primary rounded-pill mb-2"><i class="bi bi-cpu me-1"></i> AI SYNC ANALYSIS</span>
+                                <span class="badge bg-gradient-primary rounded-pill mb-2"><i class="bi bi-cpu me-1"></i> AI SYNC ANALYSIS</span>
                                 <h5 class="fw-bold mb-1 text-white">ความพร้อมสำหรับเควส</h5>
                             </div>
                             <div class="readiness-circle" style="--score: <?= $ai_analysis['score'] ?>%;">
                                 <span><?= $ai_analysis['score'] ?>%</span>
                             </div>
                         </div>
-                        <p class="fw-medium mb-3 text-info small"><i class="bi bi-graph-up-arrow text-info me-2"></i><?= htmlspecialchars($ai_analysis['match_text']) ?></p>
+                        <p class="fw-medium mb-3 text-white-50 small"><i class="bi bi-graph-up-arrow text-info me-2"></i><?= htmlspecialchars($ai_analysis['match_text']) ?></p>
 
                         <ul class="list-unstyled mb-4 small">
                             <?php foreach ($ai_analysis['reasons'] as $reason): ?>
@@ -273,10 +278,10 @@ include_once $ROOT_PATH . 'includes/header.php';
                         </ul>
 
                         <div class="d-grid gap-2">
-                            <a href="lesson.php?course_id=<?= $course['id'] ?>&lesson_id=1" class="btn btn-info btn-lg rounded-3 fw-bold py-2 text-center text-dark text-decoration-none shadow-sm">
+                            <a href="lesson.php?course_id=<?= $course['id'] ?>&lesson_id=1" class="btn btn-premium btn-lg rounded-3 fw-bold py-2 text-center text-decoration-none">
                                 เข้าสู่บทเรียน (<?= htmlspecialchars($course['type_text']) ?>)
                             </a>
-                            <button class="btn btn-outline-light btn-lg rounded-3 d-flex justify-content-center align-items-center gap-2 py-2" id="btnToggleBookmark" type="button" data-id="<?= $course['id'] ?>" style="font-size: 0.9rem;">
+                            <button class="btn btn-outline-surface btn-lg rounded-3 d-flex justify-content-center align-items-center gap-2 py-2" id="btnToggleBookmark" type="button" data-id="<?= $course['id'] ?>" style="font-size: 0.9rem;">
                                 <i class="bi bi-bookmark-star" id="bookmarkIcon"></i> <span id="bookmarkText">บันทึกไว้ทีหลัง</span>
                             </button>
                         </div>
@@ -294,49 +299,49 @@ include_once $ROOT_PATH . 'includes/header.php';
                 <div class="col-lg-8">
 
                     <!-- Course Overview -->
-                    <div class="card border border-secondary border-opacity-25 rounded-4 p-4 mb-4 shadow-sm">
-                        <h5 class="fw-bold mb-3 text-body d-flex align-items-center fs-5"><i class="bi bi-file-text text-info me-2"></i> รายละเอียดคอร์สเรียน (Description)</h5>
-                        <div class="text-secondary fw-light lh-lg mb-0" style="font-size: 0.92rem;">
+                    <div class="dashboard-card rounded-4 p-4 mb-4">
+                        <h5 class="fw-bold mb-3 text-white d-flex align-items-center fs-5"><i class="bi bi-file-text text-info me-2"></i> รายละเอียดคอร์สเรียน (Description)</h5>
+                        <div class="text-white-50 fw-light lh-lg mb-0" style="font-size: 0.92rem;">
                             <?= $course['description'] ?>
                         </div>
                     </div>
 
                     <?php if (!empty($course['target'])): ?>
                         <!-- Target Audience -->
-                        <div class="card border border-secondary border-opacity-25 rounded-4 p-4 mb-4 shadow-sm">
-                            <h5 class="fw-bold mb-2 text-body d-flex align-items-center fs-6"><i class="bi bi-bullseye text-danger me-2"></i> คอร์สนี้เหมาะสำหรับใคร</h5>
-                            <div class="text-secondary mb-0 small">
+                        <div class="dashboard-card rounded-4 p-4 mb-4">
+                            <h5 class="fw-bold mb-2 text-white d-flex align-items-center fs-6"><i class="bi bi-bullseye text-danger me-2"></i> คอร์สนี้เหมาะสำหรับใคร</h5>
+                            <div class="text-white-50 mb-0 small">
                                 <?= $course['target'] ?>
                             </div>
                         </div>
                     <?php endif; ?>
 
                     <!-- What You'll Learn & Prerequisites -->
-                    <div class="card border border-secondary border-opacity-25 rounded-4 p-4 mb-4 shadow-sm">
+                    <div class="dashboard-card rounded-4 p-4 mb-4">
                         <div class="row g-4">
                             <!-- สิ่งที่จะได้เรียนรู้ -->
-                            <div class="col-md-6 border-end-md">
-                                <h5 class="fw-bold mb-3 text-body d-flex align-items-center fs-6"><i class="bi bi-check-circle-fill text-success me-2"></i> สิ่งที่คุณจะได้เรียนรู้</h5>
+                            <div class="col-md-6 border-end-md border-color">
+                                <h5 class="fw-bold mb-3 text-white d-flex align-items-center fs-6"><i class="bi bi-check-circle-fill text-success me-2"></i> สิ่งที่คุณจะได้เรียนรู้</h5>
                                 <?php if (!empty($course['outcomes'])): ?>
                                     <ul class="list-unstyled mb-0 small">
                                         <?php foreach ($course['outcomes'] as $outcome): ?>
-                                            <li class="d-flex align-items-start mb-2 text-secondary">
+                                            <li class="d-flex align-items-start mb-2.5 text-white-50">
                                                 <i class="bi bi-check2 text-info me-2 mt-0.5"></i>
                                                 <span><?= htmlspecialchars($outcome) ?></span>
                                             </li>
                                         <?php endforeach; ?>
                                     </ul>
                                 <?php else: ?>
-                                    <p class="text-secondary small mb-0">ไม่มีข้อมูลผลลัพธ์การเรียนรู้ที่ระบุไว้</p>
+                                    <p class="text-white-50 small mb-0">ไม่มีข้อมูลผลลัพธ์การเรียนรู้ที่ระบุไว้</p>
                                 <?php endif; ?>
                             </div>
                             <!-- ความรู้พื้นฐานที่ต้องมี -->
                             <div class="col-md-6">
-                                <h5 class="fw-bold mb-3 text-body d-flex align-items-center fs-6"><i class="bi bi-list-check text-warning me-2"></i> ตรวจสอบความพร้อมพื้นฐาน</h5>
+                                <h5 class="fw-bold mb-3 text-white d-flex align-items-center fs-6"><i class="bi bi-list-check text-warning me-2"></i> ตรวจสอบความพร้อมพื้นฐาน</h5>
                                 <div class="d-flex flex-column gap-2">
                                     <?php foreach ($ai_analysis['prerequisites'] as $pre): ?>
-                                        <div class="d-flex align-items-center justify-content-between p-2 rounded border border-secondary border-opacity-25 small">
-                                            <span class="text-body"><?= htmlspecialchars($pre['title']) ?></span>
+                                        <div class="d-flex align-items-center justify-content-between p-2 rounded prerequisite-item small">
+                                            <span class="text-white-50"><?= htmlspecialchars($pre['title']) ?></span>
                                             <?php if ($pre['status'] == 'passed'): ?>
                                                 <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25"><i class="bi bi-check-lg me-1"></i> ผ่านแล้ว</span>
                                             <?php elseif ($pre['status'] == 'learning'): ?>
@@ -355,8 +360,8 @@ include_once $ROOT_PATH . 'includes/header.php';
                     <div class="mb-4">
                         <div class="d-flex justify-content-between align-items-end mb-3">
                             <div>
-                                <h5 class="fw-bold mb-1 text-body d-flex align-items-center fs-5"><i class="bi bi-map text-primary me-2"></i> แผนที่เส้นทางการเรียนรู้</h5>
-                                <p class="text-secondary mb-0 small"><?= htmlspecialchars($course['chapter_total']) ?> บทเรียน • รวมเวลาเรียน <?= htmlspecialchars($course['time_total']) ?> ชั่วโมง</p>
+                                <h5 class="fw-bold mb-1 text-white d-flex align-items-center fs-5"><i class="bi bi-map text-primary me-2"></i> แผนที่เส้นทางการเรียนรู้</h5>
+                                <p class="text-white-50 mb-0 small"><?= htmlspecialchars($course['chapter_total']) ?> บทเรียน • รวมเวลาเรียน <?= htmlspecialchars($course['time_total']) ?> ชั่วโมง</p>
                             </div>
                             <button class="btn btn-link text-info text-decoration-none p-0 small" id="btnExpandAll" type="button" style="font-size: 0.85rem;">กางออกทั้งหมด</button>
                         </div>
@@ -366,49 +371,48 @@ include_once $ROOT_PATH . 'includes/header.php';
                             $sections = ['Introduction & Environment Setup', 'Frontend Development with React', 'Backend Architecture & Database', 'AI Agents Integration & Deployment'];
                             foreach ($sections as $index => $sec):
                             ?>
-                                <div class="accordion-item mb-2 overflow-hidden border border-secondary border-opacity-25 rounded-3">
+                                <div class="accordion-item mb-2 overflow-hidden">
                                     <h2 class="accordion-header" id="heading<?= $index ?>">
-                                        <button class="accordion-button <?= $index != 0 ? 'collapsed' : '' ?> text-body fw-bold shadow-none"
+                                        <button class="accordion-button <?= $index != 0 ? 'collapsed' : '' ?> bg-transparent fw-bold text-white shadow-none"
                                             type="button"
-                                            data-bs-toggle="collapse"
                                             data-bs-target="#collapse<?= $index ?>"
                                             aria-expanded="<?= $index == 0 ? 'true' : 'false' ?>">
                                             <div class="flex-grow-1 d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center me-3 gap-1">
                                                 <span>Section <?= $index + 1 ?>: <?= $sec ?></span>
-                                                <span class="fw-normal text-secondary small"><i class="bi bi-clock me-1"></i>5 บทเรียน</span>
+                                                <span class="fw-normal text-white-50 small"><i class="bi bi-clock me-1"></i>5 บทเรียน</span>
                                             </div>
                                         </button>
                                     </h2>
-                                    <div id="collapse<?= $index ?>" class="accordion-collapse collapse <?= $index == 0 ? 'show' : '' ?>" data-bs-parent="#curriculumAccordion">
-                                        <div class="accordion-body p-0 border-top">
+                                    <div id="collapse<?= $index ?>" class="accordion-collapse collapse <?= $index == 0 ? 'show' : '' ?>">
+                                        <div class="accordion-body p-0 border-top border-color bg-surface bg-opacity-25">
                                             <div class="list-group list-group-flush">
 
                                                 <a href="lesson.php?course_id=<?= $course['id'] ?>&lesson_id=<?= ($index * 5) + 1 ?>"
-                                                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 px-3 px-md-4">
+                                                    class="list-group-item bg-transparent d-flex justify-content-between align-items-center py-3 px-3 px-md-4 lesson-row-link">
                                                     <div class="d-flex align-items-center gap-3">
                                                         <i class="bi bi-play-circle-fill text-info fs-5 flex-shrink-0"></i>
                                                         <div>
-                                                            <span class="text-body fw-medium small d-block lh-sm mb-1">
+                                                            <span class="text-white fw-medium small d-block lh-sm mb-1 lesson-title">
                                                                 Welcome to the Course
                                                             </span>
-                                                            <span class="d-block text-secondary" style="font-size: 0.72rem;">Video Mission • 05:30</span>
+                                                            <span class="d-block text-white-50" style="font-size: 0.72rem;">Video Mission • 05:30</span>
                                                         </div>
                                                     </div>
-                                                    <i class="bi bi-chevron-right text-secondary small"></i>
+                                                    <i class="bi bi-chevron-right text-white-50 small"></i>
                                                 </a>
 
                                                 <a href="lesson.php?course_id=<?= $course['id'] ?>&lesson_id=<?= ($index * 5) + 2 ?>"
-                                                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 px-3 px-md-4">
+                                                    class="list-group-item bg-transparent d-flex justify-content-between align-items-center py-3 px-3 px-md-4 lesson-row-link">
                                                     <div class="d-flex align-items-center gap-3">
                                                         <i class="bi bi-terminal-fill text-warning fs-5 flex-shrink-0"></i>
                                                         <div>
-                                                            <span class="text-body fw-medium small d-block lh-sm mb-1">
+                                                            <span class="text-white fw-medium small d-block lh-sm mb-1 lesson-title">
                                                                 Environment Setup & AI Tools Lab
                                                             </span>
-                                                            <span class="d-block text-secondary" style="font-size: 0.72rem;">Coding Lab Challenge • 15:00</span>
+                                                            <span class="d-block text-white-50" style="font-size: 0.72rem;">Coding Lab Challenge • 15:00</span>
                                                         </div>
                                                     </div>
-                                                    <i class="bi bi-chevron-right text-secondary small"></i>
+                                                    <i class="bi bi-chevron-right text-white-50 small"></i>
                                                 </a>
 
                                             </div>
@@ -420,9 +424,9 @@ include_once $ROOT_PATH . 'includes/header.php';
                     </div>
 
                     <!-- Instructor Profile -->
-                    <div id="instructor" class="card border border-secondary border-opacity-25 rounded-4 p-4 mb-4 shadow-sm">
+                    <div id="instructor" class="dashboard-card rounded-4 p-4 mb-4">
                         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-                            <h5 class="fw-bold text-body mb-0 fs-5"><i class="bi bi-person-badge text-info me-2"></i> ข้อมูลผู้สอน (Mentor)</h5>
+                            <h5 class="fw-bold text-white mb-0 fs-5"><i class="bi bi-person-badge text-info me-2"></i> ข้อมูลผู้สอน (Mentor)</h5>
                             <a href="instructor-profile.php?id=<?= urlencode($course['instructor']['id']) ?>" class="btn btn-sm btn-outline-info rounded-pill px-3">
                                 <i class="bi bi-person-bounding-box me-1"></i> ดูโปรไฟล์
                             </a>
@@ -435,22 +439,22 @@ include_once $ROOT_PATH . 'includes/header.php';
                             </div>
                             <div class="col-sm text-center text-sm-start">
                                 <h5 class="fw-bold mb-1">
-                                    <a href="instructor-profile.php?id=<?= urlencode($course['instructor']['id']) ?>" class="text-body text-decoration-none">
+                                    <a href="instructor-profile.php?id=<?= urlencode($course['instructor']['id']) ?>" class="text-white text-decoration-none hover-text-white">
                                         <?= htmlspecialchars($course['instructor']['name']) ?>
                                     </a>
                                 </h5>
                                 <p class="text-info fw-medium mb-3 small"><?= htmlspecialchars($course['instructor']['title']) ?> @ <?= htmlspecialchars($course['instructor']['company']) ?></p>
-                                <p class="text-secondary mb-3 fw-light small" style="line-height: 1.5;"><?= htmlspecialchars($course['instructor']['bio']) ?></p>
+                                <p class="text-white-50 mb-3 fw-light small" style="line-height: 1.5;"><?= htmlspecialchars($course['instructor']['bio']) ?></p>
                             </div>
                         </div>
                     </div>
 
                     <!-- Student Reviews Section -->
-                    <div id="reviews" class="card border border-secondary border-opacity-25 rounded-4 p-4 mb-4 shadow-sm">
+                    <div id="reviews" class="dashboard-card rounded-4 p-4 mb-4">
                         <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h5 class="fw-bold text-body mb-0 fs-5"><i class="bi bi-chat-square-quote text-warning me-2"></i> รีวิวจากผู้เรียน</h5>
+                            <h5 class="fw-bold text-white mb-0 fs-5"><i class="bi bi-chat-square-quote text-warning me-2"></i> รีวิวจากผู้เรียน</h5>
                             <div class="d-flex align-items-center gap-2">
-                                <span class="fs-4 fw-bold text-body"><?= $course['rating'] ?></span>
+                                <span class="fs-4 fw-bold text-white"><?= $course['rating'] ?></span>
                                 <div class="text-warning small">
                                     <i class="bi bi-star-fill"></i>
                                     <i class="bi bi-star-fill"></i>
@@ -463,20 +467,20 @@ include_once $ROOT_PATH . 'includes/header.php';
 
                         <div class="d-flex flex-column gap-3">
                             <?php foreach ($reviews as $rev): ?>
-                                <div class="p-3 rounded-3 border border-secondary border-opacity-25">
+                                <div class="p-3 rounded-3 review-card-item">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <div class="d-flex align-items-center gap-2">
+                                        <div class="d-flex align-items-center gap-2.5">
                                             <img src="<?= $rev['avatar'] ?>" class="rounded-circle" width="36" height="36" alt="User Avatar">
                                             <div>
-                                                <h6 class="fw-semibold text-body mb-0 small"><?= htmlspecialchars($rev['name']) ?></h6>
-                                                <span class="text-secondary" style="font-size: 0.7rem;"><?= $rev['date'] ?></span>
+                                                <h6 class="fw-semibold text-white mb-0 small"><?= htmlspecialchars($rev['name']) ?></h6>
+                                                <span class="text-white-50" style="font-size: 0.7rem;"><?= $rev['date'] ?></span>
                                             </div>
                                         </div>
-                                        <div class="text-warning small">
+                                        <div class="text-warning extra-small">
                                             <?php for ($i = 0; $i < $rev['rating']; $i++): ?><i class="bi bi-star-fill"></i><?php endfor; ?>
                                         </div>
                                     </div>
-                                    <p class="text-secondary mb-0 small fw-light"><?= htmlspecialchars($rev['comment']) ?></p>
+                                    <p class="text-white-50 mb-0 small fw-light"><?= htmlspecialchars($rev['comment']) ?></p>
                                 </div>
                             <?php endforeach; ?>
                         </div>
@@ -484,17 +488,17 @@ include_once $ROOT_PATH . 'includes/header.php';
 
                     <!-- Related Courses Section -->
                     <div class="mb-4">
-                        <h5 class="fw-bold text-body mb-3 fs-5"><i class="bi bi-journal-bookmark text-info me-2"></i> คอร์สเรียนที่เกี่ยวข้อง</h5>
+                        <h5 class="fw-bold text-white mb-3 fs-5"><i class="bi bi-journal-bookmark text-info me-2"></i> คอร์สเรียนที่เกี่ยวข้อง</h5>
                         <div class="row g-3">
                             <?php if (!empty($related_courses)): ?>
                                 <?php foreach ($related_courses as $rel): ?>
                                     <div class="col-md-4">
                                         <a href="course-detail.php?id=<?= $rel['id'] ?>" class="text-decoration-none">
-                                            <div class="card border border-secondary border-opacity-25 rounded-4 overflow-hidden h-100 d-flex flex-column shadow-sm">
+                                            <div class="dashboard-card bg-surface rounded-4 overflow-hidden course-card-hover h-100 d-flex flex-column">
                                                 <img src="<?= htmlspecialchars($rel['image']) ?>" class="w-100 object-fit-cover" height="120" alt="Course Thumbnail">
                                                 <div class="p-3 d-flex flex-column flex-grow-1">
-                                                    <h6 class="fw-bold text-body mb-2 line-clamp-2 small" style="line-height: 1.4;"><?= htmlspecialchars($rel['title']) ?></h6>
-                                                    <span class="text-secondary mb-3 d-block" style="font-size: 0.75rem;"><?= htmlspecialchars($rel['instructor']) ?></span>
+                                                    <h6 class="fw-bold text-white mb-2 line-clamp-2 small" style="line-height: 1.4;"><?= htmlspecialchars($rel['title']) ?></h6>
+                                                    <span class="text-white-50 mb-3 d-block" style="font-size: 0.75rem;"><?= htmlspecialchars($rel['instructor']) ?></span>
                                                     <div class="mt-auto d-flex justify-content-between align-items-center">
                                                         <span class="fw-bold text-info small"><?= htmlspecialchars($rel['price']) ?></span>
                                                         <span class="text-warning small"><i class="bi bi-star-fill me-1"></i><?= $rel['rating'] ?></span>
@@ -505,8 +509,8 @@ include_once $ROOT_PATH . 'includes/header.php';
                                     </div>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <div class="col-12 text-center py-4 card border border-secondary border-opacity-25 rounded-4">
-                                    <p class="text-secondary mb-0 small">ยังไม่มีคอร์สเรียนที่เกี่ยวข้องในขณะนี้</p>
+                                <div class="col-12 text-center py-4 dashboard-card rounded-4">
+                                    <p class="text-white-50 mb-0 small">ยังไม่มีคอร์สเรียนที่เกี่ยวข้องในขณะนี้</p>
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -519,11 +523,11 @@ include_once $ROOT_PATH . 'includes/header.php';
                     <div class="sticky-sidebar" style="position: sticky; top: 24px; z-index: 10;">
 
                         <!-- Benefits Card -->
-                        <div class="card border border-secondary border-opacity-25 rounded-4 p-4 mb-4 shadow-sm">
-                            <h6 class="fw-bold mb-3 text-body"><i class="bi bi-box-seam text-primary me-2"></i> สิทธิ์ประโยชน์ที่จะได้รับ</h6>
+                        <div class="dashboard-card bg-surface rounded-4 p-4 mb-4">
+                            <h6 class="fw-bold mb-3 text-white"><i class="bi bi-box-seam text-primary me-2"></i> สิทธิ์ประโยชน์ที่จะได้รับ</h6>
                             <ul class="list-unstyled mb-0 small">
                                 <?php foreach ($course['includes'] as $inc): ?>
-                                    <li class="d-flex align-items-center mb-3 text-secondary">
+                                    <li class="d-flex align-items-center mb-3 text-white-50">
                                         <i class="bi <?= $inc['icon'] ?> fs-5 me-3 text-info"></i>
                                         <span><?= htmlspecialchars($inc['text']) ?></span>
                                     </li>
@@ -532,28 +536,28 @@ include_once $ROOT_PATH . 'includes/header.php';
                         </div>
 
                         <!-- AI Chatbot Assistant -->
-                        <div class="card border border-secondary border-opacity-25 rounded-4 p-0 mb-4 overflow-hidden d-flex flex-column shadow-sm">
-                            <div class="p-3 border-bottom d-flex align-items-center gap-2 bg-info bg-opacity-10">
+                        <div class="dashboard-card bg-surface rounded-4 p-0 mb-4 overflow-hidden d-flex flex-column ai-chat-card">
+                            <div class="p-3 border-bottom border-color d-flex align-items-center gap-2" style="background: linear-gradient(90deg, rgba(6, 182, 212, 0.12) 0%, transparent 100%);">
                                 <div class="text-info fs-3"><i class="bi bi-robot"></i></div>
                                 <div>
-                                    <h6 class="fw-bold mb-0 text-body" style="font-size: 0.95rem; line-height: 1.4;">Holo AI Assistant</h6>
-                                    <span class="text-secondary small d-block">วิเคราะห์หลักสูตรเรียลไทม์ 24/7</span>
+                                    <h6 class="fw-bold mb-0 text-white" style="font-size: 0.95rem; line-height: 1.4;">Holo AI Assistant</h6>
+                                    <span class="subtext-bright d-block">วิเคราะห์หลักสูตรเรียลไทม์ 24/7</span>
                                 </div>
                             </div>
 
-                            <div class="p-3 flex-grow-1 overflow-auto" id="aiChatBody" style="height: 260px;">
+                            <div class="p-3 flex-grow-1 overflow-auto bg-surface ai-chat-body" id="aiChatBody" style="height: 260px;">
                                 <div class="ai-msg d-flex gap-2 mb-3">
-                                    <div class="border rounded-3 p-3 shadow-sm w-100" style="font-size: 0.85rem;">
-                                        <p class="mb-2 fw-medium text-body">สวัสดีครับ! 😊 ผมเป็น AI ประจำวิชานี้ สอบถามข้อมูลโมดูลการเรียนได้เลยครับ</p>
+                                    <div class="chat-bubble-ai rounded-3 p-3 shadow-sm w-100" style="font-size: 0.85rem;">
+                                        <p class="mb-2 fw-medium text-white">สวัสดีครับ! 😊 ผมเป็น AI ประจำวิชานี้ สอบถามข้อมูลโมดูลการเรียนได้เลยครับ</p>
                                         <div class="d-flex flex-column gap-2 mt-3">
-                                            <a href="#" class="btn btn-sm btn-outline-info text-start">คอร์สนี้เหมาะกับมือใหม่ไหม?</a>
-                                            <a href="#" class="btn btn-sm btn-outline-info text-start">ได้ทำโปรเจกต์ส่งท้ายชิ้นไหนบ้าง?</a>
+                                            <a href="#" class="qa-quick-btn">คอร์สนี้เหมาะกับมือใหม่ไหม?</a>
+                                            <a href="#" class="qa-quick-btn">ได้ทำโปรเจกต์ส่งท้ายชิ้นไหนบ้าง?</a>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="p-2 border-top">
+                            <div class="p-2.5 border-top border-color bg-surface">
                                 <form id="courseQaForm" class="position-relative m-0">
                                     <input type="text" id="qaInput" class="form-control form-control-sm rounded-3 py-2 pe-5 shadow-none" placeholder="พิมพ์คำถาม..." autocomplete="off">
                                     <button type="submit" class="btn btn-link text-info position-absolute end-0 top-50 translate-middle-y p-0 pe-3 shadow-none"><i class="bi bi-send-fill fs-5"></i></button>
