@@ -230,6 +230,7 @@ if (!$isAjax):
         <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/custom-scrollbar.css?v=1.0">
         <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css?v=1.1">
         <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/header.css?v=1.0">
+        <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/style.css?v=1.0">
 
         <!-- 🎨 4. COMPONENT CSS RULES -->
         <style>
