@@ -6,7 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start(); 
 }
 
-// ดึง User ID จาก Session จริง (ไม่มีการ Hardcode เลข 18 แล้ว)
+// ดึง User ID จาก Session จริง
 $current_user_id = $_SESSION['user_login']['user_id'] 
                 ?? $_SESSION['user_id'] 
                 ?? null;
@@ -14,6 +14,8 @@ $current_user_id = $_SESSION['user_login']['user_id']
 $ROOT_PATH = '../';
 $course = null;
 $all_courses = [];
+$chapters = [];
+$outcomes = [];
 $db_error = null;
 $auth_error = null;
 
@@ -24,7 +26,7 @@ if (!$current_user_id) {
     $auth_error = "กรุณาเข้าสู่ระบบก่อนใช้งานหน้าจัดการคอร์สเรียน";
 } else {
     // =======================================================
-    // 3. เชื่อมต่อฐานข้อมูล (ค้นหา Path อัตโนมัติ)
+    // 3. เชื่อมต่อฐานข้อมูล
     // =======================================================
     try {
         $db_paths = [
@@ -58,12 +60,11 @@ if (!$current_user_id) {
             $all_courses = $stmt_list->fetchAll(PDO::FETCH_ASSOC);
 
             // =======================================================
-            // 4. ตรวจสอบสิทธิ์เจ้าของคอร์ส (Authorization Check)
+            // 4. ตรวจสอบสิทธิ์และดึงข้อมูล Dynamic ของคอร์ส
             // =======================================================
             if (isset($_GET['course_id'])) {
                 $requested_course_id = intval($_GET['course_id']);
 
-                // ค้นหาคอร์สในฐานข้อมูลเพื่อเช็คเจ้าของ
                 $stmt_check = $pdo->prepare("SELECT * FROM course WHERE id = ? LIMIT 1");
                 $stmt_check->execute([$requested_course_id]);
                 $target_course = $stmt_check->fetch(PDO::FETCH_ASSOC);
@@ -71,23 +72,83 @@ if (!$current_user_id) {
                 if (!$target_course) {
                     $auth_error = "ไม่พบข้อมูลคอร์สเรียนที่คุณต้องการเข้าถึง";
                 } elseif ($target_course['user_id'] != $current_user_id) {
-                    // ⛔ ป้องกันผู้ใช้อื่นแอบเข้าถึง/แก้ไขคอร์สที่ไม่ใช่ของตัวเอง
                     $auth_error = "คุณไม่มีสิทธิ์แก้ไขคอร์สเรียนนี้ (อนุญาตเฉพาะผู้สร้างคอร์สเท่านั้น)";
                 } else {
                     $course = $target_course;
                 }
             } elseif (!empty($all_courses)) {
-                // ถ้าไม่ได้ระบุ course_id ใน URL ให้ดึงคอร์สล่าสุดที่เป็นของผู้ใช้คนนี้
                 $course_id = $all_courses[0]['id'];
                 $stmt = $pdo->prepare("SELECT * FROM course WHERE id = ? AND user_id = ? LIMIT 1");
                 $stmt->execute([$course_id, $current_user_id]);
                 $course = $stmt->fetch(PDO::FETCH_ASSOC);
             }
+
+            // หากมีคอร์ส ให้ทำการดึง Chapters, Lessons และ Outcomes แบบ Dynamic
+            if ($course) {
+                $active_course_id = $course['id'];
+
+                // 4.1 ดึงข้อมูล Chapters
+                $stmt_chap = $pdo->prepare("SELECT * FROM chapters WHERE course_id = ? ORDER BY chapter_order ASC, id ASC");
+                $stmt_chap->execute([$active_course_id]);
+                $chapters = $stmt_chap->fetchAll(PDO::FETCH_ASSOC);
+
+                // 4.2 ดึงข้อมูล Lessons
+                $stmt_less = $pdo->prepare("SELECT * FROM lessons WHERE course_id = ? ORDER BY lesson_order ASC, id ASC");
+                $stmt_less->execute([$active_course_id]);
+                $all_lessons = $stmt_less->fetchAll(PDO::FETCH_ASSOC);
+
+                // หากมีตาราง chapters จัดกลุ่ม lessons ใส่ chapter; ถ้าไม่มี ให้จำลองเป็น Chapter เดียว
+                if (!empty($chapters)) {
+                    foreach ($chapters as &$chap) {
+                        $chap['lessons'] = [];
+                        foreach ($all_lessons as $less) {
+                            // จัดกลุ่ม lessons ตาม chapter_id (ถ้ามี) หรือใส่ไว้ตาม order
+                            $chap['lessons'][] = $less;
+                        }
+                    }
+                } else {
+                    // กรณีคอร์สยังไม่มี chapters ใน DB
+                    $chapters = [
+                        [
+                            'id' => 0,
+                            'title' => 'เนื้อหาบทเรียนทั้งหมด',
+                            'chapter_order' => 1,
+                            'lessons' => $all_lessons
+                        ]
+                    ];
+                }
+
+                // 4.3 ดึงข้อมูล Outcomes / Connected Skills
+                $stmt_out = $pdo->prepare("SELECT * FROM outcomes WHERE course_id = ?");
+                $stmt_out->execute([$active_course_id]);
+                $outcomes = $stmt_out->fetchAll(PDO::FETCH_ASSOC);
+            }
         } else {
-            $db_error = "ไม่พบตัวแปร \$pdo สำหรับเชื่อมต่อฐานข้อมูล (โปรดเช็คไฟล์ config/db.php)";
+            $db_error = "ไม่พบตัวแปร \$pdo สำหรับเชื่อมต่อฐานข้อมูล";
         }
     } catch (PDOException $e) {
         $db_error = "Database Error: " . $e->getMessage();
+    }
+}
+
+// ตัวแปรนับจำนวนตามประเภทแบบ Dynamic
+$total_lessons_count = 0;
+$total_quiz_count = 0;
+$total_lab_count = 0;
+
+if (!empty($chapters)) {
+    foreach ($chapters as $ch) {
+        if (!empty($ch['lessons'])) {
+            foreach ($ch['lessons'] as $ls) {
+                $total_lessons_count++;
+                $type = $ls['lesson_type'] ?? 'video';
+                if ($type === 'quiz') {
+                    $total_quiz_count++;
+                } elseif ($type === 'coding_lab' || $type === 'virtual_lab') {
+                    $total_lab_count++;
+                }
+            }
+        }
     }
 }
 ?>
@@ -96,7 +157,6 @@ if (!$current_user_id) {
 <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css">
 <script src="<?= $ROOT_PATH ?>js/lu-dropdown.js" defer></script>
 
-<!-- SweetAlert2 Library & Handler -->
 <style>
     :root, html[data-theme="dark"] {
         --cb-bg: #0f172a;
@@ -209,14 +269,12 @@ if (!$current_user_id) {
 
 <div class="cb-wrapper p-1">
 
-    <!-- ⚠️ แสดงข้อผิดพลาดฐานข้อมูล (ถ้ามี) -->
     <?php if ($db_error): ?>
         <div class="alert alert-danger bg-danger bg-opacity-20 border-danger text-white mb-4 rounded-4" role="alert">
             <i class="bi bi-exclamation-triangle-fill me-2"></i> <strong>ข้อผิดพลาดฐานข้อมูล:</strong> <?= htmlspecialchars($db_error) ?>
         </div>
     <?php endif; ?>
 
-    <!-- ⛔ แสดงข้อผิดพลาดเรื่องสิทธิ์การใช้งาน (ถ้าไม่ได้ล็อกอิน หรือไม่ใช่เจ้าของคอร์ส) -->
     <?php if ($auth_error): ?>
         <div class="zone-container p-5 text-center my-4">
             <div class="mb-3">
@@ -240,7 +298,6 @@ if (!$current_user_id) {
         </div>
     <?php else: ?>
 
-        <!-- 📌 Dropdown เลือกคอร์สเรียน (เฉพาะคอร์สที่ผู้ใช้คนนี้สร้างเท่านั้น) -->
         <?php if (!empty($all_courses)): ?>
             <div class="mb-4 p-3 rounded-4 bg-dark bg-opacity-50 border border-secondary border-opacity-20 d-flex align-items-center justify-content-between flex-wrap gap-3">
                 <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -261,7 +318,6 @@ if (!$current_user_id) {
         <?php endif; ?>
 
         <?php if (!$course): ?>
-            <!-- แสดงกรณีผู้ใช้ล็อกอินแล้ว แต่ยังไม่มีคอร์สเลย -->
             <div class="zone-container p-5 text-center my-4">
                 <div class="mb-3">
                     <i class="bi bi-journal-plus text-cyan display-1"></i>
@@ -277,11 +333,8 @@ if (!$current_user_id) {
                 </div>
             </div>
         <?php else: ?>
-            <!-- =======================================================
-                 แสดงหน้า Course Builder เฉพาะเมื่อเป็นเจ้าของคอร์ส
-                 ======================================================= -->
-            
-            <!-- ข้อมูลภาพรวมคอร์ส -->
+
+            <!-- DYNAMIC: ข้อมูลภาพรวมคอร์ส -->
             <div class="row g-3 align-items-center mb-4">
                 <div class="col-12 col-md-4 d-flex align-items-center gap-3">
                     <div style="position: relative; width: 85px; height: 50px; border-radius: 8px; overflow: hidden; border: 1px solid var(--cb-border); flex-shrink: 0; background: #000;">
@@ -295,7 +348,7 @@ if (!$current_user_id) {
                         <h4 class="fw-bold mb-0 text-white" id="cb-course-title"><?= htmlspecialchars($course['title']) ?></h4>
                         <div class="d-flex align-items-center gap-2 mt-1">
                             <span class="badge bg-warning text-dark px-2 py-0.5 fw-bold" style="font-size: 0.7rem;">
-                                <i class="bi bi-file-earmark-lock"></i> <?= strtoupper($course['visibility'] ?? 'DRAFT MODE') ?>
+                                <i class="bi bi-file-earmark-lock"></i> <?= strtoupper($course['visibility'] ?? 'DRAFT') ?>
                             </span>
                             <span class="text-white-50 small" style="font-size:0.75rem;">
                                 <i class="bi bi-clock-history"></i> Updated: <?= !empty($course['updated_at']) ? date('d/m/Y H:i', strtotime($course['updated_at'])) : 'Recently' ?>
@@ -308,25 +361,25 @@ if (!$current_user_id) {
                         <div class="col-6 col-sm-3 col-md-2">
                             <div class="overview-pill text-center d-block">
                                 <div class="text-white-50 small text-uppercase" style="font-size:0.65rem;">Chapters</div>
-                                <div class="fw-bold text-white fs-5" id="cnt-chap"><?= htmlspecialchars($course['chapter_total'] ?? '2') ?></div>
+                                <div class="fw-bold text-white fs-5" id="cnt-chap"><?= count($chapters) ?></div>
                             </div>
                         </div>
                         <div class="col-6 col-sm-3 col-md-2">
                             <div class="overview-pill text-center d-block">
                                 <div class="text-white-50 small text-uppercase" style="font-size:0.65rem;">Lessons</div>
-                                <div class="fw-bold text-cyan fs-5" id="cnt-less">5</div>
+                                <div class="fw-bold text-cyan fs-5" id="cnt-less"><?= $total_lessons_count ?></div>
                             </div>
                         </div>
                         <div class="col-6 col-sm-3 col-md-2">
                             <div class="overview-pill text-center d-block">
                                 <div class="text-white-50 small text-uppercase" style="font-size:0.65rem;">Quizzes</div>
-                                <div class="fw-bold text-warning fs-5" id="cnt-quiz">1</div>
+                                <div class="fw-bold text-warning fs-5" id="cnt-quiz"><?= $total_quiz_count ?></div>
                             </div>
                         </div>
                         <div class="col-6 col-sm-3 col-md-2">
                             <div class="overview-pill text-center d-block">
                                 <div class="text-white-50 small text-uppercase" style="font-size:0.65rem;">Labs (Coding/V)</div>
-                                <div class="fw-bold text-success fs-5" id="cnt-lab">1</div>
+                                <div class="fw-bold text-success fs-5" id="cnt-lab"><?= $total_lab_count ?></div>
                             </div>
                         </div>
                         <div class="col-12 col-sm-6 col-md-3">
@@ -348,7 +401,7 @@ if (!$current_user_id) {
                 <div class="action-btn-group mb-2 mb-md-0">
                     <button class="btn btn-sm btn-outline-cyan text-white" onclick="openAIConfigModal()"><i class="bi bi-cpu text-purple me-1"></i> AI Assistant</button>
                     <button class="btn btn-sm btn-outline-light text-white" data-bs-toggle="modal" data-bs-target="#importExportModal"><i class="bi bi-arrow-left-right me-1"></i> Import/Export</button>
-                    <button class="btn btn-sm btn-outline-purple text-white" onclick="toggleCollaborators()"><i class="bi bi-people me-1"></i> Collab (2)</button>
+                    <button class="btn btn-sm btn-outline-purple text-white" onclick="toggleCollaborators()"><i class="bi bi-people me-1"></i> Collab</button>
                 </div>
                 <div class="action-btn-group">
                     <button class="btn btn-sm btn-secondary text-white" onclick="triggerAction('save')"><i class="bi bi-hdd-fill me-1"></i> Save Draft</button>
@@ -358,10 +411,10 @@ if (!$current_user_id) {
                 </div>
             </div>
 
-            <!-- ส่วนจัดการโครงสร้างคอร์ส -->
+            <!-- ส่วนจัดการโครงสร้างคอร์ส Dynamic -->
             <div class="row g-3">
                 
-                <!-- คอลัมน์ซ้าย: Chapters & Lessons -->
+                <!-- คอลัมน์ซ้าย: Chapters & Lessons Dynamic Loop -->
                 <div class="col-12 col-lg-7">
                     <div class="zone-container p-3 p-md-4 h-100">
                         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
@@ -370,134 +423,95 @@ if (!$current_user_id) {
                         </div>
 
                         <div id="course-chapters-root">
-                            <!-- Chapter 1 -->
-                            <div class="chapter-card p-3" id="chap-1">
-                                <div class="chapter-header-flex border-bottom border-secondary border-opacity-10 pb-2 mb-2">
-                                    <div class="chapter-title-area">
-                                        <i class="bi bi-grid-3x3-gap text-white-50 cursor-move fs-5 flex-shrink-0"></i>
-                                        <span class="fw-bold text-info flex-shrink-0 chap-label">Chapter 1:</span>
-                                        <input type="text" class="chapter-title-input" value="พื้นฐานและการวางโครงสร้างระบบ">
-                                    </div>
-                                    <div class="d-flex gap-1 flex-shrink-0">
-                                        <button class="btn btn-link text-white-50 p-1 btn-sm" onclick="duplicateItem('Chapter', 1)"><i class="bi bi-copy"></i></button>
-                                        <button class="btn btn-link text-warning p-1 btn-sm" onclick="InstructorAlerts.toast('info', 'ซ่อนบทเรียนเรียบร้อยแล้ว')"><i class="bi bi-eye-slash"></i></button>
-                                        <button class="btn btn-link text-danger p-1 btn-sm" onclick="removeChapter(this)"><i class="bi bi-trash"></i></button>
-                                    </div>
-                                </div>
-                                
-                                <div class="lessons-sortable-zone">
-                                    <div class="lesson-item" data-type="video">
-                                        <div class="lesson-left-content">
-                                            <i class="bi bi-list text-muted fs-6 flex-shrink-0"></i>
-                                            <span class="small text-white-50 flex-shrink-0 lesson-num">1.1</span>
-                                            <span class="small text-white me-2 lesson-title">แนะนำคอร์สและการติดตั้ง Environment</span>
-                                            <span class="type-badge badge-video"><i class="bi bi-play-btn-fill"></i> Video</span>
+                            <?php foreach ($chapters as $index => $chap): ?>
+                                <div class="chapter-card p-3" id="chap-<?= $chap['id'] ?>">
+                                    <div class="chapter-header-flex border-bottom border-secondary border-opacity-10 pb-2 mb-2">
+                                        <div class="chapter-title-area">
+                                            <i class="bi bi-grid-3x3-gap text-white-50 cursor-move fs-5 flex-shrink-0"></i>
+                                            <span class="fw-bold text-info flex-shrink-0 chap-label">Chapter <?= $index + 1 ?>:</span>
+                                            <input type="text" class="chapter-title-input" value="<?= htmlspecialchars($chap['title']) ?>">
                                         </div>
-                                        <div class="d-flex gap-2 flex-shrink-0">
-                                            <button class="btn btn-link text-info p-0 btn-sm" onclick="editLessonDetails('video', this)"><i class="bi bi-pencil-square"></i></button>
-                                            <button class="btn btn-link text-danger p-0 btn-sm" onclick="removeLesson(this)"><i class="bi bi-x-circle"></i></button>
+                                        <div class="d-flex gap-1 flex-shrink-0">
+                                            <button class="btn btn-link text-white-50 p-1 btn-sm" onclick="duplicateItem('Chapter', <?= $index + 1 ?>)"><i class="bi bi-copy"></i></button>
+                                            <button class="btn btn-link text-warning p-1 btn-sm" onclick="InstructorAlerts.toast('info', 'ซ่อนบทเรียนเรียบร้อยแล้ว')"><i class="bi bi-eye-slash"></i></button>
+                                            <button class="btn btn-link text-danger p-1 btn-sm" onclick="removeChapter(this)"><i class="bi bi-trash"></i></button>
                                         </div>
                                     </div>
-                                    <div class="lesson-item" data-type="slide">
-                                        <div class="lesson-left-content">
-                                            <i class="bi bi-list text-muted fs-6 flex-shrink-0"></i>
-                                            <span class="small text-white-50 flex-shrink-0 lesson-num">1.2</span>
-                                            <span class="small text-white me-2 lesson-title">ทฤษฎีกลไก Server-side Rendering</span>
-                                            <span class="type-badge badge-doc"><i class="bi bi-file-earmark-text-fill"></i> Slide</span>
-                                        </div>
-                                        <div class="d-flex gap-2 flex-shrink-0">
-                                            <button class="btn btn-link text-info p-0 btn-sm" onclick="editLessonDetails('slide', this)"><i class="bi bi-pencil-square"></i></button>
-                                            <button class="btn btn-link text-danger p-0 btn-sm" onclick="removeLesson(this)"><i class="bi bi-x-circle"></i></button>
-                                        </div>
-                                    </div>
-                                    <div class="lesson-item" data-type="quiz">
-                                        <div class="lesson-left-content">
-                                            <i class="bi bi-list text-muted fs-6 flex-shrink-0"></i>
-                                            <span class="small text-white-50 flex-shrink-0 lesson-num">1.3</span>
-                                            <span class="small text-white me-2 lesson-title">ทดสอบความเข้าใจสถาปัตยกรรมเว็บ</span>
-                                            <span class="type-badge badge-quiz"><i class="bi bi-patch-question-fill"></i> Quiz</span>
-                                        </div>
-                                        <div class="d-flex gap-2 flex-shrink-0">
-                                            <button class="btn btn-link text-info p-0 btn-sm" onclick="editLessonDetails('quiz', this)"><i class="bi bi-pencil-square"></i></button>
-                                            <button class="btn btn-link text-danger p-0 btn-sm" onclick="removeLesson(this)"><i class="bi bi-x-circle"></i></button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="mt-2 text-end">
-                                    <button type="button" class="btn btn-xs btn-outline-light text-white opacity-75" style="font-size:0.75rem;" onclick="openAddLessonModal(this)">+ เพิ่มวัตถุย่อย</button>
-                                </div>
-                            </div>
+                                    
+                                    <div class="lessons-sortable-zone">
+                                        <?php if (!empty($chap['lessons'])): ?>
+                                            <?php foreach ($chap['lessons'] as $less_index => $less): 
+                                                $ltype = $less['lesson_type'] ?? 'video';
+                                                $badge_class = 'badge-video';
+                                                $badge_icon = 'bi-play-btn-fill';
+                                                $badge_name = 'Video';
 
-                            <!-- Chapter 2 -->
-                            <div class="chapter-card p-3" id="chap-2">
-                                <div class="chapter-header-flex border-bottom border-secondary border-opacity-10 pb-2 mb-2">
-                                    <div class="chapter-title-area">
-                                        <i class="bi bi-grid-3x3-gap text-white-50 cursor-move fs-5 flex-shrink-0"></i>
-                                        <span class="fw-bold text-info flex-shrink-0 chap-label">Chapter 2:</span>
-                                        <input type="text" class="chapter-title-input" value="การทำ Data Fetching และสร้าง Coding Lab">
+                                                if ($ltype === 'slide') {
+                                                    $badge_class = 'badge-doc'; $badge_icon = 'bi-file-earmark-text-fill'; $badge_name = 'Slide';
+                                                } elseif ($ltype === 'quiz') {
+                                                    $badge_class = 'badge-quiz'; $badge_icon = 'bi-patch-question-fill'; $badge_name = 'Quiz';
+                                                } elseif ($ltype === 'coding_lab') {
+                                                    $badge_class = 'badge-lab'; $badge_icon = 'bi-code-square'; $badge_name = 'Coding Lab';
+                                                }
+                                            ?>
+                                                <div class="lesson-item" data-type="<?= $ltype ?>" data-id="<?= $less['id'] ?>">
+                                                    <div class="lesson-left-content">
+                                                        <i class="bi bi-list text-muted fs-6 flex-shrink-0"></i>
+                                                        <span class="small text-white-50 flex-shrink-0 lesson-num"><?= ($index + 1) . '.' . ($less_index + 1) ?></span>
+                                                        <span class="small text-white me-2 lesson-title"><?= htmlspecialchars($less['title']) ?></span>
+                                                        <span class="type-badge <?= $badge_class ?>"><i class="bi <?= $badge_icon ?>"></i> <?= $badge_name ?></span>
+                                                    </div>
+                                                    <div class="d-flex gap-2 flex-shrink-0">
+                                                        <button class="btn btn-link text-info p-0 btn-sm" onclick="editLessonDetails('<?= $ltype ?>', this)"><i class="bi bi-pencil-square"></i></button>
+                                                        <button class="btn btn-link text-danger p-0 btn-sm" onclick="removeLesson(this)"><i class="bi bi-x-circle"></i></button>
+                                                    </div>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <div class="text-center py-3 text-muted small style-italic">ไม่มีบทเรียนย่อย กดเพิ่มข้อมูลด้านล่าง</div>
+                                        <?php endif; ?>
                                     </div>
-                                    <div class="d-flex gap-1 flex-shrink-0">
-                                        <button class="btn btn-link text-white-50 p-1 btn-sm" onclick="duplicateItem('Chapter', 2)"><i class="bi bi-copy"></i></button>
-                                        <button class="btn btn-link text-warning p-1 btn-sm" onclick="InstructorAlerts.toast('info', 'ซ่อนบทเรียนเรียบร้อยแล้ว')"><i class="bi bi-eye-slash"></i></button>
-                                        <button class="btn btn-link text-danger p-1 btn-sm" onclick="removeChapter(this)"><i class="bi bi-trash"></i></button>
-                                    </div>
-                                </div>
-                                
-                                <div class="lessons-sortable-zone">
-                                    <div class="lesson-item" data-type="video">
-                                        <div class="lesson-left-content">
-                                            <i class="bi bi-list text-muted fs-6 flex-shrink-0"></i>
-                                            <span class="small text-white-50 flex-shrink-0 lesson-num">2.1</span>
-                                            <span class="small text-white me-2 lesson-title">การเรียกข้อมูลผ่าน Async Functions</span>
-                                            <span class="type-badge badge-video"><i class="bi bi-play-btn-fill"></i> Video</span>
-                                        </div>
-                                        <div class="d-flex gap-2 flex-shrink-0">
-                                            <button class="btn btn-link text-info p-0 btn-sm" onclick="editLessonDetails('video', this)"><i class="bi bi-pencil-square"></i></button>
-                                            <button class="btn btn-link text-danger p-0 btn-sm" onclick="removeLesson(this)"><i class="bi bi-x-circle"></i></button>
-                                        </div>
-                                    </div>
-                                    <div class="lesson-item" data-type="coding_lab">
-                                        <div class="lesson-left-content">
-                                            <i class="bi bi-list text-muted fs-6 flex-shrink-0"></i>
-                                            <span class="small text-white-50 flex-shrink-0 lesson-num">2.2</span>
-                                            <span class="small text-white me-2 lesson-title">ทดสอบปฏิบัติการ: เขียน REST API Fetching</span>
-                                            <span class="type-badge badge-lab"><i class="bi bi-code-square"></i> Coding Lab</span>
-                                        </div>
-                                        <div class="d-flex gap-2 flex-shrink-0">
-                                            <button class="btn btn-link text-info p-0 btn-sm" onclick="editLessonDetails('coding_lab', this)"><i class="bi bi-pencil-square"></i></button>
-                                            <button class="btn btn-link text-danger p-0 btn-sm" onclick="removeLesson(this)"><i class="bi bi-x-circle"></i></button>
-                                        </div>
+                                    <div class="mt-2 text-end">
+                                        <button type="button" class="btn btn-xs btn-outline-light text-white opacity-75" style="font-size:0.75rem;" onclick="openAddLessonModal(this)">+ เพิ่มวัตถุย่อย</button>
                                     </div>
                                 </div>
-                                <div class="mt-2 text-end">
-                                    <button type="button" class="btn btn-xs btn-outline-light text-white opacity-75" style="font-size:0.75rem;" onclick="openAddLessonModal(this)">+ เพิ่มวัตถุย่อย</button>
-                                </div>
-                            </div>
-
+                            <?php endforeach; ?>
                         </div>
                     </div>
                 </div>
 
-                <!-- คอลัมน์ขวา: Skill Mapping, Prerequisite & Visual Flow -->
+                <!-- คอลัมน์ขวา: DYNAMIC Skill Mapping & Flow -->
                 <div class="col-12 col-lg-5 d-flex flex-column gap-3">
                     <div class="zone-container p-4">
                         <h5 class="fw-bold text-white mb-2"><i class="bi bi-diagram-3 text-purple me-2"></i> Skill & Outcome Mapping</h5>
                         <div class="row g-2 mb-3">
                             <div class="col-6">
                                 <label class="small text-white-50 mb-1">เวลาเรียนโดยประมาณรวม</label>
-                                <div class="p-2 rounded bg-black bg-opacity-30 text-cyan fw-bold text-center small"><i class="bi bi-hourglass-split"></i> ~<?= htmlspecialchars($course['time_total'] ?? '18.5') ?> ชั่วโมง</div>
+                                <div class="p-2 rounded bg-black bg-opacity-30 text-cyan fw-bold text-center small">
+                                    <i class="bi bi-hourglass-split"></i> ~<?= htmlspecialchars($course['time_total'] ?? '0') ?> ชั่วโมง
+                                </div>
                             </div>
                             <div class="col-6">
                                 <label class="small text-white-50 mb-1">การทำ Mapping สกิล</label>
-                                <div class="p-2 rounded bg-black bg-opacity-30 text-success fw-bold text-center small"><i class="bi bi-check2-circle"></i> เชื่อมต่อ 3 แกนสกิล</div>
+                                <div class="p-2 rounded bg-black bg-opacity-30 text-success fw-bold text-center small">
+                                    <i class="bi bi-check2-circle"></i> เชื่อมต่อ <?= count($outcomes) ?> แกนสกิล
+                                </div>
                             </div>
                         </div>
                         <div>
                             <label class="small text-white-50 mb-2 d-block">ทักษะที่จะได้รับ (Connected Skills)</label>
                             <div class="d-flex flex-wrap gap-2">
-                                <span class="skill-badge skill-badge-purple">React Basics</span>
-                                <span class="skill-badge skill-badge-cyan">Next.js Framework</span>
-                                <span class="skill-badge skill-badge-green">REST API integration</span>
+                                <?php if (!empty($outcomes)): ?>
+                                    <?php 
+                                        $badge_styles = ['skill-badge-purple', 'skill-badge-cyan', 'skill-badge-green'];
+                                        foreach ($outcomes as $idx => $out): 
+                                            $style = $badge_styles[$idx % 3];
+                                    ?>
+                                        <span class="skill-badge <?= $style ?>"><?= htmlspecialchars($out['name']) ?></span>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <span class="text-white-50 small style-italic">ยังไม่ได้กำหนดผลการเรียนรู้</span>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -506,7 +520,7 @@ if (!$current_user_id) {
                         <h5 class="fw-bold text-white mb-2"><i class="bi bi-lock-fill text-warning me-2"></i> เงื่อนไขการข้ามบท (Unlock Flow)</h5>
                         <div class="p-3 rounded bg-dark bg-opacity-50 border border-secondary border-opacity-10 small">
                             <div class="form-check form-switch mb-2">
-                                <input class="form-check-input" type="checkbox" id="strict-flow" checked>
+                                <input class="form-check-input" type="checkbox" id="strict-flow" <?= (!isset($course['is_strict_flow']) || $course['is_strict_flow'] == 1) ? 'checked' : '' ?>>
                                 <label class="form-check-label text-white fw-medium" for="strict-flow">บังคับเรียนแบบเป็นลำดับ (Linear Progression)</label>
                             </div>
                             <ul class="mb-0 ps-3 text-white-50" style="font-size: 0.8rem;">
@@ -525,21 +539,16 @@ if (!$current_user_id) {
                         
                         <div class="p-3 rounded-4 bg-black bg-opacity-40 border border-secondary border-opacity-10 py-4">
                             <div class="flow-node border-info">
-                                <div class="small fw-bold text-cyan">Chapter 1: พื้นฐานระบบ</div>
+                                <div class="small fw-bold text-cyan"><?= htmlspecialchars($course['title']) ?></div>
                             </div>
                             <div class="flow-arrow"><i class="bi bi-arrow-down-short"></i></div>
                             <div class="flow-node">
-                                <div class="small text-white">Lesson 1.1: แนะนำคอร์สเรียน</div>
-                                <span class="type-badge badge-video d-inline-block mt-1">Video</span>
-                            </div>
-                            <div class="flow-arrow"><i class="bi bi-arrow-down-short"></i></div>
-                            <div class="flow-node">
-                                <div class="small text-white">Quiz 1.3: สอบวัดระดับเบื้องต้น</div>
-                                <span class="type-badge badge-quiz d-inline-block mt-1">Quiz</span>
+                                <div class="small text-white">Chapter 1: <?= htmlspecialchars($chapters[0]['title'] ?? 'เริ่มต้นบทเรียน') ?></div>
+                                <span class="type-badge badge-video d-inline-block mt-1">Start Chapter</span>
                             </div>
                             <div class="flow-arrow"><i class="bi bi-arrow-down-short"></i></div>
                             <div class="flow-node border-success">
-                                <div class="small fw-bold text-success">Chapter 2: Data Fetching</div>
+                                <div class="small fw-bold text-success">Certificate Evaluation</div>
                             </div>
                         </div>
                     </div>
@@ -559,12 +568,12 @@ if (!$current_user_id) {
                     <div class="col-12 col-md-5 py-2">
                         <div class="fw-bold text-white small mb-2"><i class="bi bi-list-task text-cyan me-1"></i> รายการตรวจสอบความสมบูรณ์หลักสูตร</div>
                         <div class="row g-2 small text-white-50" id="checklist-results">
-                            <div class="col-6"><i class="bi bi-check-circle-fill text-success me-1"></i> รูปหน้าปกคอร์ส</div>
-                            <div class="col-6"><i class="bi bi-check-circle-fill text-success me-1"></i> คำอธิบายวิชา</div>
-                            <div class="col-6"><i class="bi bi-x-circle-fill text-danger me-1"></i> วิดีโอ 1.1 หาย</div>
-                            <div class="col-6"><i class="bi bi-check-circle-fill text-success me-1"></i> ใบรับรองจบ</div>
-                            <div class="col-6"><i class="bi bi-x-circle-fill text-danger me-1"></i> ขาด Lab OOP</div>
-                            <div class="col-6"><i class="bi bi-check-circle-fill text-success me-1"></i> Skill Map</div>
+                            <div class="col-6"><i class="bi <?= !empty($course['img']) ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger' ?> me-1"></i> รูปหน้าปกคอร์ส</div>
+                            <div class="col-6"><i class="bi <?= !empty($course['full_description']) ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger' ?> me-1"></i> คำอธิบายวิชา</div>
+                            <div class="col-6"><i class="bi <?= $total_lessons_count > 0 ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger' ?> me-1"></i> บทเรียนย่อย</div>
+                            <div class="col-6"><i class="bi <?= !empty($course['certificate_type']) ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger' ?> me-1"></i> ใบรับรองจบ</div>
+                            <div class="col-6"><i class="bi <?= $total_lab_count > 0 ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger' ?> me-1"></i> Coding Lab</div>
+                            <div class="col-6"><i class="bi <?= !empty($outcomes) ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger' ?> me-1"></i> Skill Map</div>
                         </div>
                     </div>
                     <div class="col-12 col-md-4 py-2">
@@ -611,7 +620,7 @@ if (!$current_user_id) {
                     </div>
                     <div class="col-12 col-md-4">
                         <label class="form-label small text-white-50">กำหนดเวลาเรียน (นาที)</label>
-                        <input type="number" class="form-control cb-input" id="modal-item-time" value="25">
+                        <input type="number" class="form-control cb-input" id="modal-item-time" value="15">
                     </div>
                 </div>
 
@@ -691,7 +700,6 @@ if (!$current_user_id) {
     </div>
 </div>
 
-<!-- JavaScript System Controls -->
 <script>
     if (typeof InstructorAlerts === 'undefined') {
         window.InstructorAlerts = {
@@ -700,15 +708,9 @@ if (!$current_user_id) {
                 if(typeof Swal !== 'undefined') Swal.fire({ title: msg, allowOutsideClick: false, didOpen: () => Swal.showLoading() }); 
                 setTimeout(() => { if(typeof Swal !== 'undefined') Swal.close(); if(cb) cb(); }, time); 
             },
-            confirmDelete: (item, cb) => { 
-                if(confirm('ยืนยันการลบ: ' + item + '?')) { if(cb) cb(); } 
-            },
-            confirmDuplicate: (item, cb) => { 
-                if(confirm('ยืนยันคัดลอก: ' + item + '?')) { if(cb) cb(); } 
-            },
-            confirmPublish: (t, text, cb) => { 
-                if(confirm(t + '\n' + text)) { if(cb) cb(); } 
-            },
+            confirmDelete: (item, cb) => { if(confirm('ยืนยันการลบ: ' + item + '?')) { if(cb) cb(); } },
+            confirmDuplicate: (item, cb) => { if(confirm('ยืนยันคัดลอก: ' + item + '?')) { if(cb) cb(); } },
+            confirmPublish: (t, text, cb) => { if(confirm(t + '\n' + text)) { if(cb) cb(); } },
             saveDraft: () => typeof Swal !== 'undefined' ? Swal.fire({ title: 'บันทึกร่างสำเร็จ', icon: 'success', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 }) : alert('บันทึกร่างสำเร็จ'),
             info: (t, text) => typeof Swal !== 'undefined' ? Swal.fire({ title: t, text: text, icon: 'info' }) : alert(t + '\n' + text)
         };
@@ -896,14 +898,6 @@ if (!$current_user_id) {
         InstructorAlerts.aiProcess('สแกนและประเมินคุณภาพคอร์สเรียน', 1200, () => {
             $('#quality-score').html('96 <span class="fs-6 text-white-50">/ 100</span>');
             $('#quality-stars').text('★★★★★');
-            $('#checklist-results').html(`
-                <div class="col-6"><i class="bi bi-check-circle-fill text-success me-1"></i> รูปปกและคำอธิบายคอร์ส</div>
-                <div class="col-6"><i class="bi bi-check-circle-fill text-success me-1"></i> เนื้อหาสื่อการเรียนการสอน</div>
-                <div class="col-6"><i class="bi bi-check-circle-fill text-success me-1"></i> Quiz ประเมินก่อน-หลังเรียน</div>
-                <div class="col-6"><i class="bi bi-check-circle-fill text-success me-1"></i> ปฏิบัติการ Coding & Virtual Lab</div>
-                <div class="col-6"><i class="bi bi-check-circle-fill text-success me-1"></i> เงื่อนไขและระบบการปลดล็อก</div>
-                <div class="col-6"><i class="bi bi-check-circle-fill text-success me-1"></i> การเชื่อมโยงทักษะผู้เรียน</div>
-            `);
             $('#ai-suggestion-box').html('✨ <b>Course คุณภาพดีเยี่ยม!</b> โครงสร้างคอร์สมีความสมบูรณ์สูง สามารถเผยแพร่ได้ทันทีครับ');
             $('#publish-btn').prop('disabled', false).removeClass('btn-success').addClass('btn-cyan').html('<i class="bi bi-rocket-takeoff-fill me-1"></i> Ready to Publish (100%)');
             InstructorAlerts.toast('success', 'ประเมินคุณภาพหลักสูตรสำเร็จ!');
@@ -911,10 +905,7 @@ if (!$current_user_id) {
     }
 
     function toggleCollaborators() {
-        InstructorAlerts.info(
-            'ผู้ร่วมสร้างคอร์ส 👥',
-            '1. ผู้สอนหลัก (Owner - คุณ)\n2. Co-Instructor (Editor)'
-        );
+        InstructorAlerts.info('ผู้ร่วมสร้างคอร์ส 👥', '1. ผู้สอนหลัก (Owner - คุณ)\n2. Co-Instructor (Editor)');
     }
 
     function triggerAction(actionType) {
@@ -926,9 +917,7 @@ if (!$current_user_id) {
             InstructorAlerts.confirmPublish(
                 'เผยแพร่หลักสูตรสู่สาธารณะ? 🚀',
                 'เนื้อหาจะเปิดใช้งานและแสดงให้ผู้เรียนเห็นในระบบทันที',
-                () => {
-                    InstructorAlerts.toast('success', 'เผยแพร่หลักสูตรเรียบร้อยแล้ว!');
-                }
+                () => { InstructorAlerts.toast('success', 'เผยแพร่หลักสูตรเรียบร้อยแล้ว!'); }
             );
         }
     }
