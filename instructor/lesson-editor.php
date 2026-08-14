@@ -4,11 +4,38 @@ $ROOT_PATH = '../';
 // [1. Security Framework & Session Verification]
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
+// ตรวจสอบ Authorization: ผู้ใช้ต้องล็อกอินเข้าสู่ระบบก่อน
+$user_id = $_SESSION['user_id'] ?? $_SESSION['user']['id'] ?? 0;
+if (!$user_id) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['status' => 'error', 'message' => 'กรุณาล็อกอินเข้าสู่ระบบก่อนดำเนินการ']);
+        exit;
+    } else {
+        header('Location: ' . $ROOT_PATH . 'login.php');
+        exit;
+    }
+}
+
 // [2. Database Connection]
 require_once __DIR__ . '/../config/db.php'; 
 
 if (!isset($conn) && isset($pdo)) {
     $conn = $pdo;
+}
+
+// Helper Function: ตรวจสอบความเป็นเจ้าของคอร์ส
+function checkCourseOwnership($conn, $course_id, $user_id) {
+    $stmt = $conn->prepare("SELECT id FROM course WHERE id = :cid AND user_id = :uid LIMIT 1");
+    $stmt->execute([':cid' => $course_id, ':uid' => $user_id]);
+    return (bool) $stmt->fetch();
+}
+
+// Helper Function: ตรวจสอบความเป็นเจ้าของบทเรียนผ่านคอร์ส
+function checkLessonOwnership($conn, $lesson_id, $user_id) {
+    $stmt = $conn->prepare("SELECT l.id FROM lessons l JOIN course c ON l.course_id = c.id WHERE l.id = :lid AND c.user_id = :uid LIMIT 1");
+    $stmt->execute([':lid' => $lesson_id, ':uid' => $user_id]);
+    return (bool) $stmt->fetch();
 }
 
 // [3. AJAX Backend API Handler]
@@ -46,6 +73,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
             if (empty($course_id) || empty($title)) {
                 echo json_encode(['status' => 'error', 'message' => 'กรุณากรอกข้อมูลสำคัญ (ชื่อบทเรียน และ คอร์ส) ให้ครบถ้วน']);
+                exit;
+            }
+
+            // ตรวจสอบสิทธิ์ว่าผู้ใช้เป็นเจ้าของคอร์สนี้หรือไม่
+            if (!checkCourseOwnership($conn, $course_id, $user_id)) {
+                echo json_encode(['status' => 'error', 'message' => 'คุณไม่มีสิทธิ์ในการจัดการคอร์สเรียนนี้']);
+                exit;
+            }
+
+            // ถ้าเป็นการแก้ไขบทเรียนเดิม ตรวจสอบสิทธิ์บทเรียนเพิ่มเติม
+            if ($lesson_id && !checkLessonOwnership($conn, $lesson_id, $user_id)) {
+                echo json_encode(['status' => 'error', 'message' => 'คุณไม่มีสิทธิ์แก้ไขบทเรียนนี้']);
                 exit;
             }
 
@@ -190,6 +229,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     if ($action === 'delete_lesson') {
         $lesson_id = intval($_POST['lesson_id'] ?? 0);
         if ($lesson_id > 0) {
+            if (!checkLessonOwnership($conn, $lesson_id, $user_id)) {
+                echo json_encode(['status' => 'error', 'message' => 'คุณไม่มีสิทธิ์ลบบทเรียนนี้']);
+                exit;
+            }
             $stmt = $conn->prepare("DELETE FROM lessons WHERE id = :id");
             $stmt->execute([':id' => $lesson_id]);
             echo json_encode(['status' => 'success', 'message' => 'ลบบทเรียนเรียบร้อยแล้ว']);
@@ -203,6 +246,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     if ($action === 'unpublish_lesson') {
         $lesson_id = intval($_POST['lesson_id'] ?? 0);
         if ($lesson_id > 0) {
+            if (!checkLessonOwnership($conn, $lesson_id, $user_id)) {
+                echo json_encode(['status' => 'error', 'message' => 'คุณไม่มีสิทธิ์แก้ไขบทเรียนนี้']);
+                exit;
+            }
             $stmt = $conn->prepare("UPDATE lessons SET status = 'unpublished' WHERE id = :id");
             $stmt->execute([':id' => $lesson_id]);
             echo json_encode(['status' => 'success', 'message' => 'ยกเลิกการเผยแพร่บทเรียนเรียบร้อยแล้ว']);
@@ -240,16 +287,15 @@ $attachments = [];
 $versions = [];
 
 if ($conn instanceof PDO) {
-    // 1. ดึงรายการ Course ทั้งหมด
-    $cStmt = $conn->query("SELECT id, title FROM course ORDER BY id DESC");
-    if ($cStmt) {
-        $courses = $cStmt->fetchAll(PDO::FETCH_ASSOC);
-    }
+    // 1. ดึงรายการ Course เฉพาะของผู้ใช้งานที่ล็อกอิน (user_id)
+    $cStmt = $conn->prepare("SELECT id, title FROM course WHERE user_id = :uid ORDER BY id DESC");
+    $cStmt->execute([':uid' => $user_id]);
+    $courses = $cStmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // 2. ดึงข้อมูลบทเรียนเดิม (ถ้ามี lesson_id)
+    // 2. ดึงข้อมูลบทเรียนเดิม (ถ้ามี lesson_id และต้องเป็นของ user_id นี้)
     if ($lesson_id > 0) {
-        $lStmt = $conn->prepare("SELECT * FROM lessons WHERE id = :id LIMIT 1");
-        $lStmt->execute([':id' => $lesson_id]);
+        $lStmt = $conn->prepare("SELECT l.* FROM lessons l JOIN course c ON l.course_id = c.id WHERE l.id = :id AND c.user_id = :uid LIMIT 1");
+        $lStmt->execute([':id' => $lesson_id, ':uid' => $user_id]);
         $lesson = $lStmt->fetch(PDO::FETCH_ASSOC);
 
         if ($lesson) {
@@ -269,11 +315,14 @@ if ($conn instanceof PDO) {
             $vStmt = $conn->prepare("SELECT * FROM lesson_versions WHERE lesson_id = :lid ORDER BY created_at DESC LIMIT 5");
             $vStmt->execute([':lid' => $lesson_id]);
             $versions = $vStmt->fetchAll(PDO::FETCH_ASSOC);
+        } else {
+            // หากไม่พบการเข้าถึงบทเรียน หรือไม่มีสิทธิ์ ให้รีเซ็ต lesson_id
+            $lesson_id = 0;
         }
     }
 
-    // 3. ดึง Chapters ที่ผูกกับ Course นี้
-    if ($course_id > 0) {
+    // 3. ดึง Chapters ที่ผูกกับ Course นี้ (และตรวจสอบสิทธิ์เจ้าของคอร์ส)
+    if ($course_id > 0 && checkCourseOwnership($conn, $course_id, $user_id)) {
         $chStmt = $conn->prepare("SELECT id, title, chapter_order FROM chapters WHERE course_id = :cid ORDER BY chapter_order ASC");
         $chStmt->execute([':cid' => $course_id]);
         $chapters = $chStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -552,7 +601,7 @@ if (!empty($lesson['virtual_lab_config'])) {
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label form-label-premium">คอร์สเรียน (Course) <span class="text-danger">*</span></label>
-                    <select name="course_id" class="form-select form-control-premium lu-select" required onchange="window.location.href='?course_id='+this.value">
+                    <select name="course_id" id="course_id_select" class="form-select form-control-premium lu-select" required>
                         <option value="">-- เลือกลิสต์คอร์สเรียน --</option>
                         <?php foreach ($courses as $c): ?>
                             <option value="<?= $c['id'] ?>" <?= ($course_id == $c['id']) ? 'selected' : '' ?>>
@@ -1038,6 +1087,16 @@ if (!empty($lesson['virtual_lab_config'])) {
 <!-- JQUERY & EVENT ENGINE ACTIONS CONTROL -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+    // [แก้ไขปัญหาการเลือกคอร์สไม่เปลี่ยนหน้า]: ใช้ Event Delegation เพื่อรับค่า Change จาก Custom Dropdown และเคลียร์ lesson_id ออกจาก URL
+    $(document).on('change', 'select[name="course_id"]', function() {
+        var courseId = $(this).val();
+        if (courseId) {
+            window.location.href = 'lesson-editor.php?course_id=' + courseId;
+        } else {
+            window.location.href = 'lesson-editor.php';
+        }
+    });
+
     function triggerAIAction(mode) {
         $.post('lesson-editor.php', { action: 'ai_assistant', mode: mode }, function(res) {
             if (res.status === 'success') {
