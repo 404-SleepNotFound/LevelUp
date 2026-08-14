@@ -35,6 +35,18 @@ $stmt_outcomes = $conn->prepare($sql_outcomes);
 $stmt_outcomes->execute([':course_id' => $course_id]);
 $course_outcomes = $stmt_outcomes->fetchAll(PDO::FETCH_COLUMN);
 
+// 2.1 เช็คว่าผู้ใช้ปัจจุบันเคย "บันทึกไว้ทีหลัง" คอร์สนี้แล้วหรือยัง
+$is_saved = false;
+if (!empty($_SESSION['user_id'])) {
+    $sql_saved = "SELECT id FROM `saved_courses` WHERE user_id = :user_id AND course_id = :course_id";
+    $stmt_saved = $conn->prepare($sql_saved);
+    $stmt_saved->execute([
+        ':user_id'   => $_SESSION['user_id'],
+        ':course_id' => $course_id
+    ]);
+    $is_saved = (bool) $stmt_saved->fetch(PDO::FETCH_ASSOC);
+}
+
 // 3. จัดโครงสร้างข้อมูลสำหรับนำไปใช้ในหน้า HTML
 $course = [
     'id' => $course_id,
@@ -285,8 +297,8 @@ include_once $ROOT_PATH . 'includes/header.php';
                             <a href="lesson.php?course_id=<?= $course['id'] ?>&lesson_id=1" class="btn btn-premium btn-lg rounded-3 fw-bold py-2 text-center text-decoration-none">
                                 เข้าสู่บทเรียน (<?= htmlspecialchars($course['type_text']) ?>)
                             </a>
-                            <button class="btn btn-outline-surface btn-lg rounded-3 d-flex justify-content-center align-items-center gap-2 py-2" id="btnToggleBookmark" type="button" data-id="<?= $course['id'] ?>" style="font-size: 0.9rem;">
-                                <i class="bi bi-bookmark-star" id="bookmarkIcon"></i> <span id="bookmarkText">บันทึกไว้ทีหลัง</span>
+                            <button class="btn btn-outline-surface btn-lg rounded-3 d-flex justify-content-center align-items-center gap-2 py-2" id="btnToggleBookmark" type="button" data-id="<?= $course['id'] ?>" data-saved="<?= $is_saved ? '1' : '0' ?>" style="font-size: 0.9rem;">
+                                <i class="bi <?= $is_saved ? 'bi-bookmark-star-fill' : 'bi-bookmark-star' ?>" id="bookmarkIcon"></i> <span id="bookmarkText"><?= $is_saved ? 'บันทึกไว้แล้ว' : 'บันทึกไว้ทีหลัง' ?></span>
                             </button>
                         </div>
                     </div>
@@ -606,6 +618,116 @@ include_once $ROOT_PATH . 'includes/header.php';
                 btnExpandAll.textContent = isExpanded ? 'หุบทั้งหมด' : 'กางออกทั้งหมด';
             });
         }
+    });
+    </script>
+
+    <!-- Video Preview Modal -->
+    <div class="modal fade" id="videoPreviewModal" tabindex="-1" aria-labelledby="videoPreviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content bg-surface border-0 rounded-4 overflow-hidden">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title text-main fw-bold" id="videoPreviewModalLabel">
+                        <i class="bi bi-play-circle-fill text-info me-2"></i> วิดีโอตัวอย่าง: <?= htmlspecialchars($course['title']) ?>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-3">
+                    <div class="ratio ratio-16x9 rounded-3 overflow-hidden bg-black">
+                        <iframe id="videoPreviewFrame" src="" title="Video Preview" frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script: วิดีโอตัวอย่าง (โหลด/หยุดวิดีโอเมื่อเปิด-ปิด Modal) -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var videoModalEl = document.getElementById('videoPreviewModal');
+        var videoFrame = document.getElementById('videoPreviewFrame');
+        var embedUrl = <?= json_encode(getEmbedUrl($course['video_url'])) ?>;
+
+        if (videoModalEl && videoFrame && embedUrl) {
+            videoModalEl.addEventListener('show.bs.modal', function () {
+                var sep = embedUrl.indexOf('?') !== -1 ? '&' : '?';
+                videoFrame.src = embedUrl + sep + 'autoplay=1';
+            });
+            videoModalEl.addEventListener('hidden.bs.modal', function () {
+                // เคลียร์ src เพื่อหยุดวิดีโอทันทีที่ปิด Modal
+                videoFrame.src = '';
+            });
+        }
+    });
+    </script>
+
+    <!-- Script: บันทึกคอร์สไว้ทีหลัง (Bookmark) -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var btnBookmark = document.getElementById('btnToggleBookmark');
+        if (!btnBookmark) return;
+
+        function showAlert(icon, title, text) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: title,
+                    text: text,
+                    icon: icon,
+                    confirmButtonColor: '#6366F1',
+                    timer: icon === 'success' ? 1800 : undefined,
+                    showConfirmButton: icon !== 'success',
+                    customClass: {
+                        popup: 'levelup-swal-popup',
+                        title: 'levelup-swal-title',
+                        htmlContainer: 'levelup-swal-text'
+                    }
+                });
+            } else {
+                alert(title + (text ? ': ' + text : ''));
+            }
+        }
+
+        btnBookmark.addEventListener('click', function () {
+            var courseId = btnBookmark.getAttribute('data-id');
+            var icon = document.getElementById('bookmarkIcon');
+            var text = document.getElementById('bookmarkText');
+
+            btnBookmark.disabled = true;
+
+            fetch('toggle-save-course.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'course_id=' + encodeURIComponent(courseId)
+            })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+                btnBookmark.disabled = false;
+
+                if (!data.success) {
+                    showAlert('warning', 'ไม่สำเร็จ', data.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+                    return;
+                }
+
+                btnBookmark.setAttribute('data-saved', data.saved ? '1' : '0');
+
+                if (data.saved) {
+                    icon.classList.remove('bi-bookmark-star');
+                    icon.classList.add('bi-bookmark-star-fill');
+                    text.textContent = 'บันทึกไว้แล้ว';
+                } else {
+                    icon.classList.remove('bi-bookmark-star-fill');
+                    icon.classList.add('bi-bookmark-star');
+                    text.textContent = 'บันทึกไว้ทีหลัง';
+                }
+
+                showAlert('success', data.saved ? 'บันทึกสำเร็จ!' : 'ยกเลิกการบันทึกแล้ว', data.message);
+            })
+            .catch(function () {
+                btnBookmark.disabled = false;
+                showAlert('error', 'เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อกับระบบได้ กรุณาลองใหม่อีกครั้ง');
+            });
+        });
     });
     </script>
 
