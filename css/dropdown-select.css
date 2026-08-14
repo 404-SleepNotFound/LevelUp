@@ -665,6 +665,64 @@ html[data-theme="dark"] .form-dark-input.form-select-custom,
 }
 
 /* -----------------------------------------------------------------
+8c. Curriculum Accordion (course-detail.php)
+    ตัว Trigger (.accordion-button) รับดีไซน์จาก theme กลางอยู่แล้ว
+    แต่ตัว Container/Menu (.accordion-collapse, .accordion-body,
+    .list-group-item) เดิมใช้ bg-surface (การ์ดทั่วไป) ซึ่งเป็นคนละสี/
+    คนละดีไซน์กับ .custom-dropdown-menu เลยดูเหมือนไม่ได้ถูกแทนที่
+    ส่วนนี้ทำให้ container ใช้โทนสีและดีไซน์เดียวกับ custom dropdown menu
+----------------------------------------------------------------- */
+#curriculumAccordion .accordion-item {
+  background: transparent;
+  border: 1px solid rgba(99, 102, 241, 0.18);
+  border-radius: 20px !important;
+}
+
+#curriculumAccordion .accordion-collapse {
+  background: rgba(15, 23, 42, 0.96);
+  backdrop-filter: blur(18px);
+}
+
+#curriculumAccordion .accordion-body {
+  background: transparent !important;
+  border-top: 1px solid rgba(99, 102, 241, 0.18) !important;
+  padding: 0.5rem 0 !important;
+}
+
+#curriculumAccordion .list-group-item.lesson-row-link {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 14px;
+  margin: 0.25rem 0.5rem;
+  width: calc(100% - 1rem);
+  box-sizing: border-box;
+  color: var(--nav-text);
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#curriculumAccordion .list-group-item.lesson-row-link:last-child {
+  margin-bottom: 0.25rem;
+}
+
+#curriculumAccordion .list-group-item.lesson-row-link:hover,
+#curriculumAccordion .list-group-item.lesson-row-link:focus {
+  background-color: rgba(99, 102, 241, 0.14) !important;
+}
+
+html[data-theme="light"] #curriculumAccordion .accordion-collapse {
+  background: #ffffff;
+}
+
+html[data-theme="light"] #curriculumAccordion .accordion-item {
+  border-color: #e2e8f0;
+}
+
+html[data-theme="light"] #curriculumAccordion .accordion-body,
+html[data-theme="light"] #curriculumAccordion .list-group-item.lesson-row-link {
+  border-color: #e2e8f0 !important;
+}
+
+/* -----------------------------------------------------------------
 9. Stacking Context & Overflow Fixes (แก้ปัญหา Dropdown ถูกบังยั่งยืน)
 ----------------------------------------------------------------- */
 /* 1. อนุญาตให้การ์ดลอยทะลุขอบ และตั้ง z-index พื้นฐาน */
