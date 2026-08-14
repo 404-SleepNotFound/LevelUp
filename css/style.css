@@ -643,12 +643,12 @@ a:hover { color: var(--primary-hover); }
 }
 
 /* Custom Accordion for Curriculum */
-.custom-accordion .accordion-item { border: 1px solid var(--border-color); margin-bottom: 1rem; border-radius: 16px !important; }
+.custom-accordion .accordion-item { background-color: var(--bg-surface) !important; border: 1px solid var(--border-color); margin-bottom: 1rem; border-radius: 16px !important; }
 .custom-accordion .accordion-button {
-    box-shadow: none !important; color: var(--text-main); font-weight: 600; padding: 1.25rem 1.5rem; border-radius: 16px !important;
+    background-color: var(--bg-surface) !important; box-shadow: none !important; color: var(--text-main) !important; font-weight: 600; padding: 1.25rem 1.5rem; border-radius: 16px !important;
 }
 .custom-accordion .accordion-button:not(.collapsed) {
-    background-color: var(--bg-light-alt); color: var(--primary);
+    background-color: var(--bg-light-alt) !important; color: var(--primary) !important;
 }
 .custom-accordion .accordion-button::after {
     background-size: 1rem; transition: transform var(--transition-fast);
