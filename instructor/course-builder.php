@@ -95,7 +95,7 @@ if (!$current_user_id) {
                 $course = $stmt->fetch(PDO::FETCH_ASSOC);
             }
 
-            // หากมีคอร์ส ให้ทำการดึง Chapters, Lessons, Outcomes, Prereqs และ Tags แบบ Dynamic
+            // หากมีคอร์ส ให้ทำการดึง Chapters, Lessons, Outcomes, Prereqs และ Tags
             if ($course) {
                 $active_course_id = $course['id'];
 
@@ -132,12 +132,12 @@ if (!$current_user_id) {
                     ];
                 }
 
-                // 4.3 ดึงข้อมูล Outcomes (สิ่งที่เรียนรู้/Connected Skills)
+                // 4.3 ดึงข้อมูล Outcomes (Connected Skills)
                 $stmt_out = $pdo->prepare("SELECT * FROM outcomes WHERE course_id = ?");
                 $stmt_out->execute([$active_course_id]);
                 $outcomes = $stmt_out->fetchAll(PDO::FETCH_ASSOC);
 
-                // 4.4 ดึงข้อมูล Prereq (ความรู้พื้นฐาน)
+                // 4.4 ดึงข้อมูล Prereq
                 $stmt_pre = $pdo->prepare("SELECT * FROM prereq WHERE course_id = ?");
                 $stmt_pre->execute([$active_course_id]);
                 $prereqs = $stmt_pre->fetchAll(PDO::FETCH_ASSOC);
@@ -185,12 +185,12 @@ $has_lab = $total_lab_count > 0;
 $has_skills = !empty($outcomes);
 
 $checklist_items = [
-    'cover' => ['label' => 'รูปหน้าปกคอร์ส', 'status' => $has_cover],
-    'desc'  => ['label' => 'คำอธิบายวิชา', 'status' => $has_desc],
+    'cover'   => ['label' => 'รูปหน้าปกคอร์ส', 'status' => $has_cover],
+    'desc'    => ['label' => 'คำอธิบายวิชา', 'status' => $has_desc],
     'lessons' => ['label' => 'บทเรียนย่อย', 'status' => $has_lessons],
-    'cert'  => ['label' => 'ใบรับรองจบ', 'status' => $has_cert],
-    'lab'   => ['label' => 'Coding Lab', 'status' => $has_lab],
-    'skills'=> ['label' => 'Skill Map', 'status' => $has_skills],
+    'cert'    => ['label' => 'ใบรับรองจบ', 'status' => $has_cert],
+    'lab'     => ['label' => 'Coding Lab', 'status' => $has_lab],
+    'skills'  => ['label' => 'Skill Map', 'status' => $has_skills],
 ];
 
 $passed_count = 0;
@@ -456,13 +456,13 @@ $can_publish = ($has_lessons && count($chapters) > 0);
 
             <!-- แผงเครื่องมือหลัก: ปรับ Visual Hierarchy -->
             <div class="action-bar-container mb-4 p-3 rounded-4 bg-dark bg-opacity-40 border border-secondary border-opacity-10">
-                <!-- กลุ่มปุ่ม輔助 (Auxiliary / Secondary Actions) -->
+                <!-- กลุ่มปุ่ม Secondary Actions -->
                 <div class="action-btn-group-secondary">
                     <button class="btn btn-sm btn-outline-cyan text-white" onclick="openAIConfigModal()"><i class="bi bi-cpu text-purple me-1"></i> AI Assistant</button>
                     <button class="btn btn-sm btn-outline-light text-white" data-bs-toggle="modal" data-bs-target="#importExportModal"><i class="bi bi-arrow-left-right me-1"></i> Import/Export</button>
                     <button class="btn btn-sm btn-outline-purple text-white" onclick="toggleCollaborators()"><i class="bi bi-people me-1"></i> Collab</button>
                 </div>
-                <!-- กลุ่มปุ่มหลัก (Primary Actions: Clear Hierarchy) -->
+                <!-- กลุ่มปุ่ม Primary Actions -->
                 <div class="action-btn-group-primary">
                     <button class="btn btn-sm btn-outline-info text-white" onclick="triggerAction('preview')"><i class="bi bi-eye-fill me-1"></i> Preview</button>
                     <button class="btn btn-sm btn-warning text-dark fw-bold" onclick="runQualityValidation()"><i class="bi bi-shield-check me-1"></i> Validate</button>
@@ -499,7 +499,7 @@ $can_publish = ($has_lessons && count($chapters) > 0);
                                             <input type="text" class="chapter-title-input" value="<?= htmlspecialchars($chap['title']) ?>">
                                         </div>
                                         <div class="d-flex align-items-center gap-1 flex-shrink-0">
-                                            <!-- P1 Improvement: Header Inline Quick-Add Button -->
+                                            <!-- Header Inline Quick-Add Button -->
                                             <button type="button" class="btn btn-xs btn-outline-cyan text-white px-2 py-1" style="font-size: 0.75rem;" onclick="openAddLessonModal(this)" title="เพิ่มบทเรียนย่อยใน Chapter นี้">
                                                 <i class="bi bi-plus-lg me-1"></i>เพิ่มบทเรียน
                                             </button>
@@ -541,7 +541,7 @@ $can_publish = ($has_lessons && count($chapters) > 0);
                                                 </div>
                                             <?php endforeach; ?>
                                         <?php else: ?>
-                                            <!-- P1 Improvement: Interactive Empty State Card -->
+                                            <!-- Interactive Empty State Card -->
                                             <div class="empty-chapter-box">
                                                 <i class="bi bi-journal-plus text-cyan fs-3 d-block mb-1"></i>
                                                 <div class="text-white-50 small mb-2">ยังไม่มีบทเรียนย่อยใน Chapter นี้</div>
@@ -802,8 +802,6 @@ $can_publish = ($has_lessons && count($chapters) > 0);
 <script>
     let targetChapCardForNewLesson = null;
     let currentEditLessonEl = null;
-    
-    // P0 UX Improvement: Unsaved State Tracking
     let isFormDirty = false;
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -836,7 +834,6 @@ $can_publish = ($has_lessons && count($chapters) > 0);
         }
     }
 
-    // P0 UX Guard: สลับคอร์สปลอดภัย ไม่ให้ข้อมูลหาย
     function safeNavigateCourse(courseId) {
         if (isFormDirty) {
             LevelUpAlert.confirm({
@@ -967,7 +964,6 @@ $can_publish = ($has_lessons && count($chapters) > 0);
                 const targetZone = $(btn).closest('.lessons-sortable-zone');
                 $(btn).closest('.lesson-item').remove();
                 
-                // หากลบจนหมด ให้คืนค่า Empty State Box
                 if (targetZone.find('.lesson-item').length === 0) {
                     targetZone.html(`
                         <div class="empty-chapter-box">
@@ -1077,7 +1073,6 @@ $can_publish = ($has_lessons && count($chapters) > 0);
         $('#cnt-quiz').text(quizCount);
         $('#cnt-lab').text(labCount);
 
-        // Update Dynamic Live Checklist Badge for Lessons
         if (lessonCount > 0) {
             $('#chk-item-lessons').html('<i class="bi bi-check-circle-fill text-success me-1"></i> บทเรียนย่อย (' + lessonCount + ')');
         } else {
@@ -1091,7 +1086,6 @@ $can_publish = ($has_lessons && count($chapters) > 0);
         }
     }
 
-    // Dynamic Live Publish Readiness Function
     function updatePublishReadiness() {
         const hasChapters = $('#course-chapters-root .chapter-card').length > 0;
         const lessonCount = $('.lesson-item').length;
