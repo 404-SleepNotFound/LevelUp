@@ -1,5 +1,6 @@
 ﻿<?php
-$ROOT_PATH = '../';
+// [แก้ไข]: เปลี่ยน ROOT_PATH ให้ชี้จาก Root Web (Absolute Path) เพื่อป้องกันปัญหา CSS/JS หาไม่พบเมื่อเปลี่ยน URL
+$ROOT_PATH = '/';
 
 // [1. Security Framework & Session Verification]
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
@@ -336,8 +337,8 @@ if (!empty($lesson['virtual_lab_config'])) {
 }
 ?>
 
-<!-- Import Custom Dropdown Select Stylesheet -->
-<link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css">
+<!-- Import Custom Dropdown Select Stylesheet (ใช้อ้างอิงจาก Root Direct Path) -->
+<link rel="stylesheet" href="/css/dropdown-select.css">
 
 <style>
     /* Scope Editor Styles ให้เข้ากับ Premium Dark/Light Theme */
@@ -525,7 +526,7 @@ if (!empty($lesson['virtual_lab_config'])) {
         background: var(--nav-dropdown-hover-bg, rgba(255, 255, 255, 0.08));
     }
 
-    /* ☀️ LIGHT MODE OVERRIDES */
+    /* LIGHT MODE OVERRIDES */
     html[data-theme="light"] .editor-subtitle,
     html[data-theme="light"] .editor-container .text-muted,
     html[data-theme="light"] .editor-container p.text-muted,
@@ -659,7 +660,7 @@ if (!empty($lesson['virtual_lab_config'])) {
         </div>
 
         <!-- ==========================================
-             ⭐ FEATURE 1: BLOCK-BASED LESSON BUILDER
+             FEATURE 1: BLOCK-BASED LESSON BUILDER
              ========================================== -->
         <div class="editor-section-card border border-info border-opacity-20">
             <div class="section-title text-cyan">
@@ -770,7 +771,7 @@ if (!empty($lesson['virtual_lab_config'])) {
                                     <?= htmlspecialchars($att['file_name']) ?>
                                     <small class="text-muted ms-2">(<?= round($att['file_size']/1024, 1) ?> KB)</small>
                                 </div>
-                                <a href="<?= $ROOT_PATH . htmlspecialchars($att['file_path']) ?>" class="btn btn-xs btn-outline-info" target="_blank">ดาวน์โหลด</a>
+                                <a href="/<?= htmlspecialchars($att['file_path']) ?>" class="btn btn-xs btn-outline-info" target="_blank">ดาวน์โหลด</a>
                             </li>
                         <?php endforeach; ?>
                     </ul>
@@ -944,7 +945,7 @@ if (!empty($lesson['virtual_lab_config'])) {
         </div>
 
         <!-- ==========================================
-             ⭐ FEATURE 2 & 11: AI LESSON ASSISTANT & QUALITY CHECKER
+             FEATURE 2 & 11: AI LESSON ASSISTANT & QUALITY CHECKER
              ========================================== -->
         <div class="editor-section-card border border-purple bg-purple bg-opacity-5" style="border: 1px solid rgba(168, 85, 247, 0.25);">
             <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-20 pb-2 mb-3">
@@ -1087,7 +1088,7 @@ if (!empty($lesson['virtual_lab_config'])) {
 <!-- JQUERY & EVENT ENGINE ACTIONS CONTROL -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    // [แก้ไขปัญหาการเลือกคอร์สไม่เปลี่ยนหน้า]: ใช้ Event Delegation เพื่อรับค่า Change จาก Custom Dropdown และเคลียร์ lesson_id ออกจาก URL
+    // [แก้ไข]: Event Listener ป้องกันปัญหา Parameter ซ้อนกัน
     $(document).on('change', 'select[name="course_id"]', function() {
         var courseId = $(this).val();
         if (courseId) {
@@ -1202,5 +1203,5 @@ if (!empty($lesson['virtual_lab_config'])) {
     }
 </script>
 
-<!-- Import Dropdown Select Script -->
-<script src="<?= $ROOT_PATH ?>js/lu-dropdown.js" defer></script>
+<!-- Import Dropdown Select Script (ใช้อ้างอิงจาก Root Direct Path) -->
+<script src="/js/lu-dropdown.js" defer></script>
