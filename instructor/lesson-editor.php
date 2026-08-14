@@ -338,7 +338,7 @@ if (!empty($lesson['virtual_lab_config'])) {
 ?>
 
 <!-- Import Custom Dropdown Select Stylesheet (ใช้อ้างอิงจาก Root Direct Path) -->
-<link rel="stylesheet" href="/css/dropdown-select.css">
+<link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css">
 
 <style>
     /* Scope Editor Styles ให้เข้ากับ Premium Dark/Light Theme */
@@ -1085,8 +1085,10 @@ if (!empty($lesson['virtual_lab_config'])) {
     </div>
 </div>
 
-<!-- JQUERY & EVENT ENGINE ACTIONS CONTROL -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- EVENT ENGINE ACTIONS CONTROL -->
+<!-- [แก้ไข]: เอา jQuery ที่โหลดซ้ำออก เพราะ Layout หลักของเว็บโหลด jQuery ให้อยู่แล้ว
+     (เหมือน course-builder.php ที่ไม่ได้โหลด jQuery ของตัวเอง) การโหลดซ้ำจะไปทับ instance เดิม
+     ของ jQuery ที่ lu-dropdown.js ผูก plugin ไว้อยู่แล้ว ทำให้ widget dropdown พังตอนมี interaction -->
 <script>
     // [แก้ไข]: Event Listener ป้องกันปัญหา Parameter ซ้อนกัน
     $(document).on('change', 'select[name="course_id"]', function() {
@@ -1204,4 +1206,4 @@ if (!empty($lesson['virtual_lab_config'])) {
 </script>
 
 <!-- Import Dropdown Select Script (ใช้อ้างอิงจาก Root Direct Path) -->
-<script src="/js/lu-dropdown.js" defer></script>
+<script src="<?= $ROOT_PATH ?>js/lu-dropdown.js" defer></script>
