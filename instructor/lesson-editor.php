@@ -5,10 +5,8 @@ $ROOT_PATH = '../';
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
 // [2. Database Connection]
-// ปรับเปลี่ยน path ไฟล์เชื่อมต่อ DB ตามโครงสร้างโปรเจกต์ของคุณ เช่น config/db.php หรือ includes/db.php
 require_once __DIR__ . '/../config/db.php'; 
 
-// ตรวจสอบการเชื่อมต่อ Database ($conn หรือ $pdo)
 if (!isset($conn) && isset($pdo)) {
     $conn = $pdo;
 }
@@ -218,7 +216,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     if ($action === 'ai_assistant') {
         $mode = $_POST['mode'] ?? 'content';
         $responses = [
-            'content'   => '### เนื้อหาตัวอย่างที่สร้างโดย AI Copilot\n- การใช้ `let` และ `const` ใน JavaScript ES6+\n- ความแตกต่างระหว่าง Block Scope และ Function Scope',
+            'content'   => "### เนื้อหาตัวอย่างที่สร้างโดย AI Copilot\n- การใช้ `let` และ `const` ใน JavaScript ES6+\n- ความแตกต่างระหว่าง Block Scope และ Function Scope",
             'summarize' => 'สรุปสำคัญ: บทเรียนนี้มุ่งเน้นความเข้าใจขอบเขตของตัวแปรเพื่อป้องกันปัญหา Memory Leak และ Scope Pollution',
             'language'  => 'ปรับแก้ภาษาให้อ่านเข้าใจง่ายและกระชับ เรียบร้อยแล้ว',
             'spell'     => 'ตรวจสอบคำผิดเรียบร้อย ไม่พบคำผิดในเนื้อหาปัจจุบัน',
@@ -244,7 +242,9 @@ $versions = [];
 if ($conn instanceof PDO) {
     // 1. ดึงรายการ Course ทั้งหมด
     $cStmt = $conn->query("SELECT id, title FROM course ORDER BY id DESC");
-    $courses = $cStmt->fetchAll(PDO::FETCH_ASSOC);
+    if ($cStmt) {
+        $courses = $cStmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
     // 2. ดึงข้อมูลบทเรียนเดิม (ถ้ามี lesson_id)
     if ($lesson_id > 0) {
