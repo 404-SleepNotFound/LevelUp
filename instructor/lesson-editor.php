@@ -337,7 +337,11 @@ if (!empty($lesson['virtual_lab_config'])) {
 }
 ?>
 
-<!-- Import Custom Dropdown Select Stylesheet (ใช้อ้างอิงจาก Root Direct Path) -->
+<!-- Import SweetAlert2 & LevelUp SweetAlert Utility -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="<?= $ROOT_PATH ?>js/levelup-sweetalert.js" defer></script>
+
+<!-- Import Custom Dropdown Select Stylesheet -->
 <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css">
 
 <style>
@@ -845,7 +849,7 @@ if (!empty($lesson['virtual_lab_config'])) {
                     </select>
                 </div>
                 <div class="col-md-3 d-flex align-items-end">
-                    <button type="button" class="btn btn-success w-100 fw-medium" style="min-height: 46px;" onclick="alert('ระบบกำลังเปิด Modal สร้างควิซใหม่...')"><i class="bi bi-plus-lg"></i> สร้าง Quiz ใหม่</button>
+                    <button type="button" class="btn btn-success w-100 fw-medium" style="min-height: 46px;" onclick="LevelUpAlert.info('Quiz Builder', 'ระบบกำลังเปิด Modal สร้างควิซใหม่...')"><i class="bi bi-plus-lg"></i> สร้าง Quiz ใหม่</button>
                 </div>
             </div>
         </div>
@@ -866,8 +870,8 @@ if (!empty($lesson['virtual_lab_config'])) {
                     </select>
                 </div>
                 <div class="col-md-6 d-flex align-items-end gap-2">
-                    <button type="button" class="btn btn-dark border border-secondary w-50" style="min-height: 46px;" onclick="alert('เพิ่มไอเทมแล็บลงแผนบทเรียนเรียบร้อย')"><i class="bi bi-link-45deg"></i> ผูกมัดเชื่อม Lab ที่เลือก</button>
-                    <button type="button" class="btn btn-outline-info w-50" style="min-height: 46px;" onclick="alert('เปลี่ยนเส้นทางไปโมดูล Lab Builder...')"><i class="bi bi-magic"></i> สร้าง Lab ใหม่เข้าคลัง</button>
+                    <button type="button" class="btn btn-dark border border-secondary w-50" style="min-height: 46px;" onclick="LevelUpAlert.success('เชื่อมต่อแล้ว', 'เพิ่มไอเทมแล็บลงแผนบทเรียนเรียบร้อย')"><i class="bi bi-link-45deg"></i> ผูกมัดเชื่อม Lab ที่เลือก</button>
+                    <button type="button" class="btn btn-outline-info w-50" style="min-height: 46px;" onclick="LevelUpAlert.info('Lab Builder', 'เปลี่ยนเส้นทางไปโมดูล Lab Builder...')"><i class="bi bi-magic"></i> สร้าง Lab ใหม่เข้าคลัง</button>
                 </div>
             </div>
         </div>
@@ -1037,7 +1041,7 @@ if (!empty($lesson['virtual_lab_config'])) {
                     <?php else: ?>
                         <span class="editor-subtitle">v1.0 (แบบร่างเริ่มต้น)</span>
                     <?php endif; ?>
-                    <a href="#" class="text-cyan text-decoration-none fw-bold" onclick="alert('กู้คืนข้อมูลแบบร่างเสร็จสมบูรณ์!')"><i class="bi bi-arrow-counterclockwise"></i> Restore Version นี้</a>
+                    <a href="#" class="text-cyan text-decoration-none fw-bold" onclick="LevelUpAlert.success('กู้คืนเวอร์ชัน', 'กู้คืนข้อมูลแบบร่างเสร็จสมบูรณ์!')"><i class="bi bi-arrow-counterclockwise"></i> Restore Version นี้</a>
                 </div>
             </div>
         </div>
@@ -1087,14 +1091,13 @@ if (!empty($lesson['virtual_lab_config'])) {
 
 <!-- EVENT ENGINE ACTIONS CONTROL -->
 <script>
-    // [แก้ไข]: Event Listener รองรับทั้ง AJAX Single Page App และ Direct Navigation
+    // Event Listener รองรับทั้ง AJAX Single Page App และ Direct Navigation
     $(document).off('change', 'select[name="course_id"]').on('change', 'select[name="course_id"]', function() {
         var courseId = $(this).val();
         var targetUrl = 'lesson-editor.php' + (courseId ? '?course_id=' + courseId : '');
 
         // ตรวจสอบว่าหน้าเว็บรันอยู่ใน AJAX Placeholder ของ instructor.php หรือไม่
         if ($('#studio-content-placeholder').length > 0) {
-            // โหลดเนื้อหาใหม่ผ่าน AJAX เพื่อคง Layout/CSS ของ instructor.php ไว้
             $('#studio-content-placeholder').html(`
                 <div class="ajax-loader">
                     <div class="spinner-border text-info mb-3" style="width: 2rem; height: 2rem;" role="status"></div>
@@ -1108,23 +1111,27 @@ if (!empty($lesson['virtual_lab_config'])) {
                 success: function(response) {
                     $('#studio-content-placeholder').hide().html(response).fadeIn(250);
                 },
-                error: function() {
-                    alert('เกิดข้อผิดพลาดในการโหลดข้อมูลบทเรียน');
+                error: function(xhr, status, error) {
+                    LevelUpAlert.ajaxError(xhr, status, error);
                 }
             });
         } else {
-            // หากเปิดแบบ Standalone นอก AJAX ให้เปลี่ยน URL ตามปกติ
             window.location.href = targetUrl;
         }
     });
 
     function triggerAIAction(mode) {
+        LevelUpAlert.aiLoading('AI Assistant', '🤖 กำลังประมวลผลคำสั่งจาก AI Engine...');
         $.post('lesson-editor.php', { action: 'ai_assistant', mode: mode }, function(res) {
+            LevelUpAlert.close();
             if (res.status === 'success') {
-                alert('🤖 [AI Response]: ' + res.data);
+                LevelUpAlert.info('🤖 AI Copilot Response', res.data);
+            } else {
+                LevelUpAlert.error('เกิดข้อผิดพลาด', res.message);
             }
-        }, 'json').fail(function() {
-            alert('เรียกใช้ AI Engine สำเร็จ (โหมดจำลอง)');
+        }, 'json').fail(function(xhr, status, error) {
+            LevelUpAlert.close();
+            LevelUpAlert.ajaxError(xhr, status, error);
         });
     }
 
@@ -1133,9 +1140,19 @@ if (!empty($lesson['virtual_lab_config'])) {
         var formData = new FormData(form);
 
         if (type === 'delete') {
-            if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการลบบทเรียนนี้? การกระทำนี้ไม่สามารถย้อนกลับได้')) return;
-            formData.set('action', 'delete_lesson');
-        } else if (type === 'unpublish') {
+            LevelUpAlert.deleteConfirm({
+                title: 'ต้องการลบบทเรียนนี้ใช่หรือไม่?',
+                text: 'การกระทำนี้จะไม่สามารถย้อนกลับได้!'
+            }).then((isConfirmed) => {
+                if (isConfirmed) {
+                    formData.set('action', 'delete_lesson');
+                    submitLessonFormData(formData, type);
+                }
+            });
+            return;
+        }
+
+        if (type === 'unpublish') {
             formData.set('action', 'unpublish_lesson');
         } else if (type === 'save_draft') {
             formData.set('action', 'save_lesson');
@@ -1145,6 +1162,11 @@ if (!empty($lesson['virtual_lab_config'])) {
             formData.set('status', 'published');
         }
 
+        submitLessonFormData(formData, type);
+    }
+
+    function submitLessonFormData(formData, type) {
+        LevelUpAlert.loading('กำลังประมวลผล...', 'กรุณารอสักครู่ระบบกำลังบันทึกข้อมูล');
         $.ajax({
             url: 'lesson-editor.php',
             type: 'POST',
@@ -1153,24 +1175,28 @@ if (!empty($lesson['virtual_lab_config'])) {
             contentType: false,
             dataType: 'json',
             success: function(res) {
+                LevelUpAlert.close();
                 if (res.status === 'success') {
-                    alert(res.message);
+                    LevelUpAlert.success('สำเร็จ!', res.message);
                     if (res.lesson_id) {
                         $('#lesson_id_input').val(res.lesson_id);
                     }
                     if (type === 'delete') {
-                        if ($('#studio-content-placeholder').length > 0) {
-                            window.location.reload();
-                        } else {
-                            window.location.href = 'instructor.php';
-                        }
+                        setTimeout(() => {
+                            if ($('#studio-content-placeholder').length > 0) {
+                                window.location.reload();
+                            } else {
+                                window.location.href = 'instructor.php';
+                            }
+                        }, 1200);
                     }
                 } else {
-                    alert('⚠️ ' + res.message);
+                    LevelUpAlert.error('แจ้งเตือน', res.message);
                 }
             },
-            error: function() {
-                alert('ส่งข้อมูลสำเร็จ');
+            error: function(xhr, status, error) {
+                LevelUpAlert.close();
+                LevelUpAlert.ajaxError(xhr, status, error);
             }
         });
     }
@@ -1188,6 +1214,7 @@ if (!empty($lesson['virtual_lab_config'])) {
             </div>
         `;
         $('#block-builder-stage').append(blockElementHtml);
+        LevelUpAlert.toast(`เพิ่ม ${blockType.toUpperCase()} Block เรียบร้อยแล้ว`, 'success');
     }
 
     function formatDoc(cmd, value = null) {
@@ -1199,7 +1226,7 @@ if (!empty($lesson['virtual_lab_config'])) {
         if (url) {
             window.open(url, '_blank');
         } else {
-            alert('ยังไม่มีการระบุ Embed Link วิดีโอภายนอก');
+            LevelUpAlert.warning('ไม่พบข้อมูล', 'ยังไม่มีการระบุ Embed Link วิดีโอภายนอก');
         }
     }
 
@@ -1207,13 +1234,14 @@ if (!empty($lesson['virtual_lab_config'])) {
         var copyText = document.getElementById("code_snippet_area");
         copyText.select();
         document.execCommand("copy");
-        alert("คัดลอกซอร์สโค้ดเรียบร้อยแล้ว!");
+        LevelUpAlert.copied('โค้ดตัวอย่าง');
     }
 
     function insertInteractive(type) {
         var snippet = "\n<!-- Interactive: " + type + " -->\n<div class='interactive-" + type + "'>[ Insert " + type + " Content Here ]</div>\n";
         var currentVal = $('#main_lesson_content').val();
         $('#main_lesson_content').val(currentVal + snippet);
+        LevelUpAlert.toast(`แทรก ${type} เรียบร้อยแล้ว`, 'info');
     }
 
     function updateLivePreviewModal() {
@@ -1227,5 +1255,5 @@ if (!empty($lesson['virtual_lab_config'])) {
     }
 </script>
 
-<!-- Import Dropdown Select Script (ใช้อ้างอิงจาก Root Direct Path) -->
+<!-- Import Dropdown Select Script -->
 <script src="<?= $ROOT_PATH ?>js/lu-dropdown.js" defer></script>
