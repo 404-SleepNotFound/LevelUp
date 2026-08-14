@@ -192,6 +192,10 @@ function getEmbedUrl($url)
 include_once $ROOT_PATH . 'includes/header.php';
 ?>
 
+<!-- โหลด CSS และ JS สำหรับ Custom Dropdown Select -->
+<link rel="stylesheet" href="css/dropdown-select.css">
+<script src="js/lu-dropdown.js" defer></script>
+
     <!-- 1. Hero Section (ปรับปรุงสีให้เข้ากับ Theme) -->
     <section class="course-hero py-4 py-lg-5 position-relative overflow-hidden">
         <div class="container-xl position-relative z-1">
