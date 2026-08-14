@@ -1086,17 +1086,35 @@ if (!empty($lesson['virtual_lab_config'])) {
 </div>
 
 <!-- EVENT ENGINE ACTIONS CONTROL -->
-<!-- [แก้ไข]: เอา jQuery ที่โหลดซ้ำออก เพราะ Layout หลักของเว็บโหลด jQuery ให้อยู่แล้ว
-     (เหมือน course-builder.php ที่ไม่ได้โหลด jQuery ของตัวเอง) การโหลดซ้ำจะไปทับ instance เดิม
-     ของ jQuery ที่ lu-dropdown.js ผูก plugin ไว้อยู่แล้ว ทำให้ widget dropdown พังตอนมี interaction -->
 <script>
-    // [แก้ไข]: Event Listener ป้องกันปัญหา Parameter ซ้อนกัน
-    $(document).on('change', 'select[name="course_id"]', function() {
+    // [แก้ไข]: Event Listener รองรับทั้ง AJAX Single Page App และ Direct Navigation
+    $(document).off('change', 'select[name="course_id"]').on('change', 'select[name="course_id"]', function() {
         var courseId = $(this).val();
-        if (courseId) {
-            window.location.href = 'lesson-editor.php?course_id=' + courseId;
+        var targetUrl = 'lesson-editor.php' + (courseId ? '?course_id=' + courseId : '');
+
+        // ตรวจสอบว่าหน้าเว็บรันอยู่ใน AJAX Placeholder ของ instructor.php หรือไม่
+        if ($('#studio-content-placeholder').length > 0) {
+            // โหลดเนื้อหาใหม่ผ่าน AJAX เพื่อคง Layout/CSS ของ instructor.php ไว้
+            $('#studio-content-placeholder').html(`
+                <div class="ajax-loader">
+                    <div class="spinner-border text-info mb-3" style="width: 2rem; height: 2rem;" role="status"></div>
+                    <div class="fw-medium inst-text-muted" style="font-size:0.9rem;">กำลังโหลดข้อมูลบทเรียน...</div>
+                </div>
+            `);
+            $.ajax({
+                url: targetUrl,
+                type: 'GET',
+                dataType: 'html',
+                success: function(response) {
+                    $('#studio-content-placeholder').hide().html(response).fadeIn(250);
+                },
+                error: function() {
+                    alert('เกิดข้อผิดพลาดในการโหลดข้อมูลบทเรียน');
+                }
+            });
         } else {
-            window.location.href = 'lesson-editor.php';
+            // หากเปิดแบบ Standalone นอก AJAX ให้เปลี่ยน URL ตามปกติ
+            window.location.href = targetUrl;
         }
     });
 
@@ -1141,7 +1159,11 @@ if (!empty($lesson['virtual_lab_config'])) {
                         $('#lesson_id_input').val(res.lesson_id);
                     }
                     if (type === 'delete') {
-                        window.location.href = 'instructor.php';
+                        if ($('#studio-content-placeholder').length > 0) {
+                            window.location.reload();
+                        } else {
+                            window.location.href = 'instructor.php';
+                        }
                     }
                 } else {
                     alert('⚠️ ' + res.message);
