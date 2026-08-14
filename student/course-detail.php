@@ -379,8 +379,10 @@ include_once $ROOT_PATH . 'includes/header.php';
                                     <h2 class="accordion-header" id="heading<?= $index ?>">
                                         <button class="accordion-button <?= $index != 0 ? 'collapsed' : '' ?> bg-transparent fw-bold text-main shadow-none"
                                             type="button"
+                                            data-bs-toggle="collapse"
                                             data-bs-target="#collapse<?= $index ?>"
-                                            aria-expanded="<?= $index == 0 ? 'true' : 'false' ?>">
+                                            aria-expanded="<?= $index == 0 ? 'true' : 'false' ?>"
+                                            aria-controls="collapse<?= $index ?>">
                                             <div class="flex-grow-1 d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center me-3 gap-1">
                                                 <span>Section <?= $index + 1 ?>: <?= $sec ?></span>
                                                 <span class="fw-normal text-muted small"><i class="bi bi-clock me-1"></i>5 บทเรียน</span>
@@ -574,6 +576,38 @@ include_once $ROOT_PATH . 'includes/header.php';
             </div>
         </div>
     </section>
+
+    <!-- Script สำหรับควบคุมการ กางออกทั้งหมด / หุบทั้งหมด ของ Accordion -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const btnExpandAll = document.getElementById('btnExpandAll');
+        const accordionItems = document.querySelectorAll('#curriculumAccordion .accordion-collapse');
+        const accordionButtons = document.querySelectorAll('#curriculumAccordion .accordion-button');
+
+        if (btnExpandAll) {
+            let isExpanded = false;
+
+            btnExpandAll.addEventListener('click', function () {
+                isExpanded = !isExpanded;
+
+                accordionItems.forEach((item, index) => {
+                    const bsCollapse = bootstrap.Collapse.getOrCreateInstance(item, { toggle: false });
+                    const btn = accordionButtons[index];
+
+                    if (isExpanded) {
+                        bsCollapse.show();
+                        if (btn) btn.classList.remove('collapsed');
+                    } else {
+                        bsCollapse.hide();
+                        if (btn) btn.classList.add('collapsed');
+                    }
+                });
+
+                btnExpandAll.textContent = isExpanded ? 'หุบทั้งหมด' : 'กางออกทั้งหมด';
+            });
+        }
+    });
+    </script>
 
     <!-- Include Footer -->
     <?php include_once $ROOT_PATH . 'includes/footer.php'; ?>

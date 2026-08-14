@@ -412,6 +412,34 @@ $ROOT_PATH = $ROOT_PATH ?? '';
                 let randomTip = tips[Math.floor(Math.random() * tips.length)];
                 tipEl.innerText = randomTip;
             }
+
+            // 5. Expand / Collapse All Accordions Script
+            const btnExpandAll = document.getElementById('btnExpandAll');
+            const accordionItems = document.querySelectorAll('#curriculumAccordion .accordion-collapse');
+            const accordionButtons = document.querySelectorAll('#curriculumAccordion .accordion-button');
+
+            if (btnExpandAll) {
+                let isExpanded = false;
+
+                btnExpandAll.addEventListener('click', function () {
+                    isExpanded = !isExpanded;
+
+                    accordionItems.forEach((item, index) => {
+                        const bsCollapse = bootstrap.Collapse.getOrCreateInstance(item, { toggle: false });
+                        const btn = accordionButtons[index];
+
+                        if (isExpanded) {
+                            bsCollapse.show();
+                            if (btn) btn.classList.remove('collapsed');
+                        } else {
+                            bsCollapse.hide();
+                            if (btn) btn.classList.add('collapsed');
+                        }
+                    });
+
+                    btnExpandAll.textContent = isExpanded ? 'หุบทั้งหมด' : 'กางออกทั้งหมด';
+                });
+            }
         });
     </script>
 </body>
