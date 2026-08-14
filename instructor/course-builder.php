@@ -175,6 +175,30 @@ if (!empty($chapters)) {
         }
     }
 }
+
+// คำนวณ Completion Checklist State
+$has_cover = !empty($course['img']);
+$has_desc = !empty($course['full_description']);
+$has_lessons = $total_lessons_count > 0;
+$has_cert = !empty($course['certificate_type']);
+$has_lab = $total_lab_count > 0;
+$has_skills = !empty($outcomes);
+
+$checklist_items = [
+    'cover' => ['label' => 'รูปหน้าปกคอร์ส', 'status' => $has_cover],
+    'desc'  => ['label' => 'คำอธิบายวิชา', 'status' => $has_desc],
+    'lessons' => ['label' => 'บทเรียนย่อย', 'status' => $has_lessons],
+    'cert'  => ['label' => 'ใบรับรองจบ', 'status' => $has_cert],
+    'lab'   => ['label' => 'Coding Lab', 'status' => $has_lab],
+    'skills'=> ['label' => 'Skill Map', 'status' => $has_skills],
+];
+
+$passed_count = 0;
+foreach ($checklist_items as $item) {
+    if ($item['status']) $passed_count++;
+}
+$completion_percentage = round(($passed_count / count($checklist_items)) * 100);
+$can_publish = ($has_lessons && count($chapters) > 0);
 ?>
 
 <!-- Import SweetAlert2 Library & LevelUp Alert System Utility -->
@@ -286,11 +310,12 @@ if (!empty($chapters)) {
     .cb-input::placeholder { color: var(--text-muted); }
     .cb-input option { background: var(--cb-bg); color: var(--text-bright); }
 
+    /* Visual Hierarchy Action Bar */
     .action-bar-container { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }
-    .action-btn-group { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
-    
-    @media (min-width: 768px) { .action-btn-group { width: auto; } }
-    @media (max-width: 576px) { .action-btn-group .btn { flex-grow: 1; text-align: center; } }
+    .action-btn-group-primary { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .action-btn-group-secondary { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+    .empty-chapter-box { border: 2px dashed rgba(255, 255, 255, 0.15); border-radius: 10px; padding: 20px; text-align: center; background: rgba(0, 0, 0, 0.15); margin-top: 10px; }
 
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 </style>
@@ -331,7 +356,7 @@ if (!empty($chapters)) {
                 <div class="d-flex align-items-center gap-2 flex-wrap">
                     <i class="bi bi-journal-bookmark-fill text-cyan fs-5"></i>
                     <label class="text-white fw-bold me-2">รายการคอร์สของคุณ:</label>
-                    <select class="form-select cb-input lu-select" style="min-width: 260px; width: auto;" onchange="location.href='?course_id=' + this.value">
+                    <select class="form-select cb-input lu-select" style="min-width: 260px; width: auto;" onchange="safeNavigateCourse(this.value)">
                         <?php foreach ($all_courses as $c): ?>
                             <option value="<?= $c['id'] ?>" <?= ($course && $course['id'] == $c['id']) ? 'selected' : '' ?>>
                                 [ID: <?= $c['id'] ?>] <?= htmlspecialchars($c['title']) ?>
@@ -375,7 +400,7 @@ if (!empty($chapters)) {
                     <div>
                         <h4 class="fw-bold mb-1 text-white" id="cb-course-title"><?= htmlspecialchars($course['title']) ?></h4>
                         <div class="d-flex align-items-center gap-2 flex-wrap">
-                            <span class="badge bg-warning text-dark px-2 py-0.5 fw-bold" style="font-size: 0.7rem;">
+                            <span class="badge bg-warning text-dark px-2 py-0.5 fw-bold" style="font-size: 0.7rem;" id="course-visibility-badge">
                                 <i class="bi bi-file-earmark-lock"></i> <?= strtoupper($course['visibility'] ?? 'DRAFT') ?>
                             </span>
                             <?php if (!empty($course['category_name'])): ?>
@@ -383,7 +408,7 @@ if (!empty($chapters)) {
                                     <i class="bi bi-tag"></i> <?= htmlspecialchars($course['category_name']) ?>
                                 </span>
                             <?php endif; ?>
-                            <span class="text-white-50 small" style="font-size:0.75rem;">
+                            <span class="text-white-50 small" style="font-size:0.75rem;" id="auto-save-status">
                                 <i class="bi bi-clock-history"></i> Updated: <?= !empty($course['updated_at']) ? date('d/m/Y H:i', strtotime($course['updated_at'])) : 'Recently' ?>
                             </span>
                         </div>
@@ -418,10 +443,10 @@ if (!empty($chapters)) {
                         <div class="col-12 col-sm-6 col-md-3">
                             <div class="overview-pill flex-column align-items-start justify-content-center">
                                 <div class="d-flex justify-content-between w-100 text-white-50 small" style="font-size:0.65rem;">
-                                    <span>PROGRESS</span><span class="text-cyan fw-bold">100% Dynamic</span>
+                                    <span>READINESS</span><span class="text-cyan fw-bold" id="progress-percent-label"><?= $completion_percentage ?>%</span>
                                 </div>
                                 <div class="progress w-100 mt-1" style="height: 6px; background: rgba(255,255,255,0.05);">
-                                    <div class="progress-bar bg-info" style="width: 100%"></div>
+                                    <div class="progress-bar bg-info" id="course-progress-bar" style="width: <?= $completion_percentage ?>%"></div>
                                 </div>
                             </div>
                         </div>
@@ -429,18 +454,27 @@ if (!empty($chapters)) {
                 </div>
             </div>
 
-            <!-- แผงเครื่องมือหลัก -->
+            <!-- แผงเครื่องมือหลัก: ปรับ Visual Hierarchy -->
             <div class="action-bar-container mb-4 p-3 rounded-4 bg-dark bg-opacity-40 border border-secondary border-opacity-10">
-                <div class="action-btn-group mb-2 mb-md-0">
+                <!-- กลุ่มปุ่ม輔助 (Auxiliary / Secondary Actions) -->
+                <div class="action-btn-group-secondary">
                     <button class="btn btn-sm btn-outline-cyan text-white" onclick="openAIConfigModal()"><i class="bi bi-cpu text-purple me-1"></i> AI Assistant</button>
                     <button class="btn btn-sm btn-outline-light text-white" data-bs-toggle="modal" data-bs-target="#importExportModal"><i class="bi bi-arrow-left-right me-1"></i> Import/Export</button>
                     <button class="btn btn-sm btn-outline-purple text-white" onclick="toggleCollaborators()"><i class="bi bi-people me-1"></i> Collab</button>
                 </div>
-                <div class="action-btn-group">
-                    <button class="btn btn-sm btn-secondary text-white" onclick="triggerAction('save')"><i class="bi bi-hdd-fill me-1"></i> Save Draft</button>
-                    <button class="btn btn-sm btn-info text-white" onclick="triggerAction('preview')"><i class="bi bi-eye-fill me-1"></i> Preview</button>
+                <!-- กลุ่มปุ่มหลัก (Primary Actions: Clear Hierarchy) -->
+                <div class="action-btn-group-primary">
+                    <button class="btn btn-sm btn-outline-info text-white" onclick="triggerAction('preview')"><i class="bi bi-eye-fill me-1"></i> Preview</button>
                     <button class="btn btn-sm btn-warning text-dark fw-bold" onclick="runQualityValidation()"><i class="bi bi-shield-check me-1"></i> Validate</button>
-                    <button class="btn btn-sm btn-success text-white fw-bold" id="publish-btn" onclick="triggerAction('publish')" disabled><i class="bi bi-rocket-takeoff-fill me-1"></i> Publish</button>
+                    <button class="btn btn-sm btn-secondary text-white px-3" onclick="triggerAction('save')"><i class="bi bi-hdd-fill me-1"></i> Save Draft</button>
+                    
+                    <button class="btn btn-sm <?= $can_publish ? 'btn-success' : 'btn-secondary opacity-50' ?> text-white fw-bold px-3" id="publish-btn" onclick="triggerAction('publish')" <?= $can_publish ? '' : 'disabled' ?>>
+                        <?php if ($can_publish): ?>
+                            <i class="bi bi-rocket-takeoff-fill me-1"></i> เผยแพร่คอร์สเรียน
+                        <?php else: ?>
+                            <i class="bi bi-lock-fill me-1"></i> เพิ่มอย่างน้อย 1 บทเรียนเพื่อเผยแพร่
+                        <?php endif; ?>
+                    </button>
                 </div>
             </div>
 
@@ -464,10 +498,14 @@ if (!empty($chapters)) {
                                             <span class="fw-bold text-info flex-shrink-0 chap-label">Chapter <?= $index + 1 ?>:</span>
                                             <input type="text" class="chapter-title-input" value="<?= htmlspecialchars($chap['title']) ?>">
                                         </div>
-                                        <div class="d-flex gap-1 flex-shrink-0">
-                                            <button class="btn btn-link text-white-50 p-1 btn-sm" onclick="duplicateItem('Chapter', <?= $index + 1 ?>)"><i class="bi bi-copy"></i></button>
-                                            <button class="btn btn-link text-warning p-1 btn-sm" onclick="LevelUpAlert.toast('ซ่อนบทเรียนเรียบร้อยแล้ว', 'info')"><i class="bi bi-eye-slash"></i></button>
-                                            <button class="btn btn-link text-danger p-1 btn-sm" onclick="removeChapter(this)"><i class="bi bi-trash"></i></button>
+                                        <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                                            <!-- P1 Improvement: Header Inline Quick-Add Button -->
+                                            <button type="button" class="btn btn-xs btn-outline-cyan text-white px-2 py-1" style="font-size: 0.75rem;" onclick="openAddLessonModal(this)" title="เพิ่มบทเรียนย่อยใน Chapter นี้">
+                                                <i class="bi bi-plus-lg me-1"></i>เพิ่มบทเรียน
+                                            </button>
+                                            <button class="btn btn-link text-white-50 p-1 btn-sm" onclick="duplicateItem('Chapter', <?= $index + 1 ?>)" title="คัดลอก"><i class="bi bi-copy"></i></button>
+                                            <button class="btn btn-link text-warning p-1 btn-sm" onclick="LevelUpAlert.toast('ซ่อนบทเรียนเรียบร้อยแล้ว', 'info')" title="ซ่อน"><i class="bi bi-eye-slash"></i></button>
+                                            <button class="btn btn-link text-danger p-1 btn-sm" onclick="removeChapter(this)" title="ลบ"><i class="bi bi-trash"></i></button>
                                         </div>
                                     </div>
                                     
@@ -503,7 +541,14 @@ if (!empty($chapters)) {
                                                 </div>
                                             <?php endforeach; ?>
                                         <?php else: ?>
-                                            <div class="text-center py-3 text-muted small style-italic">ไม่มีบทเรียนย่อย กดเพิ่มข้อมูลด้านล่าง</div>
+                                            <!-- P1 Improvement: Interactive Empty State Card -->
+                                            <div class="empty-chapter-box">
+                                                <i class="bi bi-journal-plus text-cyan fs-3 d-block mb-1"></i>
+                                                <div class="text-white-50 small mb-2">ยังไม่มีบทเรียนย่อยใน Chapter นี้</div>
+                                                <button type="button" class="btn btn-xs btn-cyan text-white px-3 py-1" style="font-size:0.8rem;" onclick="openAddLessonModal(this)">
+                                                    <i class="bi bi-plus-circle-fill me-1"></i> เพิ่มบทเรียนแรกของคุณ
+                                                </button>
+                                            </div>
                                         <?php endif; ?>
                                     </div>
                                     <div class="mt-2 text-end">
@@ -552,7 +597,10 @@ if (!empty($chapters)) {
                     </div>
 
                     <div class="zone-container p-4">
-                        <h5 class="fw-bold text-white mb-2"><i class="bi bi-lock-fill text-warning me-2"></i> เงื่อนไขการข้ามบท (Unlock Flow)</h5>
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <h5 class="fw-bold text-white mb-0"><i class="bi bi-lock-fill text-warning me-2"></i> เงื่อนไขการข้ามบท (Unlock Flow)</h5>
+                            <i class="bi bi-info-circle text-white-50" data-bs-toggle="tooltip" data-bs-placement="top" title="บังคับให้ผู้เรียนต้องผ่านเนื้อหาตามลำดับก่อนปลดล็อกบทถัดไป"></i>
+                        </div>
                         <div class="p-3 rounded bg-dark bg-opacity-50 border border-secondary border-opacity-10 small">
                             <div class="form-check form-switch mb-2">
                                 <input class="form-check-input" type="checkbox" id="strict-flow" <?= (!isset($course['is_strict_flow']) || $course['is_strict_flow'] == 1) ? 'checked' : '' ?>>
@@ -590,7 +638,7 @@ if (!empty($chapters)) {
                 </div>
             </div>
 
-            <!-- AI Quality Score -->
+            <!-- AI Quality Score & Dynamic Readiness Checklist -->
             <div class="zone-container p-4 mt-3 mb-5" id="quality-checker-section">
                 <h5 class="fw-bold text-white mb-2"><i class="bi bi-patch-check-fill text-warning me-2"></i> AI Course Quality & Publish Checklist</h5>
                 
@@ -601,20 +649,36 @@ if (!empty($chapters)) {
                         <div class="text-warning small" id="quality-stars">⭐⭐⭐⭐⭐</div>
                     </div>
                     <div class="col-12 col-md-5 py-2">
-                        <div class="fw-bold text-white small mb-2"><i class="bi bi-list-task text-cyan me-1"></i> รายการตรวจสอบความสมบูรณ์หลักสูตร</div>
+                        <div class="fw-bold text-white small mb-2"><i class="bi bi-list-task text-cyan me-1"></i> รายการตรวจสอบความสมบูรณ์หลักสูตร (Live Checklist)</div>
                         <div class="row g-2 small text-white-50" id="checklist-results">
-                            <div class="col-6"><i class="bi <?= !empty($course['img']) ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger' ?> me-1"></i> รูปหน้าปกคอร์ส</div>
-                            <div class="col-6"><i class="bi <?= !empty($course['full_description']) ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger' ?> me-1"></i> คำอธิบายวิชา</div>
-                            <div class="col-6"><i class="bi <?= $total_lessons_count > 0 ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger' ?> me-1"></i> บทเรียนย่อย</div>
-                            <div class="col-6"><i class="bi <?= !empty($course['certificate_type']) ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger' ?> me-1"></i> ใบรับรองจบ</div>
-                            <div class="col-6"><i class="bi <?= $total_lab_count > 0 ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger' ?> me-1"></i> Coding Lab</div>
-                            <div class="col-6"><i class="bi <?= !empty($outcomes) ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger' ?> me-1"></i> Skill Map</div>
+                            <div class="col-6" id="chk-item-cover">
+                                <i class="bi <?= $has_cover ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger' ?> me-1"></i> รูปหน้าปกคอร์ส
+                            </div>
+                            <div class="col-6" id="chk-item-desc">
+                                <i class="bi <?= $has_desc ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger' ?> me-1"></i> คำอธิบายวิชา
+                            </div>
+                            <div class="col-6" id="chk-item-lessons">
+                                <i class="bi <?= $has_lessons ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger' ?> me-1"></i> บทเรียนย่อย
+                            </div>
+                            <div class="col-6" id="chk-item-cert">
+                                <i class="bi <?= $has_cert ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger' ?> me-1"></i> ใบรับรองจบ
+                            </div>
+                            <div class="col-6" id="chk-item-lab">
+                                <i class="bi <?= $has_lab ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger' ?> me-1"></i> Coding Lab
+                            </div>
+                            <div class="col-6" id="chk-item-skills">
+                                <i class="bi <?= $has_skills ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger' ?> me-1"></i> Skill Map
+                            </div>
                         </div>
                     </div>
                     <div class="col-12 col-md-4 py-2">
                         <div class="fw-bold text-purple small mb-1"><i class="bi bi-chat-square-dots-fill me-1"></i> ข้อเสนอแนะจาก AI Expert:</div>
                         <div class="p-2 rounded bg-black bg-opacity-30 small text-white-50" id="ai-suggestion-box" style="font-size:0.8rem; min-height: 65px;">
-                            กดปุ่ม "Validate" ด้านบน เพื่อให้ AI สแกนวิเคราะห์ระบบและคำนวณคะแนนเชิงคุณภาพให้ทันที
+                            <?php if ($can_publish): ?>
+                                ✨ <b>คอร์สเรียนมีโครงสร้างพื้นฐานครบถ้วนแล้ว!</b> คุณสามารถกด เผยแพร่คอร์ส หรือกด "Validate" เพื่อให้ AI สแกนวิเคราะห์คะแนนโดยละเอียด
+                            <?php else: ?>
+                                ⚠️ <b>คำแนะนำ:</b> กรุณาเพิ่มอย่างน้อย 1 Chapter และ 1 บทเรียนย่อยเพื่อให้ระบบพร้อมสำหรับเผยแพร่
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -738,11 +802,58 @@ if (!empty($chapters)) {
 <script>
     let targetChapCardForNewLesson = null;
     let currentEditLessonEl = null;
+    
+    // P0 UX Improvement: Unsaved State Tracking
+    let isFormDirty = false;
 
     document.addEventListener('DOMContentLoaded', () => {
         reindexLessons();
         recalculateStats();
+        updatePublishReadiness();
+
+        // ตรวจจับ Unsaved Changes ใน Form Inputs
+        $(document).on('change input', '.chapter-title-input, .cb-input, #modal-item-title', function() {
+            setDirtyState(true);
+        });
+
+        // เปิดใช้งาน Bootstrap Tooltips
+        if (typeof bootstrap !== 'undefined') {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
     });
+
+    function setDirtyState(dirty) {
+        isFormDirty = dirty;
+        if (dirty) {
+            $('#auto-save-status').html('<span class="text-warning"><i class="bi bi-pencil-fill me-1"></i> มีการแก้ไขที่ยังไม่ได้บันทึก</span>');
+        } else {
+            const now = new Date();
+            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            $('#auto-save-status').html('<i class="bi bi-check-circle-fill text-success me-1"></i> บันทึกล่าสุดเมื่อ ' + timeStr);
+        }
+    }
+
+    // P0 UX Guard: สลับคอร์สปลอดภัย ไม่ให้ข้อมูลหาย
+    function safeNavigateCourse(courseId) {
+        if (isFormDirty) {
+            LevelUpAlert.confirm({
+                title: 'คุณมีข้อมูลที่ยังไม่ได้บันทึก! ⚠️',
+                text: 'หากเปลี่ยนหน้าตอนนี้ ข้อมูลที่คุณแก้ไขล่าสุดจะสูญหาย คุณต้องการดำเนินการต่อหรือไม่?',
+                confirmText: 'เปลี่ยนหน้าโดยไม่บันทึก',
+                cancelText: 'ย้อนกลับไปบันทึก'
+            }).then((isConfirmed) => {
+                if (isConfirmed) {
+                    isFormDirty = false;
+                    location.href = '?course_id=' + courseId;
+                }
+            });
+        } else {
+            location.href = '?course_id=' + courseId;
+        }
+    }
 
     function openAIConfigModal() {
         var modalEl = document.getElementById('aiAssistantModal');
@@ -813,7 +924,7 @@ if (!empty($chapters)) {
 
         if (targetChapCardForNewLesson) {
             const targetZone = targetChapCardForNewLesson.find('.lessons-sortable-zone');
-            targetZone.find('.style-italic').remove();
+            targetZone.find('.empty-chapter-box').remove();
 
             const newLessonHtml = `
             <div class="lesson-item" data-type="${type}">
@@ -839,8 +950,10 @@ if (!empty($chapters)) {
             LevelUpAlert.toast('อัปเดตข้อมูลบทเรียนเรียบร้อยแล้ว', 'success');
         }
         
+        setDirtyState(true);
         reindexLessons();
         recalculateStats();
+        updatePublishReadiness();
         $('#lessonObjectModal').modal('hide');
     }
 
@@ -851,24 +964,51 @@ if (!empty($chapters)) {
             text: 'หากลบแล้วจะไม่สามารถกู้คืนข้อมูลได้'
         }).then((isConfirmed) => {
             if (isConfirmed) {
+                const targetZone = $(btn).closest('.lessons-sortable-zone');
                 $(btn).closest('.lesson-item').remove();
+                
+                // หากลบจนหมด ให้คืนค่า Empty State Box
+                if (targetZone.find('.lesson-item').length === 0) {
+                    targetZone.html(`
+                        <div class="empty-chapter-box">
+                            <i class="bi bi-journal-plus text-cyan fs-3 d-block mb-1"></i>
+                            <div class="text-white-50 small mb-2">ยังไม่มีบทเรียนย่อยใน Chapter นี้</div>
+                            <button type="button" class="btn btn-xs btn-cyan text-white px-3 py-1" style="font-size:0.8rem;" onclick="openAddLessonModal(this)">
+                                <i class="bi bi-plus-circle-fill me-1"></i> เพิ่มบทเรียนแรกของคุณ
+                            </button>
+                        </div>
+                    `);
+                }
+
+                setDirtyState(true);
                 reindexLessons();
                 recalculateStats();
+                updatePublishReadiness();
                 LevelUpAlert.toast('ลบบทเรียนย่อยเรียบร้อยแล้ว', 'success');
             }
         });
     }
 
     function removeChapter(btn) {
-        const chapTitle = $(btn).closest('.chapter-card').find('.chapter-title-input').val() || 'Chapter นี้';
+        const $card = $(btn).closest('.chapter-card');
+        const chapTitle = $card.find('.chapter-title-input').val() || 'Chapter นี้';
+        const lessonCountInChap = $card.find('.lesson-item').length;
+
+        let confirmText = ' Chapter นี้จะถูกลบออกจากโครงสร้าง';
+        if (lessonCountInChap > 0) {
+            confirmText = `⚠️ Chapter นี้มีบทเรียนย่อยอยู่ ${lessonCountInChap} รายการ ซึ่งจะถูกลบไปด้วยทั้งหมด`;
+        }
+
         LevelUpAlert.deleteConfirm({
             title: `ต้องการลบ "${chapTitle}" ใช่หรือไม่?`,
-            text: 'บทเรียนย่อยทั้งหมดภายใน Chapter นี้จะถูกลบไปด้วย'
+            text: confirmText
         }).then((isConfirmed) => {
             if (isConfirmed) {
-                $(btn).closest('.chapter-card').remove();
+                $card.remove();
+                setDirtyState(true);
                 reindexLessons();
                 recalculateStats();
+                updatePublishReadiness();
                 LevelUpAlert.toast('ลบ Chapter เรียบร้อยแล้ว', 'success');
             }
         });
@@ -883,16 +1023,25 @@ if (!empty($chapters)) {
                 <div class="chapter-title-area">
                     <i class="bi bi-grid-3x3-gap text-white-50 cursor-move fs-5 flex-shrink-0"></i>
                     <span class="fw-bold text-info flex-shrink-0 chap-label">Chapter ${chapCount}:</span>
-                    <input type="text" class="chapter-title-input" value="ชื่อบทเรียนย่อยใหม่">
+                    <input type="text" class="chapter-title-input" value="บทเรียนใหม่ Chapter ${chapCount}">
                 </div>
-                <div class="d-flex gap-1 flex-shrink-0">
-                    <button class="btn btn-link text-white-50 p-1 btn-sm" onclick="duplicateItem('Chapter', ${chapCount})"><i class="bi bi-copy"></i></button>
-                    <button class="btn btn-link text-warning p-1 btn-sm" onclick="LevelUpAlert.toast('ซ่อนบทเรียนเรียบร้อยแล้ว', 'info')"><i class="bi bi-eye-slash"></i></button>
-                    <button class="btn btn-link text-danger p-1 btn-sm" onclick="removeChapter(this)"><i class="bi bi-trash"></i></button>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                    <button type="button" class="btn btn-xs btn-outline-cyan text-white px-2 py-1" style="font-size: 0.75rem;" onclick="openAddLessonModal(this)" title="เพิ่มบทเรียนย่อยใน Chapter นี้">
+                        <i class="bi bi-plus-lg me-1"></i>เพิ่มบทเรียน
+                    </button>
+                    <button class="btn btn-link text-white-50 p-1 btn-sm" onclick="duplicateItem('Chapter', ${chapCount})" title="คัดลอก"><i class="bi bi-copy"></i></button>
+                    <button class="btn btn-link text-warning p-1 btn-sm" onclick="LevelUpAlert.toast('ซ่อนบทเรียนเรียบร้อยแล้ว', 'info')" title="ซ่อน"><i class="bi bi-eye-slash"></i></button>
+                    <button class="btn btn-link text-danger p-1 btn-sm" onclick="removeChapter(this)" title="ลบ"><i class="bi bi-trash"></i></button>
                 </div>
             </div>
             <div class="lessons-sortable-zone">
-                <div class="text-center py-3 text-muted small style-italic">ไม่มีบทเรียนย่อย กดเพิ่มข้อมูลด้านล่าง</div>
+                <div class="empty-chapter-box">
+                    <i class="bi bi-journal-plus text-cyan fs-3 d-block mb-1"></i>
+                    <div class="text-white-50 small mb-2">ยังไม่มีบทเรียนย่อยใน Chapter นี้</div>
+                    <button type="button" class="btn btn-xs btn-cyan text-white px-3 py-1" style="font-size:0.8rem;" onclick="openAddLessonModal(this)">
+                        <i class="bi bi-plus-circle-fill me-1"></i> เพิ่มบทเรียนแรกของคุณ
+                    </button>
+                </div>
             </div>
             <div class="mt-2 text-end">
                 <button type="button" class="btn btn-xs btn-outline-light text-white opacity-75" style="font-size:0.75rem;" onclick="openAddLessonModal(this)">+ เพิ่มวัตถุย่อย</button>
@@ -900,8 +1049,10 @@ if (!empty($chapters)) {
         </div>`;
         
         $('#course-chapters-root').append(newHtml);
+        setDirtyState(true);
         reindexLessons();
         recalculateStats();
+        updatePublishReadiness();
         LevelUpAlert.toast('เพิ่ม Chapter ใหม่แล้ว', 'success');
     }
 
@@ -925,6 +1076,41 @@ if (!empty($chapters)) {
         $('#cnt-less').text(lessonCount);
         $('#cnt-quiz').text(quizCount);
         $('#cnt-lab').text(labCount);
+
+        // Update Dynamic Live Checklist Badge for Lessons
+        if (lessonCount > 0) {
+            $('#chk-item-lessons').html('<i class="bi bi-check-circle-fill text-success me-1"></i> บทเรียนย่อย (' + lessonCount + ')');
+        } else {
+            $('#chk-item-lessons').html('<i class="bi bi-x-circle-fill text-danger me-1"></i> บทเรียนย่อย');
+        }
+
+        if (labCount > 0) {
+            $('#chk-item-lab').html('<i class="bi bi-check-circle-fill text-success me-1"></i> Coding Lab (' + labCount + ')');
+        } else {
+            $('#chk-item-lab').html('<i class="bi bi-x-circle-fill text-danger me-1"></i> Coding Lab');
+        }
+    }
+
+    // Dynamic Live Publish Readiness Function
+    function updatePublishReadiness() {
+        const hasChapters = $('#course-chapters-root .chapter-card').length > 0;
+        const lessonCount = $('.lesson-item').length;
+        
+        const isReady = hasChapters && lessonCount > 0;
+        
+        if (isReady) {
+            $('#publish-btn')
+                .prop('disabled', false)
+                .removeClass('btn-secondary opacity-50')
+                .addClass('btn-success')
+                .html('<i class="bi bi-rocket-takeoff-fill me-1"></i> เผยแพร่คอร์สเรียน');
+        } else {
+            $('#publish-btn')
+                .prop('disabled', true)
+                .removeClass('btn-success')
+                .addClass('btn-secondary opacity-50')
+                .html('<i class="bi bi-lock-fill me-1"></i> เพิ่มอย่างน้อย 1 บทเรียนเพื่อเผยแพร่');
+        }
     }
 
     function duplicateItem(type, id) {
@@ -933,6 +1119,7 @@ if (!empty($chapters)) {
             text: 'ระบบจะสร้างสำเนาใหม่ในโครงสร้างหลักสูตร'
         }).then((isConfirmed) => {
             if (isConfirmed) {
+                setDirtyState(true);
                 LevelUpAlert.toast(`คัดลอก ${type} ${id} เรียบร้อยแล้ว`, 'success');
             }
         });
@@ -945,8 +1132,9 @@ if (!empty($chapters)) {
             LevelUpAlert.close();
             $('#quality-score').html('96 <span class="fs-6 text-white-50">/ 100</span>');
             $('#quality-stars').text('★★★★★');
-            $('#ai-suggestion-box').html('✨ <b>Course คุณภาพดีเยี่ยม!</b> โครงสร้างคอร์สมีความสมบูรณ์สูง สามารถเผยแพร่ได้ทันทีครับ');
-            $('#publish-btn').prop('disabled', false).removeClass('btn-success').addClass('btn-cyan').html('<i class="bi bi-rocket-takeoff-fill me-1"></i> Ready to Publish (100%)');
+            $('#ai-suggestion-box').html('✨ <b>Course คุณภาพดีเยี่ยม!</b> โครงสร้างคอร์สมีความสมบูรณ์สูง พร้อมเปิดสอนผู้เรียนทันที');
+            
+            updatePublishReadiness();
             LevelUpAlert.success('ประเมินคุณภาพสำเร็จ!', 'โครงสร้างคอร์สมีความสมบูรณ์พร้อมสำหรับเผยแพร่');
         }, 1200);
     }
@@ -960,18 +1148,46 @@ if (!empty($chapters)) {
 
     function triggerAction(actionType) {
         if(actionType === 'save') {
-            LevelUpAlert.toast('บันทึกร่างสำเร็จ', 'success');
+            setDirtyState(false);
+            LevelUpAlert.toast('บันทึกร่างสำเร็จเรียบร้อยแล้ว', 'success');
         } else if(actionType === 'preview') {
-            LevelUpAlert.toast('กำลังสร้างหน้าแสดงผลพรีวิวสำหรับมุมมองนักเรียน...', 'info');
+            LevelUpAlert.toast('กำลังเปิดโหมดแสดงผลพรีวิวสำหรับผู้เรียน...', 'info');
         } else if(actionType === 'publish') {
-            LevelUpAlert.confirm({
-                title: 'เผยแพร่หลักสูตรสู่สาธารณะ? 🚀',
-                text: 'เนื้อหาจะเปิดใช้งานและแสดงให้ผู้เรียนเห็นในระบบทันที',
-                confirmText: 'ใช่, เผยแพร่เลย',
-                cancelText: 'ยกเลิก'
-            }).then((isConfirmed) => {
-                if (isConfirmed) {
-                    LevelUpAlert.success('สำเร็จ!', 'เผยแพร่หลักสูตรเรียบร้อยแล้ว');
+            const courseTitle = $('#cb-course-title').text();
+            
+            Swal.fire({
+                title: 'ยืนยันการเผยแพร่หลักสูตร? 🚀',
+                html: `คอร์ส <b>"${courseTitle}"</b> จะถูกเปลี่ยนสถานะเป็น <b>PUBLIC</b> และเปิดให้ผู้เรียนเข้าเรียนได้ทันที`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#22c55e',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: '<i class="bi bi-rocket-takeoff-fill me-1"></i> ยืนยันเผยแพร่ทันที',
+                cancelButtonText: 'ยกเลิก'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    setDirtyState(false);
+                    $('#course-visibility-badge')
+                        .removeClass('bg-warning text-dark')
+                        .addClass('bg-success text-white')
+                        .html('<i class="bi bi-globe me-1"></i> PUBLIC');
+
+                    Swal.fire({
+                        title: 'เผยแพร่คอร์สเรียนสำเร็จ! 🎉',
+                        html: `
+                            <p class="text-muted small">คอร์สของคุณเปิดให้ผู้เรียนลงทะเบียนได้แล้วเรียบร้อย</p>
+                            <div class="p-3 bg-light rounded border mb-3 text-start">
+                                <label class="small text-muted d-block mb-1">ลิงก์สำหรับแชร์คอร์สเรียน:</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control" value="https://levelup.online/course/<?= $course['id'] ?? 1 ?>" readonly id="share-course-url">
+                                    <button class="btn btn-outline-secondary" onclick="navigator.clipboard.writeText($('#share-course-url').val()); LevelUpAlert.toast('คัดลอกลิงก์สำเร็จ', 'success');">คัดลอก</button>
+                                </div>
+                            </div>
+                        `,
+                        icon: 'success',
+                        confirmButtonText: 'เข้าสู่มุมมองนักเรียน (Student View)',
+                        showCloseButton: true
+                    });
                 }
             });
         }
