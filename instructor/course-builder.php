@@ -6,7 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start(); 
 }
 
-// ดึง User ID จาก Session จริง
+// ดึง User ID จาก Session
 $current_user_id = $_SESSION['user_login']['user_id'] 
                 ?? $_SESSION['user_id'] 
                 ?? null;
@@ -16,6 +16,8 @@ $course = null;
 $all_courses = [];
 $chapters = [];
 $outcomes = [];
+$prereqs = [];
+$tags = [];
 $db_error = null;
 $auth_error = null;
 
@@ -54,7 +56,7 @@ if (!$current_user_id) {
         }
 
         if (isset($pdo)) {
-            // ดึงเฉพาะคอร์สที่เป็นของผู้ใช้ที่ล็อกอินอยู่
+            // ดึงรายการคอร์สทั้งหมดของผู้ใช้ที่ล็อกอินอยู่
             $stmt_list = $pdo->prepare("SELECT id, title FROM course WHERE user_id = ? ORDER BY id DESC");
             $stmt_list->execute([$current_user_id]);
             $all_courses = $stmt_list->fetchAll(PDO::FETCH_ASSOC);
@@ -65,7 +67,12 @@ if (!$current_user_id) {
             if (isset($_GET['course_id'])) {
                 $requested_course_id = intval($_GET['course_id']);
 
-                $stmt_check = $pdo->prepare("SELECT * FROM course WHERE id = ? LIMIT 1");
+                $stmt_check = $pdo->prepare("
+                    SELECT c.*, cat.name as category_name 
+                    FROM course c 
+                    LEFT JOIN category cat ON c.category_id = cat.id 
+                    WHERE c.id = ? LIMIT 1
+                ");
                 $stmt_check->execute([$requested_course_id]);
                 $target_course = $stmt_check->fetch(PDO::FETCH_ASSOC);
 
@@ -78,12 +85,17 @@ if (!$current_user_id) {
                 }
             } elseif (!empty($all_courses)) {
                 $course_id = $all_courses[0]['id'];
-                $stmt = $pdo->prepare("SELECT * FROM course WHERE id = ? AND user_id = ? LIMIT 1");
+                $stmt = $pdo->prepare("
+                    SELECT c.*, cat.name as category_name 
+                    FROM course c 
+                    LEFT JOIN category cat ON c.category_id = cat.id 
+                    WHERE c.id = ? AND c.user_id = ? LIMIT 1
+                ");
                 $stmt->execute([$course_id, $current_user_id]);
                 $course = $stmt->fetch(PDO::FETCH_ASSOC);
             }
 
-            // หากมีคอร์ส ให้ทำการดึง Chapters, Lessons และ Outcomes แบบ Dynamic
+            // หากมีคอร์ส ให้ทำการดึง Chapters, Lessons, Outcomes, Prereqs และ Tags แบบ Dynamic
             if ($course) {
                 $active_course_id = $course['id'];
 
@@ -92,21 +104,24 @@ if (!$current_user_id) {
                 $stmt_chap->execute([$active_course_id]);
                 $chapters = $stmt_chap->fetchAll(PDO::FETCH_ASSOC);
 
-                // 4.2 ดึงข้อมูล Lessons
+                // 4.2 ดึงข้อมูล Lessons ทั้งหมดในคอร์ส
                 $stmt_less = $pdo->prepare("SELECT * FROM lessons WHERE course_id = ? ORDER BY lesson_order ASC, id ASC");
                 $stmt_less->execute([$active_course_id]);
                 $all_lessons = $stmt_less->fetchAll(PDO::FETCH_ASSOC);
 
-                // หากมีตาราง chapters จัดกลุ่ม lessons ใส่ chapter; ถ้าไม่มี ให้จำลองเป็น Chapter เดียว
+                // จัดกลุ่ม Lessons ลงตาม Chapter ID จริง
                 if (!empty($chapters)) {
                     foreach ($chapters as &$chap) {
                         $chap['lessons'] = [];
                         foreach ($all_lessons as $less) {
-                            $chap['lessons'][] = $less;
+                            if ($less['chapter_id'] == $chap['id']) {
+                                $chap['lessons'][] = $less;
+                            }
                         }
                     }
+                    unset($chap);
                 } else {
-                    // กรณีคอร์สยังไม่มี chapters ใน DB
+                    // กรณีคอร์สไม่มี chapters ใน DB แต่มี lessons ลอยอยู่
                     $chapters = [
                         [
                             'id' => 0,
@@ -117,10 +132,20 @@ if (!$current_user_id) {
                     ];
                 }
 
-                // 4.3 ดึงข้อมูล Outcomes / Connected Skills
+                // 4.3 ดึงข้อมูล Outcomes (สิ่งที่เรียนรู้/Connected Skills)
                 $stmt_out = $pdo->prepare("SELECT * FROM outcomes WHERE course_id = ?");
                 $stmt_out->execute([$active_course_id]);
                 $outcomes = $stmt_out->fetchAll(PDO::FETCH_ASSOC);
+
+                // 4.4 ดึงข้อมูล Prereq (ความรู้พื้นฐาน)
+                $stmt_pre = $pdo->prepare("SELECT * FROM prereq WHERE course_id = ?");
+                $stmt_pre->execute([$active_course_id]);
+                $prereqs = $stmt_pre->fetchAll(PDO::FETCH_ASSOC);
+
+                // 4.5 ดึงข้อมูล Tags
+                $stmt_tag = $pdo->prepare("SELECT * FROM tags WHERE course_id = ?");
+                $stmt_tag->execute([$active_course_id]);
+                $tags = $stmt_tag->fetchAll(PDO::FETCH_ASSOC);
             }
         } else {
             $db_error = "ไม่พบตัวแปร \$pdo สำหรับเชื่อมต่อฐานข้อมูล";
@@ -130,7 +155,7 @@ if (!$current_user_id) {
     }
 }
 
-// ตัวแปรนับจำนวนตามประเภทแบบ Dynamic
+// คำนวณสรุปสถิติต่างๆ แบบ Dynamic
 $total_lessons_count = 0;
 $total_quiz_count = 0;
 $total_lab_count = 0;
@@ -140,7 +165,7 @@ if (!empty($chapters)) {
         if (!empty($ch['lessons'])) {
             foreach ($ch['lessons'] as $ls) {
                 $total_lessons_count++;
-                $type = $ls['lesson_type'] ?? 'video';
+                $type = $ls['lesson_type'] ?? 'theory';
                 if ($type === 'quiz') {
                     $total_quiz_count++;
                 } elseif ($type === 'coding_lab' || $type === 'virtual_lab') {
@@ -339,27 +364,32 @@ if (!empty($chapters)) {
 
             <!-- DYNAMIC: ข้อมูลภาพรวมคอร์ส -->
             <div class="row g-3 align-items-center mb-4">
-                <div class="col-12 col-md-4 d-flex align-items-center gap-3">
-                    <div style="position: relative; width: 85px; height: 50px; border-radius: 8px; overflow: hidden; border: 1px solid var(--cb-border); flex-shrink: 0; background: #000;">
+                <div class="col-12 col-md-5 d-flex align-items-center gap-3">
+                    <div style="position: relative; width: 95px; height: 55px; border-radius: 8px; overflow: hidden; border: 1px solid var(--cb-border); flex-shrink: 0; background: #000;">
                         <?php if (!empty($course['img'])): ?>
                             <img src="<?= htmlspecialchars($course['img']) ?>" alt="Thumbnail" style="width:100%; height:100%; object-fit:cover;">
                         <?php else: ?>
-                            <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-dark text-cyan small" style="font-size: 0.6rem;">16:9 Image</div>
+                            <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-dark text-cyan small" style="font-size: 0.65rem;">No Image</div>
                         <?php endif; ?>
                     </div>
                     <div>
-                        <h4 class="fw-bold mb-0 text-white" id="cb-course-title"><?= htmlspecialchars($course['title']) ?></h4>
-                        <div class="d-flex align-items-center gap-2 mt-1">
+                        <h4 class="fw-bold mb-1 text-white" id="cb-course-title"><?= htmlspecialchars($course['title']) ?></h4>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
                             <span class="badge bg-warning text-dark px-2 py-0.5 fw-bold" style="font-size: 0.7rem;">
                                 <i class="bi bi-file-earmark-lock"></i> <?= strtoupper($course['visibility'] ?? 'DRAFT') ?>
                             </span>
+                            <?php if (!empty($course['category_name'])): ?>
+                                <span class="badge bg-info text-dark px-2 py-0.5 fw-bold" style="font-size: 0.7rem;">
+                                    <i class="bi bi-tag"></i> <?= htmlspecialchars($course['category_name']) ?>
+                                </span>
+                            <?php endif; ?>
                             <span class="text-white-50 small" style="font-size:0.75rem;">
                                 <i class="bi bi-clock-history"></i> Updated: <?= !empty($course['updated_at']) ? date('d/m/Y H:i', strtotime($course['updated_at'])) : 'Recently' ?>
                             </span>
                         </div>
                     </div>
                 </div>
-                <div class="col-12 col-md-8">
+                <div class="col-12 col-md-7">
                     <div class="row g-2 justify-content-md-end">
                         <div class="col-6 col-sm-3 col-md-2">
                             <div class="overview-pill text-center d-block">
@@ -381,17 +411,17 @@ if (!empty($chapters)) {
                         </div>
                         <div class="col-6 col-sm-3 col-md-2">
                             <div class="overview-pill text-center d-block">
-                                <div class="text-white-50 small text-uppercase" style="font-size:0.65rem;">Labs (Coding/V)</div>
+                                <div class="text-white-50 small text-uppercase" style="font-size:0.65rem;">Labs</div>
                                 <div class="fw-bold text-success fs-5" id="cnt-lab"><?= $total_lab_count ?></div>
                             </div>
                         </div>
                         <div class="col-12 col-sm-6 col-md-3">
                             <div class="overview-pill flex-column align-items-start justify-content-center">
                                 <div class="d-flex justify-content-between w-100 text-white-50 small" style="font-size:0.65rem;">
-                                    <span>PROGRESS</span><span class="text-cyan fw-bold">75%</span>
+                                    <span>PROGRESS</span><span class="text-cyan fw-bold">100% Dynamic</span>
                                 </div>
                                 <div class="progress w-100 mt-1" style="height: 6px; background: rgba(255,255,255,0.05);">
-                                    <div class="progress-bar bg-info" style="width: 75%"></div>
+                                    <div class="progress-bar bg-info" style="width: 100%"></div>
                                 </div>
                             </div>
                         </div>
@@ -427,7 +457,7 @@ if (!empty($chapters)) {
 
                         <div id="course-chapters-root">
                             <?php foreach ($chapters as $index => $chap): ?>
-                                <div class="chapter-card p-3" id="chap-<?= $chap['id'] ?>">
+                                <div class="chapter-card p-3" id="chap-<?= $chap['id'] ?>" data-chapter-id="<?= $chap['id'] ?>">
                                     <div class="chapter-header-flex border-bottom border-secondary border-opacity-10 pb-2 mb-2">
                                         <div class="chapter-title-area">
                                             <i class="bi bi-grid-3x3-gap text-white-50 cursor-move fs-5 flex-shrink-0"></i>
@@ -444,10 +474,10 @@ if (!empty($chapters)) {
                                     <div class="lessons-sortable-zone">
                                         <?php if (!empty($chap['lessons'])): ?>
                                             <?php foreach ($chap['lessons'] as $less_index => $less): 
-                                                $ltype = $less['lesson_type'] ?? 'video';
+                                                $ltype = $less['lesson_type'] ?? 'theory';
                                                 $badge_class = 'badge-video';
                                                 $badge_icon = 'bi-play-btn-fill';
-                                                $badge_name = 'Video';
+                                                $badge_name = 'Video / Theory';
 
                                                 if ($ltype === 'slide') {
                                                     $badge_class = 'badge-doc'; $badge_icon = 'bi-file-earmark-text-fill'; $badge_name = 'Slide';
@@ -455,6 +485,8 @@ if (!empty($chapters)) {
                                                     $badge_class = 'badge-quiz'; $badge_icon = 'bi-patch-question-fill'; $badge_name = 'Quiz';
                                                 } elseif ($ltype === 'coding_lab') {
                                                     $badge_class = 'badge-lab'; $badge_icon = 'bi-code-square'; $badge_name = 'Coding Lab';
+                                                } elseif ($ltype === 'virtual_lab') {
+                                                    $badge_class = 'badge-lab'; $badge_icon = 'bi-cpu'; $badge_name = 'Virtual Lab';
                                                 }
                                             ?>
                                                 <div class="lesson-item" data-type="<?= $ltype ?>" data-id="<?= $less['id'] ?>">
@@ -605,7 +637,7 @@ if (!empty($chapters)) {
                 <div class="mb-3">
                     <label class="form-label small text-white-50">ประเภทบทเรียน (Lesson Type)</label>
                     <select class="form-select cb-input lu-select" id="modal-lesson-type" onchange="switchModalFormType(this.value)">
-                        <option value="video">🎥 วิดีโอแนะนำหลัก (Video Content)</option>
+                        <option value="theory">🎥 วิดีโอแนะนำหลัก (Video Content / Theory)</option>
                         <option value="slide">📊 สไลด์เอกสารและบทความ (Slide / PDF / Article)</option>
                         <option value="quiz">📝 แบบทดสอบประเมินผล (Quiz Management)</option>
                         <option value="coding_lab">💻 ปฏิบัติการโค้ดดิ้งอัตโนมัติ (Coding Lab Management)</option>
@@ -713,7 +745,13 @@ if (!empty($chapters)) {
     });
 
     function openAIConfigModal() {
-        $('#aiAssistantModal').modal('show');
+        var modalEl = document.getElementById('aiAssistantModal');
+        if (typeof bootstrap !== 'undefined') {
+            var modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modal.show();
+        } else {
+            $('#aiAssistantModal').modal('show');
+        }
     }
 
     function runAICurriculumProcess() {
@@ -737,8 +775,8 @@ if (!empty($chapters)) {
         
         $('#lessonModalTitle').html('<i class="bi bi-plus-square text-cyan me-2"></i> เพิ่มวัตถุเรียนรู้ใหม่');
         $('#modal-item-title').val('');
-        $('#modal-lesson-type').val('video');
-        switchModalFormType('video');
+        $('#modal-lesson-type').val('theory');
+        switchModalFormType('theory');
         $('#lessonObjectModal').modal('show');
     }
 
@@ -765,11 +803,11 @@ if (!empty($chapters)) {
         const type = $('#modal-lesson-type').val();
         
         const badgeMap = {
-            'video': '<span class="type-badge badge-video"><i class="bi bi-play-btn-fill"></i> Video</span>',
+            'theory': '<span class="type-badge badge-video"><i class="bi bi-play-btn-fill"></i> Video / Theory</span>',
             'slide': '<span class="type-badge badge-doc"><i class="bi bi-file-earmark-text-fill"></i> Slide</span>',
             'quiz': '<span class="type-badge badge-quiz"><i class="bi bi-patch-question-fill"></i> Quiz</span>',
             'coding_lab': '<span class="type-badge badge-lab"><i class="bi bi-code-square"></i> Coding Lab</span>',
-            'virtual_lab': '<span class="type-badge badge-lab"><i class="bi bi-server"></i> Virtual Lab</span>',
+            'virtual_lab': '<span class="type-badge badge-lab"><i class="bi bi-cpu"></i> Virtual Lab</span>',
             'assignment': '<span class="type-badge badge-doc"><i class="bi bi-file-zip"></i> Assignment</span>'
         };
 
@@ -783,7 +821,7 @@ if (!empty($chapters)) {
                     <i class="bi bi-list text-muted fs-6 flex-shrink-0"></i>
                     <span class="small text-white-50 flex-shrink-0 lesson-num"></span>
                     <span class="small text-white me-2 lesson-title">${title}</span>
-                    ${badgeMap[type] || badgeMap['video']}
+                    ${badgeMap[type] || badgeMap['theory']}
                 </div>
                 <div class="d-flex gap-2 flex-shrink-0">
                     <button class="btn btn-link text-info p-0 btn-sm" onclick="editLessonDetails('${type}', this)"><i class="bi bi-pencil-square"></i></button>
@@ -796,7 +834,7 @@ if (!empty($chapters)) {
         } else if (currentEditLessonEl) {
             currentEditLessonEl.attr('data-type', type);
             currentEditLessonEl.find('.lesson-title').text(title);
-            currentEditLessonEl.find('.type-badge').replaceWith(badgeMap[type] || badgeMap['video']);
+            currentEditLessonEl.find('.type-badge').replaceWith(badgeMap[type] || badgeMap['theory']);
             currentEditLessonEl.find('.btn-info').attr('onclick', `editLessonDetails('${type}', this)`);
             LevelUpAlert.toast('อัปเดตข้อมูลบทเรียนเรียบร้อยแล้ว', 'success');
         }
