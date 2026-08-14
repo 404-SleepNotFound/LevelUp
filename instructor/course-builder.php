@@ -320,7 +320,7 @@ $can_publish = ($has_lessons && count($chapters) > 0);
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 
-<div class="cb-wrapper p-1">
+<div class="cb-wrapper p-1" data-course-id="<?= htmlspecialchars($course['id'] ?? '') ?>">
 
     <?php if ($db_error): ?>
         <div class="alert alert-danger bg-danger bg-opacity-20 border-danger text-white mb-4 rounded-4" role="alert">
@@ -803,6 +803,7 @@ $can_publish = ($has_lessons && count($chapters) > 0);
     let targetChapCardForNewLesson = null;
     let currentEditLessonEl = null;
     let isFormDirty = false;
+    let currentCourseId = $('#current_course_id').val(); // Get course ID once on load
 
     document.addEventListener('DOMContentLoaded', () => {
         reindexLessons();
@@ -1141,14 +1142,72 @@ $can_publish = ($has_lessons && count($chapters) > 0);
     }
 
     function triggerAction(actionType) {
-        if(actionType === 'save') {
-            setDirtyState(false);
-            LevelUpAlert.toast('บันทึกร่างสำเร็จเรียบร้อยแล้ว', 'success');
-        } else if(actionType === 'preview') {
-            LevelUpAlert.toast('กำลังเปิดโหมดแสดงผลพรีวิวสำหรับผู้เรียน...', 'info');
-        } else if(actionType === 'publish') {
-            const courseTitle = $('#cb-course-title').text();
+        if (actionType === 'save') {
+            LevelUpAlert.loading('กำลังบันทึกข้อมูล...', 'กรุณารอสักครู่ ระบบกำลังจัดเก็บโครงสร้างหลักสูตรของคุณ');
+
+            const courseId = $('.cb-wrapper').data('course-id');
+            let chaptersData = [];
             
+            $('#course-chapters-root .chapter-card').each(function(chapIndex) {
+                const chapId = $(this).data('chapter-id') || `new-${Date.now()}-${chapIndex}`;
+                const chapTitle = $(this).find('.chapter-title-input').val();
+                
+                let lessonsData = [];
+                $(this).find('.lesson-item').each(function(lessIndex) {
+                    const lessId = $(this).data('id') || `new-${Date.now()}-${chapIndex}-${lessIndex}`;
+                    const lessTitle = $(this).find('.lesson-title').text();
+                    const lessType = $(this).data('type');
+
+                    lessonsData.push({
+                        id: lessId,
+                        title: lessTitle,
+                        type: lessType,
+                        order: lessIndex + 1
+                    });
+                });
+
+                chaptersData.push({
+                    id: chapId,
+                    title: chapTitle,
+                    order: chapIndex + 1,
+                    lessons: lessonsData
+                });
+            });
+
+            const payload = {
+                course_id: courseId,
+                chapters: chaptersData,
+                is_strict_flow: $('#strict-flow').is(':checked') ? 1 : 0
+            };
+
+            fetch('../api/ajax_instructor.php?action=save_course_structure', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    setDirtyState(false);
+                    LevelUpAlert.success('บันทึกสำเร็จ!', 'โครงสร้างหลักสูตรของคุณถูกบันทึกเรียบร้อยแล้ว');
+                    // Optionally, reload the page to get new IDs for new items
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    LevelUpAlert.error('เกิดข้อผิดพลาด!', data.message || 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
+                }
+            })
+            .catch(error => {
+                console.error('Save Error:', error);
+                LevelUpAlert.error('เกิดข้อผิดพลาดรุนแรง!', 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+            });
+
+        } else if (actionType === 'preview') {
+            LevelUpAlert.toast('กำลังเปิดโหมดแสดงผลพรีวิวสำหรับผู้เรียน...', 'info');
+        } else if (actionType === 'publish') {
+            const courseTitle = $('#cb-course-title').text();
+
             Swal.fire({
                 title: 'ยืนยันการเผยแพร่หลักสูตร? 🚀',
                 html: `คอร์ส <b>"${courseTitle}"</b> จะถูกเปลี่ยนสถานะเป็น <b>PUBLIC</b> และเปิดให้ผู้เรียนเข้าเรียนได้ทันที`,
