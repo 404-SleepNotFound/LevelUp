@@ -147,6 +147,7 @@ if (!$isAjax):
             html[data-theme="dark"] {
                 --body-bg: #0b0f19;
                 --body-text: #f1f5f9;
+                --body-text-muted: #94a3b8;
                 --card-bg: #0f172a;
                 --card-border: #1e293b;
                 --nav-bg: #0f172a;
@@ -167,6 +168,7 @@ if (!$isAjax):
             html[data-theme="light"] {
                 --body-bg: #f8fafc;
                 --body-text: #0f172a;
+                --body-text-muted: #64748b;
                 --card-bg: #ffffff;
                 --card-border: #e2e8f0;
                 --nav-bg: #ffffff;
@@ -183,6 +185,10 @@ if (!$isAjax):
                 --nav-dropdown-hover-bg: #f1f5f9;
                 --nav-dropdown-hover-text: #0f172a;
             }
+
+            /* บังคับให้ text-white / text-white-50 เปลี่ยนตามธีมทั้งเว็บ */
+            html[data-theme="light"] .text-white { color: var(--body-text) !important; }
+            html[data-theme="light"] .text-white-50 { color: var(--body-text-muted) !important; }
 
             html, body {
                 background-color: var(--body-bg) !important;
