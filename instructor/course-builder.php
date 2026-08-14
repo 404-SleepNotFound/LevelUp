@@ -102,7 +102,6 @@ if (!$current_user_id) {
                     foreach ($chapters as &$chap) {
                         $chap['lessons'] = [];
                         foreach ($all_lessons as $less) {
-                            // จัดกลุ่ม lessons ตาม chapter_id (ถ้ามี) หรือใส่ไว้ตาม order
                             $chap['lessons'][] = $less;
                         }
                     }
@@ -152,6 +151,10 @@ if (!empty($chapters)) {
     }
 }
 ?>
+
+<!-- Import SweetAlert2 Library & LevelUp Alert System Utility -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="<?= $ROOT_PATH ?>js/levelup-sweetalert.js" defer></script>
 
 <!-- Import Dropdown Select Stylesheet & Script -->
 <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css">
@@ -433,7 +436,7 @@ if (!empty($chapters)) {
                                         </div>
                                         <div class="d-flex gap-1 flex-shrink-0">
                                             <button class="btn btn-link text-white-50 p-1 btn-sm" onclick="duplicateItem('Chapter', <?= $index + 1 ?>)"><i class="bi bi-copy"></i></button>
-                                            <button class="btn btn-link text-warning p-1 btn-sm" onclick="InstructorAlerts.toast('info', 'ซ่อนบทเรียนเรียบร้อยแล้ว')"><i class="bi bi-eye-slash"></i></button>
+                                            <button class="btn btn-link text-warning p-1 btn-sm" onclick="LevelUpAlert.toast('ซ่อนบทเรียนเรียบร้อยแล้ว', 'info')"><i class="bi bi-eye-slash"></i></button>
                                             <button class="btn btn-link text-danger p-1 btn-sm" onclick="removeChapter(this)"><i class="bi bi-trash"></i></button>
                                         </div>
                                     </div>
@@ -534,7 +537,7 @@ if (!empty($chapters)) {
                     <div class="zone-container p-4">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <h5 class="fw-bold text-white mb-0"><i class="bi bi-bounding-box text-success me-2"></i> Visual Course Flow</h5>
-                            <button class="btn btn-xs btn-outline-info text-white py-0 px-2" style="font-size: 0.75rem;" onclick="InstructorAlerts.toast('info', 'เปิดโปรแกรมแก้ไข Flow ในหน้าต่างใหม่...')">เต็มจอ</button>
+                            <button class="btn btn-xs btn-outline-info text-white py-0 px-2" style="font-size: 0.75rem;" onclick="LevelUpAlert.toast('เปิดโปรแกรมแก้ไข Flow ในหน้าต่างใหม่...', 'info')">เต็มจอ</button>
                         </div>
                         
                         <div class="p-3 rounded-4 bg-black bg-opacity-40 border border-secondary border-opacity-10 py-4">
@@ -685,14 +688,14 @@ if (!empty($chapters)) {
                 <div class="mb-3">
                     <label class="form-label small text-info fw-bold">Import โครงสร้าง</label>
                     <select class="form-select cb-input lu-select mb-2"><option>JSON Structure</option><option>SCORM Package (.zip)</option></select>
-                    <button class="btn btn-sm btn-outline-cyan text-white w-100" onclick="InstructorAlerts.toast('success', 'นำเข้าไฟล์โครงสร้างสำเร็จแล้ว')">นำเข้าไฟล์</button>
+                    <button class="btn btn-sm btn-outline-cyan text-white w-100" onclick="LevelUpAlert.toast('นำเข้าไฟล์โครงสร้างสำเร็จแล้ว', 'success')">นำเข้าไฟล์</button>
                 </div>
                 <hr style="border-color: rgba(255,255,255,0.15)">
                 <div>
                     <label class="form-label small text-success fw-bold">Export โครงสร้าง</label>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-success text-white flex-grow-1" onclick="InstructorAlerts.toast('success', 'Export JSON สำเร็จ')"><i class="bi bi-filetype-json"></i> Export JSON</button>
-                        <button class="btn btn-sm btn-outline-warning text-white flex-grow-1" onclick="InstructorAlerts.toast('success', 'Backup ZIP สำเร็จ')"><i class="bi bi-file-zip"></i> Backup (.zip)</button>
+                        <button class="btn btn-sm btn-outline-success text-white flex-grow-1" onclick="LevelUpAlert.toast('Export JSON สำเร็จ', 'success')"><i class="bi bi-filetype-json"></i> Export JSON</button>
+                        <button class="btn btn-sm btn-outline-warning text-white flex-grow-1" onclick="LevelUpAlert.toast('Backup ZIP สำเร็จ', 'success')"><i class="bi bi-file-zip"></i> Backup (.zip)</button>
                     </div>
                 </div>
             </div>
@@ -701,21 +704,6 @@ if (!empty($chapters)) {
 </div>
 
 <script>
-    if (typeof InstructorAlerts === 'undefined') {
-        window.InstructorAlerts = {
-            toast: (icon, title) => typeof Swal !== 'undefined' ? Swal.fire({ icon, title, toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 }) : alert(title),
-            aiProcess: (msg, time, cb) => { 
-                if(typeof Swal !== 'undefined') Swal.fire({ title: msg, allowOutsideClick: false, didOpen: () => Swal.showLoading() }); 
-                setTimeout(() => { if(typeof Swal !== 'undefined') Swal.close(); if(cb) cb(); }, time); 
-            },
-            confirmDelete: (item, cb) => { if(confirm('ยืนยันการลบ: ' + item + '?')) { if(cb) cb(); } },
-            confirmDuplicate: (item, cb) => { if(confirm('ยืนยันคัดลอก: ' + item + '?')) { if(cb) cb(); } },
-            confirmPublish: (t, text, cb) => { if(confirm(t + '\n' + text)) { if(cb) cb(); } },
-            saveDraft: () => typeof Swal !== 'undefined' ? Swal.fire({ title: 'บันทึกร่างสำเร็จ', icon: 'success', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 }) : alert('บันทึกร่างสำเร็จ'),
-            info: (t, text) => typeof Swal !== 'undefined' ? Swal.fire({ title: t, text: text, icon: 'info' }) : alert(t + '\n' + text)
-        };
-    }
-
     let targetChapCardForNewLesson = null;
     let currentEditLessonEl = null;
 
@@ -730,14 +718,17 @@ if (!empty($chapters)) {
 
     function runAICurriculumProcess() {
         $('#aiAssistantModal').modal('hide');
-        InstructorAlerts.aiProcess('วิเคราะห์โครงสร้างหลักสูตรและตรวจสอบความซ้ำซ้อน', 1500, () => {
+        LevelUpAlert.aiLoading('วิเคราะห์โครงสร้างหลักสูตร', 'กำลังประมวลผลข้อมูลและตรวจสอบความซ้ำซ้อน...');
+        
+        setTimeout(() => {
+            LevelUpAlert.close();
             $('#aiAssistantModal').modal('show');
             var $res = $('#ai-curriculum-result');
             $res.removeClass('d-none').html(`🤖 <b>ผลการวิเคราะห์จาก AI Expert:</b><br>
 • <u>สิ่งที่ขาด:</u> ควรเพิ่ม Coding Lab เรื่อง Error Handling ใน Chapter 2<br>
 • <u>ตรวจความซ้ำซ้อน:</u> ไม่พบเนื้อหาที่ซ้ำซ้อนกับคอร์สอื่นในระบบ<br>
 • <u>ข้อแนะนำ:</u> เพิ่ม Quiz ท้ายบทเรียนเสมือนจริง (Virtual Lab) เพื่อรีเช็คความเข้าใจ`);
-        });
+        }, 1500);
     }
 
     function openAddLessonModal(btn) {
@@ -801,13 +792,13 @@ if (!empty($chapters)) {
             </div>`;
 
             targetZone.append(newLessonHtml);
-            InstructorAlerts.toast('success', 'เพิ่มบทเรียนย่อยเรียบร้อยแล้ว');
+            LevelUpAlert.toast('เพิ่มบทเรียนย่อยเรียบร้อยแล้ว', 'success');
         } else if (currentEditLessonEl) {
             currentEditLessonEl.attr('data-type', type);
             currentEditLessonEl.find('.lesson-title').text(title);
             currentEditLessonEl.find('.type-badge').replaceWith(badgeMap[type] || badgeMap['video']);
             currentEditLessonEl.find('.btn-info').attr('onclick', `editLessonDetails('${type}', this)`);
-            InstructorAlerts.toast('success', 'อัปเดตข้อมูลบทเรียนเรียบร้อยแล้ว');
+            LevelUpAlert.toast('อัปเดตข้อมูลบทเรียนเรียบร้อยแล้ว', 'success');
         }
         
         reindexLessons();
@@ -817,21 +808,31 @@ if (!empty($chapters)) {
 
     function removeLesson(btn) {
         const lessonTitle = $(btn).closest('.lesson-item').find('.lesson-title').text();
-        InstructorAlerts.confirmDelete(lessonTitle, () => {
-            $(btn).closest('.lesson-item').remove();
-            reindexLessons();
-            recalculateStats();
-            InstructorAlerts.toast('success', 'ลบบทเรียนย่อยเรียบร้อยแล้ว');
+        LevelUpAlert.deleteConfirm({
+            title: `ต้องการลบรายการ "${lessonTitle}" ใช่หรือไม่?`,
+            text: 'หากลบแล้วจะไม่สามารถกู้คืนข้อมูลได้'
+        }).then((isConfirmed) => {
+            if (isConfirmed) {
+                $(btn).closest('.lesson-item').remove();
+                reindexLessons();
+                recalculateStats();
+                LevelUpAlert.toast('ลบบทเรียนย่อยเรียบร้อยแล้ว', 'success');
+            }
         });
     }
 
     function removeChapter(btn) {
-        const chapTitle = $(btn).closest('.chapter-card').find('.chapter-title-input').val();
-        InstructorAlerts.confirmDelete(chapTitle || 'Chapter นี้', () => {
-            $(btn).closest('.chapter-card').remove();
-            reindexLessons();
-            recalculateStats();
-            InstructorAlerts.toast('success', 'ลบ Chapter เรียบร้อยแล้ว');
+        const chapTitle = $(btn).closest('.chapter-card').find('.chapter-title-input').val() || 'Chapter นี้';
+        LevelUpAlert.deleteConfirm({
+            title: `ต้องการลบ "${chapTitle}" ใช่หรือไม่?`,
+            text: 'บทเรียนย่อยทั้งหมดภายใน Chapter นี้จะถูกลบไปด้วย'
+        }).then((isConfirmed) => {
+            if (isConfirmed) {
+                $(btn).closest('.chapter-card').remove();
+                reindexLessons();
+                recalculateStats();
+                LevelUpAlert.toast('ลบ Chapter เรียบร้อยแล้ว', 'success');
+            }
         });
     }
 
@@ -848,7 +849,7 @@ if (!empty($chapters)) {
                 </div>
                 <div class="d-flex gap-1 flex-shrink-0">
                     <button class="btn btn-link text-white-50 p-1 btn-sm" onclick="duplicateItem('Chapter', ${chapCount})"><i class="bi bi-copy"></i></button>
-                    <button class="btn btn-link text-warning p-1 btn-sm" onclick="InstructorAlerts.toast('info', 'ซ่อนบทเรียนเรียบร้อยแล้ว')"><i class="bi bi-eye-slash"></i></button>
+                    <button class="btn btn-link text-warning p-1 btn-sm" onclick="LevelUpAlert.toast('ซ่อนบทเรียนเรียบร้อยแล้ว', 'info')"><i class="bi bi-eye-slash"></i></button>
                     <button class="btn btn-link text-danger p-1 btn-sm" onclick="removeChapter(this)"><i class="bi bi-trash"></i></button>
                 </div>
             </div>
@@ -863,7 +864,7 @@ if (!empty($chapters)) {
         $('#course-chapters-root').append(newHtml);
         reindexLessons();
         recalculateStats();
-        InstructorAlerts.toast('success', 'เพิ่ม Chapter ใหม่แล้ว');
+        LevelUpAlert.toast('เพิ่ม Chapter ใหม่แล้ว', 'success');
     }
 
     function reindexLessons() {
@@ -889,36 +890,52 @@ if (!empty($chapters)) {
     }
 
     function duplicateItem(type, id) {
-        InstructorAlerts.confirmDuplicate(`${type} ${id}`, () => {
-            InstructorAlerts.toast('success', `คัดลอก ${type} ${id} เรียบร้อยแล้ว`);
+        LevelUpAlert.confirm({
+            title: `ยืนยันการคัดลอก ${type} ${id}?`,
+            text: 'ระบบจะสร้างสำเนาใหม่ในโครงสร้างหลักสูตร'
+        }).then((isConfirmed) => {
+            if (isConfirmed) {
+                LevelUpAlert.toast(`คัดลอก ${type} ${id} เรียบร้อยแล้ว`, 'success');
+            }
         });
     }
 
     function runQualityValidation() {
-        InstructorAlerts.aiProcess('สแกนและประเมินคุณภาพคอร์สเรียน', 1200, () => {
+        LevelUpAlert.aiLoading('สแกนและประเมินคุณภาพคอร์สเรียน', 'กำลังประเมินโครงสร้างด้วย AI...');
+        
+        setTimeout(() => {
+            LevelUpAlert.close();
             $('#quality-score').html('96 <span class="fs-6 text-white-50">/ 100</span>');
             $('#quality-stars').text('★★★★★');
             $('#ai-suggestion-box').html('✨ <b>Course คุณภาพดีเยี่ยม!</b> โครงสร้างคอร์สมีความสมบูรณ์สูง สามารถเผยแพร่ได้ทันทีครับ');
             $('#publish-btn').prop('disabled', false).removeClass('btn-success').addClass('btn-cyan').html('<i class="bi bi-rocket-takeoff-fill me-1"></i> Ready to Publish (100%)');
-            InstructorAlerts.toast('success', 'ประเมินคุณภาพหลักสูตรสำเร็จ!');
-        });
+            LevelUpAlert.success('ประเมินคุณภาพสำเร็จ!', 'โครงสร้างคอร์สมีความสมบูรณ์พร้อมสำหรับเผยแพร่');
+        }, 1200);
     }
 
     function toggleCollaborators() {
-        InstructorAlerts.info('ผู้ร่วมสร้างคอร์ส 👥', '1. ผู้สอนหลัก (Owner - คุณ)\n2. Co-Instructor (Editor)');
+        LevelUpAlert.info({
+            title: 'ผู้ร่วมสร้างคอร์ส 👥',
+            html: '<div class="text-start ps-3"><p class="mb-1">1. ผู้สอนหลัก (Owner - คุณ)</p><p class="mb-0">2. Co-Instructor (Editor)</p></div>'
+        });
     }
 
     function triggerAction(actionType) {
         if(actionType === 'save') {
-            InstructorAlerts.saveDraft();
+            LevelUpAlert.toast('บันทึกร่างสำเร็จ', 'success');
         } else if(actionType === 'preview') {
-            InstructorAlerts.toast('info', 'กำลังสร้างหน้าแสดงผลพรีวิวสำหรับมุมมองนักเรียน...');
+            LevelUpAlert.toast('กำลังสร้างหน้าแสดงผลพรีวิวสำหรับมุมมองนักเรียน...', 'info');
         } else if(actionType === 'publish') {
-            InstructorAlerts.confirmPublish(
-                'เผยแพร่หลักสูตรสู่สาธารณะ? 🚀',
-                'เนื้อหาจะเปิดใช้งานและแสดงให้ผู้เรียนเห็นในระบบทันที',
-                () => { InstructorAlerts.toast('success', 'เผยแพร่หลักสูตรเรียบร้อยแล้ว!'); }
-            );
+            LevelUpAlert.confirm({
+                title: 'เผยแพร่หลักสูตรสู่สาธารณะ? 🚀',
+                text: 'เนื้อหาจะเปิดใช้งานและแสดงให้ผู้เรียนเห็นในระบบทันที',
+                confirmText: 'ใช่, เผยแพร่เลย',
+                cancelText: 'ยกเลิก'
+            }).then((isConfirmed) => {
+                if (isConfirmed) {
+                    LevelUpAlert.success('สำเร็จ!', 'เผยแพร่หลักสูตรเรียบร้อยแล้ว');
+                }
+            });
         }
     }
 </script>
