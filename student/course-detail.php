@@ -7,7 +7,7 @@ require_once '../config/db.php';
 // รับค่า id หรือ course_id จาก URL
 $course_id = $_GET['id'] ?? $_GET['course_id'] ?? 0;
 
-// 1. ดึงข้อมูล Course หลัก + Category + Instructor (รวม Query เดียวเพื่อลด Resource)
+// 1. ดึงข้อมูล Course หลัก + Category + Instructor
 $sql = "SELECT c.*, 
                ct.name AS category_name,
                u.id AS instructor_id,
@@ -23,7 +23,6 @@ $stmt = $conn->prepare($sql);
 $stmt->execute([':course_id' => $course_id]);
 $course_data = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// ดักจับกรณีหา Course ไม่เจอ
 if (!$course_data) {
     die("ไม่พบข้อมูลคอร์สเรียนนี้");
 }
@@ -54,19 +53,16 @@ $course = [
     'certificate_type' => $course_data['certificate_type'] ?? 'มีใบรับรองเมื่อเรียนจบ',
     'updated_at' => $course_data['updated_at'] ?? null,
     
-    // ดึงราคาจากคอลัมน์ pice
     'price' => (isset($course_data['pice']) && is_numeric($course_data['pice'])) ? (float)$course_data['pice'] : 0,
     'type_text' => (!empty($course_data['pice']) && is_numeric($course_data['pice']) && (float)$course_data['pice'] > 0) 
                     ? number_format((float)$course_data['pice']) . ' ฿' 
                     : 'เรียนฟรี',
     
-    // ข้อมูลจำลองสำหรับส่วนที่ยังไม่มีตาราง (สถิติ/รีวิว)
     'rating' => 4.8,
     'reviews_count' => 1245,
     'students_count' => 8500,
     'outcomes' => $course_outcomes,
     
-    // ดึงข้อมูลมาใส่ประโยชน์ที่จะได้รับแบบ Dynamic
     'includes' => [
         ['icon' => 'bi-play-circle', 'text' => 'วิดีโอรวม ' . ($course_data['time_total'] ?? 0) . ' ชั่วโมง'],
         ['icon' => 'bi-journal-code', 'text' => 'เนื้อหาทั้งหมด ' . ($course_data['chapter_total'] ?? 0) . ' บทเรียน'],
@@ -108,13 +104,10 @@ $reviews = [
     ['name' => 'อนันต์ สุขใจ', 'rating' => 4, 'date' => '2 สัปดาห์ที่แล้ว', 'comment' => 'เนื้อหาแน่นมาก เหมาะกับคนพอมีพื้นฐานมาบ้างแล้ว คุ้มค่าเงินครับ', 'avatar' => 'https://i.pravatar.cc/150?img=13']
 ];
 
-// 4. ดึงข้อมูล คอร์สเรียนที่เกี่ยวข้อง (Related Courses) จาก Database
+// 4. ดึงข้อมูล Related Courses
 $related_courses = [];
-
 try {
     $category_id = $course_data['category_id'] ?? 0;
-
-    // ดึงคอร์สจาก DB (เรียงคอร์สหมวดหมู่เดียวกันก่อน และข้ามคอร์สปัจจุบัน)
     $sql_related = "SELECT c.*, u.name AS instructor_name 
                     FROM `course` c 
                     LEFT JOIN `users` u ON c.user_id = u.id 
@@ -132,7 +125,6 @@ try {
     $fallbackImg = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=600&auto=format&fit=crop';
 
     foreach ($raw_related as $rel) {
-        // ตรวจสอบรูปภาพประกอบ
         $rawImg = $rel['img'] ?? $rel['cover_file'] ?? $rel['cover'] ?? '';
         $imgPath = $fallbackImg;
 
@@ -146,7 +138,6 @@ try {
             }
         }
 
-        // จัดรูปแบบราคาจากคอลัมน์ pice ของคอร์สที่เกี่ยวข้อง
         $price_text = (!empty($rel['pice']) && is_numeric($rel['pice']) && (float)$rel['pice'] > 0) 
             ? number_format((float)$rel['pice']) . ' ฿' 
             : 'เรียนฟรี';
@@ -166,31 +157,39 @@ try {
     $related_courses = [];
 }
 
-function getEmbedUrl($url)
-{
-    if (empty($url)) return '';
-
-    // YouTube
-    $youtube_pattern = '%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/ ]{11})%i';
-    if (preg_match($youtube_pattern, $url, $match)) {
-        return "https://www.youtube.com/embed/" . $match[1];
-    }
-
-    // Google Drive
-    if (preg_match('%drive\.google\.com/file/d/([^/]+)%i', $url, $match)) {
-        return "https://drive.google.com/file/d/" . $match[1] . "/preview";
-    }
-
-    // Vimeo
-    if (preg_match('%vimeo\.com/([0-9]+)%i', $url, $match)) {
-        return "https://player.vimeo.com/video/" . $match[1];
-    }
-
-    return $url;
-}
-
 include_once $ROOT_PATH . 'includes/header.php';
 ?>
+
+<!-- เพิ่ม CSS ปรับแต่งให้ Accordion เข้ากับ Dark Theme -->
+<style>
+    .custom-accordion .accordion-item {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 0.75rem !important;
+    }
+    .custom-accordion .accordion-button {
+        background-color: transparent !important;
+        color: #ffffff !important;
+        box-shadow: none !important;
+    }
+    .custom-accordion .accordion-button:not(.collapsed) {
+        background-color: rgba(255, 255, 255, 0.08) !important;
+        color: #38bdf8 !important;
+    }
+    .custom-accordion .accordion-button::after {
+        filter: invert(1);
+    }
+    .custom-accordion .accordion-body {
+        background-color: transparent !important;
+    }
+    .lesson-row-link {
+        transition: background-color 0.2s ease;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    }
+    .lesson-row-link:hover {
+        background-color: rgba(255, 255, 255, 0.08) !important;
+    }
+</style>
 
     <!-- 1. Hero Section -->
     <section class="course-hero py-4 py-lg-5 position-relative overflow-hidden">
@@ -319,7 +318,6 @@ include_once $ROOT_PATH . 'includes/header.php';
                     <!-- What You'll Learn & Prerequisites -->
                     <div class="dashboard-card rounded-4 p-4 mb-4">
                         <div class="row g-4">
-                            <!-- สิ่งที่จะได้เรียนรู้ -->
                             <div class="col-md-6 border-end-md border-color">
                                 <h5 class="fw-bold mb-3 text-white d-flex align-items-center fs-6"><i class="bi bi-check-circle-fill text-success me-2"></i> สิ่งที่คุณจะได้เรียนรู้</h5>
                                 <?php if (!empty($course['outcomes'])): ?>
@@ -335,7 +333,6 @@ include_once $ROOT_PATH . 'includes/header.php';
                                     <p class="text-white-50 small mb-0">ไม่มีข้อมูลผลลัพธ์การเรียนรู้ที่ระบุไว้</p>
                                 <?php endif; ?>
                             </div>
-                            <!-- ความรู้พื้นฐานที่ต้องมี -->
                             <div class="col-md-6">
                                 <h5 class="fw-bold mb-3 text-white d-flex align-items-center fs-6"><i class="bi bi-list-check text-warning me-2"></i> ตรวจสอบความพร้อมพื้นฐาน</h5>
                                 <div class="d-flex flex-column gap-2">
@@ -373,8 +370,9 @@ include_once $ROOT_PATH . 'includes/header.php';
                             ?>
                                 <div class="accordion-item mb-2 overflow-hidden">
                                     <h2 class="accordion-header" id="heading<?= $index ?>">
-                                        <button class="accordion-button <?= $index != 0 ? 'collapsed' : '' ?> bg-transparent fw-bold text-white shadow-none"
+                                        <button class="accordion-button <?= $index != 0 ? 'collapsed' : '' ?>"
                                             type="button"
+                                            data-bs-toggle="collapse"
                                             data-bs-target="#collapse<?= $index ?>"
                                             aria-expanded="<?= $index == 0 ? 'true' : 'false' ?>">
                                             <div class="flex-grow-1 d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center me-3 gap-1">
@@ -383,12 +381,12 @@ include_once $ROOT_PATH . 'includes/header.php';
                                             </div>
                                         </button>
                                     </h2>
-                                    <div id="collapse<?= $index ?>" class="accordion-collapse collapse <?= $index == 0 ? 'show' : '' ?>">
-                                        <div class="accordion-body p-0 border-top border-color bg-surface bg-opacity-25">
+                                    <div id="collapse<?= $index ?>" class="accordion-collapse collapse <?= $index == 0 ? 'show' : '' ?>" data-bs-parent="#curriculumAccordion">
+                                        <div class="accordion-body p-0">
                                             <div class="list-group list-group-flush">
 
                                                 <a href="lesson.php?course_id=<?= $course['id'] ?>&lesson_id=<?= ($index * 5) + 1 ?>"
-                                                    class="list-group-item bg-transparent d-flex justify-content-between align-items-center py-3 px-3 px-md-4 lesson-row-link">
+                                                    class="list-group-item bg-transparent text-white d-flex justify-content-between align-items-center py-3 px-3 px-md-4 lesson-row-link">
                                                     <div class="d-flex align-items-center gap-3">
                                                         <i class="bi bi-play-circle-fill text-info fs-5 flex-shrink-0"></i>
                                                         <div>
@@ -402,7 +400,7 @@ include_once $ROOT_PATH . 'includes/header.php';
                                                 </a>
 
                                                 <a href="lesson.php?course_id=<?= $course['id'] ?>&lesson_id=<?= ($index * 5) + 2 ?>"
-                                                    class="list-group-item bg-transparent d-flex justify-content-between align-items-center py-3 px-3 px-md-4 lesson-row-link">
+                                                    class="list-group-item bg-transparent text-white d-flex justify-content-between align-items-center py-3 px-3 px-md-4 lesson-row-link">
                                                     <div class="d-flex align-items-center gap-3">
                                                         <i class="bi bi-terminal-fill text-warning fs-5 flex-shrink-0"></i>
                                                         <div>
@@ -527,9 +525,9 @@ include_once $ROOT_PATH . 'includes/header.php';
                             <h6 class="fw-bold mb-3 text-white"><i class="bi bi-box-seam text-primary me-2"></i> สิทธิ์ประโยชน์ที่จะได้รับ</h6>
                             <ul class="list-unstyled mb-0 small">
                                 <?php foreach ($course['includes'] as $inc): ?>
-                                    <li class="d-flex align-items-center mb-3 text-white-50">
+                                    <li class="d-flex align-items-center mb-3 text-white">
                                         <i class="bi <?= $inc['icon'] ?> fs-5 me-3 text-info"></i>
-                                        <span><?= htmlspecialchars($inc['text']) ?></span>
+                                        <span class="text-white"><?= htmlspecialchars($inc['text']) ?></span>
                                     </li>
                                 <?php endforeach; ?>
                             </ul>
@@ -570,6 +568,22 @@ include_once $ROOT_PATH . 'includes/header.php';
             </div>
         </div>
     </section>
+
+    <!-- Script สำหรับปุ่ม กางออกทั้งหมด -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const btnExpand = document.getElementById('btnExpandAll');
+        if (btnExpand) {
+            btnExpand.addEventListener('click', function() {
+                const collapses = document.querySelectorAll('#curriculumAccordion .collapse');
+                collapses.forEach(el => {
+                    const bsCollapse = bootstrap.Collapse.getInstance(el) || new bootstrap.Collapse(el, {toggle: false});
+                    bsCollapse.show();
+                });
+            });
+        }
+    });
+    </script>
 
     <!-- Include Footer -->
     <?php include_once $ROOT_PATH . 'includes/footer.php'; ?>
