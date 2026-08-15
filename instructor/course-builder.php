@@ -392,7 +392,7 @@ $can_publish = ($has_lessons && count($chapters) > 0);
                 <div class="col-12 col-md-5 d-flex align-items-center gap-3">
                     <div style="position: relative; width: 95px; height: 55px; border-radius: 8px; overflow: hidden; border: 1px solid var(--cb-border); flex-shrink: 0; background: #000;">
                         <?php if (!empty($course['img'])): ?>
-                            <img src="<?= htmlspecialchars($course['img']) ?>" alt="Thumbnail" style="width:100%; height:100%; object-fit:cover;">
+                            <img src="<?= $ROOT_PATH . htmlspecialchars($course['img']) ?>" alt="Thumbnail" style="width:100%; height:100%; object-fit:cover;">
                         <?php else: ?>
                             <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-dark text-cyan small" style="font-size: 0.65rem;">No Image</div>
                         <?php endif; ?>
