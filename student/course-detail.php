@@ -7,7 +7,7 @@ require_once '../config/db.php';
 // รับค่า id หรือ course_id จาก URL
 $course_id = $_GET['id'] ?? $_GET['course_id'] ?? 0;
 
-// 1. ดึงข้อมูล Course หลัก + Category + Instructor (รวม Query เดียวเพื่อลด Resource)
+// 1. ดึงข้อมูล Course หลัก + Category + Instructor (รวม Query เดียวเพื่อลด Resource)[cite: 5]
 $sql = "SELECT c.*, 
                ct.name AS category_name,
                u.id AS instructor_id,
@@ -24,66 +24,79 @@ $stmt = $conn->prepare($sql);
 $stmt->execute([':course_id' => $course_id]);
 $course_data = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// ดักจับกรณีหา Course ไม่เจอ
+// ดักจับกรณีหา Course ไม่เจอ[cite: 5]
 if (!$course_data) {
     die("ไม่พบข้อมูลคอร์สเรียนนี้");
 }
 
-// 2. ดึงข้อมูล Outcomes (สิ่งที่จะได้เรียนรู้)
+// 2. ดึงข้อมูล Outcomes (สิ่งที่จะได้เรียนรู้)[cite: 5]
 $sql_outcomes = "SELECT name FROM `outcomes` WHERE course_id = :course_id";
 $stmt_outcomes = $conn->prepare($sql_outcomes);
 $stmt_outcomes->execute([':course_id' => $course_id]);
 $course_outcomes = $stmt_outcomes->fetchAll(PDO::FETCH_COLUMN);
 
-// 3. ดึงข้อมูล Prereq (ความรู้พื้นฐานที่ต้องมีก่อน)
+// 3. ดึงข้อมูล Prereq (ความรู้พื้นฐานที่ต้องมีก่อน)[cite: 5]
 $sql_prereq = "SELECT name FROM `prereq` WHERE course_id = :course_id";
 $stmt_prereq = $conn->prepare($sql_prereq);
 $stmt_prereq->execute([':course_id' => $course_id]);
 $course_prereqs = $stmt_prereq->fetchAll(PDO::FETCH_COLUMN);
 
-// 4. ดึงข้อมูล Chapters และ Lessons
+// ----------------------------------------------------------------------
+// 4. [แก้ไขแล้ว] ดึงข้อมูล Chapters และ Lessons ทั้งหมด (รวมกรณี chapter_id เป็น NULL)[cite: 5]
+// ----------------------------------------------------------------------
 $sql_chapters = "SELECT * FROM `chapters` WHERE course_id = :course_id ORDER BY chapter_order ASC";
 $stmt_chapters = $conn->prepare($sql_chapters);
 $stmt_chapters->execute([':course_id' => $course_id]);
 $chapters_data = $stmt_chapters->fetchAll(PDO::FETCH_ASSOC);
 
+// ดึงบทเรียนทั้งหมดของคอร์สนี้
+$sql_lessons = "SELECT * FROM `lessons` WHERE course_id = :course_id ORDER BY lesson_order ASC";
+$stmt_lessons = $conn->prepare($sql_lessons);
+$stmt_lessons->execute([':course_id' => $course_id]);
+$all_lessons = $stmt_lessons->fetchAll(PDO::FETCH_ASSOC);
+
 $curriculum = [];
+$assigned_lesson_ids = [];
+
+// 4.1 จัดกลุ่มบทเรียนใส่ตาม Chapter
 if (!empty($chapters_data)) {
     foreach ($chapters_data as $chap) {
-        $sql_lessons = "SELECT * FROM `lessons` WHERE chapter_id = :chapter_id ORDER BY lesson_order ASC";
-        $stmt_lessons = $conn->prepare($sql_lessons);
-        $stmt_lessons->execute([':chapter_id' => $chap['id']]);
-        $lessons = $stmt_lessons->fetchAll(PDO::FETCH_ASSOC);
+        $chap_lessons = array_filter($all_lessons, function($les) use ($chap, &$assigned_lesson_ids) {
+            if (!empty($les['chapter_id']) && $les['chapter_id'] == $chap['id']) {
+                $assigned_lesson_ids[] = $les['id'];
+                return true;
+            }
+            return false;
+        });
 
         $curriculum[] = [
             'id' => $chap['id'],
             'title' => $chap['title'],
-            'lessons' => $lessons
-        ];
-    }
-} else {
-    // ถ้าไม่มี Chapters ให้ดึง Lessons ทั้งหมดของคอร์สนี้มาแทน
-    $sql_lessons = "SELECT * FROM `lessons` WHERE course_id = :course_id ORDER BY lesson_order ASC";
-    $stmt_lessons = $conn->prepare($sql_lessons);
-    $stmt_lessons->execute([':course_id' => $course_id]);
-    $lessons = $stmt_lessons->fetchAll(PDO::FETCH_ASSOC);
-
-    if (!empty($lessons)) {
-        $curriculum[] = [
-            'id' => 0,
-            'title' => 'เนื้อหาหลักสูตรทั้งหมด',
-            'lessons' => $lessons
+            'lessons' => array_values($chap_lessons)
         ];
     }
 }
 
-// 5. นับจำนวนผู้เรียนที่ลงทะเบียน (Enrollments Count)
+// 4.2 กรองบทเรียนที่ chapter_id เป็น NULL หรือไม่ได้ผูกกับ Chapter ใดๆ
+$unassigned_lessons = array_filter($all_lessons, function($les) use ($assigned_lesson_ids) {
+    return !in_array($les['id'], $assigned_lesson_ids);
+});
+
+if (!empty($unassigned_lessons)) {
+    $curriculum[] = [
+        'id' => 0,
+        'title' => !empty($chapters_data) ? 'บทเรียนเพิ่มเติม (ไม่มีหมวดหมู่)' : 'เนื้อหาหลักสูตรทั้งหมด',
+        'lessons' => array_values($unassigned_lessons)
+    ];
+}
+
+// 5. นับจำนวนผู้เรียนที่ลงทะเบียน (Enrollments Count)[cite: 5]
 $sql_count_students = "SELECT COUNT(id) FROM `enrollments` WHERE course_id = :course_id";
 $stmt_students = $conn->prepare($sql_count_students);
 $stmt_students->execute([':course_id' => $course_id]);
 $students_count = $stmt_students->fetchColumn() ?: 0;
 
-// 6. เช็คว่าผู้ใช้ปัจจุบันเคย "บันทึกไว้ทีหลัง" คอร์สนี้แล้วหรือยัง
+// 6. เช็คว่าผู้ใช้ปัจจุบันเคย "บันทึกไว้ทีหลัง" คอร์สนี้แล้วหรือยัง[cite: 5]
 $is_saved = false;
 if (!empty($_SESSION['user_id'])) {
     $sql_saved = "SELECT id FROM `saved_courses` WHERE user_id = :user_id AND course_id = :course_id";
@@ -95,11 +108,11 @@ if (!empty($_SESSION['user_id'])) {
     $is_saved = (bool) $stmt_saved->fetch(PDO::FETCH_ASSOC);
 }
 
-// 7. จัดรูปแบบราคา
+// 7. จัดรูปแบบราคา[cite: 5]
 $price_val = (isset($course_data['price']) && is_numeric($course_data['price'])) ? (float)$course_data['price'] : 0;
 $type_text = ($price_val > 0) ? number_format($price_val) . ' ฿' : 'เรียนฟรี';
 
-// 8. จัดโครงสร้างข้อมูลคอร์ส
+// 8. จัดโครงสร้างข้อมูลคอร์ส[cite: 5]
 $course = [
     'id' => $course_id,
     'title' => $course_data['title'] ?? 'Untitled Course',
@@ -112,7 +125,7 @@ $course = [
     'image' => !empty($course_data['img']) ? $ROOT_PATH . $course_data['img'] : 'https://via.placeholder.com/600x400',
     'video_url' => $course_data['video'] ?? null,
     'time_total' => $course_data['time_total'] ?? 0,
-    'chapter_total' => $course_data['chapter_total'] ?? count($curriculum),
+    'chapter_total' => $course_data['chapter_total'] ?? count($all_lessons),
     'time_week' => $course_data['time_week'] ?? 0,
     'target' => $course_data['target'] ?? '',
     'certificate_type' => $course_data['certificate_type'] ?? 'มีใบรับรองเมื่อเรียนจบ',
@@ -127,7 +140,7 @@ $course = [
     
     'includes' => [
         ['icon' => 'bi-play-circle', 'text' => 'วิดีโอรวม ' . ($course_data['time_total'] ?? 0) . ' ชั่วโมง'],
-        ['icon' => 'bi-journal-code', 'text' => 'เนื้อหาทั้งหมด ' . ($course_data['chapter_total'] ?? 0) . ' บทเรียน'],
+        ['icon' => 'bi-journal-code', 'text' => 'เนื้อหาทั้งหมด ' . count($all_lessons) . ' บทเรียน'],
         ['icon' => 'bi-clock-history', 'text' => 'แนะนำเรียน ' . ($course_data['time_week'] ?? 0) . ' ชม./สัปดาห์'],
         ['icon' => 'bi-robot', 'text' => 'AI Tutor ช่วยตอบคำถาม 24/7'],
         ['icon' => 'bi-award', 'text' => $course_data['certificate_type'] ?? 'มีใบรับรองเมื่อเรียนจบ']
@@ -142,7 +155,7 @@ $course = [
     ]
 ];
 
-// คำนวณ AI Readiness Analysis
+// คำนวณ AI Readiness Analysis[cite: 5]
 $est_time_str = ($course['time_week'] > 0 && $course['time_total'] > 0) 
     ? ceil($course['time_total'] / $course['time_week']) . ' สัปดาห์' 
     : 'เรียนตามความสะดวก';
@@ -157,7 +170,7 @@ $ai_analysis = [
     'est_time' => $est_time_str
 ];
 
-// 9. ดึงข้อมูลคอร์สที่เกี่ยวข้อง (Related Courses)
+// 9. ดึงข้อมูลคอร์สที่เกี่ยวข้อง (Related Courses)[cite: 5]
 $related_courses = [];
 try {
     $category_id = $course_data['category_id'] ?? 0;
@@ -207,23 +220,23 @@ try {
     $related_courses = [];
 }
 
-// ฟังก์ชันแปลง Video URL เป็น Embed Player
+// ฟังก์ชันแปลง Video URL เป็น Embed Player[cite: 5]
 function getEmbedUrl($url)
 {
     if (empty($url)) return '';
 
-    // YouTube
+    // YouTube[cite: 5]
     $youtube_pattern = '%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/ ]{11})%i';
     if (preg_match($youtube_pattern, $url, $match)) {
         return "https://www.youtube.com/embed/" . $match[1];
     }
 
-    // Google Drive
+    // Google Drive[cite: 5]
     if (preg_match('%drive\.google\.com/file/d/([^/]+)%i', $url, $match)) {
         return "https://drive.google.com/file/d/" . $match[1] . "/preview";
     }
 
-    // Vimeo
+    // Vimeo[cite: 5]
     if (preg_match('%vimeo\.com/([0-9]+)%i', $url, $match)) {
         return "https://player.vimeo.com/video/" . $match[1];
     }
@@ -286,7 +299,7 @@ include_once $ROOT_PATH . 'includes/header.php';
 
                     <div class="d-flex flex-wrap gap-3 gap-md-4 mb-4 text-muted" style="font-size: 0.85rem;">
                         <div class="d-flex align-items-center gap-1"><i class="bi bi-clock me-1"></i> รวม <?= htmlspecialchars($course['time_total']) ?> ชั่วโมง</div>
-                        <div class="d-flex align-items-center gap-1"><i class="bi bi-journal-check me-1"></i> <?= htmlspecialchars($course['chapter_total']) ?> บทเรียน</div>
+                        <div class="d-flex align-items-center gap-1"><i class="bi bi-journal-check me-1"></i> <?= count($all_lessons) ?> บทเรียน</div>
                         <div class="d-flex align-items-center gap-1"><i class="bi bi-bar-chart me-1"></i> <?= htmlspecialchars($course['level']) ?></div>
                         <div class="d-flex align-items-center gap-1"><i class="bi bi-translate me-1"></i> <?= htmlspecialchars($course['language']) ?></div>
                     </div>
@@ -405,7 +418,7 @@ include_once $ROOT_PATH . 'includes/header.php';
                         <div class="d-flex justify-content-between align-items-end mb-3">
                             <div>
                                 <h5 class="fw-bold mb-1 text-main d-flex align-items-center fs-5"><i class="bi bi-map text-primary me-2"></i> แผนที่เส้นทางการเรียนรู้</h5>
-                                <p class="text-muted mb-0 small"><?= count($curriculum) ?> บทใหญ่ • รวมเวลาเรียน <?= htmlspecialchars($course['time_total']) ?> ชั่วโมง</p>
+                                <p class="text-muted mb-0 small"><?= count($curriculum) ?> ส่วน • <?= count($all_lessons) ?> บทเรียน • รวมเวลาเรียน <?= htmlspecialchars($course['time_total']) ?> ชั่วโมง</p>
                             </div>
                             <?php if (!empty($curriculum)): ?>
                                 <button class="btn btn-link text-info text-decoration-none p-0 small" id="btnExpandAll" type="button" style="font-size: 0.85rem;">กางออกทั้งหมด</button>
