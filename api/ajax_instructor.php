@@ -143,13 +143,8 @@ if ($action === 'save_course_structure') {
 
         foreach ($chapters as $chap_data) {
             $chapter_id = filter_var($chap_data['id'] ?? null, FILTER_VALIDATE_INT);
-            $chapter_title = trim($chap_data['title']);
-            $chapter_order = filter_var($chap_data['order'], FILTER_VALIDATE_INT);
-            
-            // Keep track of IDs sent from the client
-            if ($chapter_id) {
-                $all_chapter_ids_from_client[] = $chapter_id;
-            }
+            $chapter_title = trim($chap_data['title'] ?? '');
+            $chapter_order = filter_var($chap_data['order'] ?? 0, FILTER_VALIDATE_INT);
 
             if ($chapter_id) {
                 // Update Existing Chapter
@@ -159,18 +154,19 @@ if ($action === 'save_course_structure') {
                 // Insert New Chapter
                 $stmt_chap = $pdo->prepare("INSERT INTO chapters (course_id, title, chapter_order) VALUES (?, ?, ?)");
                 $stmt_chap->execute([$course_id, $chapter_title, $chapter_order]);
-                $chapter_id = $pdo->lastInsertId(); // Get new ID for lessons
+                $chapter_id = (int)$pdo->lastInsertId(); // Get new ID for lessons
             }
+
+            // Keep track of IDs that now exist for this chapter (existing OR just-created),
+            // so the "Handle Deletions" step below doesn't mistake a brand-new row for one
+            // that the client removed and wipe it out in the same request.
+            $all_chapter_ids_from_client[] = $chapter_id;
 
             foreach ($chap_data['lessons'] ?? [] as $less_data) {
                 $lesson_id = filter_var($less_data['id'] ?? null, FILTER_VALIDATE_INT);
-                $lesson_title = trim($less_data['title']);
-                $lesson_type = trim($less_data['type']);
-                $lesson_order = filter_var($less_data['order'], FILTER_VALIDATE_INT);
-
-                if ($lesson_id) {
-                    $all_lesson_ids_from_client[] = $lesson_id;
-                }
+                $lesson_title = trim($less_data['title'] ?? '');
+                $lesson_type = trim($less_data['type'] ?? 'theory');
+                $lesson_order = filter_var($less_data['order'] ?? 0, FILTER_VALIDATE_INT);
 
                 if ($lesson_id) {
                     // Update Existing Lesson
@@ -180,7 +176,11 @@ if ($action === 'save_course_structure') {
                     // Insert New Lesson
                     $stmt_less = $pdo->prepare("INSERT INTO lessons (course_id, chapter_id, title, lesson_type, lesson_order, status) VALUES (?, ?, ?, ?, ?, 'draft')");
                     $stmt_less->execute([$course_id, $chapter_id, $lesson_title, $lesson_type, $lesson_order]);
+                    $lesson_id = (int)$pdo->lastInsertId();
                 }
+
+                // Same fix as above, but for lessons.
+                $all_lesson_ids_from_client[] = $lesson_id;
             }
         }
         
