@@ -632,7 +632,7 @@ $can_publish = ($has_lessons && count($chapters) > 0);
                             <button class="btn btn-xs btn-outline-info text-white py-0 px-2" style="font-size: 0.75rem;" onclick="LevelUpAlert.toast('เปิดโปรแกรมแก้ไข Flow ในหน้าต่างใหม่...', 'info')">เต็มจอ</button>
                         </div>
                         
-                        <div class="p-3 rounded-4 bg-black bg-opacity-40 border border-secondary border-opacity-10 py-4">
+                        <div id="visual-flow-container" class="p-3 rounded-4 bg-black bg-opacity-40 border border-secondary border-opacity-10 py-4">
                             <div class="flow-node border-info">
                                 <div class="small fw-bold text-cyan"><?= htmlspecialchars($course['title']) ?></div>
                             </div>
@@ -820,6 +820,7 @@ $can_publish = ($has_lessons && count($chapters) > 0);
         reindexLessons();
         recalculateStats();
         updatePublishReadiness();
+        updateVisualFlowUI(); // <-- Call the new function on load
 
         // ตรวจจับ Unsaved Changes ใน Form Inputs
         $(document).on('change input', '.chapter-title-input, .cb-input, #modal-item-title', function() {
@@ -960,9 +961,7 @@ $can_publish = ($has_lessons && count($chapters) > 0);
         }
         
         setDirtyState(true);
-        reindexLessons();
-        recalculateStats();
-        updatePublishReadiness();
+        reindexAndRedraw();
         $('#lessonObjectModal').modal('hide');
     }
 
@@ -989,9 +988,7 @@ $can_publish = ($has_lessons && count($chapters) > 0);
                 }
 
                 setDirtyState(true);
-                reindexLessons();
-                recalculateStats();
-                updatePublishReadiness();
+                reindexAndRedraw();
                 LevelUpAlert.toast('ลบบทเรียนย่อยเรียบร้อยแล้ว', 'success');
             }
         });
@@ -1014,9 +1011,7 @@ $can_publish = ($has_lessons && count($chapters) > 0);
             if (isConfirmed) {
                 $card.remove();
                 setDirtyState(true);
-                reindexLessons();
-                recalculateStats();
-                updatePublishReadiness();
+                reindexAndRedraw();
                 LevelUpAlert.toast('ลบ Chapter เรียบร้อยแล้ว', 'success');
             }
         });
@@ -1058,10 +1053,16 @@ $can_publish = ($has_lessons && count($chapters) > 0);
         
         $('#course-chapters-root').append(newHtml);
         setDirtyState(true);
+        reindexAndRedraw();
+        LevelUpAlert.toast('เพิ่ม Chapter ใหม่แล้ว', 'success');
+    }
+
+    // Combined function to re-run all UI updates
+    function reindexAndRedraw() {
         reindexLessons();
         recalculateStats();
         updatePublishReadiness();
-        LevelUpAlert.toast('เพิ่ม Chapter ใหม่แล้ว', 'success');
+        updateVisualFlowUI();
     }
 
     function reindexLessons() {
@@ -1117,6 +1118,64 @@ $can_publish = ($has_lessons && count($chapters) > 0);
                 .addClass('btn-secondary opacity-50')
                 .html('<i class="bi bi-lock-fill me-1"></i> เพิ่มอย่างน้อย 1 บทเรียนเพื่อเผยแพร่');
         }
+    }
+    
+    function updateVisualFlowUI() {
+        const container = $('#visual-flow-container');
+        if (!container.length) return;
+
+        let html = '';
+        const courseTitle = $('#cb-course-title').text().trim();
+
+        // Start Node
+        html += `
+            <div class="flow-node border-info">
+                <div class="small fw-bold text-cyan">${courseTitle || 'Course Title'}</div>
+            </div>`;
+
+        const $chapters = $('#course-chapters-root .chapter-card');
+
+        if ($chapters.length === 0) {
+            html += `
+                <div class="flow-arrow"><i class="bi bi-arrow-down-short"></i></div>
+                <div class="flow-node">
+                    <div class="small text-white-50">No chapters yet.</div>
+                </div>`;
+        } else {
+             $chapters.each(function(index) {
+                const chapterLabel = $(this).find('.chap-label').text();
+                const chapterTitle = $(this).find('.chapter-title-input').val().trim();
+                const fullChapterTitle = `${chapterLabel} ${chapterTitle}`;
+
+                html += `
+                    <div class="flow-arrow"><i class="bi bi-arrow-down-short"></i></div>
+                    <div class="flow-node">
+                        <div class="small text-white">${fullChapterTitle}</div>
+                        <span class="type-badge badge-video d-inline-block mt-1">Start Chapter</span>
+                    </div>`;
+
+                $(this).find('.lessons-sortable-zone .lesson-item').each(function() {
+                    const lessonTitle = $(this).find('.lesson-title').text().trim();
+                    const badgeClone = $(this).find('.type-badge').clone().addClass('d-inline-block mt-1');
+                    
+                    html += `
+                        <div class="flow-arrow"><i class="bi bi-arrow-down-short"></i></div>
+                        <div class="flow-node">
+                            <div class="small text-white">${lessonTitle}</div>
+                            ${badgeClone.prop('outerHTML')}
+                        </div>`;
+                });
+            });
+        }
+
+        // End Node
+        html += `
+            <div class="flow-arrow"><i class="bi bi-arrow-down-short"></i></div>
+            <div class="flow-node border-success">
+                <div class="small fw-bold text-success">Certificate Evaluation</div>
+            </div>`;
+        
+        container.html(html);
     }
 
     function duplicateItem(type, id) {
