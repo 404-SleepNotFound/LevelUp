@@ -535,6 +535,8 @@ $can_publish = ($has_lessons && count($chapters) > 0);
                                                     $badge_class = 'badge-lab'; $badge_icon = 'bi-code-square'; $badge_name = 'Coding Lab';
                                                 } elseif ($ltype === 'virtual_lab') {
                                                     $badge_class = 'badge-lab'; $badge_icon = 'bi-cpu'; $badge_name = 'Virtual Lab';
+                                                } elseif ($ltype === 'assignment') {
+                                                    $badge_class = 'badge-doc'; $badge_icon = 'bi-file-zip'; $badge_name = 'Assignment';
                                                 }
                                             ?>
                                                 <div class="lesson-item" data-type="<?= $ltype ?>" data-id="<?= $less['id'] ?>">
