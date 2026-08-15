@@ -601,71 +601,39 @@ if (!empty($lesson['virtual_lab_config'])) {
              ========================================== -->
         <div class="editor-section-card">
             <div class="section-title">
-                <i class="bi bi-info-circle-fill"></i> 1. Lesson Information (ข้อมูลพื้นฐานบทเรียน)
+                <i class="bi bi-signpost-split-fill"></i> 1. Lesson Selection (เลือกบทเรียน)
             </div>
             <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label form-label-premium">คอร์สเรียน (Course) <span class="text-danger">*</span></label>
+                <div class="col-md-4">
+                    <label for="course_id_select" class="form-label form-label-premium">คอร์สเรียน (Course) <span class="text-danger">*</span></label>
                     <select name="course_id" id="course_id_select" class="form-select form-control-premium lu-select" required>
-                        <option value="">-- เลือกลิสต์คอร์สเรียน --</option>
+                        <option value="">-- เลือกคอร์สเรียน --</option>
                         <?php foreach ($courses as $c): ?>
-                            <option value="<?= $c['id'] ?>" <?= ($course_id == $c['id']) ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($c['title']) ?> (ID: <?= $c['id'] ?>)
-                            </option>
+                            <option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['title']) ?></option>
                         <?php endforeach; ?>
                     </select>
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label form-label-premium">ชื่อบทเรียน <span class="text-danger">*</span></label>
-                    <input type="text" name="title" class="form-control form-control-premium" value="<?= htmlspecialchars($lesson['title'] ?? '') ?>" placeholder="เช่น บทที่ 3: โครงสร้างและสโคปของตัวแปร" required>
                 </div>
 
                 <div class="col-md-4">
-                    <label class="form-label form-label-premium">Chapter (บทหลัก)</label>
-                    <select name="chapter_id" class="form-select form-control-premium lu-select">
-                        <option value="">-- ไม่ระบุ Chapter --</option>
-                        <?php foreach ($chapters as $ch): ?>
-                            <option value="<?= $ch['id'] ?>" <?= ($lesson && $lesson['chapter_id'] == $ch['id']) ? 'selected' : '' ?>>
-                                Chapter <?= $ch['chapter_order'] ?>: <?= htmlspecialchars($ch['title']) ?>
-                            </option>
-                        <?php endforeach; ?>
+                    <label for="chapter_id_select" class="form-label form-label-premium">Chapter (บทหลัก) <span class="text-danger">*</span></label>
+                    <select name="chapter_id" id="chapter_id_select" class="form-select form-control-premium lu-select" required disabled>
+                        <option value="">-- กรุณาเลือกคอร์สก่อน --</option>
                     </select>
                 </div>
 
-                <div class="col-md-2">
-                    <label class="form-label form-label-premium">ลำดับบทเรียน (Order)</label>
-                    <input type="number" name="lesson_order" class="form-control form-control-premium" value="<?= htmlspecialchars($lesson['lesson_order'] ?? '1') ?>">
-                </div>
-
-                <div class="col-md-3">
-                    <label class="form-label form-label-premium">ประเภทบทเรียน</label>
-                    <select name="lesson_type" id="lesson_type_select" onchange="toggleEditorTools(this.value)" class="form-select form-control-premium lu-select">
-                        <option value="">-- เลือกประเภทบทเรียน --</option>
-                        <option value="theory" <?= ($lesson && ($lesson['lesson_type'] == 'theory' || $lesson['lesson_type'] == 'video')) ? 'selected' : '' ?>>Video / Theory</option>
-                        <option value="slide" <?= ($lesson && $lesson['lesson_type'] == 'slide') ? 'selected' : '' ?>>Slide / Document</option>
-                        <option value="quiz" <?= ($lesson && $lesson['lesson_type'] == 'quiz') ? 'selected' : '' ?>>Quiz / Examination</option>
-                        <option value="lab" <?= ($lesson && $lesson['lesson_type'] == 'lab') ? 'selected' : '' ?>>Coding Lab / Practical</option>
+                <div class="col-md-4">
+                    <label for="lesson_id_select" class="form-label form-label-premium">บทเรียน (Lesson) <span class="text-danger">*</span></label>
+                    <select id="lesson_id_select" class="form-select form-control-premium lu-select" required disabled>
+                        <option value="">-- กรุณาเลือก Chapter ก่อน --</option>
                     </select>
-                </div>
-
-                <div class="col-md-3">
-                    <label class="form-label form-label-premium">สถานะ (Status)</label>
-                    <select name="status" class="form-select form-control-premium text-warning fw-bold lu-select">
-                        <option value="draft" <?= (!$lesson || $lesson['status'] == 'draft') ? 'selected' : '' ?>>🟡 Draft (แบบร่าง)</option>
-                        <option value="published" <?= ($lesson && $lesson['status'] == 'published') ? 'selected' : '' ?>>🟢 Published (เผยแพร่แล้ว)</option>
-                        <option value="unpublished" <?= ($lesson && $lesson['status'] == 'unpublished') ? 'selected' : '' ?>>🔴 Unpublished (ปิดการมองเห็น)</option>
-                    </select>
-                </div>
-
-                <div class="col-md-12">
-                    <label class="form-label form-label-premium">คำอธิบายรายวิชาย่อย (Subtitle)</label>
-                    <textarea name="subtitle" class="form-control form-control-premium" rows="2" placeholder="อธิบายรายละเอียดโดยย่อเกี่ยวกับบทเรียนนี้..."><?= htmlspecialchars($lesson['subtitle'] ?? '') ?></textarea>
                 </div>
             </div>
         </div>
 
-        <div id="editor-prompt" class="editor-section-card text-center" style="display: none;">
+        <!-- This wrapper will be hidden initially and shown when a lesson is selected -->
+        <div id="lesson-content-wrapper" style="display: none;">
+
+            <div id="editor-prompt" class="editor-section-card text-center" style="display: none;">
             <div class="py-5">
                 <i class="bi bi-arrow-up-circle-dotted fs-1 text-muted"></i>
                 <h4 class="text-white-50 fw-light mt-3">กรุณาเลือกประเภทบทเรียนด้านบน</h4>
@@ -1086,6 +1054,7 @@ if (!empty($lesson['virtual_lab_config'])) {
             </div>
         </div>
 
+    </div>
     </form>
 </div>
 
@@ -1114,213 +1083,7 @@ if (!empty($lesson['virtual_lab_config'])) {
     </div>
 </div>
 
-<!-- EVENT ENGINE ACTIONS CONTROL -->
-<script>
-    // Event Listener รองรับทั้ง AJAX Single Page App และ Direct Navigation
-    $(document).off('change', 'select[name="course_id"]').on('change', 'select[name="course_id"]', function() {
-        var courseId = $(this).val();
-        var targetUrl = 'lesson-editor.php' + (courseId ? '?course_id=' + courseId : '');
-
-        // ตรวจสอบว่าหน้าเว็บรันอยู่ใน AJAX Placeholder ของ instructor.php หรือไม่
-        if ($('#studio-content-placeholder').length > 0) {
-            $('#studio-content-placeholder').html(`
-                <div class="ajax-loader">
-                    <div class="spinner-border text-info mb-3" style="width: 2rem; height: 2rem;" role="status"></div>
-                    <div class="fw-medium inst-text-muted" style="font-size:0.9rem;">กำลังโหลดข้อมูลบทเรียน...</div>
-                </div>
-            `);
-            $.ajax({
-                url: targetUrl,
-                type: 'GET',
-                dataType: 'html',
-                success: function(response) {
-                    $('#studio-content-placeholder').hide().html(response).fadeIn(250);
-                },
-                error: function(xhr, status, error) {
-                    LevelUpAlert.ajaxError(xhr, status, error);
-                }
-            });
-        } else {
-            window.location.href = targetUrl;
-        }
-    });
-
-    function triggerAIAction(mode) {
-        LevelUpAlert.aiLoading('AI Assistant', '🤖 กำลังประมวลผลคำสั่งจาก AI Engine...');
-        $.post('lesson-editor.php', { action: 'ai_assistant', mode: mode }, function(res) {
-            LevelUpAlert.close();
-            if (res.status === 'success') {
-                LevelUpAlert.info('🤖 AI Copilot Response', res.data);
-            } else {
-                LevelUpAlert.error('เกิดข้อผิดพลาด', res.message);
-            }
-        }, 'json').fail(function(xhr, status, error) {
-            LevelUpAlert.close();
-            LevelUpAlert.ajaxError(xhr, status, error);
-        });
-    }
-
-    function executeBottomPublishAction(type) {
-        var form = document.getElementById('lessonMasterForm');
-        var formData = new FormData(form);
-
-        if (type === 'delete') {
-            LevelUpAlert.deleteConfirm({
-                title: 'ต้องการลบบทเรียนนี้ใช่หรือไม่?',
-                text: 'การกระทำนี้จะไม่สามารถย้อนกลับได้!'
-            }).then((isConfirmed) => {
-                if (isConfirmed) {
-                    formData.set('action', 'delete_lesson');
-                    submitLessonFormData(formData, type);
-                }
-            });
-            return;
-        }
-
-        if (type === 'unpublish') {
-            formData.set('action', 'unpublish_lesson');
-        } else if (type === 'save_draft') {
-            formData.set('action', 'save_lesson');
-            formData.set('status', 'draft');
-        } else if (type === 'publish') {
-            formData.set('action', 'save_lesson');
-            formData.set('status', 'published');
-        }
-
-        submitLessonFormData(formData, type);
-    }
-
-    function submitLessonFormData(formData, type) {
-        LevelUpAlert.loading('กำลังประมวลผล...', 'กรุณารอสักครู่ระบบกำลังบันทึกข้อมูล');
-        $.ajax({
-            url: 'lesson-editor.php',
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            dataType: 'json',
-            success: function(res) {
-                LevelUpAlert.close();
-                if (res.status === 'success') {
-                    LevelUpAlert.success('สำเร็จ!', res.message);
-                    if (res.lesson_id) {
-                        $('#lesson_id_input').val(res.lesson_id);
-                    }
-                    if (type === 'delete') {
-                        setTimeout(() => {
-                            if ($('#studio-content-placeholder').length > 0) {
-                                window.location.reload();
-                            } else {
-                                window.location.href = 'instructor.php';
-                            }
-                        }, 1200);
-                    }
-                } else {
-                    LevelUpAlert.error('แจ้งเตือน', res.message);
-                }
-            },
-            error: function(xhr, status, error) {
-                LevelUpAlert.close();
-                LevelUpAlert.ajaxError(xhr, status, error);
-            }
-        });
-    }
-
-    function addNewContentBlock(blockType) {
-        var randomNum = Math.floor(Math.random() * 10000);
-        var blockElementHtml = `
-            <div class="block-unit-item bg-dark bg-opacity-50 border border-secondary border-opacity-30 p-3 rounded mb-2 animate-fade-in" id="new_block_${randomNum}">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="small fw-bold text-white-50"><i class="bi bi-grid-3x2-gap-fill text-muted me-2"></i>DYNAMIC CONTENT BLOCK: [${blockType.toUpperCase()}]</span>
-                    <button type="button" class="btn btn-xs p-0 text-danger" onclick="$(this).closest('.block-unit-item').remove()"><i class="bi bi-trash-fill"></i></button>
-                </div>
-                <input type="hidden" name="blocks[${randomNum}][type]" value="${blockType}">
-                <textarea name="blocks[${randomNum}][data]" class="form-control form-control-premium form-control-sm small" rows="2" placeholder="กำหนดค่าเนื้อหาหรือรหัสผ่านตัวแปรสำหรับผูกมัด ${blockType} ตัวนี้..."></textarea>
-            </div>
-        `;
-        $('#block-builder-stage').append(blockElementHtml);
-        LevelUpAlert.toast(`เพิ่ม ${blockType.toUpperCase()} Block เรียบร้อยแล้ว`, 'success');
-    }
-
-    function formatDoc(cmd, value = null) {
-        document.execCommand(cmd, false, value);
-    }
-
-    function previewVideoPlayer() {
-        var url = $('input[name="video_url"]').val();
-        if (url) {
-            window.open(url, '_blank');
-        } else {
-            LevelUpAlert.warning('ไม่พบข้อมูล', 'ยังไม่มีการระบุ Embed Link วิดีโอภายนอก');
-        }
-    }
-
-    function copyCodeSnippet() {
-        var copyText = document.getElementById("code_snippet_area");
-        copyText.select();
-        document.execCommand("copy");
-        LevelUpAlert.copied('โค้ดตัวอย่าง');
-    }
-
-    function insertInteractive(type) {
-        var snippet = "\n<!-- Interactive: " + type + " -->\n<div class='interactive-" + type + "'>[ Insert " + type + " Content Here ]</div>\n";
-        var currentVal = $('#main_lesson_content').val();
-        $('#main_lesson_content').val(currentVal + snippet);
-        LevelUpAlert.toast(`แทรก ${type} เรียบร้อยแล้ว`, 'info');
-    }
-
-    function updateLivePreviewModal() {
-        var title = $('input[name="title"]').val() || 'ไม่ได้ระบุชื่อบทเรียน';
-        var time = $('input[name="estimated_time"]').val() || 'ไม่ได้ระบุเวลาเรียน';
-        var content = $('#main_lesson_content').val() || 'ไม่มีเนื้อหาในบทเรียน';
-
-        $('#pv-title').text(title);
-        $('#pv-time').text('⏱️ เวลาเรียน: ' + time);
-        $('#pv-content').html(content.replace(/\n/g, '<br>'));
-    }
-</script>
-
-<script>
-    function toggleEditorTools(type) {
-        const container = $('#editor-tools-container');
-        const prompt = $('#editor-prompt');
-        const modules = $('.tool-module');
-
-        // Hide all modules first
-        modules.hide();
-
-        if (!type) {
-            prompt.show();
-            container.hide();
-            return;
-        }
-
-        prompt.hide();
-        container.show();
-
-        switch (type) {
-            case 'theory':
-            case 'video': // Backward compatibility
-                $('#tool-module-theory').show();
-                break;
-            case 'slide':
-                $('#tool-module-slide').show();
-                break;
-            case 'quiz':
-                $('#tool-module-quiz').show();
-                break;
-            case 'lab':
-                $('#tool-module-lab').show();
-                break;
-        }
-    }
-
-    // Set initial state on page load
-    $(document).ready(function() {
-        const initialType = $('#lesson_type_select').val();
-        toggleEditorTools(initialType);
-    });
-</script>
-
+<!-- NEW SCRIPT FOR DYNAMIC Functionality -->
+<script src="<?= $ROOT_PATH ?>js/lesson-editor.js" defer></script>
 <!-- Import Dropdown Select Script -->
 <script src="<?= $ROOT_PATH ?>js/lu-dropdown.js" defer></script>
