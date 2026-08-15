@@ -13,7 +13,8 @@ $sql = "SELECT c.*,
                u.id AS instructor_id,
                u.name AS instructor_name,
                u.img AS instructor_img,
-               u.user_role AS instructor_role
+               u.user_role AS instructor_role,
+               u.bio AS instructor_bio
         FROM `course` c 
         LEFT JOIN `category` ct ON c.category_id = ct.id 
         LEFT JOIN `users` u ON c.user_id = u.id
@@ -28,14 +29,61 @@ if (!$course_data) {
     die("ไม่พบข้อมูลคอร์สเรียนนี้");
 }
 
-// 2. ดึงข้อมูล Outcomes
-$course_outcomes = [];
+// 2. ดึงข้อมูล Outcomes (สิ่งที่จะได้เรียนรู้)
 $sql_outcomes = "SELECT name FROM `outcomes` WHERE course_id = :course_id";
 $stmt_outcomes = $conn->prepare($sql_outcomes);
 $stmt_outcomes->execute([':course_id' => $course_id]);
 $course_outcomes = $stmt_outcomes->fetchAll(PDO::FETCH_COLUMN);
 
-// 2.1 เช็คว่าผู้ใช้ปัจจุบันเคย "บันทึกไว้ทีหลัง" คอร์สนี้แล้วหรือยัง
+// 3. ดึงข้อมูล Prereq (ความรู้พื้นฐานที่ต้องมีก่อน)
+$sql_prereq = "SELECT name FROM `prereq` WHERE course_id = :course_id";
+$stmt_prereq = $conn->prepare($sql_prereq);
+$stmt_prereq->execute([':course_id' => $course_id]);
+$course_prereqs = $stmt_prereq->fetchAll(PDO::FETCH_COLUMN);
+
+// 4. ดึงข้อมูล Chapters และ Lessons
+$sql_chapters = "SELECT * FROM `chapters` WHERE course_id = :course_id ORDER BY chapter_order ASC";
+$stmt_chapters = $conn->prepare($sql_chapters);
+$stmt_chapters->execute([':course_id' => $course_id]);
+$chapters_data = $stmt_chapters->fetchAll(PDO::FETCH_ASSOC);
+
+$curriculum = [];
+if (!empty($chapters_data)) {
+    foreach ($chapters_data as $chap) {
+        $sql_lessons = "SELECT * FROM `lessons` WHERE chapter_id = :chapter_id ORDER BY lesson_order ASC";
+        $stmt_lessons = $conn->prepare($sql_lessons);
+        $stmt_lessons->execute([':chapter_id' => $chap['id']]);
+        $lessons = $stmt_lessons->fetchAll(PDO::FETCH_ASSOC);
+
+        $curriculum[] = [
+            'id' => $chap['id'],
+            'title' => $chap['title'],
+            'lessons' => $lessons
+        ];
+    }
+} else {
+    // ถ้าไม่มี Chapters ให้ดึง Lessons ทั้งหมดของคอร์สนี้มาแทน
+    $sql_lessons = "SELECT * FROM `lessons` WHERE course_id = :course_id ORDER BY lesson_order ASC";
+    $stmt_lessons = $conn->prepare($sql_lessons);
+    $stmt_lessons->execute([':course_id' => $course_id]);
+    $lessons = $stmt_lessons->fetchAll(PDO::FETCH_ASSOC);
+
+    if (!empty($lessons)) {
+        $curriculum[] = [
+            'id' => 0,
+            'title' => 'เนื้อหาหลักสูตรทั้งหมด',
+            'lessons' => $lessons
+        ];
+    }
+}
+
+// 5. นับจำนวนผู้เรียนที่ลงทะเบียน (Enrollments Count)
+$sql_count_students = "SELECT COUNT(id) FROM `enrollments` WHERE course_id = :course_id";
+$stmt_students = $conn->prepare($sql_count_students);
+$stmt_students->execute([':course_id' => $course_id]);
+$students_count = $stmt_students->fetchColumn() ?: 0;
+
+// 6. เช็คว่าผู้ใช้ปัจจุบันเคย "บันทึกไว้ทีหลัง" คอร์สนี้แล้วหรือยัง
 $is_saved = false;
 if (!empty($_SESSION['user_id'])) {
     $sql_saved = "SELECT id FROM `saved_courses` WHERE user_id = :user_id AND course_id = :course_id";
@@ -47,7 +95,11 @@ if (!empty($_SESSION['user_id'])) {
     $is_saved = (bool) $stmt_saved->fetch(PDO::FETCH_ASSOC);
 }
 
-// 3. จัดโครงสร้างข้อมูลสำหรับนำไปใช้ในหน้า HTML
+// 7. จัดรูปแบบราคา
+$price_val = (isset($course_data['price']) && is_numeric($course_data['price'])) ? (float)$course_data['price'] : 0;
+$type_text = ($price_val > 0) ? number_format($price_val) . ' ฿' : 'เรียนฟรี';
+
+// 8. จัดโครงสร้างข้อมูลคอร์ส
 $course = [
     'id' => $course_id,
     'title' => $course_data['title'] ?? 'Untitled Course',
@@ -55,30 +107,24 @@ $course = [
     'brief' => $course_data['short_description'] ?? '',
     'description' => $course_data['full_description'] ?? '',
     'category' => $course_data['category_name'] ?? 'ทั่วไป',
-    'level' => $course_data['difficulty'] ?? 'All Levels',
-    'language' => $course_data['language'] ?? 'TH',
-    'image' => $course_data['img'] ?? 'https://via.placeholder.com/600x400',
+    'level' => $course_data['difficulty'] ?? 'Beginner',
+    'language' => strtoupper($course_data['language'] ?? 'TH'),
+    'image' => !empty($course_data['img']) ? $ROOT_PATH . $course_data['img'] : 'https://via.placeholder.com/600x400',
     'video_url' => $course_data['video'] ?? null,
     'time_total' => $course_data['time_total'] ?? 0,
-    'chapter_total' => $course_data['chapter_total'] ?? 0,
+    'chapter_total' => $course_data['chapter_total'] ?? count($curriculum),
     'time_week' => $course_data['time_week'] ?? 0,
     'target' => $course_data['target'] ?? '',
     'certificate_type' => $course_data['certificate_type'] ?? 'มีใบรับรองเมื่อเรียนจบ',
     'updated_at' => $course_data['updated_at'] ?? null,
-    
-    // ดึงราคาจากคอลัมน์ pice
-    'price' => (isset($course_data['pice']) && is_numeric($course_data['pice'])) ? (float)$course_data['pice'] : 0,
-    'type_text' => (!empty($course_data['pice']) && is_numeric($course_data['pice']) && (float)$course_data['pice'] > 0) 
-                    ? number_format((float)$course_data['pice']) . ' ฿' 
-                    : 'เรียนฟรี',
-    
-    // ข้อมูลจำลองสำหรับส่วนที่ยังไม่มีตาราง (สถิติ/รีวิว)
-    'rating' => 4.8,
-    'reviews_count' => 1245,
-    'students_count' => 8500,
+    'price' => $price_val,
+    'type_text' => $type_text,
+    'rating' => 5.0,
+    'reviews_count' => 0,
+    'students_count' => $students_count,
     'outcomes' => $course_outcomes,
+    'prereqs' => $course_prereqs,
     
-    // ดึงข้อมูลมาใส่ประโยชน์ที่จะได้รับแบบ Dynamic
     'includes' => [
         ['icon' => 'bi-play-circle', 'text' => 'วิดีโอรวม ' . ($course_data['time_total'] ?? 0) . ' ชั่วโมง'],
         ['icon' => 'bi-journal-code', 'text' => 'เนื้อหาทั้งหมด ' . ($course_data['chapter_total'] ?? 0) . ' บทเรียน'],
@@ -88,45 +134,33 @@ $course = [
     ],
     'instructor' => [
         'id' => $course_data['instructor_id'] ?? $course_data['user_id'] ?? 0,
-        'name' => $course_data['instructor_name'] ?? 'Unknown Instructor',
+        'name' => $course_data['instructor_name'] ?? 'ผู้ดูแลระบบ',
         'title' => $course_data['instructor_role'] ?? 'Instructor',
-        'company' => "BU",
+        'company' => "LevelUp Academy",
         'image' => !empty($course_data['instructor_img']) ? $course_data['instructor_img'] : 'https://via.placeholder.com/150',
-        'courses' => 5,
-        'students' => 25000,
-        'rating' => 4.9,
-        'bio' => 'ผู้สอนและนักพัฒนาซอฟต์แวร์ผู้เชี่ยวชาญประจำหลักสูตร'
+        'bio' => $course_data['instructor_bio'] ?? 'ผู้สอนและนักพัฒนาซอฟต์แวร์ผู้เชี่ยวชาญประจำหลักสูตร'
     ]
 ];
 
+// คำนวณ AI Readiness Analysis
+$est_time_str = ($course['time_week'] > 0 && $course['time_total'] > 0) 
+    ? ceil($course['time_total'] / $course['time_week']) . ' สัปดาห์' 
+    : 'เรียนตามความสะดวก';
+
 $ai_analysis = [
-    'score' => 88,
-    'match_text' => 'คอร์สนี้เหมาะกับคุณ 88%',
+    'score' => 95,
+    'match_text' => 'คอร์สนี้ตรงกับทักษะสายงานของคุณ',
     'reasons' => [
-        'คุณมีพื้นฐาน HTML/CSS แล้ว',
-        'สอดคล้องกับเป้าหมาย Career Path ของคุณ'
+        'เน้นการลงมือปฏิบัติจริงกับโจทย์จำลอง',
+        'สอดคล้องกับเส้นทางการเรียนรู้ของคุณ'
     ],
-    'prerequisites' => [
-        ['title' => 'Basic HTML/CSS', 'status' => 'passed'],
-        ['title' => 'Basic PHP', 'status' => 'learning'],
-        ['title' => 'JavaScript DOM', 'status' => 'missing', 'suggest_id' => '50']
-    ],
-    'est_time' => ($course['time_week'] > 0 ? ceil($course['time_total'] / $course['time_week']) . ' สัปดาห์' : '18 วัน')
+    'est_time' => $est_time_str
 ];
 
-$reviews = [
-    ['name' => 'สมชาย สายโค้ด', 'rating' => 5, 'date' => '2 วันที่แล้ว', 'comment' => 'เนื้อหาดีมากครับ สอนเข้าใจง่าย นำ AI มาประยุกต์ใช้ได้จริง ทำงานไวขึ้นเยอะเลย!', 'avatar' => 'https://i.pravatar.cc/150?img=11'],
-    ['name' => 'กิตติพงษ์ Dev', 'rating' => 5, 'date' => '1 สัปดาห์ที่แล้ว', 'comment' => 'ชอบส่วน Coding Lab มากครับ ได้ลงมือทำจริง ระบบซัพพอร์ต AI ตอบคำถามตรงจุด', 'avatar' => 'https://i.pravatar.cc/150?img=12'],
-    ['name' => 'อนันต์ สุขใจ', 'rating' => 4, 'date' => '2 สัปดาห์ที่แล้ว', 'comment' => 'เนื้อหาแน่นมาก เหมาะกับคนพอมีพื้นฐานมาบ้างแล้ว คุ้มค่าเงินครับ', 'avatar' => 'https://i.pravatar.cc/150?img=13']
-];
-
-// 4. ดึงข้อมูล คอร์สเรียนที่เกี่ยวข้อง (Related Courses) จาก Database
+// 9. ดึงข้อมูลคอร์สที่เกี่ยวข้อง (Related Courses)
 $related_courses = [];
-
 try {
     $category_id = $course_data['category_id'] ?? 0;
-
-    // ดึงคอร์สจาก DB (เรียงคอร์สหมวดหมู่เดียวกันก่อน และข้ามคอร์สปัจจุบัน)
     $sql_related = "SELECT c.*, u.name AS instructor_name 
                     FROM `course` c 
                     LEFT JOIN `users` u ON c.user_id = u.id 
@@ -144,8 +178,7 @@ try {
     $fallbackImg = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=600&auto=format&fit=crop';
 
     foreach ($raw_related as $rel) {
-        // ตรวจสอบรูปภาพประกอบ
-        $rawImg = $rel['img'] ?? $rel['cover_file'] ?? $rel['cover'] ?? '';
+        $rawImg = $rel['img'] ?? '';
         $imgPath = $fallbackImg;
 
         if (!empty($rawImg)) {
@@ -153,23 +186,19 @@ try {
                 $imgPath = $rawImg;
             } elseif (file_exists($ROOT_PATH . $rawImg)) {
                 $imgPath = $ROOT_PATH . $rawImg;
-            } elseif (file_exists($ROOT_PATH . 'uploads/' . basename($rawImg))) {
-                $imgPath = $ROOT_PATH . 'uploads/' . basename($rawImg);
             }
         }
 
-        // จัดรูปแบบราคาจากคอลัมน์ pice ของคอร์สที่เกี่ยวข้อง
-        $price_text = (!empty($rel['pice']) && is_numeric($rel['pice']) && (float)$rel['pice'] > 0) 
-            ? number_format((float)$rel['pice']) . ' ฿' 
+        $rel_price = (isset($rel['price']) && is_numeric($rel['price']) && (float)$rel['price'] > 0)
+            ? number_format((float)$rel['price']) . ' ฿'
             : 'เรียนฟรี';
 
         $related_courses[] = [
             'id'         => $rel['id'],
-            'title'      => $rel['title'] ?? $rel['name'] ?? 'คอร์สเรียน',
+            'title'      => $rel['title'] ?? 'คอร์สเรียน',
             'instructor' => $rel['instructor_name'] ?? 'Instructor',
-            'price'      => $price_text,
-            'rating'     => $rel['rating'] ?? 4.8,
-            'reviews'    => $rel['reviews_count'] ?? 100,
+            'price'      => $rel_price,
+            'rating'     => 5.0,
             'image'      => $imgPath
         ];
     }
@@ -178,6 +207,7 @@ try {
     $related_courses = [];
 }
 
+// ฟังก์ชันแปลง Video URL เป็น Embed Player
 function getEmbedUrl($url)
 {
     if (empty($url)) return '';
@@ -208,7 +238,7 @@ include_once $ROOT_PATH . 'includes/header.php';
 <link rel="stylesheet" href="css/dropdown-select.css">
 <script src="js/lu-dropdown.js" defer></script>
 
-    <!-- 1. Hero Section (ปรับปรุงสีให้เข้ากับ Theme) -->
+    <!-- 1. Hero Section -->
     <section class="course-hero py-4 py-lg-5 position-relative overflow-hidden">
         <div class="container-xl position-relative z-1">
             <nav aria-label="breadcrumb" class="mb-3 mb-lg-4 d-none d-md-block">
@@ -248,9 +278,9 @@ include_once $ROOT_PATH . 'includes/header.php';
                         <?php endif; ?>
                         <span class="text-muted d-none d-sm-inline">|</span>
                         <div class="d-flex align-items-center gap-1 bg-surface px-3 py-1.5 rounded-pill border border-color">
-                            <i class="bi bi-star-fill text-warning me-1 small"></i>
-                            <span class="fw-bold text-main small"><?= $course['rating'] ?></span>
-                            <a href="#reviews" class="text-muted text-decoration-none ms-1 small hover-text-primary">(<?= number_format($course['reviews_count']) ?> รีวิว)</a>
+                            <i class="bi bi-people-fill text-info me-1 small"></i>
+                            <span class="fw-bold text-main small"><?= number_format($course['students_count']) ?></span>
+                            <span class="text-muted small">ผู้ลงเรียน</span>
                         </div>
                     </div>
 
@@ -294,7 +324,7 @@ include_once $ROOT_PATH . 'includes/header.php';
                         </ul>
 
                         <div class="d-grid gap-2">
-                            <a href="lesson.php?course_id=<?= $course['id'] ?>&lesson_id=1" class="btn btn-premium btn-lg rounded-3 fw-bold py-2 text-center text-decoration-none">
+                            <a href="lesson.php?course_id=<?= $course['id'] ?>" class="btn btn-premium btn-lg rounded-3 fw-bold py-2 text-center text-decoration-none">
                                 เข้าสู่บทเรียน (<?= htmlspecialchars($course['type_text']) ?>)
                             </a>
                             <button class="btn btn-outline-surface btn-lg rounded-3 d-flex justify-content-center align-items-center gap-2 py-2" id="btnToggleBookmark" type="button" data-id="<?= $course['id'] ?>" data-saved="<?= $is_saved ? '1' : '0' ?>" style="font-size: 0.9rem;">
@@ -318,7 +348,7 @@ include_once $ROOT_PATH . 'includes/header.php';
                     <div class="dashboard-card rounded-4 p-4 mb-4">
                         <h5 class="fw-bold mb-3 text-main d-flex align-items-center fs-5"><i class="bi bi-file-text text-info me-2"></i> รายละเอียดคอร์สเรียน (Description)</h5>
                         <div class="text-muted fw-light lh-lg mb-0" style="font-size: 0.92rem;">
-                            <?= $course['description'] ?>
+                            <?= nl2br(htmlspecialchars($course['description'])) ?>
                         </div>
                     </div>
 
@@ -327,7 +357,7 @@ include_once $ROOT_PATH . 'includes/header.php';
                         <div class="dashboard-card rounded-4 p-4 mb-4">
                             <h5 class="fw-bold mb-2 text-main d-flex align-items-center fs-6"><i class="bi bi-bullseye text-danger me-2"></i> คอร์สนี้เหมาะสำหรับใคร</h5>
                             <div class="text-muted mb-0 small">
-                                <?= $course['target'] ?>
+                                <?= htmlspecialchars($course['target']) ?>
                             </div>
                         </div>
                     <?php endif; ?>
@@ -353,91 +383,91 @@ include_once $ROOT_PATH . 'includes/header.php';
                             </div>
                             <!-- ความรู้พื้นฐานที่ต้องมี -->
                             <div class="col-md-6">
-                                <h5 class="fw-bold mb-3 text-main d-flex align-items-center fs-6"><i class="bi bi-list-check text-warning me-2"></i> ตรวจสอบความพร้อมพื้นฐาน</h5>
+                                <h5 class="fw-bold mb-3 text-main d-flex align-items-center fs-6"><i class="bi bi-list-check text-warning me-2"></i> ความรู้พื้นฐานที่ต้องมี</h5>
                                 <div class="d-flex flex-column gap-2">
-                                    <?php foreach ($ai_analysis['prerequisites'] as $pre): ?>
-                                        <div class="d-flex align-items-center justify-content-between p-2 rounded prerequisite-item small">
-                                            <span class="text-muted"><?= htmlspecialchars($pre['title']) ?></span>
-                                            <?php if ($pre['status'] == 'passed'): ?>
-                                                <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25"><i class="bi bi-check-lg me-1"></i> ผ่านแล้ว</span>
-                                            <?php elseif ($pre['status'] == 'learning'): ?>
-                                                <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-25"><i class="bi bi-hourglass-split me-1"></i> กำลังเรียน</span>
-                                            <?php else: ?>
-                                                <a href="course-detail.php?id=<?= $pre['suggest_id'] ?>" class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-25 text-decoration-none"><i class="bi bi-plus-lg me-1"></i> แนะนำเรียนเพิ่ม</a>
-                                            <?php endif; ?>
-                                        </div>
-                                    <?php endforeach; ?>
+                                    <?php if (!empty($course['prereqs'])): ?>
+                                        <?php foreach ($course['prereqs'] as $pre): ?>
+                                            <div class="d-flex align-items-center justify-content-between p-2 rounded prerequisite-item small">
+                                                <span class="text-muted"><?= htmlspecialchars($pre == '0' ? 'ไม่จำเป็นต้องมีพื้นฐานมาก่อน (เรียนรู้ได้ทันที)' : $pre) ?></span>
+                                                <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25"><i class="bi bi-check-lg me-1"></i> ผ่าน</span>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <p class="text-muted small mb-0">ไม่จำเป็นต้องมีความรู้พื้นฐานมาก่อน</p>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Curriculum Roadmap Accordion -->
+                    <!-- Curriculum Roadmap Accordion (Dynamic Chapters & Lessons) -->
                     <div class="mb-4">
                         <div class="d-flex justify-content-between align-items-end mb-3">
                             <div>
                                 <h5 class="fw-bold mb-1 text-main d-flex align-items-center fs-5"><i class="bi bi-map text-primary me-2"></i> แผนที่เส้นทางการเรียนรู้</h5>
-                                <p class="text-muted mb-0 small"><?= htmlspecialchars($course['chapter_total']) ?> บทเรียน • รวมเวลาเรียน <?= htmlspecialchars($course['time_total']) ?> ชั่วโมง</p>
+                                <p class="text-muted mb-0 small"><?= count($curriculum) ?> บทใหญ่ • รวมเวลาเรียน <?= htmlspecialchars($course['time_total']) ?> ชั่วโมง</p>
                             </div>
-                            <button class="btn btn-link text-info text-decoration-none p-0 small" id="btnExpandAll" type="button" style="font-size: 0.85rem;">กางออกทั้งหมด</button>
+                            <?php if (!empty($curriculum)): ?>
+                                <button class="btn btn-link text-info text-decoration-none p-0 small" id="btnExpandAll" type="button" style="font-size: 0.85rem;">กางออกทั้งหมด</button>
+                            <?php endif; ?>
                         </div>
 
                         <div class="accordion custom-accordion" id="curriculumAccordion">
-                            <?php
-                            $sections = ['Introduction & Environment Setup', 'Frontend Development with React', 'Backend Architecture & Database', 'AI Agents Integration & Deployment'];
-                            foreach ($sections as $index => $sec):
-                            ?>
-                                <div class="accordion-item mb-2 overflow-hidden">
-                                    <h2 class="accordion-header" id="heading<?= $index ?>">
-                                        <button class="accordion-button <?= $index != 0 ? 'collapsed' : '' ?> bg-transparent fw-bold text-main shadow-none"
-                                            type="button"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target="#collapse<?= $index ?>"
-                                            aria-expanded="<?= $index == 0 ? 'true' : 'false' ?>"
-                                            aria-controls="collapse<?= $index ?>">
-                                            <div class="flex-grow-1 d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center me-3 gap-1">
-                                                <span>Section <?= $index + 1 ?>: <?= $sec ?></span>
-                                                <span class="fw-normal text-muted small"><i class="bi bi-clock me-1"></i>5 บทเรียน</span>
-                                            </div>
-                                        </button>
-                                    </h2>
-                                    <div id="collapse<?= $index ?>" class="accordion-collapse collapse <?= $index == 0 ? 'show' : '' ?>">
-                                        <div class="accordion-body p-0 border-top border-color bg-surface bg-opacity-25">
-                                            <div class="list-group list-group-flush">
-
-                                                <a href="lesson.php?course_id=<?= $course['id'] ?>&lesson_id=<?= ($index * 5) + 1 ?>"
-                                                    class="list-group-item bg-transparent d-flex justify-content-between align-items-center py-3 px-3 px-md-4 lesson-row-link">
-                                                    <div class="d-flex align-items-center gap-3">
-                                                        <i class="bi bi-play-circle-fill text-info fs-5 flex-shrink-0"></i>
-                                                        <div>
-                                                            <span class="text-main fw-medium small d-block lh-sm mb-1 lesson-title">
-                                                                Welcome to the Course
-                                                            </span>
-                                                            <span class="d-block text-muted" style="font-size: 0.72rem;">Video Mission • 05:30</span>
-                                                        </div>
-                                                    </div>
-                                                    <i class="bi bi-chevron-right text-muted small"></i>
-                                                </a>
-
-                                                <a href="lesson.php?course_id=<?= $course['id'] ?>&lesson_id=<?= ($index * 5) + 2 ?>"
-                                                    class="list-group-item bg-transparent d-flex justify-content-between align-items-center py-3 px-3 px-md-4 lesson-row-link">
-                                                    <div class="d-flex align-items-center gap-3">
-                                                        <i class="bi bi-terminal-fill text-warning fs-5 flex-shrink-0"></i>
-                                                        <div>
-                                                            <span class="text-main fw-medium small d-block lh-sm mb-1 lesson-title">
-                                                                Environment Setup & AI Tools Lab
-                                                            </span>
-                                                            <span class="d-block text-muted" style="font-size: 0.72rem;">Coding Lab Challenge • 15:00</span>
-                                                        </div>
-                                                    </div>
-                                                    <i class="bi bi-chevron-right text-muted small"></i>
-                                                </a>
-
+                            <?php if (!empty($curriculum)): ?>
+                                <?php foreach ($curriculum as $index => $chap): ?>
+                                    <div class="accordion-item mb-2 overflow-hidden">
+                                        <h2 class="accordion-header" id="heading<?= $index ?>">
+                                            <button class="accordion-button <?= $index != 0 ? 'collapsed' : '' ?> bg-transparent fw-bold text-main shadow-none"
+                                                type="button"
+                                                data-bs-toggle="collapse"
+                                                data-bs-target="#collapse<?= $index ?>"
+                                                aria-expanded="<?= $index == 0 ? 'true' : 'false' ?>"
+                                                aria-controls="collapse<?= $index ?>">
+                                                <div class="flex-grow-1 d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center me-3 gap-1">
+                                                    <span><?= htmlspecialchars(($chap['id'] > 0 ? "Chapter " . ($index + 1) . ": " : "") . $chap['title']) ?></span>
+                                                    <span class="fw-normal text-muted small"><i class="bi bi-clock me-1"></i><?= count($chap['lessons']) ?> บทเรียน</span>
+                                                </div>
+                                            </button>
+                                        </h2>
+                                        <div id="collapse<?= $index ?>" class="accordion-collapse collapse <?= $index == 0 ? 'show' : '' ?>">
+                                            <div class="accordion-body p-0 border-top border-color bg-surface bg-opacity-25">
+                                                <div class="list-group list-group-flush">
+                                                    <?php if (!empty($chap['lessons'])): ?>
+                                                        <?php foreach ($chap['lessons'] as $les): ?>
+                                                            <a href="lesson.php?course_id=<?= $course['id'] ?>&lesson_id=<?= $les['id'] ?>"
+                                                                class="list-group-item bg-transparent d-flex justify-content-between align-items-center py-3 px-3 px-md-4 lesson-row-link">
+                                                                <div class="d-flex align-items-center gap-3">
+                                                                    <?php if (($les['lesson_type'] ?? '') == 'lab'): ?>
+                                                                        <i class="bi bi-terminal-fill text-warning fs-5 flex-shrink-0"></i>
+                                                                    <?php else: ?>
+                                                                        <i class="bi bi-play-circle-fill text-info fs-5 flex-shrink-0"></i>
+                                                                    <?php endif; ?>
+                                                                    <div>
+                                                                        <span class="text-main fw-medium small d-block lh-sm mb-1 lesson-title">
+                                                                            <?= htmlspecialchars($les['title']) ?>
+                                                                        </span>
+                                                                        <span class="d-block text-muted" style="font-size: 0.72rem;">
+                                                                            <?= htmlspecialchars($les['subtitle'] ?? 'บทเรียนย่อย') ?> • <?= htmlspecialchars($les['duration_minutes'] ?? 15) ?> นาที
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                                <i class="bi bi-chevron-right text-muted small"></i>
+                                                            </a>
+                                                        <?php endforeach; ?>
+                                                    <?php else: ?>
+                                                        <div class="p-3 text-muted small text-center">ยังไม่มีบทเรียนในส่วนนี้</div>
+                                                    <?php endif; ?>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div class="dashboard-card rounded-4 p-4 text-center text-muted small">
+                                    <i class="bi bi-journal-x fs-3 d-block mb-2 text-secondary"></i>
+                                    ยังไม่มีโครงสร้างบทเรียนสำหรับคอร์สนี้
                                 </div>
-                            <?php endforeach; ?>
+                            <?php endif; ?>
                         </div>
                     </div>
 
@@ -464,43 +494,6 @@ include_once $ROOT_PATH . 'includes/header.php';
                                 <p class="text-info fw-medium mb-3 small"><?= htmlspecialchars($course['instructor']['title']) ?> @ <?= htmlspecialchars($course['instructor']['company']) ?></p>
                                 <p class="text-muted mb-3 fw-light small" style="line-height: 1.5;"><?= htmlspecialchars($course['instructor']['bio']) ?></p>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Student Reviews Section -->
-                    <div id="reviews" class="dashboard-card rounded-4 p-4 mb-4">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h5 class="fw-bold text-main mb-0 fs-5"><i class="bi bi-chat-square-quote text-warning me-2"></i> รีวิวจากผู้เรียน</h5>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="fs-4 fw-bold text-main"><?= $course['rating'] ?></span>
-                                <div class="text-warning small">
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-half"></i>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="d-flex flex-column gap-3">
-                            <?php foreach ($reviews as $rev): ?>
-                                <div class="p-3 rounded-3 review-card-item">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <div class="d-flex align-items-center gap-2.5">
-                                            <img src="<?= $rev['avatar'] ?>" class="rounded-circle" width="36" height="36" alt="User Avatar">
-                                            <div>
-                                                <h6 class="fw-semibold text-main mb-0 small"><?= htmlspecialchars($rev['name']) ?></h6>
-                                                <span class="text-muted" style="font-size: 0.7rem;"><?= $rev['date'] ?></span>
-                                            </div>
-                                        </div>
-                                        <div class="text-warning extra-small">
-                                            <?php for ($i = 0; $i < $rev['rating']; $i++): ?><i class="bi bi-star-fill"></i><?php endfor; ?>
-                                        </div>
-                                    </div>
-                                    <p class="text-muted mb-0 small fw-light"><?= htmlspecialchars($rev['comment']) ?></p>
-                                </div>
-                            <?php endforeach; ?>
                         </div>
                     </div>
 
@@ -642,7 +635,7 @@ include_once $ROOT_PATH . 'includes/header.php';
         </div>
     </div>
 
-    <!-- Script: วิดีโอตัวอย่าง (โหลด/หยุดวิดีโอเมื่อเปิด-ปิด Modal) -->
+    <!-- Script: วิดีโอตัวอย่าง -->
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         var videoModalEl = document.getElementById('videoPreviewModal');
@@ -655,7 +648,6 @@ include_once $ROOT_PATH . 'includes/header.php';
                 videoFrame.src = embedUrl + sep + 'autoplay=1';
             });
             videoModalEl.addEventListener('hidden.bs.modal', function () {
-                // เคลียร์ src เพื่อหยุดวิดีโอทันทีที่ปิด Modal
                 videoFrame.src = '';
             });
         }
