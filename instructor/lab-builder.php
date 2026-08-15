@@ -1,64 +1,8 @@
 <?php
 $ROOT_PATH = '../';
-// [Security Framework & Session Verification]
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
-
-// [1. Security & Init]
-$user_id = $_SESSION['user_id'] ?? 0;
-if (!$user_id) {
-    echo "Access Denied. Please login.";
-    exit;
-}
-
-// [2. Database Connection]
-require_once __DIR__ . '/../config/db.php';
-if (!isset($conn) && isset($pdo)) { $conn = $pdo; }
-
-// [3. Fetch Dynamic Data]
-$course_id = isset($_GET['course_id']) ? intval($_GET['course_id']) : 0;
-$lab_id = isset($_GET['lab_id']) ? intval($_GET['lab_id']) : 0;
-
-$lab = null;
-$courses = [];
-$chapters = [];
-
-// Helper function
-function checkCourseOwnership($conn, $course_id, $user_id) {
-    if (!$conn) return false;
-    $stmt = $conn->prepare("SELECT id FROM course WHERE id = :cid AND user_id = :uid LIMIT 1");
-    $stmt->execute([':cid' => $course_id, ':uid' => $user_id]);
-    return (bool) $stmt->fetch();
-}
-
-if ($conn instanceof PDO) {
-    // Fetch all courses for the user for the main dropdown
-    $cStmt = $conn->prepare("SELECT id, title FROM course WHERE user_id = :uid ORDER BY id DESC");
-    $cStmt->execute([':uid' => $user_id]);
-    $courses = $cStmt->fetchAll(PDO::FETCH_ASSOC);
-
-    if ($lab_id > 0) {
-        // Load existing lab data
-    }
-
-    if ($course_id > 0 && checkCourseOwnership($conn, $course_id, $user_id)) {
-        // Fetch chapters for the selected course
-        $chStmt = $conn->prepare("SELECT id, title, chapter_order FROM chapters WHERE course_id = :cid ORDER BY chapter_order ASC");
-        $chStmt->execute([':cid' => $course_id]);
-        $chapters = $chStmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-}
-
-// [4. Breadcrumb Data]
-$breadcrumb_data = ['course_name' => null, 'course_id' => $course_id];
-if ($course_id && !empty($courses)) {
-    foreach ($courses as $c) {
-        if ($c['id'] == $course_id) {
-            $breadcrumb_data['course_name'] = $c['title'];
-            break;
-        }
-    }
-}
 ?>
+
 <!-- Import Dropdown Select Stylesheet & JavaScript -->
 <link rel="stylesheet" href="<?= $ROOT_PATH ?>css/dropdown-select.css">
 <script src="<?= $ROOT_PATH ?>js/lu-dropdown.js" defer></script>
@@ -102,41 +46,6 @@ if ($course_id && !empty($courses)) {
         --lab-sub-box-border: #e2e8f0;
         --lab-vlb-block-bg: #ffffff;
         --lab-modal-bg: #ffffff;
-    }
-
-    /* New: Course Context Bar */
-    .course-context-bar {
-        background: rgba(15, 23, 42, 0.5);
-        border: 1px solid var(--lab-border-card);
-        border-radius: 12px;
-        padding: 10px 15px;
-        margin-bottom: 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 15px;
-        font-size: 0.9rem;
-    }
-    html[data-theme="light"] .course-context-bar {
-        background: #f1f5f9;
-        border-color: #e2e8f0;
-    }
-    .context-breadcrumb a {
-        color: var(--lab-muted-color);
-        text-decoration: none;
-        transition: color 0.2s ease;
-    }
-    .context-breadcrumb a:hover {
-        color: #3b82f6; /*-lab-cyan*/
-    }
-    .context-breadcrumb .current-context {
-        color: var(--lab-title-color);
-        font-weight: 600;
-    }
-    .context-breadcrumb .bi-chevron-right {
-        font-size: 0.75rem;
-        margin: 0 8px;
-        color: var(--lab-muted-color);
     }
 
     /* Helper Utilities */
@@ -395,25 +304,6 @@ if ($course_id && !empty($courses)) {
 </style>
 
 <div class="lab-container">
-    <!-- New: Course Context Bar -->
-    <div class="course-context-bar">
-        <div class="context-breadcrumb">
-            <a href="#" class="ajax-menu-btn" data-page="DEFAULT_DASHBOARD"><i class="bi bi-rocket-takeoff-fill"></i></a>
-            <i class="bi bi-chevron-right"></i>
-            <a href="#" class="ajax-menu-btn" data-page="course-builder.php?course_id=<?= $breadcrumb_data['course_id'] ?>">
-                <i class="bi bi-diagram-3-fill"></i> <?= htmlspecialchars($breadcrumb_data['course_name'] ?? 'Course Builder') ?>
-            </a>
-            <i class="bi bi-chevron-right"></i>
-            <span class="current-context">
-                <i class="bi bi-terminal-fill"></i>
-                <?= isset($lab) && $lab ? 'Edit Lab' : 'New Lab' ?>
-            </span>
-        </div>
-        <button class="btn btn-sm btn-outline-secondary text-white-50 ajax-menu-btn" data-page="course-builder.php?course_id=<?= $breadcrumb_data['course_id'] ?>">
-            <i class="bi bi-x-lg"></i>
-        </button>
-    </div>
-
     <!-- Top Action Info Bar -->
     <div class="d-flex justify-content-between align-items-start mb-4 flex-column flex-md-row gap-3">
         <div class="w-100">
@@ -464,18 +354,14 @@ if ($course_id && !empty($courses)) {
                 <div class="col-12 col-md-4">
                     <label class="form-label form-label-premium">Chapter ผูกมัดหลักสูตร</label>
                     <select name="chapter_id" class="form-select form-control-premium lu-select">
-                        <option value="">-- Select Chapter --</option>
-                        <?php foreach ($chapters as $ch): ?>
-                            <option value="<?= $ch['id'] ?>">
-                                Chapter <?= $ch['chapter_order'] ?>: <?= htmlspecialchars($ch['title']) ?>
-                            </option>
-                        <?php endforeach; ?>
+                        <option value="3">Chapter 3: Virtualization Concepts</option>
+                        <option value="4" selected>Chapter 4: Containerization Workflow</option>
                     </select>
                 </div>
                 <div class="col-12 col-md-4">
                     <label class="form-label form-label-premium">Lesson (บทเรียนย่อย)</label>
                     <select name="lesson_id" class="form-select form-control-premium lu-select">
-                        <option value="">-- Select Lesson --</option>
+                        <option value="4.3" selected>Lesson 4.3: Custom Bridge Network Configuration</option>
                     </select>
                 </div>
                 <div class="col-12 col-md-4">

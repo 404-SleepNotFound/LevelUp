@@ -173,138 +173,9 @@ $user_role = 'Senior Instructor';
         margin-bottom: 20px;
     }
 
-
     .ajax-loader {
         display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 160px; color: var(--text-secondary-muted);
     }
-
-    /* 🎨 New Component Styles for Command Center */
-    .course-draft-card {
-        background: var(--card-bg-premium);
-        border: 1px solid var(--card-border-premium);
-        border-radius: 20px;
-        padding: 25px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    }
-    .course-draft-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-        border-color: rgba(6, 182, 212, 0.3);
-    }
-    .card-subtitle-text {
-        font-size: 0.8rem;
-        font-weight: 500;
-        color: var(--text-secondary-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 4px;
-    }
-    .card-title-text {
-        font-size: 1.15rem;
-        font-weight: 700;
-        color: var(--text-primary-lite);
-        margin-bottom: 0;
-    }
-    .status-badge {
-        background-color: rgba(234, 179, 8, 0.15);
-        color: #eab308;
-        font-size: 0.75rem;
-        font-weight: 600;
-        padding: 4px 10px;
-        border-radius: 20px;
-    }
-    .progress-section {
-        margin-top: 20px;
-        margin-bottom: 20px;
-    }
-    .progress-text, .progress-percent {
-        font-size: 0.8rem;
-        color: var(--text-secondary-muted);
-        font-weight: 500;
-    }
-    .progress-percent { color: var(--text-primary-lite); }
-    .progress .progress-bar {
-        background: linear-gradient(90deg, #06b6d4, #3b82f6);
-        border-radius: 8px;
-    }
-    .btn-continue-building {
-        background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%);
-        border: 1px solid rgba(6, 182, 212, 0.3);
-        color: var(--text-primary-lite) !important;
-        border-radius: 12px;
-        padding: 10px 15px;
-        text-align: center;
-        text-decoration: none;
-        font-weight: 600;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        transition: all 0.25s ease;
-    }
-    .btn-continue-building:hover {
-        background: linear-gradient(135deg, rgba(6, 182, 212, 0.25) 0%, rgba(59, 130, 246, 0.2) 100%);
-        box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
-        color: #fff !important;
-    }
-
-    .create-new-course-card {
-        background: linear-gradient(135deg, #0f172a 0%, var(--bg-dark-blend) 100%);
-        border: 1px solid var(--card-border-premium);
-        border-radius: 20px;
-        padding: 25px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        text-decoration: none;
-        position: relative;
-        overflow: hidden;
-        transition: all 0.3s ease;
-    }
-    .create-new-course-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 0 25px rgba(6, 182, 212, 0.2);
-        border-color: rgba(6, 182, 212, 0.4);
-    }
-    .create-new-course-card .studio-mini-icon {
-        width: 48px; height: 48px; border-radius: 12px;
-        font-size: 1.5rem;
-        margin-bottom: 15px;
-        box-shadow: 0 0 15px rgba(34, 197, 94, 0.3);
-    }
-    .go-corner {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: absolute;
-        width: 32px;
-        height: 32px;
-        overflow: hidden;
-        top: 0;
-        right: 0;
-        background: linear-gradient(135deg, #06b6d4, #3b82f6);
-        border-radius: 0 19px 0 10px;
-    }
-    .go-arrow {
-        margin-top: -4px;
-        margin-right: -4px;
-        color: white;
-        font-family: courier, sans-serif;
-    }
-    .create-new-course-card:hover .go-corner {
-        background: linear-gradient(135deg, #0891b2, #2563eb);
-    }
-
-    .studio-tools-grid-container.secondary-tools {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    @media (max-width: 576px) { .studio-tools-grid-container.secondary-tools { grid-template-columns: 1fr; } }
-
 </style>
 
 <div class="premium-instructor-wrapper">
@@ -339,104 +210,76 @@ $user_role = 'Senior Instructor';
             </div>
         </div>
 
-        <!-- 🎯 New: Command Center Header -->
-        <div class="mb-3 d-flex justify-content-between align-items-center">
-            <h4 class="fw-bold inst-text-main mb-0"><i class="bi bi-rocket-takeoff-fill text-info me-2"></i> Instructor Command Center</h4>
-            <div class="inst-text-muted d-none d-md-block">
-                <i class="bi bi-grid-1x2-fill me-1"></i> Your learning creation hub
-            </div>
+        <!-- หัวข้อหลักของ Dashboard Studio -->
+        <div class="mb-3">
+            <h4 class="fw-bold inst-text-main mb-0"><i class="bi bi-layers-half text-info me-2"></i> Instructor Studio Tools</h4>
         </div>
         
-        <!-- 🚀 New: Primary Actions (Continue & Create) -->
-        <div class="row g-4 mb-5">
-            <!-- Left: Continue where you left off -->
-            <div class="col-12 col-lg-7">
-                <div class="course-draft-card h-100">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <div class="card-subtitle-text">คอร์สที่กำลังทำอยู่</div>
-                            <h5 class="card-title-text">The Ultimate Guide to Modern PHP</h5>
-                        </div>
-                        <div class="status-badge">ร่าง</div>
-                    </div>
-                    <div class="progress-section">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span class="progress-text">ความคืบหน้า</span>
-                            <span class="progress-percent">40%</span>
-                        </div>
-                        <div class="progress" style="height: 8px;">
-                            <div class="progress-bar" role="progressbar" style="width: 40%;" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
-                    </div>
-                    <a href="#" class="btn-continue-building ajax-menu-btn" data-page="lesson-editor.php?course_id=123">
-                        <span><i class="bi bi-pencil-square me-2"></i> ทำต่อ: แก้ไขบทเรียน</span>
-                        <i class="bi bi-arrow-right"></i>
-                    </a>
-                </div>
-            </div>
-            <!-- Right: Create New Course -->
-            <div class="col-12 col-lg-5">
-                <a class="create-new-course-card h-100 ajax-menu-btn" data-page="create-course.php">
-                    <div class="icon-pulse-wrapper">
-                         <div class="studio-mini-icon icon-green"><i class="bi bi-plus-lg"></i></div>
-                    </div>
-                    <h5 class="fw-bold card-title-text">สร้างคอร์สใหม่</h5>
-                    <p class="inst-text-muted small mb-0">เริ่มต้นสร้างเส้นทางการเรียนรู้, บทเรียน, แบบทดสอบ และ Labs สำหรับผู้เรียนของคุณ</p>
-                    <div class="go-corner" href="#">
-                        <div class="go-arrow">→</div>
-                    </div>
-                </a>
-            </div>
-        </div>
-
-        <!-- 🛠️ New: Tool Groups (Build & Insights) -->
-        <div class="row g-4">
-            <!-- Build Tools -->
-            <div class="col-12 col-lg-7">
-                <div class="mb-3">
-                    <h5 class="fw-bold inst-text-main mb-0" style="font-size: 1.1rem;">เครื่องมือสร้างและจัดการ (Build)</h5>
-                </div>
-                <div class="studio-tools-grid-container secondary-tools">
-                    <a class="btn-studio-tool ajax-menu-btn" data-page="course-builder.php">
-                        <div class="studio-mini-icon icon-cyan"><i class="bi bi-diagram-3-fill"></i></div>
-                        <span>จัดการโครงสร้างคอร์ส</span>
-                    </a>
-                    <a class="btn-studio-tool ajax-menu-btn" data-page="lesson-editor.php">
-                        <div class="studio-mini-icon icon-purple"><i class="bi bi-pencil-square"></i></div>
-                        <span>แก้ไขบทเรียน</span>
-                    </a>
-                    <a class="btn-studio-tool ajax-menu-btn" data-page="quiz-builder.php">
-                        <div class="studio-mini-icon icon-orange"><i class="bi bi-patch-question-fill"></i></div>
-                        <span>สร้างแบบทดสอบ</span>
-                    </a>
-                    <a class="btn-studio-tool ajax-menu-btn" data-page="lab-builder.php">
-                        <div class="studio-mini-icon icon-pink"><i class="bi bi-terminal-fill"></i></div>
-                        <span>สร้าง Coding / Virtual Lab</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Insights & Analytics -->
-            <div class="col-12 col-lg-5">
-                <div class="mb-3">
-                    <h5 class="fw-bold inst-text-main mb-0" style="font-size: 1.1rem;">สถิติและข้อมูลเชิงลึก (Insights)</h5>
-                </div>
-                <div class="studio-tools-grid-container secondary-tools">
-                    <a class="btn-studio-tool ajax-menu-btn" data-page="course-analytics.php">
-                        <div class="studio-mini-icon icon-blue"><i class="bi bi-bar-chart-line-fill"></i></div>
-                        <span>สถิติวิเคราะห์</span>
-                    </a>
-                    <a class="btn-studio-tool ajax-menu-btn" data-page="student-management.php">
-                        <div class="studio-mini-icon icon-yellow"><i class="bi bi-people-fill"></i></div>
-                        <span>จัดการผู้เรียน</span>
-                    </a>
-                </div>
-            </div>
+        <!-- 🛠️ กล่องปุ่มแบบ Grid Layout -->
+        <div class="studio-tools-grid-container">
+            <a class="btn-studio-tool ajax-menu-btn active" data-page="DEFAULT_DASHBOARD">
+                <div class="studio-mini-icon icon-blue"><i class="bi bi-grid-1x2-fill"></i></div>
+                <span>แดชบอร์ดรวม</span>
+            </a>
+            
+            <a class="btn-studio-tool ajax-menu-btn" data-page="create-course.php">
+                <div class="studio-mini-icon icon-green"><i class="bi bi-plus-square-fill"></i></div>
+                <span>สร้างคอร์สใหม่</span>
+            </a>
+            
+            <a class="btn-studio-tool ajax-menu-btn" data-page="course-builder.php">
+                <div class="studio-mini-icon icon-cyan"><i class="bi bi-diagram-3-fill"></i></div>
+                <span>จัดการโครงสร้างคอร์ส</span>
+            </a>
+            
+            <a class="btn-studio-tool ajax-menu-btn" data-page="lesson-editor.php">
+                <div class="studio-mini-icon icon-purple"><i class="bi bi-pencil-square"></i></div>
+                <span>แก้ไขบทเรียน</span>
+            </a>
+            
+            <a class="btn-studio-tool ajax-menu-btn" data-page="quiz-builder.php">
+                <div class="studio-mini-icon icon-orange"><i class="bi bi-patch-question-fill"></i></div>
+                <span>สร้างแบบทดสอบ</span>
+            </a>
+            
+            <a class="btn-studio-tool ajax-menu-btn" data-page="lab-builder.php">
+                <div class="studio-mini-icon icon-pink"><i class="bi bi-terminal-fill"></i></div>
+                <span>สร้าง Coding / Virtual Lab</span>
+            </a>
+            
+            <a class="btn-studio-tool ajax-menu-btn" data-page="course-analytics.php">
+                <div class="studio-mini-icon icon-blue"><i class="bi bi-bar-chart-line-fill"></i></div>
+                <span>สถิติวิเคราะห์ผู้เรียน</span>
+            </a>
+            
+            <a class="btn-studio-tool ajax-menu-btn" data-page="student-management.php">
+                <div class="studio-mini-icon icon-yellow"><i class="bi bi-chat-left-heart-fill"></i></div>
+                <span>จัดการผู้เรียน & Q&A</span>
+            </a>
         </div>
 
         <!-- กล่องสำหรับเปลี่ยนเนื้อหาผ่าน AJAX -->
-        <div id="studio-content-placeholder" class="mt-4">
-            <!-- The default dashboard content can be loaded here if needed, or left empty -->
+        <div id="studio-content-placeholder">
+            <div class="row g-4">
+                <div class="col-12 col-md-6">
+                    <div class="p-4 d-flex align-items-center gap-3 stat-card-custom">
+                        <div class="icon-cyan p-3 rounded-3" style="font-size: 1.5rem;"><i class="bi bi-people-fill"></i></div>
+                        <div>
+                            <div class="inst-text-muted" style="font-size:0.85rem;">นักเรียนทั้งหมด</div>
+                            <h3 class="fw-bold mb-0 inst-text-main">1,240 คน</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="p-4 d-flex align-items-center gap-3 stat-card-custom">
+                        <div class="icon-green p-3 rounded-3" style="font-size: 1.5rem;"><i class="bi bi-wallet2"></i></div>
+                        <div>
+                            <div class="inst-text-muted" style="font-size:0.85rem;">รายได้เดือนนี้</div>
+                            <h3 class="fw-bold mb-0 text-success">฿45,200</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
     </div>
@@ -448,7 +291,7 @@ $user_role = 'Senior Instructor';
 $(document).ready(function() {
     // 🛠️ ปรับแก้ Path AJAX สำหรับยิงไปยังโฟลเดอร์ services/ ให้ถอยกลับ 1 ชั้นอัตโนมัติ (แก้ปัญหา 404 Not Found)
     $.ajaxPrefilter(function(options) {
-        if (options.url && (options.url.startsWith('services/') || options.url.startsWith('api/'))) {
+        if (options.url && options.url.startsWith('services/')) {
             options.url = '../' + options.url;
         }
     });
@@ -459,9 +302,7 @@ $(document).ready(function() {
     function loadStudioPage(targetPage) {
         // อัปเดตสถานะปุ่ม Active บน เมนู
         $('.ajax-menu-btn').removeClass('active');
-        // Handle query strings in targetPage for the 'active' class
-        const pageOnly = targetPage.split('?')[0];
-        $(`.ajax-menu-btn[data-page^="${pageOnly}"]`).addClass('active');
+        $(`.ajax-menu-btn[data-page="${targetPage}"]`).addClass('active');
 
         if(targetPage === 'DEFAULT_DASHBOARD') {
             $('#studio-content-placeholder').hide().html(defaultDashboardContent).fadeIn(200);
@@ -494,22 +335,12 @@ $(document).ready(function() {
         });
     }
 
-    // ⚡ ใช้ Event Delegation ดักจับการคลิกปุ่ม AJAX ทั้งหมด
-    $(document).on('click', '.ajax-menu-btn', function(e) {
+    // ⚡ ใช้ Event Delegation ดักจับการคลิกปุ่ม AJAX ทั้งหมด (รวมถึงปุ่มที่ถูกโหลดมาทีหลัง)
+    $(document).on('click', '.ajax-menu-btn, a[href="create-course.php"]', function(e) {
         e.preventDefault();
-        var targetPage = $(this).data('page');
-        if (targetPage) {
-            loadStudioPage(targetPage);
-            // Optional: Update URL hash for better history, but can be complex.
-            // window.location.hash = targetPage;
-        }
+        var targetPage = $(this).data('page') || $(this).attr('href');
+        loadStudioPage(targetPage);
     });
-
-    // Optional: Load content based on URL hash on page load
-    // if (window.location.hash) {
-    //     var initialPage = window.location.hash.substring(1);
-    //     loadStudioPage(initialPage);
-    // }
 });
 </script>
 

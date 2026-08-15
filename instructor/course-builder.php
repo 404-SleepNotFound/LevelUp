@@ -155,12 +155,6 @@ if (!$current_user_id) {
     }
 }
 
-// New: Prepare data for breadcrumb
-$breadcrumb_data = [
-    'course_name' => $course['title'] ?? 'No Course Selected',
-    'course_id' => $course['id'] ?? null,
-];
-
 // คำนวณสรุปสถิติต่างๆ แบบ Dynamic
 $total_lessons_count = 0;
 $total_quiz_count = 0;
@@ -323,112 +317,10 @@ $can_publish = ($has_lessons && count($chapters) > 0);
 
     .empty-chapter-box { border: 2px dashed rgba(255, 255, 255, 0.15); border-radius: 10px; padding: 20px; text-align: center; background: rgba(0, 0, 0, 0.15); margin-top: 10px; }
 
-    /* New: Course Context Bar */
-    .course-context-bar {
-        background: rgba(15, 23, 42, 0.5);
-        border: 1px solid var(--cb-border);
-        border-radius: 12px;
-        padding: 10px 15px;
-        margin-bottom: 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 15px;
-        font-size: 0.9rem;
-    }
-    html[data-theme="light"] .course-context-bar {
-        background: #f1f5f9;
-        border-color: #e2e8f0;
-    }
-    .context-breadcrumb a {
-        color: var(--text-muted);
-        text-decoration: none;
-        transition: color 0.2s ease;
-    }
-    .context-breadcrumb a:hover {
-        color: var(--cyber-cyan);
-    }
-    .context-breadcrumb .current-context {
-        color: var(--text-bright);
-        font-weight: 600;
-    }
-    .context-breadcrumb .bi-chevron-right {
-        font-size: 0.75rem;
-        margin: 0 8px;
-        color: var(--text-muted);
-    }
-
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
-    /* New: Course Context Bar */
-    .course-context-bar {
-        background: rgba(15, 23, 42, 0.5);
-        border: 1px solid var(--cb-border);
-        border-radius: 12px;
-        padding: 10px 15px;
-        margin-bottom: 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 15px;
-        font-size: 0.9rem;
-    }
-    html[data-theme="light"] .course-context-bar {
-        background: #f1f5f9;
-        border-color: #e2e8f0;
-    }
-    .context-breadcrumb a {
-        color: var(--text-muted);
-        text-decoration: none;
-        transition: color 0.2s ease;
-    }
-    .context-breadcrumb a:hover {
-        color: var(--cyber-cyan);
-    }
-    .context-breadcrumb .current-context {
-        color: var(--text-bright);
-        font-weight: 600;
-    }
-    .context-breadcrumb .bi-chevron-right {
-        font-size: 0.75rem;
-        margin: 0 8px;
-        color: var(--text-muted);
-    }
 </style>
 
 <div class="cb-wrapper p-1">
-
-    <!-- New: Course Context Bar -->
-    <?php if ($breadcrumb_data['course_id']): ?>
-    <div class="course-context-bar">
-        <div class="context-breadcrumb">
-            <a href="#" class="ajax-menu-btn" data-page="instructor.php" title="Back to Command Center"><i class="bi bi-rocket-takeoff-fill"></i></a>
-            <i class="bi bi-chevron-right"></i>
-            <span class="current-context">
-                <i class="bi bi-diagram-3-fill"></i> Course Builder: <strong><?= htmlspecialchars($breadcrumb_data['course_name']) ?></strong>
-            </span>
-        </div>
-        <a href="#" class="btn btn-sm btn-outline-secondary rounded-pill py-1 px-2 ajax-menu-btn" data-page="instructor.php" title="Close Builder">
-            <i class="bi bi-x-lg"></i>
-        </a>
-    </div>
-    <?php endif; ?>
-
-    <!-- New: Course Context Bar -->
-    <?php if ($breadcrumb_data['course_id']): ?>
-    <div class="course-context-bar">
-        <div class="context-breadcrumb">
-            <a href="#" class="ajax-menu-btn" data-page="instructor.php" title="Back to Command Center"><i class="bi bi-rocket-takeoff-fill"></i></a>
-            <i class="bi bi-chevron-right"></i>
-            <span class="current-context">
-                <i class="bi bi-diagram-3-fill"></i> Course Builder: <strong><?= htmlspecialchars($breadcrumb_data['course_name']) ?></strong>
-            </span>
-        </div>
-        <a href="#" class="btn btn-sm btn-outline-secondary rounded-pill py-1 px-2 ajax-menu-btn" data-page="instructor.php" title="Close Builder">
-            <i class="bi bi-x-lg"></i>
-        </a>
-    </div>
-    <?php endif; ?>
 
     <?php if ($db_error): ?>
         <div class="alert alert-danger bg-danger bg-opacity-20 border-danger text-white mb-4 rounded-4" role="alert">

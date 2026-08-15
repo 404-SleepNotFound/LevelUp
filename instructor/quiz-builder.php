@@ -2,68 +2,6 @@
 $ROOT_PATH = '../';
 // [Security Framework & Session Verification]
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
-
-// [1. Security & Init]
-$user_id = $_SESSION['user_id'] ?? 0;
-if (!$user_id) {
-    echo "Access Denied. Please login.";
-    exit;
-}
-
-// [2. Database Connection]
-require_once __DIR__ . '/../config/db.php';
-if (!isset($conn) && isset($pdo)) { $conn = $pdo; }
-
-// [3. Fetch Dynamic Data]
-$course_id = isset($_GET['course_id']) ? intval($_GET['course_id']) : 0;
-$quiz_id = isset($_GET['quiz_id']) ? intval($_GET['quiz_id']) : 0;
-
-$quiz = null;
-$courses = [];
-$chapters = [];
-$lessons = [];
-
-// Helper function
-function checkCourseOwnership($conn, $course_id, $user_id) {
-    if (!$conn) return false;
-    $stmt = $conn->prepare("SELECT id FROM course WHERE id = :cid AND user_id = :uid LIMIT 1");
-    $stmt->execute([':cid' => $course_id, ':uid' => $user_id]);
-    return (bool) $stmt->fetch();
-}
-
-if ($conn instanceof PDO) {
-    // Fetch all courses for the user for the main dropdown
-    $cStmt = $conn->prepare("SELECT id, title FROM course WHERE user_id = :uid ORDER BY id DESC");
-    $cStmt->execute([':uid' => $user_id]);
-    $courses = $cStmt->fetchAll(PDO::FETCH_ASSOC);
-
-    if ($quiz_id > 0) {
-        // Load existing quiz data (add ownership check)
-    }
-
-    if ($course_id > 0 && checkCourseOwnership($conn, $course_id, $user_id)) {
-        // Fetch chapters for the selected course
-        $chStmt = $conn->prepare("SELECT id, title, chapter_order FROM chapters WHERE course_id = :cid ORDER BY chapter_order ASC");
-        $chStmt->execute([':cid' => $course_id]);
-        $chapters = $chStmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // Fetch lessons for the selected course
-        $lStmt = $conn->prepare("SELECT id, title, chapter_id FROM lessons WHERE course_id = :cid ORDER BY lesson_order ASC");
-        $lStmt->execute([':cid' => $course_id]);
-        $lessons = $lStmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-}
-
-// [4. Breadcrumb Data]
-$breadcrumb_data = ['course_name' => null, 'course_id' => $course_id];
-if ($course_id && !empty($courses)) {
-    foreach ($courses as $c) {
-        if ($c['id'] == $course_id) {
-            $breadcrumb_data['course_name'] = $c['title'];
-            break;
-        }
-    }
-}
 ?>
 
 <!-- 🎨 External Custom Styles & Dropdown Scripts -->
@@ -306,67 +244,9 @@ if ($course_id && !empty($courses)) {
         from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }
     }
-    
-    /* New: Course Context Bar */
-    .course-context-bar {
-        background: rgba(15, 23, 42, 0.5);
-        border: 1px solid var(--lv-card-border);
-        border-radius: 12px;
-        padding: 10px 15px;
-        margin-bottom: 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 15px;
-        font-size: 0.9rem;
-    }
-    html[data-theme="light"] .course-context-bar {
-        background: #f1f5f9;
-        border-color: #e2e8f0;
-    }
-    .context-breadcrumb a {
-        color: var(--lv-text-muted);
-        text-decoration: none;
-        transition: color 0.2s ease;
-    }
-    .context-breadcrumb a:hover {
-        color: var(--lv-cyan);
-    }
-    .context-breadcrumb .current-context {
-        color: var(--lv-text-main);
-        font-weight: 600;
-    }
-    html[data-theme="light"] .context-breadcrumb .current-context {
-        color: var(--lv-text-main);
-    }
-    .context-breadcrumb .bi-chevron-right {
-        font-size: 0.75rem;
-        margin: 0 8px;
-        color: var(--lv-text-muted);
-    }
 </style>
 
 <div class="quiz-container">
-
-    <!-- New: Course Context Bar -->
-    <div class="course-context-bar">
-        <div class="context-breadcrumb">
-            <a href="#" class="ajax-menu-btn" data-page="DEFAULT_DASHBOARD"><i class="bi bi-rocket-takeoff-fill"></i></a>
-            <i class="bi bi-chevron-right"></i>
-            <a href="#" class="ajax-menu-btn" data-page="course-builder.php?course_id=<?= $breadcrumb_data['course_id'] ?>">
-                <i class="bi bi-diagram-3-fill"></i> <?= htmlspecialchars($breadcrumb_data['course_name'] ?? 'Course Builder') ?>
-            </a>
-            <i class="bi bi-chevron-right"></i>
-            <span class="current-context">
-                <i class="bi bi-patch-question-fill"></i>
-                <?= isset($quiz) && $quiz ? 'Edit Quiz' : 'New Quiz' ?>
-            </span>
-        </div>
-        <button class="btn btn-sm btn-outline-secondary text-white-50 ajax-menu-btn" data-page="course-builder.php?course_id=<?= $breadcrumb_data['course_id'] ?>">
-            <i class="bi bi-x-lg"></i>
-        </button>
-    </div>
-
     <div class="d-flex justify-content-between align-items-start mb-4 flex-column flex-md-row gap-3">
         <div class="w-100">
             <h3 class="text-white fw-bold mb-1 fs-4"><i class="bi bi-patch-question-fill text-cyan me-2"></i>ระบบสร้างและจัดการแบบทดสอบ</h3>
@@ -390,6 +270,7 @@ if ($course_id && !empty($courses)) {
                     <input type="text" class="form-control form-control-premium" value="แบบทดสอบย่อยบทที่ 3: โครงสร้างและการประยุกต์ใช้งาน Array ในภาษาคอมพิวเตอร์">
                 </div>
                 
+                <!-- 2. ประเภท Quiz -->
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label form-label-premium">2. ประเภท Quiz (Quiz Type)</label>
                     <select class="lu-select form-control-premium" name="quiz_type">
@@ -407,30 +288,25 @@ if ($course_id && !empty($courses)) {
                     <input type="number" class="form-control form-control-premium" value="50">
                 </div>
 
+                <!-- Chapter หลักที่ผูกมัด -->
                 <div class="col-12 col-md-4">
                     <label class="form-label form-label-premium">Chapter หลักที่ผูกมัด</label>
                     <select class="lu-select form-control-premium" name="chapter_id">
-                        <option value="">-- Select Chapter --</option>
-                        <?php foreach ($chapters as $ch): ?>
-                            <option value="<?= $ch['id'] ?>">
-                                Chapter <?= $ch['chapter_order'] ?>: <?= htmlspecialchars($ch['title']) ?>
-                            </option>
-                        <?php endforeach; ?>
+                        <option value="1">Chapter 1: Introduction to Logic</option>
+                        <option value="2" selected>Chapter 2: Data Structure Core</option>
                     </select>
                 </div>
 
+                <!-- Lesson บทเรียนย่อย -->
                 <div class="col-12 col-md-4">
                     <label class="form-label form-label-premium">Lesson (บทเรียนย่อยต้นทาง)</label>
                     <select class="lu-select form-control-premium" name="lesson_id">
-                         <option value="">-- Select Lesson --</option>
-                        <?php foreach ($lessons as $l): ?>
-                            <option value="<?= $l['id'] ?>" data-chapter="<?= $l['chapter_id'] ?>">
-                                <?= htmlspecialchars($l['title']) ?>
-                            </option>
-                        <?php endforeach; ?>
+                        <option value="3.1">Lesson 3.1: Understanding Arrays Concept</option>
+                        <option value="3.2" selected>Lesson 3.2: Multidimensional Array Matrix</option>
                     </select>
                 </div>
 
+                <!-- สถานะการแสดงผล -->
                 <div class="col-12 col-md-4">
                     <label class="form-label form-label-premium">สถานะการแสดงผล (Status)</label>
                     <select class="lu-select form-control-premium" name="status">
