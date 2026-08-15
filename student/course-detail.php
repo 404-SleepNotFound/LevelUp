@@ -7,7 +7,7 @@ require_once '../config/db.php';
 // รับค่า id หรือ course_id จาก URL
 $course_id = $_GET['id'] ?? $_GET['course_id'] ?? 0;
 
-// 1. ดึงข้อมูล Course หลัก + Category + Instructor (รวม Query เดียวเพื่อลด Resource)[cite: 5]
+// 1. ดึงข้อมูล Course หลัก + Category + Instructor (รวม Query เดียวเพื่อลด Resource)
 $sql = "SELECT c.*, 
                ct.name AS category_name,
                u.id AS instructor_id,
@@ -24,25 +24,25 @@ $stmt = $conn->prepare($sql);
 $stmt->execute([':course_id' => $course_id]);
 $course_data = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// ดักจับกรณีหา Course ไม่เจอ[cite: 5]
+// ดักจับกรณีหา Course ไม่เจอ
 if (!$course_data) {
     die("ไม่พบข้อมูลคอร์สเรียนนี้");
 }
 
-// 2. ดึงข้อมูล Outcomes (สิ่งที่จะได้เรียนรู้)[cite: 5]
+// 2. ดึงข้อมูล Outcomes (สิ่งที่จะได้เรียนรู้)
 $sql_outcomes = "SELECT name FROM `outcomes` WHERE course_id = :course_id";
 $stmt_outcomes = $conn->prepare($sql_outcomes);
 $stmt_outcomes->execute([':course_id' => $course_id]);
 $course_outcomes = $stmt_outcomes->fetchAll(PDO::FETCH_COLUMN);
 
-// 3. ดึงข้อมูล Prereq (ความรู้พื้นฐานที่ต้องมีก่อน)[cite: 5]
+// 3. ดึงข้อมูล Prereq (ความรู้พื้นฐานที่ต้องมีก่อน)
 $sql_prereq = "SELECT name FROM `prereq` WHERE course_id = :course_id";
 $stmt_prereq = $conn->prepare($sql_prereq);
 $stmt_prereq->execute([':course_id' => $course_id]);
 $course_prereqs = $stmt_prereq->fetchAll(PDO::FETCH_COLUMN);
 
 // ----------------------------------------------------------------------
-// 4. [แก้ไขแล้ว] ดึงข้อมูล Chapters และ Lessons ทั้งหมด (รวมกรณี chapter_id เป็น NULL)[cite: 5]
+// 4. ดึงข้อมูล Chapters และ Lessons ทั้งหมด (รวมกรณี chapter_id เป็น NULL)
 // ----------------------------------------------------------------------
 $sql_chapters = "SELECT * FROM `chapters` WHERE course_id = :course_id ORDER BY chapter_order ASC";
 $stmt_chapters = $conn->prepare($sql_chapters);
@@ -90,13 +90,13 @@ if (!empty($unassigned_lessons)) {
     ];
 }
 
-// 5. นับจำนวนผู้เรียนที่ลงทะเบียน (Enrollments Count)[cite: 5]
+// 5. นับจำนวนผู้เรียนที่ลงทะเบียน (Enrollments Count)
 $sql_count_students = "SELECT COUNT(id) FROM `enrollments` WHERE course_id = :course_id";
 $stmt_students = $conn->prepare($sql_count_students);
 $stmt_students->execute([':course_id' => $course_id]);
 $students_count = $stmt_students->fetchColumn() ?: 0;
 
-// 6. เช็คว่าผู้ใช้ปัจจุบันเคย "บันทึกไว้ทีหลัง" คอร์สนี้แล้วหรือยัง[cite: 5]
+// 6. เช็คว่าผู้ใช้ปัจจุบันเคย "บันทึกไว้ทีหลัง" คอร์สนี้แล้วหรือยัง
 $is_saved = false;
 if (!empty($_SESSION['user_id'])) {
     $sql_saved = "SELECT id FROM `saved_courses` WHERE user_id = :user_id AND course_id = :course_id";
@@ -108,11 +108,11 @@ if (!empty($_SESSION['user_id'])) {
     $is_saved = (bool) $stmt_saved->fetch(PDO::FETCH_ASSOC);
 }
 
-// 7. จัดรูปแบบราคา[cite: 5]
+// 7. จัดรูปแบบราคา
 $price_val = (isset($course_data['price']) && is_numeric($course_data['price'])) ? (float)$course_data['price'] : 0;
 $type_text = ($price_val > 0) ? number_format($price_val) . ' ฿' : 'เรียนฟรี';
 
-// 8. จัดโครงสร้างข้อมูลคอร์ส[cite: 5]
+// 8. จัดโครงสร้างข้อมูลคอร์ส
 $course = [
     'id' => $course_id,
     'title' => $course_data['title'] ?? 'Untitled Course',
@@ -155,7 +155,7 @@ $course = [
     ]
 ];
 
-// คำนวณ AI Readiness Analysis[cite: 5]
+// คำนวณ AI Readiness Analysis
 $est_time_str = ($course['time_week'] > 0 && $course['time_total'] > 0) 
     ? ceil($course['time_total'] / $course['time_week']) . ' สัปดาห์' 
     : 'เรียนตามความสะดวก';
@@ -170,7 +170,7 @@ $ai_analysis = [
     'est_time' => $est_time_str
 ];
 
-// 9. ดึงข้อมูลคอร์สที่เกี่ยวข้อง (Related Courses)[cite: 5]
+// 9. ดึงข้อมูลคอร์สที่เกี่ยวข้อง (Related Courses)
 $related_courses = [];
 try {
     $category_id = $course_data['category_id'] ?? 0;
@@ -220,23 +220,23 @@ try {
     $related_courses = [];
 }
 
-// ฟังก์ชันแปลง Video URL เป็น Embed Player[cite: 5]
+// ฟังก์ชันแปลง Video URL เป็น Embed Player
 function getEmbedUrl($url)
 {
     if (empty($url)) return '';
 
-    // YouTube[cite: 5]
+    // YouTube
     $youtube_pattern = '%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/ ]{11})%i';
     if (preg_match($youtube_pattern, $url, $match)) {
         return "https://www.youtube.com/embed/" . $match[1];
     }
 
-    // Google Drive[cite: 5]
+    // Google Drive
     if (preg_match('%drive\.google\.com/file/d/([^/]+)%i', $url, $match)) {
         return "https://drive.google.com/file/d/" . $match[1] . "/preview";
     }
 
-    // Vimeo[cite: 5]
+    // Vimeo
     if (preg_match('%vimeo\.com/([0-9]+)%i', $url, $match)) {
         return "https://player.vimeo.com/video/" . $match[1];
     }
@@ -456,21 +456,27 @@ include_once $ROOT_PATH . 'includes/header.php';
                                                                         switch ($type) {
                                                                             case 'lab':
                                                                             case 'coding':
+                                                                            case 'practical':
                                                                                 $icon = 'bi-terminal-fill';
                                                                                 $color = 'text-warning';
                                                                                 break;
+
                                                                             case 'doc':
                                                                             case 'pdf':
                                                                             case 'article':
                                                                             case 'document':
+                                                                            case 'theory':  // เพิ่มประเภท theory
+                                                                            case 'slide':   // เพิ่มประเภท slide
                                                                                 $icon = 'bi-file-earmark-text-fill';
                                                                                 $color = 'text-success';
                                                                                 break;
+
                                                                             case 'quiz':
                                                                             case 'exam':
                                                                                 $icon = 'bi-question-circle-fill';
                                                                                 $color = 'text-danger';
                                                                                 break;
+
                                                                             case 'video':
                                                                             default:
                                                                                 $icon = 'bi-play-circle-fill';
