@@ -454,30 +454,51 @@ include_once $ROOT_PATH . 'includes/header.php';
                                                                         $type = strtolower($les['lesson_type'] ?? 'video');
                                                                         
                                                                         switch ($type) {
-                                                                            case 'lab':
-                                                                            case 'coding':
-                                                                            case 'practical':
-                                                                                $icon = 'bi-terminal-fill';
-                                                                                $color = 'text-warning';
+                                                                            // 1. วิดีโอแนะนำหลัก (Video Content / Theory)
+                                                                            case 'video':
+                                                                            case 'theory':
+                                                                                $icon = 'bi-film';
+                                                                                $color = 'text-info';
                                                                                 break;
 
+                                                                            // 2. สไลด์เอกสารและบทความ (Slide / PDF / Article)
                                                                             case 'doc':
                                                                             case 'pdf':
                                                                             case 'article':
                                                                             case 'document':
-                                                                            case 'theory':  // เพิ่มประเภท theory
-                                                                            case 'slide':   // เพิ่มประเภท slide
-                                                                                $icon = 'bi-file-earmark-text-fill';
+                                                                            case 'slide':
+                                                                                $icon = 'bi-bar-chart-line-fill';
                                                                                 $color = 'text-success';
                                                                                 break;
 
+                                                                            // 3. แบบทดสอบประเมินผล (Quiz Management)
                                                                             case 'quiz':
                                                                             case 'exam':
-                                                                                $icon = 'bi-question-circle-fill';
+                                                                                $icon = 'bi-file-earmark-text-fill';
                                                                                 $color = 'text-danger';
                                                                                 break;
 
-                                                                            case 'video':
+                                                                            // 4. ปฏิบัติการโค้ดดิ้งอัตโนมัติ (Coding Lab Management)
+                                                                            case 'lab':
+                                                                            case 'coding':
+                                                                            case 'practical':
+                                                                            case 'coding_lab':
+                                                                                $icon = 'bi-laptop';
+                                                                                $color = 'text-warning';
+                                                                                break;
+
+                                                                            // 5. เซิร์ฟเวอร์จำลองขั้นสูง (Virtual Lab Configuration)
+                                                                            case 'virtual_lab':
+                                                                                $icon = 'bi-globe';
+                                                                                $color = 'text-primary';
+                                                                                break;
+
+                                                                            // 6. งานส่งและการทำโปรเจกต์ (Assignment Management)
+                                                                            case 'assignment':
+                                                                                $icon = 'bi-folder-fill';
+                                                                                $color = 'text-warning';
+                                                                                break;
+
                                                                             default:
                                                                                 $icon = 'bi-play-circle-fill';
                                                                                 $color = 'text-info';
