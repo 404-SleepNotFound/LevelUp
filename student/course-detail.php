@@ -365,7 +365,7 @@ include_once $ROOT_PATH . 'includes/header.php';
                     <!-- What You'll Learn & Prerequisites -->
                     <div class="dashboard-card rounded-4 p-4 mb-4">
                         <div class="row g-4">
-                            <!-- สิ่งที่จะได้เรียนรู้ -->
+                            <!-- สิ่งที่คุณจะได้เรียนรู้ -->
                             <div class="col-md-6 border-end-md border-color">
                                 <h5 class="fw-bold mb-3 text-main d-flex align-items-center fs-6"><i class="bi bi-check-circle-fill text-success me-2"></i> สิ่งที่คุณจะได้เรียนรู้</h5>
                                 <?php if (!empty($course['outcomes'])): ?>
@@ -437,11 +437,35 @@ include_once $ROOT_PATH . 'includes/header.php';
                                                             <a href="lesson.php?course_id=<?= $course['id'] ?>&lesson_id=<?= $les['id'] ?>"
                                                                 class="list-group-item bg-transparent d-flex justify-content-between align-items-center py-3 px-3 px-md-4 lesson-row-link">
                                                                 <div class="d-flex align-items-center gap-3">
-                                                                    <?php if (($les['lesson_type'] ?? '') == 'lab'): ?>
-                                                                        <i class="bi bi-terminal-fill text-warning fs-5 flex-shrink-0"></i>
-                                                                    <?php else: ?>
-                                                                        <i class="bi bi-play-circle-fill text-info fs-5 flex-shrink-0"></i>
-                                                                    <?php endif; ?>
+                                                                    <?php 
+                                                                        $type = strtolower($les['lesson_type'] ?? 'video');
+                                                                        
+                                                                        switch ($type) {
+                                                                            case 'lab':
+                                                                            case 'coding':
+                                                                                $icon = 'bi-terminal-fill';
+                                                                                $color = 'text-warning';
+                                                                                break;
+                                                                            case 'doc':
+                                                                            case 'pdf':
+                                                                            case 'article':
+                                                                            case 'document':
+                                                                                $icon = 'bi-file-earmark-text-fill';
+                                                                                $color = 'text-success';
+                                                                                break;
+                                                                            case 'quiz':
+                                                                            case 'exam':
+                                                                                $icon = 'bi-question-circle-fill';
+                                                                                $color = 'text-danger';
+                                                                                break;
+                                                                            case 'video':
+                                                                            default:
+                                                                                $icon = 'bi-play-circle-fill';
+                                                                                $color = 'text-info';
+                                                                                break;
+                                                                        }
+                                                                    ?>
+                                                                    <i class="bi <?= $icon ?> <?= $color ?> fs-5 flex-shrink-0"></i>
                                                                     <div>
                                                                         <span class="text-main fw-medium small d-block lh-sm mb-1 lesson-title">
                                                                             <?= htmlspecialchars($les['title']) ?>
