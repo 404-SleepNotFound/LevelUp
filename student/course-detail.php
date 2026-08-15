@@ -461,20 +461,20 @@ include_once $ROOT_PATH . 'includes/header.php';
                                                                                 $color = 'text-info';
                                                                                 break;
 
-                                                                            // 2. สไลด์เอกสารและบทความ (Slide / PDF / Article)
+                                                                            // 2. สไลด์เอกสารและบทความ (Slide / PDF / Article / Doc)
                                                                             case 'doc':
                                                                             case 'pdf':
                                                                             case 'article':
                                                                             case 'document':
                                                                             case 'slide':
-                                                                                $icon = 'bi-bar-chart-line-fill';
+                                                                                $icon = 'bi-file-earmark-text-fill';
                                                                                 $color = 'text-success';
                                                                                 break;
 
-                                                                            // 3. แบบทดสอบประเมินผล (Quiz Management)
+                                                                            // 3. แบบทดสอบประเมินผล (Quiz Management / Exam)
                                                                             case 'quiz':
                                                                             case 'exam':
-                                                                                $icon = 'bi-file-earmark-text-fill';
+                                                                                $icon = 'bi-patch-question-fill';
                                                                                 $color = 'text-danger';
                                                                                 break;
 
@@ -483,13 +483,13 @@ include_once $ROOT_PATH . 'includes/header.php';
                                                                             case 'coding':
                                                                             case 'practical':
                                                                             case 'coding_lab':
-                                                                                $icon = 'bi-laptop';
+                                                                                $icon = 'bi-code-slash';
                                                                                 $color = 'text-warning';
                                                                                 break;
 
                                                                             // 5. เซิร์ฟเวอร์จำลองขั้นสูง (Virtual Lab Configuration)
                                                                             case 'virtual_lab':
-                                                                                $icon = 'bi-globe';
+                                                                                $icon = 'bi-terminal-fill';
                                                                                 $color = 'text-primary';
                                                                                 break;
 
