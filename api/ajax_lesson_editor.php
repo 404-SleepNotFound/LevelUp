@@ -41,9 +41,9 @@ try {
             break;
     }
 } catch (Exception $e) {
-    // Log the error message to a file or monitoring service in a real application
+    // In a real application, you would log this error.
     // error_log($e->getMessage());
-    echo json_encode(['status' => 'error', 'message' => 'A server error occurred. Please try again later.']);
+    echo json_encode(['status' => 'error', 'message' => 'A server error occurred. ' . $e->getMessage()]);
 }
 
 exit;
@@ -140,26 +140,10 @@ function handle_get_lesson_details($conn, $user_id) {
         echo json_encode(['status' => 'error', 'message' => 'Lesson not found or you do not have permission to access it.']);
         return;
     }
-    
-    // Also fetch related blocks and attachments for a complete view
-    $blockStmt = $conn->prepare("SELECT * FROM lesson_blocks WHERE lesson_id = :lid ORDER BY block_order ASC");
-    $blockStmt->execute([':lid' => $lesson_id]);
-    $blocks = $blockStmt->fetchAll(PDO::FETCH_ASSOC);
-
-    $attachStmt = $conn->prepare("SELECT * FROM lesson_attachments WHERE lesson_id = :lid ORDER BY id DESC");
-    $attachStmt->execute([':lid' => $lesson_id]);
-    $attachments = $attachStmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // Decode JSON fields before sending
-    if (!empty($lesson['virtual_lab_config'])) {
-        $lesson['virtual_lab_config'] = json_decode($lesson['virtual_lab_config'], true);
-    }
 
     echo json_encode([
         'status' => 'success', 
-        'lesson' => $lesson,
-        'blocks' => $blocks,
-        'attachments' => $attachments
+        'lesson' => $lesson
     ]);
 }
 ?>
