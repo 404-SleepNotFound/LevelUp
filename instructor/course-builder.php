@@ -1140,10 +1140,72 @@ $can_publish = ($has_lessons && count($chapters) > 0);
         });
     }
 
+    function saveCourseStructure() {
+        LevelUpAlert.aiLoading('กำลังบันทึก...', 'กำลังรวบรวมและจัดเก็บโครงสร้างหลักสูตรของคุณ');
+
+        const courseId = <?= $course['id'] ?? 'null' ?>;
+        if (!courseId) {
+            LevelUpAlert.error('ผิดพลาด', 'ไม่พบ ID ของคอร์สเรียนปัจจุบัน');
+            return;
+        }
+
+        let payload = {
+            course_id: courseId,
+            chapters: [],
+            deleted_items: {
+                chapters: [],
+                lessons: []
+            }
+        };
+
+        // Note: This is a simplified data collection. A real implementation would track deleted items.
+        $('#course-chapters-root .chapter-card').each(function(chapIdx) {
+            let chapterData = {
+                id: $(this).data('chapter-id') || null,
+                title: $(this).find('.chapter-title-input').val(),
+                order: chapIdx + 1,
+                lessons: []
+            };
+
+            $(this).find('.lessons-sortable-zone .lesson-item').each(function(lessIdx) {
+                let lessonData = {
+                    id: $(this).data('id') || null,
+                    title: $(this).find('.lesson-title').text(),
+                    type: $(this).data('type'),
+                    order: lessIdx + 1
+                };
+                chapterData.lessons.push(lessonData);
+            });
+            payload.chapters.push(chapterData);
+        });
+        
+        // Use jQuery since it's available on the page
+        $.ajax({
+            url: '../api/ajax_instructor.php?action=save_course_structure',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(payload),
+            dataType: 'json',
+            success: function(res) {
+                if (res.status === 'success') {
+                    setDirtyState(false);
+                    LevelUpAlert.close();
+                    LevelUpAlert.success('บันทึกสำเร็จ!', 'โครงสร้างคอร์สของคุณถูกบันทึกเป็นฉบับร่างแล้ว');
+                    // Optionally, reload the page or update the UI with new IDs from the server
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    LevelUpAlert.error('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
+                }
+            },
+            error: function(xhr) {
+                LevelUpAlert.error('Network Error', 'เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + xhr.statusText);
+            }
+        });
+    }
+
     function triggerAction(actionType) {
         if(actionType === 'save') {
-            setDirtyState(false);
-            LevelUpAlert.toast('บันทึกร่างสำเร็จเรียบร้อยแล้ว', 'success');
+            saveCourseStructure();
         } else if(actionType === 'preview') {
             LevelUpAlert.toast('กำลังเปิดโหมดแสดงผลพรีวิวสำหรับผู้เรียน...', 'info');
         } else if(actionType === 'publish') {

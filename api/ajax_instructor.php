@@ -82,4 +82,145 @@ if ($action === 'execute_creation') {
     exit;
 }
 
+// 5. บันทึกโครงสร้างคอร์สเรียน (Course Builder Save Draft)
+if ($action === 'save_course_structure') {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid request method.']);
+        exit;
+    }
+
+    $current_user_id = $_SESSION['user_login']['user_id'] ?? $_SESSION['user_id'] ?? null;
+    if (!$current_user_id) {
+        echo json_encode(['status' => 'error', 'message' => 'Authentication required. Please log in.']);
+        exit;
+    }
+
+    try {
+        // --- Database Connection ---
+        $db_path = __DIR__ . '/../config/db.php';
+        if (!file_exists($db_path)) {
+            throw new Exception('Database configuration file not found.');
+        }
+        require_once $db_path;
+        $pdo = $conn ?? $pdo ?? null;
+        if (!$pdo) {
+            throw new Exception('Database connection failed.');
+        }
+
+        // --- Get and Decode Payload ---
+        $json_payload = file_get_contents('php://input');
+        $data = json_decode($json_payload, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exception('Invalid JSON payload: ' . json_last_error_msg());
+        }
+
+        $course_id = filter_var($data['course_id'] ?? null, FILTER_VALIDATE_INT);
+        $chapters = $data['chapters'] ?? [];
+
+        if (!$course_id) {
+            throw new Exception('Course ID is missing or invalid.');
+        }
+
+        // --- Authorization Check ---
+        $stmt_check = $pdo->prepare("SELECT user_id FROM course WHERE id = ?");
+        $stmt_check->execute([$course_id]);
+        $course_owner = $stmt_check->fetchColumn();
+
+        if (!$course_owner || $course_owner != $current_user_id) {
+            throw new Exception('You do not have permission to edit this course.');
+        }
+
+        // --- Database Transaction ---
+        $pdo->beginTransaction();
+
+        $all_lesson_ids_from_client = [];
+        $all_chapter_ids_from_client = [];
+
+        foreach ($chapters as $chap_data) {
+            $chapter_id = filter_var($chap_data['id'] ?? null, FILTER_VALIDATE_INT);
+            $chapter_title = trim($chap_data['title']);
+            $chapter_order = filter_var($chap_data['order'], FILTER_VALIDATE_INT);
+            
+            // Keep track of IDs sent from the client
+            if ($chapter_id) {
+                $all_chapter_ids_from_client[] = $chapter_id;
+            }
+
+            if ($chapter_id) {
+                // Update Existing Chapter
+                $stmt_chap = $pdo->prepare("UPDATE chapters SET title = ?, chapter_order = ? WHERE id = ? AND course_id = ?");
+                $stmt_chap->execute([$chapter_title, $chapter_order, $chapter_id, $course_id]);
+            } else {
+                // Insert New Chapter
+                $stmt_chap = $pdo->prepare("INSERT INTO chapters (course_id, title, chapter_order) VALUES (?, ?, ?)");
+                $stmt_chap->execute([$course_id, $chapter_title, $chapter_order]);
+                $chapter_id = $pdo->lastInsertId(); // Get new ID for lessons
+            }
+
+            foreach ($chap_data['lessons'] ?? [] as $less_data) {
+                $lesson_id = filter_var($less_data['id'] ?? null, FILTER_VALIDATE_INT);
+                $lesson_title = trim($less_data['title']);
+                $lesson_type = trim($less_data['type']);
+                $lesson_order = filter_var($less_data['order'], FILTER_VALIDATE_INT);
+
+                if ($lesson_id) {
+                    $all_lesson_ids_from_client[] = $lesson_id;
+                }
+
+                if ($lesson_id) {
+                    // Update Existing Lesson
+                    $stmt_less = $pdo->prepare("UPDATE lessons SET title = ?, lesson_type = ?, lesson_order = ?, chapter_id = ? WHERE id = ? AND course_id = ?");
+                    $stmt_less->execute([$lesson_title, $lesson_type, $lesson_order, $chapter_id, $lesson_id, $course_id]);
+                } else {
+                    // Insert New Lesson
+                    $stmt_less = $pdo->prepare("INSERT INTO lessons (course_id, chapter_id, title, lesson_type, lesson_order, status) VALUES (?, ?, ?, ?, ?, 'draft')");
+                    $stmt_less->execute([$course_id, $chapter_id, $lesson_title, $lesson_type, $lesson_order]);
+                }
+            }
+        }
+        
+        // --- Handle Deletions ---
+        // Get all chapter and lesson IDs for this course from the DB
+        $stmt_get_all_chaps = $pdo->prepare("SELECT id FROM chapters WHERE course_id = ?");
+        $stmt_get_all_chaps->execute([$course_id]);
+        $db_chapter_ids = $stmt_get_all_chaps->fetchAll(PDO::FETCH_COLUMN);
+
+        $stmt_get_all_less = $pdo->prepare("SELECT id FROM lessons WHERE course_id = ?");
+        $stmt_get_all_less->execute([$course_id]);
+        $db_lesson_ids = $stmt_get_all_less->fetchAll(PDO::FETCH_COLUMN);
+
+        // Find which IDs to delete
+        $chapters_to_delete = array_diff($db_chapter_ids, $all_chapter_ids_from_client);
+        $lessons_to_delete = array_diff($db_lesson_ids, $all_lesson_ids_from_client);
+
+        if (!empty($chapters_to_delete)) {
+            $in_chap_del = str_repeat('?,', count($chapters_to_delete) - 1) . '?';
+            $stmt_del_chap = $pdo->prepare("DELETE FROM chapters WHERE id IN ($in_chap_del) AND course_id = ?");
+            $stmt_del_chap->execute(array_merge($chapters_to_delete, [$course_id]));
+        }
+
+        if (!empty($lessons_to_delete)) {
+            $in_less_del = str_repeat('?,', count($lessons_to_delete) - 1) . '?';
+            $stmt_del_less = $pdo->prepare("DELETE FROM lessons WHERE id IN ($in_less_del) AND course_id = ?");
+            $stmt_del_less->execute(array_merge($lessons_to_delete, [$course_id]));
+        }
+
+        $pdo->commit();
+        echo json_encode(['status' => 'success', 'message' => 'Course structure saved successfully.']);
+
+    } catch (Exception $e) {
+        if ($pdo && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        http_response_code(500);
+        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+    }
+    exit;
+}
+
 echo json_encode(['status' => 'error', 'message' => 'ไม่พบคำสั่งการทำงานที่ถูกต้อง']);
