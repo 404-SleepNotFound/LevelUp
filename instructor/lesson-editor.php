@@ -640,10 +640,12 @@ if (!empty($lesson['virtual_lab_config'])) {
 
                 <div class="col-md-3">
                     <label class="form-label form-label-premium">ประเภทบทเรียน</label>
-                    <select name="lesson_type" class="form-select form-control-premium lu-select">
-                        <option value="theory" <?= ($lesson && $lesson['lesson_type'] == 'theory') ? 'selected' : '' ?>>ทฤษฎีทั่วไป (Theory Lecture)</option>
-                        <option value="lab" <?= ($lesson && $lesson['lesson_type'] == 'lab') ? 'selected' : '' ?>>ปฏิบัติการแล็บ (Lab Practical)</option>
-                        <option value="quiz" <?= ($lesson && $lesson['lesson_type'] == 'quiz') ? 'selected' : '' ?>>แบบทดสอบ (Quiz/Test)</option>
+                    <select name="lesson_type" id="lesson_type_select" onchange="toggleEditorTools(this.value)" class="form-select form-control-premium lu-select">
+                        <option value="">-- เลือกประเภทบทเรียน --</option>
+                        <option value="theory" <?= ($lesson && ($lesson['lesson_type'] == 'theory' || $lesson['lesson_type'] == 'video')) ? 'selected' : '' ?>>Video / Theory</option>
+                        <option value="slide" <?= ($lesson && $lesson['lesson_type'] == 'slide') ? 'selected' : '' ?>>Slide / Document</option>
+                        <option value="quiz" <?= ($lesson && $lesson['lesson_type'] == 'quiz') ? 'selected' : '' ?>>Quiz / Examination</option>
+                        <option value="lab" <?= ($lesson && $lesson['lesson_type'] == 'lab') ? 'selected' : '' ?>>Coding Lab / Practical</option>
                     </select>
                 </div>
 
@@ -663,289 +665,312 @@ if (!empty($lesson['virtual_lab_config'])) {
             </div>
         </div>
 
-        <!-- ==========================================
-             FEATURE 1: BLOCK-BASED LESSON BUILDER
-             ========================================== -->
-        <div class="editor-section-card border border-info border-opacity-20">
-            <div class="section-title text-cyan">
-                <i class="bi bi-layers-half"></i> ⭐ Block-based Lesson Builder (ตัวจัดเรียงบล็อกเนื้อหาแบบ Dynamic)
+        <div id="editor-prompt" class="editor-section-card text-center" style="display: none;">
+            <div class="py-5">
+                <i class="bi bi-arrow-up-circle-dotted fs-1 text-muted"></i>
+                <h4 class="text-white-50 fw-light mt-3">กรุณาเลือกประเภทบทเรียนด้านบน</h4>
+                <p class="editor-subtitle">เพื่อเปิดใช้งานเครื่องมือสร้างเนื้อหาที่เหมาะสมกับบทเรียนของคุณ</p>
             </div>
-            <p class="editor-subtitle mt-0 mb-3">กดเพิ่มบล็อกด้านล่างเพื่อทำการแทรกกล่องเนื้อหาและลากจัดตำแหน่งได้อย่างอิสระ</p>
-            <div class="d-flex flex-wrap gap-2 mb-3">
-                <button type="button" class="btn btn-sm btn-dark border border-secondary" onclick="addNewContentBlock('text')">📝 Text Block</button>
-                <button type="button" class="btn btn-sm btn-dark border border-secondary" onclick="addNewContentBlock('video')">🎥 Video Block</button>
-                <button type="button" class="btn btn-sm btn-dark border border-secondary" onclick="addNewContentBlock('code')">💻 Code Block</button>
-                <button type="button" class="btn btn-sm btn-dark border border-secondary" onclick="addNewContentBlock('quiz')">🧪 Quiz Block</button>
-                <button type="button" class="btn btn-sm btn-dark border border-secondary" onclick="addNewContentBlock('lab')">🖥️ Lab Block</button>
-            </div>
+        </div>
 
-            <div id="block-builder-stage">
-                <!-- Rich Text Main Content Block -->
-                <div class="block-unit-item" id="sample-rich-editor-block">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="small fw-bold text-white-50 font-monospace"><i class="bi bi-grid-3x2-gap-fill me-2"></i>Main Lesson Content (Rich Text Content)</span>
-                        <span class="badge bg-secondary small">Default Text Engine</span>
+        <div id="editor-tools-container" style="display: none;">
+        
+            <!-- FOR: Video / Theory -->
+            <div class="tool-module" id="tool-module-theory" style="display: none;">
+                <!-- ==========================================
+                     FEATURE 1: BLOCK-BASED LESSON BUILDER
+                     ========================================== -->
+                <div class="editor-section-card border border-info border-opacity-20">
+                    <div class="section-title text-cyan">
+                        <i class="bi bi-layers-half"></i> ⭐ Block-based Lesson Builder (ตัวจัดเรียงบล็อกเนื้อหาแบบ Dynamic)
                     </div>
-                    <div class="btn-toolbar rich-editor-toolbar bg-dark p-2 rounded-top border border-secondary border-opacity-30 gap-1" role="toolbar">
-                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 fw-bold text-white" onclick="formatDoc('formatBlock', 'h1')">H1</button>
-                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 fw-bold text-white" onclick="formatDoc('formatBlock', 'h2')">H2</button>
-                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2" onclick="formatDoc('bold')"><i class="bi bi-type-bold"></i></button>
-                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2" onclick="formatDoc('italic')"><i class="bi bi-type-italic"></i></button>
-                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2" onclick="formatDoc('insertUnorderedList')"><i class="bi bi-list-ul"></i></button>
-                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2" onclick="formatDoc('insertOrderedList')"><i class="bi bi-list-ol"></i></button>
+                    <p class="editor-subtitle mt-0 mb-3">กดเพิ่มบล็อกด้านล่างเพื่อทำการแทรกกล่องเนื้อหาและลากจัดตำแหน่งได้อย่างอิสระ</p>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <button type="button" class="btn btn-sm btn-dark border border-secondary" onclick="addNewContentBlock('text')">📝 Text Block</button>
+                        <button type="button" class="btn btn-sm btn-dark border border-secondary" onclick="addNewContentBlock('video')">🎥 Video Block</button>
+                        <button type="button" class="btn btn-sm btn-dark border border-secondary" onclick="addNewContentBlock('code')">💻 Code Block</button>
+                        <button type="button" class="btn btn-sm btn-dark border border-secondary" onclick="addNewContentBlock('quiz')">🧪 Quiz Block</button>
+                        <button type="button" class="btn btn-sm btn-dark border border-secondary" onclick="addNewContentBlock('lab')">🖥️ Lab Block</button>
                     </div>
-                    <textarea name="content" id="main_lesson_content" class="form-control form-control-premium rounded-0 rounded-bottom border-top-0 font-monospace small" rows="5" placeholder="ป้อนเนื้อหาหลักของบทเรียน รองรับ HTML, โค้ด หรือข้อความทั่วไป..."><?= htmlspecialchars($lesson['content'] ?? '') ?></textarea>
-                </div>
 
-                <!-- Dynamic Loaded Blocks -->
-                <?php foreach ($blocks as $idx => $blk): ?>
-                    <div class="block-unit-item bg-dark bg-opacity-50 border border-secondary border-opacity-30 p-3 rounded mb-2">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="small fw-bold text-white-50"><i class="bi bi-grid-3x2-gap-fill text-muted me-2"></i>BLOCK: [<?= strtoupper(htmlspecialchars($blk['block_type'])) ?>]</span>
-                            <button type="button" class="btn btn-xs p-0 text-danger" onclick="$(this).closest('.block-unit-item').remove()"><i class="bi bi-trash-fill"></i></button>
+                    <div id="block-builder-stage">
+                        <!-- Rich Text Main Content Block -->
+                        <div class="block-unit-item" id="sample-rich-editor-block">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small fw-bold text-white-50 font-monospace"><i class="bi bi-grid-3x2-gap-fill me-2"></i>Main Lesson Content (Rich Text Content)</span>
+                                <span class="badge bg-secondary small">Default Text Engine</span>
+                            </div>
+                            <div class="btn-toolbar rich-editor-toolbar bg-dark p-2 rounded-top border border-secondary border-opacity-30 gap-1" role="toolbar">
+                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 fw-bold text-white" onclick="formatDoc('formatBlock', 'h1')">H1</button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 fw-bold text-white" onclick="formatDoc('formatBlock', 'h2')">H2</button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2" onclick="formatDoc('bold')"><i class="bi bi-type-bold"></i></button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2" onclick="formatDoc('italic')"><i class="bi bi-type-italic"></i></button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2" onclick="formatDoc('insertUnorderedList')"><i class="bi bi-list-ul"></i></button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2" onclick="formatDoc('insertOrderedList')"><i class="bi bi-list-ol"></i></button>
+                            </div>
+                            <textarea name="content" id="main_lesson_content" class="form-control form-control-premium rounded-0 rounded-bottom border-top-0 font-monospace small" rows="5" placeholder="ป้อนเนื้อหาหลักของบทเรียน รองรับ HTML, โค้ด หรือข้อความทั่วไป..."><?= htmlspecialchars($lesson['content'] ?? '') ?></textarea>
                         </div>
-                        <input type="hidden" name="blocks[<?= $idx ?>][type]" value="<?= htmlspecialchars($blk['block_type']) ?>">
-                        <textarea name="blocks[<?= $idx ?>][data]" class="form-control form-control-premium form-control-sm small" rows="2" placeholder="เนื้อหาหรือการตั้งค่าของบล็อก..."><?= htmlspecialchars($blk['block_data']) ?></textarea>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        </div>
 
-        <!-- ==========================================
-             3. VIDEO EDITOR
-             ========================================== -->
-        <div class="editor-section-card">
-            <div class="section-title">
-                <i class="bi bi-camera-video-fill text-warning"></i> 3. Video Editor (จัดการระบบวิดีโอการสอน)
-            </div>
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label form-label-premium">Upload Video Source File</label>
-                    <input type="file" name="video_file" class="form-control form-control-premium" accept="video/*">
-                    <?php if (!empty($lesson['video_file'])): ?>
-                        <input type="hidden" name="existing_video_file" value="<?= htmlspecialchars($lesson['video_file']) ?>">
-                        <small class="text-info d-block mt-1"><i class="bi bi-file-earmark-play"></i> ไฟล์เดิม: <?= htmlspecialchars($lesson['video_file']) ?></small>
-                    <?php endif; ?>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label form-label-premium">หรือ Embed Link วิดีโอภายนอก (YouTube / Vimeo)</label>
-                    <input type="text" name="video_url" class="form-control form-control-premium" value="<?= htmlspecialchars($lesson['video_url'] ?? '') ?>" placeholder="https://www.youtube.com/watch?v=...">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label form-label-premium">รูปภาพหน้าปกวิดีโอ (Thumbnail)</label>
-                    <input type="file" name="thumbnail" class="form-control form-control-premium" accept="image/*">
-                    <?php if (!empty($lesson['thumbnail'])): ?>
-                        <input type="hidden" name="existing_thumbnail" value="<?= htmlspecialchars($lesson['thumbnail']) ?>">
-                        <small class="text-info d-block mt-1"><i class="bi bi-image"></i> รูปภาพเดิม: <?= htmlspecialchars($lesson['thumbnail']) ?></small>
-                    <?php endif; ?>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label form-label-premium">ไฟล์คำบรรยายซับไตเติล (Subtitle SRT / VTT)</label>
-                    <input type="file" name="subtitle_file" class="form-control form-control-premium" accept=".srt,.vtt">
-                    <?php if (!empty($lesson['subtitle_file'])): ?>
-                        <input type="hidden" name="existing_subtitle_file" value="<?= htmlspecialchars($lesson['subtitle_file']) ?>">
-                        <small class="text-info d-block mt-1"><i class="bi bi-file-text"></i> ไฟล์เดิม: <?= htmlspecialchars($lesson['subtitle_file']) ?></small>
-                    <?php endif; ?>
-                </div>
-                <div class="col-md-4 d-flex align-items-end">
-                    <button type="button" class="btn btn-outline-info w-100 btn-premium-action" style="min-height: 46px;" onclick="previewVideoPlayer()">
-                        <i class="bi bi-play-circle me-1"></i> Preview Video
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- ==========================================
-             4. DOCUMENT MANAGEMENT
-             ========================================== -->
-        <div class="editor-section-card">
-            <div class="section-title">
-                <i class="bi bi-file-earmark-arrow-up-fill text-success"></i> 4. Document Management (อัปโหลดและจัดการเอกสาร)
-            </div>
-            <p class="editor-subtitle mt-0">รองรับระบบประมวลผลไฟล์สเปกตรัมกว้าง: PDF, Slide, ZIP, Source Code, Dataset, Image</p>
-            
-            <?php if (!empty($attachments)): ?>
-                <div class="mb-3">
-                    <label class="form-label form-label-premium">เอกสารแนบในบทเรียนปัจจุบัน:</label>
-                    <ul class="list-group list-group-flush bg-transparent">
-                        <?php foreach ($attachments as $att): ?>
-                            <li class="list-group-item bg-dark bg-opacity-40 text-white border-secondary d-flex justify-content-between align-items-center">
-                                <div>
-                                    <i class="bi bi-file-earmark-zip text-warning me-2"></i>
-                                    <?= htmlspecialchars($att['file_name']) ?>
-                                    <small class="text-muted ms-2">(<?= round($att['file_size']/1024, 1) ?> KB)</small>
+                        <!-- Dynamic Loaded Blocks -->
+                        <?php foreach ($blocks as $idx => $blk): ?>
+                            <div class="block-unit-item bg-dark bg-opacity-50 border border-secondary border-opacity-30 p-3 rounded mb-2">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small fw-bold text-white-50"><i class="bi bi-grid-3x2-gap-fill text-muted me-2"></i>BLOCK: [<?= strtoupper(htmlspecialchars($blk['block_type'])) ?>]</span>
+                                    <button type="button" class="btn btn-xs p-0 text-danger" onclick="$(this).closest('.block-unit-item').remove()"><i class="bi bi-trash-fill"></i></button>
                                 </div>
-                                <a href="/<?= htmlspecialchars($att['file_path']) ?>" class="btn btn-xs btn-outline-info" target="_blank">ดาวน์โหลด</a>
-                            </li>
+                                <input type="hidden" name="blocks[<?= $idx ?>][type]" value="<?= htmlspecialchars($blk['block_type']) ?>">
+                                <textarea name="blocks[<?= $idx ?>][data]" class="form-control form-control-premium form-control-sm small" rows="2" placeholder="เนื้อหาหรือการตั้งค่าของบล็อก..."><?= htmlspecialchars($blk['block_data']) ?></textarea>
+                            </div>
                         <?php endforeach; ?>
-                    </ul>
+                    </div>
                 </div>
-            <?php endif; ?>
 
-            <div class="p-4 border border-dashed border-secondary border-opacity-40 rounded-3 text-center bg-dark bg-opacity-20">
-                <i class="bi bi-cloud-arrow-up fs-2 text-muted mb-2 d-block"></i>
-                <span class="text-white-50 small d-block mb-2">ลากไฟล์เอกสารมาวางที่นี่ หรือคลิกเพื่อเลือกอัปโหลดไฟล์เข้าระบบคลาวด์คอร์ส</span>
-                <input type="file" name="attachments[]" class="form-control form-control-premium mx-auto" style="max-width: 380px;" multiple>
-            </div>
-        </div>
+                <!-- ==========================================
+                     3. VIDEO EDITOR
+                     ========================================== -->
+                <div class="editor-section-card">
+                    <div class="section-title">
+                        <i class="bi bi-camera-video-fill text-warning"></i> 3. Video Editor (จัดการระบบวิดีโอการสอน)
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label form-label-premium">Upload Video Source File</label>
+                            <input type="file" name="video_file" class="form-control form-control-premium" accept="video/*">
+                            <?php if (!empty($lesson['video_file'])): ?>
+                                <input type="hidden" name="existing_video_file" value="<?= htmlspecialchars($lesson['video_file']) ?>">
+                                <small class="text-info d-block mt-1"><i class="bi bi-file-earmark-play"></i> ไฟล์เดิม: <?= htmlspecialchars($lesson['video_file']) ?></small>
+                            <?php endif; ?>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label form-label-premium">หรือ Embed Link วิดีโอภายนอก (YouTube / Vimeo)</label>
+                            <input type="text" name="video_url" class="form-control form-control-premium" value="<?= htmlspecialchars($lesson['video_url'] ?? '') ?>" placeholder="https://www.youtube.com/watch?v=...">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label form-label-premium">รูปภาพหน้าปกวิดีโอ (Thumbnail)</label>
+                            <input type="file" name="thumbnail" class="form-control form-control-premium" accept="image/*">
+                            <?php if (!empty($lesson['thumbnail'])): ?>
+                                <input type="hidden" name="existing_thumbnail" value="<?= htmlspecialchars($lesson['thumbnail']) ?>">
+                                <small class="text-info d-block mt-1"><i class="bi bi-image"></i> รูปภาพเดิม: <?= htmlspecialchars($lesson['thumbnail']) ?></small>
+                            <?php endif; ?>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label form-label-premium">ไฟล์คำบรรยายซับไตเติล (Subtitle SRT / VTT)</label>
+                            <input type="file" name="subtitle_file" class="form-control form-control-premium" accept=".srt,.vtt">
+                            <?php if (!empty($lesson['subtitle_file'])): ?>
+                                <input type="hidden" name="existing_subtitle_file" value="<?= htmlspecialchars($lesson['subtitle_file']) ?>">
+                                <small class="text-info d-block mt-1"><i class="bi bi-file-text"></i> ไฟล์เดิม: <?= htmlspecialchars($lesson['subtitle_file']) ?></small>
+                            <?php endif; ?>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="button" class="btn btn-outline-info w-100 btn-premium-action" style="min-height: 46px;" onclick="previewVideoPlayer()">
+                                <i class="bi bi-play-circle me-1"></i> Preview Video
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- ==========================================
-             5. CODE BLOCK
-             ========================================== -->
-        <div class="editor-section-card">
-            <div class="section-title">
-                <i class="bi bi-code-square text-info"></i> 5. Code Block (แทรกตัวอย่างซอร์สโค้ด)
-            </div>
-            <div class="row g-2 mb-2 align-items-center">
-                <div class="col-md-4">
-                    <select class="form-select form-control-premium small lu-select">
-                        <option>PHP</option><option selected>JavaScript</option><option>Python</option><option>Java</option><option>C</option><option>C++</option><option>SQL</option><option>HTML/CSS</option>
-                    </select>
+                <!-- ==========================================
+                     5. CODE BLOCK
+                     ========================================== -->
+                <div class="editor-section-card">
+                    <div class="section-title">
+                        <i class="bi bi-code-square text-info"></i> 5. Code Block (แทรกตัวอย่างซอร์สโค้ด)
+                    </div>
+                    <div class="row g-2 mb-2 align-items-center">
+                        <div class="col-md-4">
+                            <select class="form-select form-control-premium small lu-select">
+                                <option>PHP</option><option selected>JavaScript</option><option>Python</option><option>Java</option><option>C</option><option>C++</option><option>SQL</option><option>HTML/CSS</option>
+                            </select>
+                        </div>
+                        <div class="col-md-8 text-end">
+                            <button type="button" class="btn btn-sm btn-outline-light text-cyan border-secondary border-opacity-40 py-2" onclick="copyCodeSnippet()"><i class="bi bi-copy me-1"></i> Copy Code Button</button>
+                        </div>
+                    </div>
+                    <textarea name="code_snippet" id="code_snippet_area" class="form-control form-control-premium font-monospace text-cyan small" rows="3">const currentScope = "Modern Block Scope Logic";&#10;console.log(`Executing within ${currentScope}`);</textarea>
                 </div>
-                <div class="col-md-8 text-end">
-                    <button type="button" class="btn btn-sm btn-outline-light text-cyan border-secondary border-opacity-40 py-2" onclick="copyCodeSnippet()"><i class="bi bi-copy me-1"></i> Copy Code Button</button>
-                </div>
-            </div>
-            <textarea name="code_snippet" id="code_snippet_area" class="form-control form-control-premium font-monospace text-cyan small" rows="3">const currentScope = "Modern Block Scope Logic";&#10;console.log(`Executing within ${currentScope}`);</textarea>
-        </div>
 
-        <!-- ==========================================
-             6. INTERACTIVE CONTENT
-             ========================================== -->
-        <div class="editor-section-card">
-            <div class="section-title">
-                <i class="bi bi-braces-asterisk text-purple"></i> 6. Interactive Content (เพิ่มเนื้อหาแบบโต้ตอบ)
+                <!-- ==========================================
+                     6. INTERACTIVE CONTENT
+                     ========================================== -->
+                <div class="editor-section-card">
+                    <div class="section-title">
+                        <i class="bi bi-braces-asterisk text-purple"></i> 6. Interactive Content (เพิ่มเนื้อหาแบบโต้ตอบ)
+                    </div>
+                    <div class="row g-2.5">
+                        <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item" onclick="insertInteractive('accordion')"><i class="bi bi-menu-button-wide text-info me-1"></i> + Accordion</button></div>
+                        <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item" onclick="insertInteractive('tabs')"><i class="bi bi-segmented-nav text-info me-1"></i> + Tabs Menu</button></div>
+                        <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item" onclick="insertInteractive('callout')"><i class="bi bi-exclamation-octagon text-info me-1"></i> + Callout Box</button></div>
+                        <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item" onclick="insertInteractive('timeline')"><i class="bi bi-clock-history text-info me-1"></i> + Timeline</button></div>
+                        <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item" onclick="insertInteractive('diagram')"><i class="bi bi-diagram-2 text-info me-1"></i> + Diagram</button></div>
+                        <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item" onclick="insertInteractive('embed')"><i class="bi bi-globe text-info me-1"></i> + Embed Website</button></div>
+                    </div>
+                </div>
             </div>
-            <div class="row g-2.5">
-                <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item" onclick="insertInteractive('accordion')"><i class="bi bi-menu-button-wide text-info me-1"></i> + Accordion</button></div>
-                <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item" onclick="insertInteractive('tabs')"><i class="bi bi-segmented-nav text-info me-1"></i> + Tabs Menu</button></div>
-                <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item" onclick="insertInteractive('callout')"><i class="bi bi-exclamation-octagon text-info me-1"></i> + Callout Box</button></div>
-                <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item" onclick="insertInteractive('timeline')"><i class="bi bi-clock-history text-info me-1"></i> + Timeline</button></div>
-                <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item" onclick="insertInteractive('diagram')"><i class="bi bi-diagram-2 text-info me-1"></i> + Diagram</button></div>
-                <div class="col-6 col-md-4"><button type="button" class="btn-interactive-item" onclick="insertInteractive('embed')"><i class="bi bi-globe text-info me-1"></i> + Embed Website</button></div>
-            </div>
-        </div>
 
-        <!-- ==========================================
-             7. QUIZ INTEGRATION
-             ========================================== -->
-        <div class="editor-section-card">
-            <div class="section-title">
-                <i class="bi bi-patch-question-fill text-warning"></i> 7. Quiz Integration (เชื่อมต่อชุดข้อสอบ)
-            </div>
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label form-label-premium">ดึงหัวข้อข้อสอบเดิมที่มีอยู่</label>
-                    <select name="quiz_id" class="form-select form-control-premium lu-select">
-                        <option value="">-- ไม่เชื่อมโยง Quiz --</option>
-                        <option value="1" <?= ($lesson && $lesson['quiz_id'] == 1) ? 'selected' : '' ?>>Quiz 1: Fundamentals of Block Scope</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label form-label-premium">กำหนดตำแหน่งแสดง</label>
-                    <select class="form-select form-control-premium lu-select">
-                        <option>ท้ายสุดของบทเรียน</option>
-                        <option>แทรกกลางเนื้อหา (ก่อนขึ้นหัวข้อแล็บ)</option>
-                    </select>
-                </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <button type="button" class="btn btn-success w-100 fw-medium" style="min-height: 46px;" onclick="LevelUpAlert.info('Quiz Builder', 'ระบบกำลังเปิด Modal สร้างควิซใหม่...')"><i class="bi bi-plus-lg"></i> สร้าง Quiz ใหม่</button>
-                </div>
-            </div>
-        </div>
+            <!-- FOR: Slide / Document -->
+            <div class="tool-module" id="tool-module-slide" style="display: none;">
+                <!-- ==========================================
+                     4. DOCUMENT MANAGEMENT
+                     ========================================== -->
+                <div class="editor-section-card">
+                    <div class="section-title">
+                        <i class="bi bi-file-earmark-arrow-up-fill text-success"></i> 4. Document Management (อัปโหลดและจัดการเอกสาร)
+                    </div>
+                    <p class="editor-subtitle mt-0">รองรับระบบประมวลผลไฟล์สเปกตรัมกว้าง: PDF, Slide, ZIP, Source Code, Dataset, Image</p>
+                    
+                    <?php if (!empty($attachments)): ?>
+                        <div class="mb-3">
+                            <label class="form-label form-label-premium">เอกสารแนบในบทเรียนปัจจุบัน:</label>
+                            <ul class="list-group list-group-flush bg-transparent">
+                                <?php foreach ($attachments as $att): ?>
+                                    <li class="list-group-item bg-dark bg-opacity-40 text-white border-secondary d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="bi bi-file-earmark-zip text-warning me-2"></i>
+                                            <?= htmlspecialchars($att['file_name']) ?>
+                                            <small class="text-muted ms-2">(<?= round($att['file_size']/1024, 1) ?> KB)</small>
+                                        </div>
+                                        <a href="/<?= htmlspecialchars($att['file_path']) ?>" class="btn btn-xs btn-outline-info" target="_blank">ดาวน์โหลด</a>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
+                    <?php endif; ?>
 
-        <!-- ==========================================
-             8. CODING LAB INTEGRATION
-             ========================================== -->
-        <div class="editor-section-card">
-            <div class="section-title">
-                <i class="bi bi-terminal-fill text-success"></i> 8. Coding Lab Integration (เชื่อมต่อห้องปฏิบัติการเขียนโค้ด)
-            </div>
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label form-label-premium">เลือก Coding Lab เดิมของหลักสูตร</label>
-                    <select name="lab_id" class="form-select form-control-premium lu-select">
-                        <option value="">-- ไม่เชื่อมโยง Lab --</option>
-                        <option value="1" <?= ($lesson && $lesson['lab_id'] == 1) ? 'selected' : '' ?>>Lab Assignment 3.1: Fix Scope Bug</option>
-                    </select>
-                </div>
-                <div class="col-md-6 d-flex align-items-end gap-2">
-                    <button type="button" class="btn btn-dark border border-secondary w-50" style="min-height: 46px;" onclick="LevelUpAlert.success('เชื่อมต่อแล้ว', 'เพิ่มไอเทมแล็บลงแผนบทเรียนเรียบร้อย')"><i class="bi bi-link-45deg"></i> ผูกมัดเชื่อม Lab ที่เลือก</button>
-                    <button type="button" class="btn btn-outline-info w-50" style="min-height: 46px;" onclick="LevelUpAlert.info('Lab Builder', 'เปลี่ยนเส้นทางไปโมดูล Lab Builder...')"><i class="bi bi-magic"></i> สร้าง Lab ใหม่เข้าคลัง</button>
+                    <div class="p-4 border border-dashed border-secondary border-opacity-40 rounded-3 text-center bg-dark bg-opacity-20">
+                        <i class="bi bi-cloud-arrow-up fs-2 text-muted mb-2 d-block"></i>
+                        <span class="text-white-50 small d-block mb-2">ลากไฟล์เอกสารมาวางที่นี่ หรือคลิกเพื่อเลือกอัปโหลดไฟล์เข้าระบบคลาวด์คอร์ส</span>
+                        <input type="file" name="attachments[]" class="form-control form-control-premium mx-auto" style="max-width: 380px;" multiple>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- ==========================================
-             9. VIRTUAL LAB INTEGRATION
-             ========================================== -->
-        <div class="editor-section-card">
-            <div class="section-title">
-                <i class="bi bi-cloud-haze2-fill text-cyan"></i> 9. Virtual Lab Integration (ห้องแล็บจำลองระบบ Cloud Sandbox)
-            </div>
-            <p class="editor-subtitle mt-0 mb-3">เชื่อมโยงบทเรียนกับสภาพแวดล้อมระบบปฏิบัติการ คอนเทนเนอร์ หรือโครงสร้างเครือข่ายความปลอดภัยสูง</p>
-            <div class="row g-2.5">
-                <div class="col-6 col-md-4">
-                    <label class="custom-checkbox-card">
-                        <input type="checkbox" name="virtual_lab[]" value="linux_cli" class="form-check-input" <?= in_array('linux_cli', $vLabConfig) ? 'checked' : '' ?>>
-                        <span>Linux Command CLI</span>
-                    </label>
-                </div>
-                <div class="col-6 col-md-4">
-                    <label class="custom-checkbox-card">
-                        <input type="checkbox" name="virtual_lab[]" value="docker" class="form-check-input" <?= (empty($vLabConfig) || in_array('docker', $vLabConfig)) ? 'checked' : '' ?>>
-                        <span>Docker Containers</span>
-                    </label>
-                </div>
-                <div class="col-6 col-md-4">
-                    <label class="custom-checkbox-card">
-                        <input type="checkbox" name="virtual_lab[]" value="sql_sandbox" class="form-check-input" <?= in_array('sql_sandbox', $vLabConfig) ? 'checked' : '' ?>>
-                        <span>SQL Server Sandbox</span>
-                    </label>
-                </div>
-                <div class="col-6 col-md-4">
-                    <label class="custom-checkbox-card">
-                        <input type="checkbox" name="virtual_lab[]" value="network" class="form-check-input" <?= in_array('network', $vLabConfig) ? 'checked' : '' ?>>
-                        <span>Network Topology</span>
-                    </label>
-                </div>
-                <div class="col-6 col-md-4">
-                    <label class="custom-checkbox-card">
-                        <input type="checkbox" name="virtual_lab[]" value="aws_gcp" class="form-check-input" <?= in_array('aws_gcp', $vLabConfig) ? 'checked' : '' ?>>
-                        <span>Cloud AWS/GCP Provider</span>
-                    </label>
-                </div>
-                <div class="col-6 col-md-4">
-                    <label class="custom-checkbox-card">
-                        <input type="checkbox" name="virtual_lab[]" value="cybersecurity" class="form-check-input" <?= in_array('cybersecurity', $vLabConfig) ? 'checked' : '' ?>>
-                        <span>Cybersecurity CTF Capture</span>
-                    </label>
+            <!-- FOR: Quiz / Examination -->
+            <div class="tool-module" id="tool-module-quiz" style="display: none;">
+                <!-- ==========================================
+                     7. QUIZ INTEGRATION
+                     ========================================== -->
+                <div class="editor-section-card">
+                    <div class="section-title">
+                        <i class="bi bi-patch-question-fill text-warning"></i> 7. Quiz Integration (เชื่อมต่อชุดข้อสอบ)
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label form-label-premium">ดึงหัวข้อข้อสอบเดิมที่มีอยู่</label>
+                            <select name="quiz_id" class="form-select form-control-premium lu-select">
+                                <option value="">-- ไม่เชื่อมโยง Quiz --</option>
+                                <option value="1" <?= ($lesson && $lesson['quiz_id'] == 1) ? 'selected' : '' ?>>Quiz 1: Fundamentals of Block Scope</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label form-label-premium">กำหนดตำแหน่งแสดง</label>
+                            <select class="form-select form-control-premium lu-select">
+                                <option>ท้ายสุดของบทเรียน</option>
+                                <option>แทรกกลางเนื้อหา (ก่อนขึ้นหัวข้อแล็บ)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="button" class="btn btn-success w-100 fw-medium" style="min-height: 46px;" onclick="LevelUpAlert.info('Quiz Builder', 'ระบบกำลังเปิด Modal สร้างควิซใหม่...')"><i class="bi bi-plus-lg"></i> สร้าง Quiz ใหม่</button>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- ==========================================
-             10. ASSIGNMENT INTEGRATION
-             ========================================== -->
-        <div class="editor-section-card">
-            <div class="section-title">
-                <i class="bi bi-file-earmark-medical-fill text-danger"></i> 10. Assignment Integration (การมอบหมายการบ้านภารกิจใหญ่)
-            </div>
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label form-label-premium">ประเภทการบ้านตรวจรับ</label>
-                    <select name="assignment_type" class="form-select form-control-premium lu-select">
-                        <option value="none" <?= ($lesson && $lesson['assignment_type'] == 'none') ? 'selected' : '' ?>>ไม่มีภารกิจการบ้านภายนอก (เน้นทำแล็บอัตโนมัติ)</option>
-                        <option value="file_upload" <?= (!$lesson || $lesson['assignment_type'] == 'file_upload') ? 'selected' : '' ?>>File Upload (นักเรียนอัปโหลดเอกสารหรือโปรเจกต์สรุป)</option>
-                        <option value="repo_submission" <?= ($lesson && $lesson['assignment_type'] == 'repo_submission') ? 'selected' : '' ?>>Coding Project Repo Submission</option>
-                        <option value="mini_project" <?= ($lesson && $lesson['assignment_type'] == 'mini_project') ? 'selected' : '' ?>>Mini Project Comprehensive Review</option>
-                    </select>
+            <!-- FOR: Coding Lab / Practical -->
+            <div class="tool-module" id="tool-module-lab" style="display: none;">
+                <!-- ==========================================
+                     8. CODING LAB INTEGRATION
+                     ========================================== -->
+                <div class="editor-section-card">
+                    <div class="section-title">
+                        <i class="bi bi-terminal-fill text-success"></i> 8. Coding Lab Integration (เชื่อมต่อห้องปฏิบัติการเขียนโค้ด)
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label form-label-premium">เลือก Coding Lab เดิมของหลักสูตร</label>
+                            <select name="lab_id" class="form-select form-control-premium lu-select">
+                                <option value="">-- ไม่เชื่อมโยง Lab --</option>
+                                <option value="1" <?= ($lesson && $lesson['lab_id'] == 1) ? 'selected' : '' ?>>Lab Assignment 3.1: Fix Scope Bug</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end gap-2">
+                            <button type="button" class="btn btn-dark border border-secondary w-50" style="min-height: 46px;" onclick="LevelUpAlert.success('เชื่อมต่อแล้ว', 'เพิ่มไอเทมแล็บลงแผนบทเรียนเรียบร้อย')"><i class="bi bi-link-45deg"></i> ผูกมัดเชื่อม Lab ที่เลือก</button>
+                            <button type="button" class="btn btn-outline-info w-50" style="min-height: 46px;" onclick="LevelUpAlert.info('Lab Builder', 'เปลี่ยนเส้นทางไปโมดูล Lab Builder...')"><i class="bi bi-magic"></i> สร้าง Lab ใหม่เข้าคลัง</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label form-label-premium">เกณฑ์คะแนนและคำสั่งระบุภารกิจ (Instructions)</label>
-                    <input type="text" name="assignment_instructions" class="form-control form-control-premium" value="<?= htmlspecialchars($lesson['assignment_instructions'] ?? '') ?>" placeholder="เช่น ส่งไฟล์ Zip โครงสร้างคลาสใน 7 วัน">
+
+                <!-- ==========================================
+                     9. VIRTUAL LAB INTEGRATION
+                     ========================================== -->
+                <div class="editor-section-card">
+                    <div class="section-title">
+                        <i class="bi bi-cloud-haze2-fill text-cyan"></i> 9. Virtual Lab Integration (ห้องแล็บจำลองระบบ Cloud Sandbox)
+                    </div>
+                    <p class="editor-subtitle mt-0 mb-3">เชื่อมโยงบทเรียนกับสภาพแวดล้อมระบบปฏิบัติการ คอนเทนเนอร์ หรือโครงสร้างเครือข่ายความปลอดภัยสูง</p>
+                    <div class="row g-2.5">
+                        <div class="col-6 col-md-4">
+                            <label class="custom-checkbox-card">
+                                <input type="checkbox" name="virtual_lab[]" value="linux_cli" class="form-check-input" <?= in_array('linux_cli', $vLabConfig) ? 'checked' : '' ?>>
+                                <span>Linux Command CLI</span>
+                            </label>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label class="custom-checkbox-card">
+                                <input type="checkbox" name="virtual_lab[]" value="docker" class="form-check-input" <?= (empty($vLabConfig) || in_array('docker', $vLabConfig)) ? 'checked' : '' ?>>
+                                <span>Docker Containers</span>
+                            </label>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label class="custom-checkbox-card">
+                                <input type="checkbox" name="virtual_lab[]" value="sql_sandbox" class="form-check-input" <?= in_array('sql_sandbox', $vLabConfig) ? 'checked' : '' ?>>
+                                <span>SQL Server Sandbox</span>
+                            </label>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label class="custom-checkbox-card">
+                                <input type="checkbox" name="virtual_lab[]" value="network" class="form-check-input" <?= in_array('network', $vLabConfig) ? 'checked' : '' ?>>
+                                <span>Network Topology</span>
+                            </label>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label class="custom-checkbox-card">
+                                <input type="checkbox" name="virtual_lab[]" value="aws_gcp" class="form-check-input" <?= in_array('aws_gcp', $vLabConfig) ? 'checked' : '' ?>>
+                                <span>Cloud AWS/GCP Provider</span>
+                            </label>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label class="custom-checkbox-card">
+                                <input type="checkbox" name="virtual_lab[]" value="cybersecurity" class="form-check-input" <?= in_array('cybersecurity', $vLabConfig) ? 'checked' : '' ?>>
+                                <span>Cybersecurity CTF Capture</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
-            </div>
+
+                <!-- ==========================================
+                     10. ASSIGNMENT INTEGRATION
+                     ========================================== -->
+                <div class="editor-section-card">
+                    <div class="section-title">
+                        <i class="bi bi-file-earmark-medical-fill text-danger"></i> 10. Assignment Integration (การมอบหมายการบ้านภารกิจใหญ่)
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label form-label-premium">ประเภทการบ้านตรวจรับ</label>
+                            <select name="assignment_type" class="form-select form-control-premium lu-select">
+                                <option value="none" <?= ($lesson && $lesson['assignment_type'] == 'none') ? 'selected' : '' ?>>ไม่มีภารกิจการบ้านภายนอก (เน้นทำแล็บอัตโนมัติ)</option>
+                                <option value="file_upload" <?= (!$lesson || $lesson['assignment_type'] == 'file_upload') ? 'selected' : '' ?>>File Upload (นักเรียนอัปโหลดเอกสารหรือโปรเจกต์สรุป)</option>
+                                <option value="repo_submission" <?= ($lesson && $lesson['assignment_type'] == 'repo_submission') ? 'selected' : '' ?>>Coding Project Repo Submission</option>
+                                <option value="mini_project" <?= ($lesson && $lesson['assignment_type'] == 'mini_project') ? 'selected' : '' ?>>Mini Project Comprehensive Review</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label form-label-premium">เกณฑ์คะแนนและคำสั่งระบุภารกิจ (Instructions)</label>
+                            <input type="text" name="assignment_instructions" class="form-control form-control-premium" value="<?= htmlspecialchars($lesson['assignment_instructions'] ?? '') ?>" placeholder="เช่น ส่งไฟล์ Zip โครงสร้างคลาสใน 7 วัน">
+                        </div>
+                    </div>
+                </div>
+            </div> <!-- end #editor-tools-container -->
         </div>
 
         <!-- ==========================================
@@ -1253,6 +1278,48 @@ if (!empty($lesson['virtual_lab_config'])) {
         $('#pv-time').text('⏱️ เวลาเรียน: ' + time);
         $('#pv-content').html(content.replace(/\n/g, '<br>'));
     }
+</script>
+
+<script>
+    function toggleEditorTools(type) {
+        const container = $('#editor-tools-container');
+        const prompt = $('#editor-prompt');
+        const modules = $('.tool-module');
+
+        // Hide all modules first
+        modules.hide();
+
+        if (!type) {
+            prompt.show();
+            container.hide();
+            return;
+        }
+
+        prompt.hide();
+        container.show();
+
+        switch (type) {
+            case 'theory':
+            case 'video': // Backward compatibility
+                $('#tool-module-theory').show();
+                break;
+            case 'slide':
+                $('#tool-module-slide').show();
+                break;
+            case 'quiz':
+                $('#tool-module-quiz').show();
+                break;
+            case 'lab':
+                $('#tool-module-lab').show();
+                break;
+        }
+    }
+
+    // Set initial state on page load
+    $(document).ready(function() {
+        const initialType = $('#lesson_type_select').val();
+        toggleEditorTools(initialType);
+    });
 </script>
 
 <!-- Import Dropdown Select Script -->
