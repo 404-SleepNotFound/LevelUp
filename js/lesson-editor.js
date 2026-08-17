@@ -204,4 +204,10 @@ $(document).ready(function() {
     
     // --- INITIALIZATION ---
     resetUI(true, true); // Initial state
+
+    // Check if a course is already selected on page load and trigger the change event to load chapters.
+    const initialCourseId = $courseSelect.val();
+    if (initialCourseId) {
+        $courseSelect.trigger('change');
+    }
 });
