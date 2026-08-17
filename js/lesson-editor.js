@@ -83,7 +83,7 @@ $(document).ready(function() {
     function makeAjaxRequest(params, successCallback) {
         $.ajax({
             url: API_ENDPOINT,
-            type: 'GET',
+            type: 'POST',
             data: params,
             dataType: 'json',
             beforeSend: function() {

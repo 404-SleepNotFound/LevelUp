@@ -15,7 +15,7 @@ require_once __DIR__ . '/../config/db.php';
 $conn = $conn ?? $pdo;
 
 // Action dispatcher
-$action = $_GET['action'] ?? '';
+$action = $_POST['action'] ?? '';
 
 if (!$conn instanceof PDO) {
     echo json_encode(['status' => 'error', 'message' => 'Database connection failed.']);
@@ -55,7 +55,7 @@ exit;
  * Fetches chapters for a given course ID, ensuring the user owns the course.
  */
 function handle_get_chapters($conn, $user_id) {
-    $course_id = filter_input(INPUT_GET, 'course_id', FILTER_VALIDATE_INT);
+    $course_id = filter_input(INPUT_POST, 'course_id', FILTER_VALIDATE_INT);
     if (!$course_id) {
         echo json_encode(['status' => 'error', 'message' => 'Invalid or missing Course ID.']);
         return;
@@ -82,7 +82,7 @@ function handle_get_chapters($conn, $user_id) {
  * The course ownership is implicitly checked via the chapter's course_id.
  */
 function handle_get_lessons($conn, $user_id) {
-    $chapter_id = filter_input(INPUT_GET, 'chapter_id', FILTER_VALIDATE_INT);
+    $chapter_id = filter_input(INPUT_POST, 'chapter_id', FILTER_VALIDATE_INT);
     if (!$chapter_id) {
         echo json_encode(['status' => 'error', 'message' => 'Invalid or missing Chapter ID.']);
         return;
@@ -119,7 +119,7 @@ function handle_get_lessons($conn, $user_id) {
  * Fetches the full details for a specific lesson ID.
  */
 function handle_get_lesson_details($conn, $user_id) {
-    $lesson_id = filter_input(INPUT_GET, 'lesson_id', FILTER_VALIDATE_INT);
+    $lesson_id = filter_input(INPUT_POST, 'lesson_id', FILTER_VALIDATE_INT);
     if (!$lesson_id) {
         echo json_encode(['status' => 'error', 'message' => 'Invalid or missing Lesson ID.']);
         return;
