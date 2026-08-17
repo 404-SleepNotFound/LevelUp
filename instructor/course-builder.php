@@ -7,7 +7,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // ดึง User ID จาก Session
-$current_user_id = $_SESSION['user_login']['user_id'] 
+$current_user_id = $_SESSION['user_login']['id'] 
                 ?? $_SESSION['user_id'] 
                 ?? null;
 

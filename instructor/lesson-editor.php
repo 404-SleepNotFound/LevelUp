@@ -6,7 +6,7 @@ $ROOT_PATH = '/';
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
 // ตรวจสอบ Authorization: ผู้ใช้ต้องล็อกอินเข้าสู่ระบบก่อน
-$user_id = $_SESSION['user_login']['user_id'] ?? $_SESSION['user_id'] ?? $_SESSION['user']['id'] ?? 0;
+$user_id = $_SESSION['user_login']['id'] ?? $_SESSION['user_id'] ?? $_SESSION['user']['id'] ?? 0;
 if (!$user_id) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header('Content-Type: application/json; charset=utf-8');

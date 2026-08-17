@@ -93,7 +93,7 @@ if ($action === 'save_course_structure') {
         exit;
     }
 
-    $current_user_id = $_SESSION['user_login']['user_id'] ?? $_SESSION['user_id'] ?? null;
+    $current_user_id = $_SESSION['user_login']['id'] ?? $_SESSION['user_id'] ?? null;
     if (!$current_user_id) {
         echo json_encode(['status' => 'error', 'message' => 'Authentication required. Please log in.']);
         exit;

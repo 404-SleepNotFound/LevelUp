@@ -4,7 +4,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
 // [1. Security & Prerequisities]
 // Check user authentication
-$user_id = $_SESSION['user_login']['user_id'] ?? $_SESSION['user_id'] ?? $_SESSION['user']['id'] ?? 0;
+$user_id = $_SESSION['user_login']['id'] ?? $_SESSION['user_id'] ?? $_SESSION['user']['id'] ?? 0;
 if (!$user_id) {
     echo json_encode(['status' => 'error', 'message' => 'Authentication required. Please log in.']);
     exit;
