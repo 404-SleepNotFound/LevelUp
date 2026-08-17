@@ -20,6 +20,101 @@
 
   var ENHANCED_FLAG = 'luDropdownEnhanced';
 
+  // ฟังก์ชันช่วยตั้งค่า Label (แสดงผลทั้ง ไอคอน และ ข้อความ)
+  function updateLabel(labelElement, opt) {
+    labelElement.innerHTML = '';
+    if (opt && opt.dataset && opt.dataset.icon) {
+      var labelIcon = document.createElement('i');
+      labelIcon.className = 'bi ' + opt.dataset.icon + ' me-2 text-info';
+      labelElement.appendChild(labelIcon);
+    }
+    var textNode = document.createTextNode(opt ? opt.textContent : '');
+    labelElement.appendChild(textNode);
+  }
+
+  // New function to render or re-render the dropdown items
+  function renderDropdownItems(select, menu, labelElement, closeMenuFn) {
+    // Clear existing items
+    menu.innerHTML = '';
+
+    var options = select.querySelectorAll('option');
+    var items = []; // To store newly created custom-dropdown-item elements for event binding
+
+    options.forEach(function (opt, index) {
+      var item = document.createElement('div');
+      item.className = 'custom-dropdown-item';
+      item.dataset.value = opt.value;
+      item.setAttribute('role', 'option');
+
+      // ตรวจสอบและเพิ่ม Icon ประจำ Item (ถ้ามี data-icon)
+      if (opt.dataset.icon) {
+        var icon = document.createElement('i');
+        icon.className = 'bi ' + opt.dataset.icon + ' me-2 text-info';
+        item.appendChild(icon);
+      }
+
+      var textSpan = document.createTextNode(opt.textContent);
+      item.appendChild(textSpan);
+
+      if (opt.disabled) item.classList.add('disabled-item');
+      if (opt.selected) {
+        item.classList.add('selected');
+      }
+
+      menu.appendChild(item);
+      items.push(item);
+
+      // Attach click listener for new item
+      item.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (item.classList.contains('disabled-item')) return;
+
+        // Remove 'selected' from all items and add to the clicked one
+        items.forEach(function (i) { i.classList.remove('selected'); });
+        item.classList.add('selected');
+
+        select.value = item.dataset.value; // Update the original select's value
+        select.classList.remove('is-invalid');
+        // Dispatch native 'change' event
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+
+        // Update the main button label from the selected option
+        var selectedOpt = Array.from(options).find(o => o.value === select.value);
+        if (selectedOpt) {
+          updateLabel(labelElement, selectedOpt);
+        }
+
+        if (closeMenuFn) closeMenuFn();
+      });
+    });
+
+    // Update the main button label based on the current select.value
+    var currentlySelectedOpt = Array.from(options).find(o => o.value === select.value && o.selected) ||
+                               Array.from(options).find(o => o.value === select.value);
+    if (currentlySelectedOpt) {
+      updateLabel(labelElement, currentlySelectedOpt);
+    } else if (options.length > 0) {
+      // If no option is selected in the original select, try to select the first non-disabled one
+      var firstNonDisabled = Array.from(options).find(o => !o.disabled);
+      if (firstNonDisabled) {
+        select.value = firstNonDisabled.value;
+        firstNonDisabled.selected = true;
+        updateLabel(labelElement, firstNonDisabled);
+        // Mark the corresponding custom item as selected
+        var firstCustomItem = items.find(i => i.dataset.value === firstNonDisabled.value);
+        if (firstCustomItem) {
+          firstCustomItem.classList.add('selected');
+        }
+      } else {
+        // All options are disabled or no options, clear label
+        updateLabel(labelElement, null);
+      }
+    } else {
+      // No options at all, clear label
+      updateLabel(labelElement, null);
+    }
+  }
+
   function initDropdownWrapper(select) {
     if (select.dataset[ENHANCED_FLAG] === '1') return;
     select.dataset[ENHANCED_FLAG] = '1';
@@ -41,94 +136,6 @@
     var menu = document.createElement('div');
     menu.className = 'custom-dropdown-menu';
     menu.setAttribute('role', 'listbox');
-
-    var options = select.querySelectorAll('option');
-    var items = [];
-
-    // ฟังก์ชันช่วยตั้งค่า Label (แสดงผลทั้ง ไอคอน และ ข้อความ)
-    function updateLabel(labelElement, opt) {
-      labelElement.innerHTML = '';
-      if (opt.dataset.icon) {
-        var labelIcon = document.createElement('i');
-        labelIcon.className = 'bi ' + opt.dataset.icon + ' me-2 text-info';
-        labelElement.appendChild(labelIcon);
-      }
-      var textNode = document.createTextNode(opt.textContent);
-      labelElement.appendChild(textNode);
-    }
-
-    // New function to render or re-render the dropdown items
-    function renderDropdownItems(select, menu, labelElement, closeMenuFn) {
-      // Clear existing items
-      menu.innerHTML = '';
-
-      var options = select.querySelectorAll('option');
-      var items = []; // To store newly created custom-dropdown-item elements for event binding
-
-      options.forEach(function (opt, index) {
-        var item = document.createElement('div');
-        item.className = 'custom-dropdown-item';
-        item.dataset.value = opt.value;
-        item.setAttribute('role', 'option');
-
-        // ตรวจสอบและเพิ่ม Icon ประจำ Item (ถ้ามี data-icon)
-        if (opt.dataset.icon) {
-          var icon = document.createElement('i');
-          icon.className = 'bi ' + opt.dataset.icon + ' me-2 text-info';
-          item.appendChild(icon);
-        }
-
-        var textSpan = document.createElement('span');
-        textSpan.textContent = opt.textContent;
-        item.appendChild(textSpan);
-
-        if (opt.disabled) item.classList.add('disabled-item');
-        if (opt.selected) {
-          item.classList.add('selected');
-          updateLabel(labelElement, opt);
-        }
-
-        menu.appendChild(item);
-        items.push(item);
-
-        // Attach click listener for new item
-        item.addEventListener('click', function () {
-          if (item.classList.contains('disabled-item')) return;
-
-          // Remove 'selected' from all items and add to the clicked one
-          items.forEach(function (i) { i.classList.remove('selected'); });
-          item.classList.add('selected');
-
-          var targetOpt = options[index]; // Get the corresponding original option
-          updateLabel(labelElement, targetOpt); // Update the main button label
-
-          select.value = item.dataset.value; // Update the original select's value
-          select.classList.remove('is-invalid');
-          // Dispatch native 'change' event
-          select.dispatchEvent(new Event('change', { bubbles: true }));
-
-          if (closeMenuFn) closeMenuFn();
-        });
-      });
-
-      // If no option was selected, but options exist, select the first one visually
-      // And ensure the original select's value is also set if it wasn't already.
-      if (!select.value && options.length) {
-        options[0].selected = true;
-        select.value = options[0].value;
-        updateLabel(labelElement, options[0]);
-        // Also mark the first custom item as selected if it's not disabled
-        if (items[0] && !items[0].classList.contains('disabled-item')) {
-            items[0].classList.add('selected');
-        }
-      } else {
-          // Ensure the label matches the currently selected option
-          var selectedOpt = Array.from(options).find(o => o.selected);
-          if (selectedOpt) {
-              updateLabel(labelElement, selectedOpt);
-          }
-      }
-    }
 
     // ย้าย select จริงเข้ามาไว้ในกล่องเดียวกันแล้วซ่อนไว้
     // (ยังอยู่ใน <form> เดิม name/id/required เดิมทุกอย่าง เพื่อ submit ได้ปกติ)
@@ -166,30 +173,22 @@
       }
     });
 
-    items.forEach(function (item, index) {
-      item.addEventListener('click', function () {
-        if (item.classList.contains('disabled-item')) return;
+    // Initial render
+    renderDropdownItems(select, menu, label, closeMenu);
 
-        items.forEach(function (i) { i.classList.remove('selected'); });
-        item.classList.add('selected');
-
-        var targetOpt = options[index];
-        updateLabel(targetOpt);
-
-        select.value = item.dataset.value;
-        select.classList.remove('is-invalid');
-        // ยิง 'change' จริงให้ select เดิม เพื่อให้ onchange="..."
-        // ที่ผูกไว้ในหน้าเดิม (เช่น togglePriceFields, updateDifficultyHelp)
-        // ยังทำงานเหมือนเดิมทุกอย่าง
-        select.dispatchEvent(new Event('change', { bubbles: true }));
-
-        closeMenu();
+    // MutationObserver to watch for changes in the <select> element's options
+    var observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.type === 'childList' && mutation.target === select) {
+          renderDropdownItems(select, menu, label, closeMenu);
+        }
       });
     });
+    observer.observe(select, { childList: true });
   }
 
   function enhanceAll(scope) {
-    (scope || document).querySelectorAll('select.lu-select').forEach(buildDropdown);
+    (scope || document).querySelectorAll('select.lu-select').forEach(initDropdownWrapper);
   }
 
   // ปิดเมนูเมื่อคลิกข้างนอก (ผูก event ครั้งเดียว ใช้ delegation)
@@ -216,7 +215,7 @@
       m.addedNodes.forEach(function (node) {
         if (node.nodeType !== 1) return;
         if (node.matches && node.matches('select.lu-select')) {
-          buildDropdown(node);
+          initDropdownWrapper(node); // Call initDropdownWrapper for new select elements
         } else if (node.querySelectorAll) {
           enhanceAll(node);
         }
