@@ -19,7 +19,6 @@ $(document).ready(function() {
 
         if (courseId) {
             fetchChapters(courseId);
-            $chapterSelect.prop('disabled', false).trigger('lu:update');
         } else {
             $chapterSelect.prop('disabled', true).html('<option value="">-- กรุณาเลือกคอร์สก่อน --</option>').trigger('lu:update');
         }
@@ -32,7 +31,6 @@ $(document).ready(function() {
 
         if (chapterId) {
             fetchLessons(chapterId);
-            $lessonSelect.prop('disabled', false).trigger('lu:update');
         } else {
             $lessonSelect.prop('disabled', true).html('<option value="">-- กรุณาเลือก Chapter ก่อน --</option>').trigger('lu:update');
         }
@@ -65,6 +63,7 @@ $(document).ready(function() {
     function fetchChapters(courseId) {
         makeAjaxRequest({ action: 'get_chapters', course_id: courseId }, function(data) {
             populateSelect($chapterSelect, data.chapters, 'id', 'title', '-- เลือก Chapter --');
+            $chapterSelect.prop('disabled', false).trigger('lu:update');
         });
     }
 
