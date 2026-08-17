@@ -20,7 +20,7 @@
 
   var ENHANCED_FLAG = 'luDropdownEnhanced';
 
-  function buildDropdown(select) {
+  function initDropdownWrapper(select) {
     if (select.dataset[ENHANCED_FLAG] === '1') return;
     select.dataset[ENHANCED_FLAG] = '1';
 
@@ -46,47 +46,88 @@
     var items = [];
 
     // ฟังก์ชันช่วยตั้งค่า Label (แสดงผลทั้ง ไอคอน และ ข้อความ)
-    function updateLabel(opt) {
-      label.innerHTML = '';
+    function updateLabel(labelElement, opt) {
+      labelElement.innerHTML = '';
       if (opt.dataset.icon) {
         var labelIcon = document.createElement('i');
         labelIcon.className = 'bi ' + opt.dataset.icon + ' me-2 text-info';
-        label.appendChild(labelIcon);
+        labelElement.appendChild(labelIcon);
       }
       var textNode = document.createTextNode(opt.textContent);
-      label.appendChild(textNode);
+      labelElement.appendChild(textNode);
     }
 
-    options.forEach(function (opt) {
-      var item = document.createElement('div');
-      item.className = 'custom-dropdown-item';
-      item.dataset.value = opt.value;
-      item.setAttribute('role', 'option');
+    // New function to render or re-render the dropdown items
+    function renderDropdownItems(select, menu, labelElement, closeMenuFn) {
+      // Clear existing items
+      menu.innerHTML = '';
 
-      // ตรวจสอบและเพิ่ม Icon ประจำ Item (ถ้ามี data-icon)
-      if (opt.dataset.icon) {
-        var icon = document.createElement('i');
-        icon.className = 'bi ' + opt.dataset.icon + ' me-2 text-info';
-        item.appendChild(icon);
+      var options = select.querySelectorAll('option');
+      var items = []; // To store newly created custom-dropdown-item elements for event binding
+
+      options.forEach(function (opt, index) {
+        var item = document.createElement('div');
+        item.className = 'custom-dropdown-item';
+        item.dataset.value = opt.value;
+        item.setAttribute('role', 'option');
+
+        // ตรวจสอบและเพิ่ม Icon ประจำ Item (ถ้ามี data-icon)
+        if (opt.dataset.icon) {
+          var icon = document.createElement('i');
+          icon.className = 'bi ' + opt.dataset.icon + ' me-2 text-info';
+          item.appendChild(icon);
+        }
+
+        var textSpan = document.createElement('span');
+        textSpan.textContent = opt.textContent;
+        item.appendChild(textSpan);
+
+        if (opt.disabled) item.classList.add('disabled-item');
+        if (opt.selected) {
+          item.classList.add('selected');
+          updateLabel(labelElement, opt);
+        }
+
+        menu.appendChild(item);
+        items.push(item);
+
+        // Attach click listener for new item
+        item.addEventListener('click', function () {
+          if (item.classList.contains('disabled-item')) return;
+
+          // Remove 'selected' from all items and add to the clicked one
+          items.forEach(function (i) { i.classList.remove('selected'); });
+          item.classList.add('selected');
+
+          var targetOpt = options[index]; // Get the corresponding original option
+          updateLabel(labelElement, targetOpt); // Update the main button label
+
+          select.value = item.dataset.value; // Update the original select's value
+          select.classList.remove('is-invalid');
+          // Dispatch native 'change' event
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+
+          if (closeMenuFn) closeMenuFn();
+        });
+      });
+
+      // If no option was selected, but options exist, select the first one visually
+      // And ensure the original select's value is also set if it wasn't already.
+      if (!select.value && options.length) {
+        options[0].selected = true;
+        select.value = options[0].value;
+        updateLabel(labelElement, options[0]);
+        // Also mark the first custom item as selected if it's not disabled
+        if (items[0] && !items[0].classList.contains('disabled-item')) {
+            items[0].classList.add('selected');
+        }
+      } else {
+          // Ensure the label matches the currently selected option
+          var selectedOpt = Array.from(options).find(o => o.selected);
+          if (selectedOpt) {
+              updateLabel(labelElement, selectedOpt);
+          }
       }
-
-      var textSpan = document.createElement('span');
-      textSpan.textContent = opt.textContent;
-      item.appendChild(textSpan);
-
-      if (opt.disabled) item.classList.add('disabled-item');
-
-      if (opt.selected) {
-        item.classList.add('selected');
-        updateLabel(opt);
-      }
-
-      menu.appendChild(item);
-      items.push(item);
-    });
-
-    if (!label.childNodes.length && options.length) {
-      updateLabel(options[0]);
     }
 
     // ย้าย select จริงเข้ามาไว้ในกล่องเดียวกันแล้วซ่อนไว้
