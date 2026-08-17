@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    const API_ENDPOINT = '/api/ajax_lesson_editor.php';
+    const API_ENDPOINT = '../api/ajax_lesson_editor.php';
 
     // Cache jQuery selectors
     const $courseSelect = $('#course_id_select');
