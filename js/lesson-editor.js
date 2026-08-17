@@ -110,12 +110,22 @@ $(document).ready(function() {
     // --- UI HELPER FUNCTIONS ---
 
     function populateSelect($select, items, valueKey, textKey, defaultOption, dataKey = null) {
-        let options = `<option value="">${defaultOption}</option>`;
+        let options = '';
         if (items && items.length > 0) {
+            options = `<option value="">${defaultOption}</option>`;
             items.forEach(item => {
                 const dataAttribute = dataKey ? `data-${dataKey}="${item[dataKey]}"` : '';
                 options += `<option value="${item[valueKey]}" ${dataAttribute}>${item[textKey]}</option>`;
             });
+        } else {
+            const selectId = $select.attr('id');
+            let noDataMessage = '-- ไม่มีข้อมูล --';
+            if (selectId === 'chapter_id_select') {
+                noDataMessage = '-- ไม่มี Chapter ในคอร์สนี้ (กรุณาไปสร้างก่อน) --';
+            } else if (selectId === 'lesson_id_select') {
+                noDataMessage = '-- ไม่มี Lesson ใน Chapter นี้ --';
+            }
+            options = `<option value="">${noDataMessage}</option>`;
         }
         $select.html(options).trigger('lu:update'); // lu:update is for the custom dropdown
     }
