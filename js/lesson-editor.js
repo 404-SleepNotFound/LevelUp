@@ -90,11 +90,13 @@ $(document).ready(function() {
                 // You can add a loading indicator here if needed
             },
             success: function(response) {
-                if (response.status === 'success') {
+                if (response && response.status === 'success') {
                     successCallback(response);
                 } else {
-                    console.error('API Error:', response.message);
-                    // LevelUpAlert.error('API Error', response.message);
+                    const errorMsg = response.message || 'Unknown API error';
+                    console.error('API Error:', errorMsg);
+                    // Optionally use a more user-friendly alert
+                    // LevelUpAlert.error('API Error', errorMsg);
                 }
             },
             error: function(xhr, status, error) {
